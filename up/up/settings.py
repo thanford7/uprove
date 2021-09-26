@@ -35,7 +35,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 DEBUG = os.getenv("DEBUG", "False") == "True"
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "False") == "True"
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1'] if DEBUG else ['.uprove.co']
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # Application definition
 
@@ -85,11 +85,12 @@ WSGI_APPLICATION = 'up.wsgi.application'
 if DEVELOPMENT_MODE is True:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'OPTIONS': {
-                'read_default_file': os.path.join(BASE_DIR, 'connection.cnf'),
-                'init_command': 'SET default_storage_engine=INNODB',
-            },
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'uprove',
+            'USER': env('USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': 'localhost',
+            'PORT': 5432
         }
     }
 elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':

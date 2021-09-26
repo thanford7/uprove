@@ -1,4 +1,3 @@
 db.sqlite3
-connection.cnf
 *.pyc
 .env
