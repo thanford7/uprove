@@ -1,0 +1,40 @@
+@use "./colors";
+@import "bootstrap/scss/bootstrap-grid";
+
+.site-header {
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+
+    .navbar {
+        padding: 0 1rem;
+    }
+}
+
+@include media-breakpoint-down(md) {
+    .bar {
+        display: block;
+        width: 25px;
+        height: 3px;
+        margin: 5px auto;
+        -webkit-transition: all 0.3s ease-in-out;
+        transition: all 0.3s ease-in-out;
+        background-color: colors.$color-moderategrey;
+    }
+
+    .hamburger {
+        float: right;
+        display: block;
+        cursor: pointer;
+    }
+
+    .navbar-collapse.show ~ button .hamburger .bar {
+        &:nth-child(2) {
+            opacity: 0;
+        }
+        &:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+        &:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+    }
+}

@@ -1,0 +1,54 @@
+@use "bootstrap/scss/bootstrap.scss";
+@use 'colors';
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/utilities";
+
+.modal {
+    z-index: 10000;
+
+    .modal-body-banner {
+        margin: auto -16px;
+        padding-left: 16px;
+        padding-right: 16px;
+        background-color: colors.$color-lightgrey;
+
+        &--top {
+            margin-top: -16px;
+        }
+
+        &--bottom {
+            margin-bottom: -16px;
+        }
+    }
+}
+
+.row {
+    .card {
+        padding-right: 0;
+        padding-left: 0;
+        margin-right: calc(var(--bs-gutter-x) / 2);
+        margin-left: calc(var(--bs-gutter-x) / 2);
+        overflow: hidden;
+
+        .card-inner {
+            max-height: 300px;
+        }
+
+        img {
+            max-height: 174px;
+            object-fit: cover;
+        }
+    }
+}
+
+.btn {
+    &-full-width {
+        width: 100%;
+    }
+}
+
+.form-section {
+    border-bottom: 1px solid colors.$color-lightgrey;
+    margin-bottom: 10px;
+}

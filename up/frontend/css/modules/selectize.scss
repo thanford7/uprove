@@ -1,0 +1,31 @@
+@use 'colors';
+
+.selectize-dropdown, .selectize-input, .selectize-input input {
+    font-size: 1rem;
+}
+
+.selectize-dropdown-content > div {
+    padding: 6px;
+}
+
+.selectize-dropdown .optgroup .optgroup-header {
+    background-color: colors.$color-lightgrey;
+    font-weight: bold;
+    margin-left: -6px;
+    margin-right: -6px;
+}
+
+.selectize-control div.img {
+    display: inline-block;
+
+    .img-thumbnail {
+        margin: 5px;
+        width: 60px;
+        vertical-align: middle;
+    }
+
+    span {
+        display: inline-block;
+        vertical-align: middle;
+    }
+}

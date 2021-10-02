@@ -1,0 +1,26 @@
+.ProseMirror p {
+    margin: 1em 0;
+
+    &.is-editor-empty:first-child::before {
+        content: attr(data-placeholder);
+        float: left;
+        color: #ced4da;
+        pointer-events: none;
+        height: 0;
+    }
+}
+
+.wysiwyg {
+    h1, h2, h3, h4, h5, h6 {
+        margin: 0;
+    }
+}
+
+li {
+    list-style-position: inside;
+}
+
+.url-form {
+    border-width: 0;
+    padding: 0;
+}
