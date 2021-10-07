@@ -112,7 +112,7 @@ export default {
         onSaveSuccess(newContentItem) {
             this.eventBus.loadContent(['media', this.addContentType]).then(() => {
                 const lastContentItem = this.getLastContentType(this.addContentType);
-                this.$store.commit(`add${_.capitalize(this.contentSection)}Id`, {id: lastContentItem.ID});;
+                this.$store.commit(`add${_.capitalize(this.contentSection)}Id`, {id: lastContentItem.ID});
             });
         },
         toggleAddNewItem(isNewItem) {

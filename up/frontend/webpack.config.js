@@ -1,141 +1,134 @@
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const { VueLoaderPlugin } = require('vue-loader');
-const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const {VueLoaderPlugin} = require('vue-loader');
 const webpack = require('webpack');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const StylelintPlugin = require('stylelint-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-const currentTask = process.env.npm_lifecycle_event;
-const path = require("path");
-const localPath = 'http://localhost:3000/';
-const prodPath = '/bundled-assets/';
-
+const path = require('path');
 const postCSSPlugins = [require("postcss-import"), require("postcss-mixins"), require("postcss-simple-vars"), require("postcss-nested"), require("postcss-hexrgba"), require("postcss-color-function"), require("autoprefixer")]
 
-const sassConfig = {
-  test: /\.s?[ac]ss$/i,
-  use: [
-    // Translates CSS into CommonJS
-    'css-loader?url=false',
-    { loader: "postcss-loader", options: { postcssOptions: {plugins: postCSSPlugins} } },
-    // Compiles Sass to CSS
-    "sass-loader",
-  ],
-}
 
-let config = {
-  entry: {
-    app: './js/main.js'
-  },
-  plugins: [
-    // new BundleAnalyzerPlugin(),
-    new VueLoaderPlugin(),
-    new StylelintPlugin(),
-    new webpack.ProvidePlugin({
-      $: 'jquery',
-      jQuery: 'jquery',
-      dayjs: 'dayjs',
-      'window.jQuery': 'jquery/dist/jquery.min.js',
-      Popper: ['popper.js', 'default'],
-      Vue: 'vue/dist/vue.runtime.esm.js',
-      Vuex: 'vuex/dist/vuex.esm.js',
-      _: 'lodash'
-    })
-  ],
-  module: {
-    rules: [
-      sassConfig,
-      {
-        test: /\.js$/,
-        exclude: /(node_modules)/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env']
-          }
-        }
-      },
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader'
-      },
-      {
-        test: /\.(png|jpe?g|gif)$/i,
-        type: 'asset/resource'
-      },
-      {
-        test: /\.(woff|woff2|ttf|eot|ico)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        type: 'asset/resource'
-      },
-      {
-        test: /\.ts$/,
-        exclude: /(node_modules)/,
-        use: [{
-          loader: 'ts-loader',
-        }]
-      },
-      {
-        test: /\.svg$/,
-        type: 'asset/resource'
-      }
-    ],
-  },
-  resolve: {
-    alias: {
-      vue: 'vue/dist/vue.runtime.esm.js',  // https://vuejs.org/v2/guide/installation.html#Explanation-of-Different-Builds
-    },
-    extensions: ['*', '.js', '.vue', '.json', '.scss', '.ts', '.svg']
-  }
-}
-
-if (currentTask == "devFast") {
-  config.devtool = "source-map"
-  sassConfig.use.unshift("style-loader")
-  config.output = {
-    filename: "[name].bundled.js",
-    publicPath: localPath
-  }
-  config.devServer = {
-    before: function (app, server) {
-       server._watch(["./**/*.js"])
-    },
-    public: localPath,
-    publicPath: localPath,
-    disableHostCheck: true,
-    contentBase: path.join(__dirname),
-    contentBasePublicPath: localPath,
-    historyApiFallback: true,
-    hot: true,
-    port: 3000,
-    headers: {
-      "Access-Control-Allow-Origin": "*"
+module.exports = function (env, argv) {
+    const task = env.npm_lifecycle_event;
+    const isFullBuild = ['build', 'buildWatch'].includes(task);
+    if (isFullBuild) {
+        postCSSPlugins.push(require('cssnano'));
     }
-  }
-  config.mode = "development"
-}
+    const cfg = {
+        mode: (env.production) ? 'production' : 'development',
+        context: __dirname,
+        devtool: (env.prod) ? 'source-map' : 'eval',  // https://webpack.js.org/configuration/devtool/
+        entry: [
+            require.resolve('webpack-dev-server/client'),
+            path.resolve(__dirname, './js/main.js')
+        ].filter(Boolean),
+        output: {
+            path: path.resolve(__dirname, './dist'),
+            publicPath: '/dist/',
+            filename: `[name]${(env.production) ? '.[chunkhash]' : ''}.js`,
+            chunkFilename: '[name].[chunkhash].js',
+        },
+        plugins: [
+            // new BundleAnalyzerPlugin(),
+            new VueLoaderPlugin(),
+            new CleanWebpackPlugin({
+                    cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
+            })
+        ],
+        resolve: {
+            alias: {
+                vue: '@vue/runtime-dom',  // https://v3.vuejs.org/guide/installation.html#release-notes
+            },
+            extensions: ['.tsx', '.ts', '.js', '.vue']
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.s?[ac]ss$/i,
+                    use: [
+                        ...(isFullBuild) ? [MiniCssExtractPlugin.loader] : [],
+                        'style-loader',
+                        // Translates CSS into CommonJS
+                        'css-loader?url=false',
+                        {loader: 'postcss-loader', options: {postcssOptions: {plugins: postCSSPlugins}}},
+                        // Compiles Sass to CSS
+                        'sass-loader',
+                    ],
+                },
+                {
+                    test: /\.js$/,
+                    include: path.resolve(__dirname, 'js'),
+                    exclude: /(node_modules)/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env']
+                        }
+                    }
+                },
+                {
+                    test: /\.vue$/,
+                    loader: 'vue-loader',
+                    exclude: /node_modules/,
+                },
+                {
+                    test: /\.(png|jpe?g|gif)$/i,
+                    type: 'asset/resource'
+                },
+                {
+                    test: /\.(woff|woff2|ttf|eot|ico)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                    type: 'asset/resource'
+                },
+                {
+                    test: /\.ts$/,
+                    exclude: /(node_modules)/,
+                    use: [{
+                        loader: 'ts-loader',
+                    }]
+                },
+                {
+                    test: /\.svg$/,
+                    type: 'asset/resource'
+                }
+            ],
+        },
+        optimization: {
+            splitChunks: {
+                cacheGroups: {
+                    commons: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'external-packages',
+                        chunks: 'all'
+                    }
+                }
+            }
+        },
+        devServer: {
+            watchFiles: ['./js/*.js', './js/*.vue', './js/**/*.js', './js/**/*.vue'],
+            historyApiFallback: true,
+            hot: true,
+            port: 3000,
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
+        }
+    }
 
-if (currentTask == "build" || currentTask == "buildWatch") {
-  sassConfig.use.unshift(MiniCssExtractPlugin.loader)
-  postCSSPlugins.push(require("cssnano"))
-  config.output = {
-    publicPath: "up/frontend/bundled-assets/",
-    filename: "[name].[chunkhash].js",
-    chunkFilename: "[name].[chunkhash].js",
-    path: path.resolve(__dirname, "bundled-assets")
-  }
-  config.mode = "production"
-  // config.optimization = {
-  //   splitChunks: { chunks: "all" }
-  // }
-  config.plugins.push(
-    new CleanWebpackPlugin({
-      cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
-    }),
-    new MiniCssExtractPlugin({ filename: "[name].[chunkhash].css" }),
-    new WebpackManifestPlugin({ publicPath: "" }),
-    new RunAfterCompile()
-  )
-}
+    if (env.production) {
+        cfg.module.rules.push({
+            test: /\.(js|vue)$/,
+            enforce: 'pre',
+            include: path.resolve(__dirname, 'js'),
+            exclude: /node_modules/,
+            use: [{
+                loader: 'webpack-strip-block',
+                options: {
+                    start: 'dev-only',
+                    end: 'end-dev-only'
+                }
+            }]
+        });
+    }
 
-module.exports = config
+    return cfg;
+}

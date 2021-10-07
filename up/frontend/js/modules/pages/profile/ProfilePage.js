@@ -1,11 +1,8 @@
 import Data from '../../../utils/data';
-import initPage from '../../../scripts';
 import profileIcon from '../../../../images/profile_icon.svg';
 import ProfilePage from './ProfilePage.vue';
-import Vue from '../vueCommon.js';
+import Vue from 'vue';
 
-
-initPage();
 
 const EDUCATION_PLACEHOLDER_KEY = 'EDUCATION';
 
@@ -104,7 +101,7 @@ const getEducation = (contentItems = {}) => {
         if(contentItem.post_type === 'education') {
             return [key, contentItem];
         }
-    };
+    }
     return [null, null];
 };
 
@@ -468,12 +465,16 @@ const loaderTypes = {
 }
 
 // Instantiate profile page
-eventBus.loadContent(['profile', 'media', 'education', 'experience', 'video', 'project']).then((values) => {
-    new Vue({
-        el: '#vue-container',
-        store,
-        render(h){
-            return h(ProfilePage, {});
-        }
+const loadPage = (initData) => {
+    eventBus.loadContent(['profile', 'media', 'education', 'experience', 'video', 'project']).then((values) => {
+        Vue.createApp({
+            el: '#vue-container',
+            store,
+            render(h){
+                return h(ProfilePage, {});
+            }
+        });
     });
-});
+}
+
+export default loadPage;

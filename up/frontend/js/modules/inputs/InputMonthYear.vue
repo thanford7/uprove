@@ -46,7 +46,7 @@ export default {
         updateMonth(e) {
             const val = parseInt(e.target.value);
             if (!val || val < 1 || val > 12) {
-                this.monthInput$.val(null);;
+                this.monthInput$.val(null);
             }
             // dayjs month index is 0-11
             this.$emit('input', this.value.month(val - 1));

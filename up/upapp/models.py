@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+from django.contrib.auth.models import User as DjangoUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import FileSystemStorage
@@ -31,6 +32,7 @@ Each content item can have one or more content sections. Content sections are or
 
 
 class User(AuditFields):
+    djangoUser = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=75)
     birthDate = models.DateTimeField(null=True)
 
@@ -70,6 +72,7 @@ class UserProfileSectionItem(models.Model):
 
 
 class UserEducation(AuditFields):
+    # Keep in sync with mainData.js
     OPTIONS_DEGREE = [
         'Associate of Arts',
         'Associate of Science',
@@ -94,6 +97,7 @@ class UserEducation(AuditFields):
 
 
 class UserExperience(AuditFields):
+    # Keep in sync with mainData.js
     OPTIONS_EMPLOYMENT_TYPE = [
         'Full-time',
         'Part-time',
@@ -154,6 +158,7 @@ class UserImage(AuditFields):
 
 
 class UserTag(AuditFields):
+    # Keep in sync with mainData.js
     TYPE_INTEREST = 'interest'
     TYPE_SKILL = 'skill'
     TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]

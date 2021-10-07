@@ -1,10 +1,10 @@
 import FrontPage from './FrontPage.vue';
 import initPage from '../../../scripts';
-import Vue from '../vueCommon.js';
+import Vue from 'vue';
 
 initPage();
 
-const eventBus = new Vue({
+const eventBus = Vue.createApp({
     methods: {
 
     }
@@ -19,7 +19,7 @@ const store = new Vuex.Store({
 });
 
 $(() => {
-    new Vue({
+    Vue.createApp({
         el: '#vue-container',
         store,
         render(h){
