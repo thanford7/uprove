@@ -7,6 +7,11 @@ from django.core.files.storage import FileSystemStorage
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
+__all__ = (
+    'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
+    'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization'
+)
+
 
 ALLOWED_UPLOADS_VIDEO = ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg']
 ALLOWED_UPLOADS_IMAGE = ['png', 'jpeg', 'jpg', 'gif']
@@ -32,20 +37,23 @@ Each content item can have one or more content sections. Content sections are or
 
 
 class User(AuditFields):
-    djangoUser = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
-    name = models.CharField(max_length=75)
+    djangoUser = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, editable=False)
+    firstName = models.CharField(max_length=20)
+    middleName = models.CharField(max_length=20, null=True)
+    lastName = models.CharField(max_length=30)
     birthDate = models.DateTimeField(null=True)
 
 
 class UserProfile(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
+    profileName = models.CharField(max_length=100)
     profilePicture = models.ForeignKey('UserImage', on_delete=models.SET_NULL, null=True)
     makePublic = models.BooleanField(default=False)
     password = models.CharField(max_length=20, null=True)  # Enables users to "lock" a profile to only users with a password
 
 
 class UserProfileSection(models.Model):
-    userProfile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    userProfile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, editable=False, related_name='section')
     title = models.CharField(max_length=200)
     description = models.TextField(null=True)
     sectionOrder = models.SmallIntegerField()
@@ -59,12 +67,12 @@ class UserProfileSectionItem(models.Model):
     This model can point to any content type (e.g. education, experience, content, etc.)
     See https://docs.djangoproject.com/en/3.2/ref/contrib/contenttypes/#generic-relations
     """
-    userProfileSection = models.ForeignKey(UserProfileSection, on_delete=models.CASCADE)
+    userProfileSection = models.ForeignKey(UserProfileSection, on_delete=models.CASCADE, related_name='sectionItem')
     contentOrder = models.SmallIntegerField()
 
     # Generic relationship fields
-    contentType = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    contentItemId = models.PositiveIntegerField()
+    contentType = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    contentItemId = models.PositiveIntegerField(null=True)
     contentObject = GenericForeignKey('contentType', 'contentItemId')
 
     class Meta:
@@ -87,7 +95,7 @@ class UserEducation(AuditFields):
         'Juris Doctor',
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='education')
     school = models.ForeignKey('Organization', on_delete=models.PROTECT)
     degree = models.CharField(max_length=50, null=True, choices=[(o, o) for o in OPTIONS_DEGREE])
     degreeSubject = models.CharField(max_length=200, null=True)
@@ -106,7 +114,7 @@ class UserExperience(AuditFields):
         'Internship'
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='experience')
     organization = models.ForeignKey('Organization', on_delete=models.PROTECT)
     positionTitle = models.CharField(max_length=100)
     employmentType = models.CharField(max_length=20, choices=[(o, o) for o in OPTIONS_EMPLOYMENT_TYPE])
@@ -120,20 +128,26 @@ class UserContentItem(AuditFields):
     A generic model allowing for flexible construction of content. For example a content item can contain
     a video, followed by a description, followed by an image, followed by a list of supporting files.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='contentItem')
     title = models.CharField(max_length=100)
 
 
 class UserContentItemSection(models.Model):
-    userContentItem = models.ForeignKey(UserContentItem, on_delete=models.CASCADE)
+    userContentItem = models.ForeignKey(UserContentItem, on_delete=models.CASCADE, related_name='section')
     contentOrder = models.SmallIntegerField()
+    text = models.TextField(null=True)
+
+    # Generic relationship fields
+    contentType = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    contentItemId = models.PositiveIntegerField(null=True)
+    contentObject = GenericForeignKey('contentType', 'contentItemId')
 
     class Meta:
         unique_together = ('userContentItem', 'contentOrder')
 
 
 class UserVideo(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='video')
     video = models.FileField(
         upload_to='videos/',
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_VIDEO)]
@@ -142,7 +156,7 @@ class UserVideo(AuditFields):
 
 
 class UserFile(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='file')
     file = models.FileField(
         upload_to='files/',
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_FILE)]
@@ -151,7 +165,7 @@ class UserFile(AuditFields):
 
 
 class UserImage(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='image')
     image = models.ImageField(upload_to='images/')
     title = models.CharField(max_length=100)
     isDefault = models.BooleanField(default=False)
@@ -171,7 +185,7 @@ class UserTag(AuditFields):
 
     SKILL_LEVELS = [(int(i), int(i)) for i in SkillLevel]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='tag')
     tagType = models.CharField(max_length=25, choices=TYPES_TAG)
     title = models.CharField(max_length=30)
     description = models.CharField(max_length=200, null=True)
@@ -190,7 +204,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=100)
     orgType = models.CharField(max_length=30, choices=TYPES_ORG)
     logo = models.ImageField(upload_to='logos/', null=True)
-    user = models.ForeignKey('User', null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey('User', null=True, on_delete=models.CASCADE, related_name='organization')
 
     class Meta:
         unique_together = ('name', 'orgType')

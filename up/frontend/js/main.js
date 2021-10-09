@@ -1,3 +1,4 @@
+import { createApp } from 'vue';
 import 'bootstrap';
 import header from './modules/pages/header/header.vue';
 import footer from './modules/pages/footer/footer.vue';
@@ -8,7 +9,6 @@ import dayjs from "dayjs/esm";
 import '../css/base.scss';
 import mainData from './mainData';
 import Pages from './mainPageLoader';
-import Vue from 'vue';
 import _ from 'lodash';
 
 let jQueryConsole = false;
@@ -24,11 +24,11 @@ _.defer(() => {
     const pageName = $('body').data('page');
     const pageLoader = Pages[pageName];
     pageLoader(mainData);  // Load Vue for main body
-    Vue.createApp(
+    createApp(
         header,
-        {postType: wpApi.postType, userId: parseInt(wpApi.userId)}
+        {postType: null, userId: 0}
     ).mount('.site-header');
-    Vue.createApp(footer, {postType: wpApi.postType}).mount('#site-footer');
+    createApp(footer, {postType: null}).mount('#site-footer');
 });
 
 _.defer(() => $(window).trigger('resize-throttled'));

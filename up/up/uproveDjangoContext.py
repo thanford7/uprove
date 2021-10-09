@@ -1,6 +1,6 @@
 from datetime import date
 
-from up.up import settings
+from django.conf import settings
 
 COPYRIGHT_START_YEAR = 2021
 currentYear = date.today().year
