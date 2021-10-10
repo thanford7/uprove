@@ -18,18 +18,16 @@ module.exports = function (env, argv) {
         mode: (env.production) ? 'production' : 'development',
         context: __dirname,
         devtool: (env.prod) ? 'source-map' : 'eval',  // https://webpack.js.org/configuration/devtool/
-        entry: [
-            require.resolve('webpack-dev-server/client'),
-            path.resolve(__dirname, './js/main.js')
-        ].filter(Boolean),
+        entry: path.resolve(__dirname, './js/main.js'),
         output: {
             path: path.resolve(__dirname, './dist'),
-            publicPath: '/dist/',
+            publicPath: '/static/',
             filename: `[name]${(env.production) ? '.[chunkhash]' : ''}.js`,
             chunkFilename: '[name].[chunkhash].js',
         },
         plugins: [
             // new BundleAnalyzerPlugin(),
+            new MiniCssExtractPlugin(),
             new VueLoaderPlugin(),
             new CleanWebpackPlugin({
                     cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
@@ -46,8 +44,7 @@ module.exports = function (env, argv) {
                 {
                     test: /\.s?[ac]ss$/i,
                     use: [
-                        ...(isFullBuild) ? [MiniCssExtractPlugin.loader] : [],
-                        'style-loader',
+                        MiniCssExtractPlugin.loader,
                         // Translates CSS into CommonJS
                         'css-loader?url=false',
                         {loader: 'postcss-loader', options: {postcssOptions: {plugins: postCSSPlugins}}},
@@ -104,13 +101,19 @@ module.exports = function (env, argv) {
             }
         },
         devServer: {
-            watchFiles: ['./js/*.js', './js/*.vue', './js/**/*.js', './js/**/*.vue'],
+            host: '0.0.0.0',
             historyApiFallback: true,
+            watchFiles: ['./js/*.js', './js/*.vue', './js/**/*.js', './js/**/*.vue'],
             hot: true,
             port: 3000,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
+            proxy: {
+                '!/static': {
+                    target: 'http://localhost:8000'
+                }
             },
+            static: {
+                directory: path.join(__dirname, 'dist')
+            }
         }
     }
 

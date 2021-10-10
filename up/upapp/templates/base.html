@@ -4,14 +4,14 @@
 <html>
     <head>
         <title>{% block title %}Home{% endblock title %} | Uprove</title>
-        <link rel="icon" type="image/png" href="{% static 'img/DO_Logo_icon_blue.png' %}">
+        <link rel="icon" type="image/png" href="{% static '/img/DO_Logo_icon_blue.png' %}">
 
         <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1">
         <meta name="description" content="Uprove is a project based hiring platform">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="Content-Language" value="en-US" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <link rel="stylesheet" type="text/css" href="{% static 'css/app.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'main.css' %}">
     </head>
     <body data-page="{% block baseClass %}BasePage{% endblock %}">
         {% block navBar %}
@@ -37,11 +37,11 @@
         {%  block components %}{% endblock %}
 
         {% block scripts %}
-            <script type="text/javascript" src="js/external-packages.js"></script>
+            <script type="text/javascript" src="{% static 'external-packages.js' %}"></script>
             <script>
                 window.initData = {% initBaseVariables %}
             </script>
-            <script type="text/javascript" src="js/main.js"></script>
+            <script type="text/javascript" src={% static 'main.js' %}></script>
         {% endblock %}
     </body>
 </html>

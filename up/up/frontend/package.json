@@ -1,20 +1,19 @@
 {
   "name": "uprove",
   "version": "1.0.0",
-  "author": "Todd Hanford",
-  "license": "SEE LICENSE IN license.txt",
   "description": "Uprove package",
   "private": true,
+  "author": "Todd Hanford",
+  "license": "SEE LICENSE IN license.txt",
   "scripts": {
-    "dev": "npm-run-all -p devFast buildWatch",
-    "devFast": "webpack serve",
+    "dev": "npm-run-all -p serve buildWatch",
+    "serve": "webpack serve",
     "buildWatch": "webpack watch",
     "build": "webpack",
     "createWebpackProfile": "webpack-cli --profile --json > compilation-stats.json",
     "bundle-report": "webpack-bundle-analyzer --port 4200 compilation-stats.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "main": "index.js",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
@@ -80,7 +79,7 @@
     "webpack": "^5.56.0",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.7.0",
-    "webpack-dev-server": "^3.11.0",
+    "webpack-dev-server": "^4.3.1",
     "webpack-manifest-plugin": "^4.0.2",
     "webpack-strip-block": "^0.3.0"
   }
