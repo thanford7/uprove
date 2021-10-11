@@ -101,7 +101,7 @@
     </div>
 </template>
 <script>
-import { Editor, EditorContent} from '@tiptap/vue-2';
+import { Editor, EditorContent} from '@tiptap/vue-3';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';

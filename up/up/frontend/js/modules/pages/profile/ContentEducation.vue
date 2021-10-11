@@ -1,7 +1,7 @@
 <template>
     <div class="card-body">
-        <template v-for="(educationItem, idx) in educationContentItems" >
-            <div class="row" :key="educationItem.ID" :class="(idx === 0) ? 'pb-1' : '-border-top--light pt-1'">
+        <template v-for="(educationItem, idx) in educationContentItems" :key="educationItem.ID">
+            <div class="row" :class="(idx === 0) ? 'pb-1' : '-border-top--light pt-1'">
                 <div class="col-4"><img :src="educationItem.guid" alt="School logo"></div>
                 <div class="col-8"><b>{{educationItem.school_name}}</b></div>
                 <div class="w-100"></div>

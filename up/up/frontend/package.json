@@ -35,11 +35,12 @@
     "dayjs": "^1.10.7",
     "jquery": "^3.6.0",
     "lodash": "^4.17.21",
+    "mitt": "^3.0.0",
     "npm": "^7.24.1",
     "prosemirror-model": "^1.14.3",
     "selectize": "^0.12.6",
     "vue": "^3.2.19",
-    "vue-sanitize": "^0.2.1",
+    "vue-3-sanitize": "^0.1.4",
     "vuex": "^4.0.2"
   },
   "devDependencies": {

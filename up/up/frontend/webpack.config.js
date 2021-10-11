@@ -17,7 +17,7 @@ module.exports = function (env, argv) {
     const cfg = {
         mode: (env.production) ? 'production' : 'development',
         context: __dirname,
-        devtool: (env.prod) ? 'source-map' : 'eval',  // https://webpack.js.org/configuration/devtool/
+        devtool: 'source-map',
         entry: path.resolve(__dirname, './js/main.js'),
         output: {
             path: path.resolve(__dirname, './dist'),

@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import { createStore } from 'vuex';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faLinkedin, faTwitterSquare } from '@fortawesome/free-brands-svg-icons';
 import { faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, faArrowLeft, faArrowRight, faArrowUp, 
@@ -7,24 +8,30 @@ import { faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, 
 import { FontAwesomeIcon, FontAwesomeLayers, FontAwesomeLayersText } from '@fortawesome/vue-fontawesome';
 
 import vueSuperCall from './utils/vue-util';
-import VueSanitize from "vue-sanitize";
-import Vuex from 'vuex/dist/vuex.global.js';
-
+import Vue3Sanitize from "vue-3-sanitize";
 
 library.add(faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, faArrowLeft, faArrowRight, faArrowUp,
     faBold, faCircle, faExternalLinkAlt, faGripHorizontal, faItalic, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
     faQuoteLeft, faRedo, faSquare, faStrikethrough, faTextHeight, faTrash, faTrashAlt, faTwitterSquare, faUnderline, faUndo, faUnlink, faUserCircle);
 
-const initVue = (mainComponent, el, data, store) => {
+const initVue = (mainComponent, el, data, eventBus) => {
+    const store = createStore({
+        state() {
+            return {
+                eventBus,
+            }
+        }
+    });
+
     const vueComponent = createApp(mainComponent, data)
         .component('font-awesome-icon', FontAwesomeIcon)
         .component('font-awesome-layers', FontAwesomeLayers)
         .component('font-awesome-layers-text', FontAwesomeLayersText)
-        .mount(el);
+        .use(Vue3Sanitize)
+        .use(store);
 
-    vueComponent.use(VueSanitize);
-    vueComponent.use(store);
-    vueComponent.prototype.$super = vueSuperCall;
+    vueComponent.mount(el);
+    vueComponent.provide('$super', vueSuperCall);
 
     return vueComponent
 }

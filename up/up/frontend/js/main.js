@@ -20,10 +20,9 @@ if (jQueryConsole) {
 }
 
 _.defer(() => {
-    initVue();
     const pageName = $('body').data('page');
-    const pageLoader = Pages[pageName];
-    pageLoader(mainData);  // Load Vue for main body
+    const {page, eventBus} = Pages[pageName];
+    initVue(page, '#vue-container', mainData, eventBus);
     createApp(
         header,
         {postType: null, userId: 0}
