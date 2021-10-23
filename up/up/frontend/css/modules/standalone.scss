@@ -1,0 +1,59 @@
+@use 'colors';
+
+.-hidden {
+    display: none;
+}
+
+.-no-horizontal-padding {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.-float-right {
+    float: right;
+}
+
+.-text-center {
+    text-align: center;
+}
+
+.-border-left {
+    &--light {
+        border-left: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-border-bottom {
+    &--light {
+        border-bottom: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-border-top {
+    &--light {
+        border-top: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-border-left {
+    &--light {
+        border-left: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-text- {
+    &medium {
+        font-size: 0.9rem;
+    }
+    &small {
+        font-size: 0.6rem;
+    }
+    &bold {
+        font-weight: bold;
+    }
+}
+
+.-sub-text {
+    font-size: 0.8rem;
+    color: colors.$color-moderategrey
+}

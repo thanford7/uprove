@@ -28,6 +28,11 @@ module.exports = function (env, argv) {
         plugins: [
             // new BundleAnalyzerPlugin(),
             new MiniCssExtractPlugin(),
+            new webpack.DefinePlugin({
+                PRODUCTION: Boolean(env.production),
+                __VUE_OPTIONS_API__: true,
+                __VUE_PROD_DEVTOOLS__: false
+            }),
             new VueLoaderPlugin(),
             new CleanWebpackPlugin({
                     cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],

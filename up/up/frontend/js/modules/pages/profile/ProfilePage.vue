@@ -106,9 +106,9 @@ export default {
                 for(const {attributeName, target} of mutationsList) {
                     if (attributeName  === 'class') {
                         if($(target).hasClass('show')) {
-                            $('.site-header').toggle(false);
+                            $('#site-header').toggle(false);
                         } else {
-                            $('.site-header').toggle(true);
+                            $('#site-header').toggle(true);
                         }
                     }
                 }

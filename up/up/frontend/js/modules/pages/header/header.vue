@@ -1,6 +1,8 @@
 <template>
     <div class="container-fluid d-flex">
-        <div class="navbar-brand flex-grow-1 -color-orange-text">Uprove</div>
+        <div class="navbar-brand">
+          <img class="logo" src="/static/img/logo.png" alt="Uprove">
+        </div>
         <font-awesome-icon class="mobile-only" :icon="['fas', 'user-circle']" size="lg"/>
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">

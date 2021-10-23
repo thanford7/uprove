@@ -2,8 +2,13 @@ from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 # TODO create an IsOwnerOrReadOnly wrapper
-from up.upapp.models import *
-from up.upapp.utils.dateUtil import serializeDatetime
+from ..models import *
+from ..utils.dateUtil import serializeDatetime
+
+__all__ = [
+    'OrganizationView', 'UserVideoView', 'UserFileView', 'UserImageView', 'UserEducationItemView',
+    'UserExperienceItemView', 'UserContentItemView', 'UserProfileSectionView', 'UserView', 'UserProfileView'
+]
 
 
 def serializeAuditFields(obj):

@@ -1,4 +1,3 @@
-import { createApp } from 'vue';
 import 'bootstrap';
 import header from './modules/pages/header/header.vue';
 import footer from './modules/pages/footer/footer.vue';
@@ -23,11 +22,8 @@ _.defer(() => {
     const pageName = $('body').data('page');
     const {page, eventBus} = Pages[pageName];
     initVue(page, '#vue-container', mainData, eventBus);
-    createApp(
-        header,
-        {postType: null, userId: 0}
-    ).mount('.site-header');
-    createApp(footer, {postType: null}).mount('#site-footer');
+    initVue(header, '#site-header', {postType: null, userId: 0}, eventBus);
+    initVue(footer, '#site-footer', {postType: null}, eventBus);
 });
 
 _.defer(() => $(window).trigger('resize-throttled'));
