@@ -1,5 +1,5 @@
 <template>
-    <div class="-color-lightgrey pt-4 pb-2 ps-4 pe-4">
+    <div class="pt-4 pb-2 ps-4 pe-4">
         <div class="row algin-items-center mb-2">
             <div v-for="(section, idx) in sections" :key="idx" class="col-md-3 col-12 mb-2">
                 <ul class="list-table">

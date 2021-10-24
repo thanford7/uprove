@@ -1,8 +1,11 @@
-@use "bootstrap/scss/bootstrap.scss";
 @use 'colors';
 @import "bootstrap/scss/functions";
-@import "bootstrap/scss/variables";
-@import "bootstrap/scss/utilities";
+
+// For overriding bootstrap variables https://getbootstrap.com/docs/5.0/customize/sass/
+$primary: colors.$color-blue;
+$secondary: colors.$color-lightgrey;
+
+@import "bootstrap/scss/bootstrap";
 
 .modal {
     z-index: 10000;
@@ -11,10 +14,14 @@
         margin: auto -16px;
         padding-left: 16px;
         padding-right: 16px;
-        background-color: colors.$color-lightgrey;
+        color: colors.$color-moderategrey;
+        background-color: rgba(colors.$color-lightgrey, .2);
+        font-size: 1rem;
+        font-style: italic;
 
         &--top {
             margin-top: -16px;
+            margin-bottom: 5px;
         }
 
         &--bottom {
@@ -43,6 +50,19 @@
 }
 
 .btn {
+    &-primary {
+        color: white;
+        border-color: scale-color($primary, $lightness: -30%);
+    }
+
+    &-secondary {
+        border-color: scale-color($secondary, $lightness: -30%);
+
+        &:hover {
+            color: white;
+        }
+    }
+
     &-full-width {
         width: 100%;
     }

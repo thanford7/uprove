@@ -1,0 +1,6 @@
+@use "colors";
+
+#site-footer {
+    box-shadow: 0 0 3px rgba(0, 0, 0, .2);
+    background-color: rgba(colors.$color-lightgrey, .2);
+}

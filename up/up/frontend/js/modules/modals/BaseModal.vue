@@ -6,15 +6,16 @@
         >
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{modalTitle}}</h5>
+                    <h4 class="modal-title">{{modalTitle}}</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div v-if="headerSubtext" class="modal-body-banner modal-body-banner--top">{{headerSubtext}}</div>
                     <slot/>
                 </div>
                 <div v-if="!isFooterHidden" class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button v-if="!isReadOnly" @click="$emit('saveChange')" type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+                    <button v-if="!isReadOnly" @click="$emit('saveChange')" type="button" class="btn btn-primary" data-bs-dismiss="modal">{{primaryButtonText || 'Save changes'}}</button>
                 </div>
             </div>
         </div>
@@ -24,7 +25,7 @@
 import {mapState} from 'vuex';
 
 export default {
-    props: ['modalId', 'modalTitle', 'isReadOnly', 'isScrollable', 'isFooterHidden', 'isLargeDisplay'],
+    props: ['modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable', 'isFooterHidden', 'isLargeDisplay'],
     computed: {
         ...mapState({
             crudUrl: 'crudUrlProfile',

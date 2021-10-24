@@ -37,7 +37,29 @@ const mainData = Object.assign({
     TAG_TYPE: [
         'interest',
         'skill'
-    ]
+    ],
+    SUPPORTED_FUNCTIONS: {
+        'business_analysis': 'Business analysis & consulting',
+        'data_analysis': 'Data analysis',
+        'product_management': 'Product managemement',
+        'project_management': 'Project management',
+        'customer_success': 'Customer success',
+        'operations_management': 'Operations management',
+        'supply_chain_management': 'Supply chain management',
+        'user_experience': 'User experience',
+        'marketing': 'Marketing',
+        'seo': 'Search engine optimization',
+        'finance': 'Finance',
+        'accounting': 'Accounting',
+    },
+    SUPPORTED_SKILLS: {
+        'excel': 'Excel',
+        'powerpoint': 'PowerPoint',
+        'sql': 'SQL',
+        'python': 'Python',
+        'bi_software': 'Business intelligence software',
+        'wireframe': 'Wireframes',
+    }
 }, window.initData);
 
 export default mainData;

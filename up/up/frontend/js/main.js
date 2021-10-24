@@ -22,7 +22,7 @@ _.defer(() => {
     const pageName = $('body').data('page');
     const {page, eventBus} = Pages[pageName];
     initVue(page, '#vue-container', mainData, eventBus);
-    initVue(header, '#site-header', {postType: null, userId: 0}, eventBus);
+    initVue(header, '#site-header .navbar', {postType: null, userId: 0}, eventBus);
     initVue(footer, '#site-footer', {postType: null}, eventBus);
 });
 

@@ -36,14 +36,12 @@
             </ul>
             <div class="tab-content" id="viewerTypeContent">
                 <div class="tab-pane fade show active" id="employer" role="tabpanel" aria-labelledby="employer-tab">
-                    <div class="row mt-4">
-                        <div class="col-12 pb-2">
-                            <OverviewEmployer :isMobile="true"/>
-                        </div>
-                        <div class="col-12 mb-2 pb-2">
-                            <h4>How it works</h4>
-                            <OrderedList :listItems="employerHowItWorks"/>
-                        </div>
+                    <div class="col-12 pb-2">
+                        <OverviewEmployer :isMobile="true"/>
+                    </div>
+                    <div class="col-12 mb-2 pb-2">
+                        <h4>How it works</h4>
+                        <OrderedList :listItems="employerHowItWorks"/>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="seeker" role="tabpanel" aria-labelledby="seeker-tab">
