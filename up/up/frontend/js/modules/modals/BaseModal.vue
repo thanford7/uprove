@@ -26,9 +26,14 @@ import {mapState} from 'vuex';
 
 export default {
     props: ['modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable', 'isFooterHidden', 'isLargeDisplay'],
+    data() {
+        return {
+            baseUrl: 'api/v1/',
+            crudUrl: null
+        }
+    },
     computed: {
         ...mapState({
-            crudUrl: 'crudUrlProfile',
             eventBus: 'eventBus'
         }),
         modalClasses() {
@@ -53,32 +58,28 @@ export default {
             return true;
             // subclass
         },
-        processFormData(formData, preSaveData) {
-            return Object.assign(formData, preSaveData);
+        processFormData(formData) {
+            // subclass
+            return formData;
         },
         onSaveSuccess(requestData, responseData) {
             // subclass
         },
-        getPreSaveChange() {
-            return new Promise((resolve, reject) => {
-                resolve({});
-            });
-        },
-        saveChange(cfg = {}) {
+        superSaveChange(cfg = {}) {
             const formData = this.readForm();
+            const requestData = this.processFormData(formData);
             if(!this.isGoodFormData(formData)) {
                 return;
             }
-            const preSave = this.getPreSaveChange();
-            preSave.then((preSaveData) => {
-                const requestData = this.processFormData(formData, preSaveData);
-                const successFn = (responseData) => {
-                    this.onSaveSuccess(requestData, responseData);
-                };
-                this.eventBus.saveContent(this.crudUrl, requestData, Object.assign({
-                    success: successFn,
-                }, cfg));
-            })
+
+            $.ajax(Object.assign({
+                url: this.baseUrl + this.crudUrl,
+                method: 'PUT',
+                data: JSON.stringify(requestData),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: this.onSaveSuccess
+            }, cfg));
         },
     },
     mounted() {

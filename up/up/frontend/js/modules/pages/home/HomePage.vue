@@ -55,14 +55,17 @@
                 </div>
             </div>
         </div>
+        <EmployerRequestInfoModal/>
     </div>
 </template>
 <script>
+import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import OrderedList from '../../components/OrderedList.vue';
 import OverviewEmployer from './OverviewEmployer.vue';
 import OverviewSeeker from './OverviewSeeker.vue';
 
 export default {
+    components: {EmployerRequestInfoModal, OrderedList, OverviewEmployer, OverviewSeeker},
     data() {
         return {
             employerHowItWorks: [
@@ -104,6 +107,5 @@ export default {
             ]
         }
     },
-    components: {OrderedList, OverviewEmployer, OverviewSeeker},
 }
 </script>

@@ -9,7 +9,8 @@ from django.db import models
 
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
-    'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization'
+    'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
+    'EmployerInterest', 'ProjectFunction', 'ProjectSkill'
 )
 
 
@@ -42,6 +43,7 @@ class User(AuditFields):
     middleName = models.CharField(max_length=20, null=True)
     lastName = models.CharField(max_length=30)
     birthDate = models.DateTimeField(null=True)
+    email = models.EmailField(unique=True)
 
 
 class UserProfile(AuditFields):
@@ -208,3 +210,23 @@ class Organization(models.Model):
 
     class Meta:
         unique_together = ('name', 'orgType')
+
+
+class EmployerInterest(AuditFields):
+    firstName = models.CharField(max_length=20)
+    lastName = models.CharField(max_length=30)
+    email = models.EmailField(unique=True)
+    companyName = models.CharField(max_length=100)
+    title = models.CharField(max_length=50)
+    companyEmployeeCount = models.CharField(max_length=10, null=True)
+    hiringFunctions = models.ManyToManyField('ProjectFunction')
+    hiringSkills = models.ManyToManyField('ProjectSkill')
+    note = models.TextField(null=True)
+
+
+class ProjectFunction(models.Model):
+    functionName = models.CharField(max_length=100, unique=True)
+
+
+class ProjectSkill(models.Model):
+    skillName = models.CharField(max_length=100, unique=True)

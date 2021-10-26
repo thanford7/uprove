@@ -19,26 +19,39 @@
             <input type="text" class="form-control" placeholder="Required" id="formEmployerRequestCName" v-model="formData.companyName">
         </div>
         <div class="mb-3">
+            <label for="formEmployerRequestEmail" class="form-label">Email</label>
+            <InputEmail elId="formEmployerRequestEmail" placeholder="Required" v-model="formData.email"/>
+        </div>
+        <div class="mb-3">
             <label for="formEmployerRequestTitle" class="form-label">Your Title</label>
             <input type="text" class="form-control" placeholder="Required" id="formEmployerRequestTitle" v-model="formData.title">
         </div>
         <div class="mb-3">
-            <label for="formEmployerRequestCoSize" class="form-label">Company employee count</label>
+            <label for="formEmployerRequestCoSize" class="form-label">Company Employee Count</label>
             <InputSelectize
                 elId="formEmployerRequestCoSize"
                 placeholder="Optional" :cfg="coSizeCfg" @selected="formData.size = $event"/>
         </div>
         <div class="mb-3">
-            <label for="formEmployerRequestFunctions" class="form-label">Functions you're hiring</label>
+            <label for="formEmployerRequestFunctions" class="form-label">Functions You're Hiring</label>
             <InputSelectize
                 elId="formEmployerRequestFunctions"
                 placeholder="Optional" :cfg="functionsCfg" @selected="formData.roleFunctions = $event"/>
         </div>
         <div>
-            <label for="formEmployerRequestSkills" class="form-label">Skills you're hiring</label>
+            <label for="formEmployerRequestSkills" class="form-label">Skills You're Hiring</label>
             <InputSelectize
                 elId="formEmployerRequestSkills"
                 placeholder="Optional" :cfg="skillsCfg" @selected="formData.roleSkills = $event"/>
+        </div>
+        <div>
+            <label for="formEmployerRequestNote" class="form-label">Note</label>
+            <textarea
+                rows="3" class="form-control"
+                placeholder="Any other questions or information you want to share..."
+                id="formEmployerRequestNote"
+                v-model="formData.note"
+            />
         </div>
     </BaseModal>
 </template>
@@ -47,6 +60,7 @@
 import Modal from 'bootstrap/js/dist/modal';
 import {mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
+import InputEmail from "../inputs/InputEmail";
 import InputSelectize from "../inputs/InputSelectize";
 import mainData from "../../mainData";
 
@@ -54,10 +68,11 @@ export default {
     name: "EmployerRequestInfoModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InputSelectize},
+    components: {BaseModal, InputEmail, InputSelectize},
     data() {
         return {
             modal$: null,
+            crudUrl: 'employer_interest/',
             formData: {},
             coSizeCfg: {
                 maxItems: 1,
@@ -92,6 +107,12 @@ export default {
                 this.modal$.show();
             });
         },
+        readForm() {
+            return this.formData;
+        },
+        saveChange() {
+            this.superSaveChange({method: 'POST'})
+        }
     },
     mounted() {
         if (!this.modal$) {

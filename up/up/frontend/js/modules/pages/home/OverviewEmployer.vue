@@ -34,16 +34,11 @@
             </li>
         </ul>
     </div>
-    <EmployerRequestInfoModal/>
 </template>
 <script>
 import {mapState} from 'vuex';
-import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 
 export default {
-    components: {
-        EmployerRequestInfoModal
-    },
     computed: {
         ...mapState({
             eventBus: 'eventBus'

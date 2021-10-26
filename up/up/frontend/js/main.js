@@ -24,6 +24,11 @@ _.defer(() => {
     initVue(page, '#vue-container', mainData, eventBus);
     initVue(header, '#site-header .navbar', {postType: null, userId: 0}, eventBus);
     initVue(footer, '#site-footer', {postType: null}, eventBus);
+
+    $('.modal').on('hide.bs.modal', (e) => {
+        $(document.body).removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    });
 });
 
 _.defer(() => $(window).trigger('resize-throttled'));

@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="/">
             <img class="logo" src="/static/img/logo.png" alt="Uprove">
         </a>
         <font-awesome-icon class="mobile-only" :icon="['fas', 'user-circle']" size="lg"/>

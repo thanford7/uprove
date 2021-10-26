@@ -46,7 +46,7 @@
         </div>
         <div class="d-md-inline-block">&copy; {{currentYear}} Uprove, Inc.&nbsp;&nbsp;</div>
         <div class="d-md-inline-block"><a href="">Terms of service</a>&nbsp;&nbsp;</div>
-        <div class="d-md-inline-block"><a href="">Privacy policy</a></div>
+        <div class="d-md-inline-block"><a href="/privacy">Privacy policy</a></div>
     </div>
 </template>
 <script>

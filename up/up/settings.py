@@ -59,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'upapp.middleware.PasswordChangedMiddleware',
-    'upapp.middleware.UserMiddleware'
+    'upapp.middleware.UserMiddleware',
 ]
 
 ROOT_URLCONF = 'up.urls'
@@ -128,6 +128,9 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
     ]
 }
 
@@ -168,6 +171,10 @@ else:
 
     STATIC_URL = 'https://%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
     STATICFILES_STORAGE = 'ManifestS3Storage'
+
+# Email
+SEND_IN_BLUE_API_KEY = env('SEND_IN_BLUE_API_KEY')
+SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

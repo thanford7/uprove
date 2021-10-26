@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, defineComponent } from 'vue';
 import { createStore } from 'vuex';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faLinkedin, faTwitterSquare } from '@fortawesome/free-brands-svg-icons';
@@ -14,7 +14,7 @@ library.add(faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDow
     faBold, faCircle, faExternalLinkAlt, faGripHorizontal, faItalic, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
     faQuoteLeft, faRedo, faSquare, faStrikethrough, faTextHeight, faTrash, faTrashAlt, faTwitterSquare, faUnderline, faUndo, faUnlink, faUserCircle);
 
-const initVue = (mainComponent, el, data, eventBus) => {
+const initVue = (mainComponent, el, data, eventBus, components = []) => {
     const store = createStore({
         state() {
             return {
