@@ -5,14 +5,14 @@
                 <ul class="list-table">
                     <li><span class="-text-bold">{{section.header}}</span></li>
                     <li v-for="(item, iIdx) in section.items" :key="iIdx">
+                        <font-awesome-icon v-if="item.icon" :icon="item.icon"/>&nbsp;
                         <a :href="item.link">
-                            <font-awesome-icon v-if="item.icon" :icon="item.icon"/>
                             {{item.title}}
                         </a>
                     </li>
                 </ul>
             </div>
-            <div v-if="['page'].includes(postType)" class="col-md-6 col-12">
+            <div v-if="!isProfile" class="col-md-6 col-12">
                 <span class="-text-bold">Get started</span>
                 <div class="row mb-2">
                     <div class="col-3">
@@ -23,7 +23,7 @@
                             <input type="email" class="form-control" id="employerEmail" placeholder="Email...">
                             <span class="input-group-text -color-orange" @click="sendEmail">
                                 <font-awesome-icon :icon="['fas', 'paper-plane']"/>&nbsp;
-                                Talk to Uprove&nbsp;&nbsp;&nbsp;&nbsp;
+                                Request demo&nbsp;&nbsp;&nbsp;&nbsp;
                             </span>
                         </div>
                     </div>
@@ -45,7 +45,7 @@
             </div>
         </div>
         <div class="d-md-inline-block">&copy; {{currentYear}} Uprove, Inc.&nbsp;&nbsp;</div>
-        <div class="d-md-inline-block"><a href="">Terms of service</a>&nbsp;&nbsp;</div>
+        <div class="d-md-inline-block"><a href="/terms-of-service">Terms of service</a>&nbsp;&nbsp;</div>
         <div class="d-md-inline-block"><a href="/privacy">Privacy policy</a></div>
     </div>
 </template>
@@ -63,6 +63,10 @@ export default {
                             title: 'About us',
                             link: 'about'
                         },
+                        {
+                            title: 'Contact',
+                            link: 'contact'
+                        }
                         // {
                         //     title: 'Blog',
                         //     link: ''
@@ -88,7 +92,7 @@ export default {
             currentYear: dayjs().year()
         }
     },
-    props: ['postType'],
+    props: ['isProfile'],
     methods: {
         sendEmail() {
             //

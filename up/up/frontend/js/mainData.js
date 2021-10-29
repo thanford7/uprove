@@ -17,6 +17,9 @@ const mainData = Object.assign({
         'Doctor of Medicine',
         'Juris Doctor',
     ],
+    EMAIL_CANDIDATE_INTEREST: 'CANDIDATE_INTEREST',
+    EMAIL_CONTACT: 'CONTACT',
+    EMAIL_EMPLOYER_INTEREST: 'EMPLOYER_INTEREST',
     EMPLOYMENT_OPTIONS: [
         'Full-time',
         'Part-time',

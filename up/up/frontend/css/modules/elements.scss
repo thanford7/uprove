@@ -114,3 +114,20 @@ img {
 	height: auto;
 	vertical-align: top;
 }
+
+div {
+    &.call-out-box {
+        background-color: colors.$color-lightblue;
+        text-align: center;
+        color: colors.$color-moderategrey;
+        border-radius: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+
+        > * {
+            flex: 0 0 100%;
+        }
+    }
+}

@@ -13,6 +13,14 @@ def privacy(request):
     return render(request, 'privacy.html', context={})
 
 
+def termsOfService(request):
+    return render(request, 'termsOfService.html', context={})
+
+
+def contact(request):
+    return render(request, 'contact.html', context={})
+
+
 def user(request, userId):
     return render(request, 'user.html', context=UserView.getUser(userId))
 

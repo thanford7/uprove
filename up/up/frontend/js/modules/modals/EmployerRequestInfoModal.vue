@@ -20,7 +20,7 @@
         </div>
         <div class="mb-3">
             <label for="formEmployerRequestEmail" class="form-label">Email</label>
-            <InputEmail elId="formEmployerRequestEmail" placeholder="Required" v-model="formData.email"/>
+            <InputEmail elId="formEmployerRequestEmail" placeholder="Required" v-model="formData.fromEmail"/>
         </div>
         <div class="mb-3">
             <label for="formEmployerRequestTitle" class="form-label">Your Title</label>
@@ -72,7 +72,7 @@ export default {
     data() {
         return {
             modal$: null,
-            crudUrl: 'employer_interest/',
+            crudUrl: 'email/',
             formData: {},
             coSizeCfg: {
                 maxItems: 1,
@@ -108,7 +108,11 @@ export default {
             });
         },
         readForm() {
-            return this.formData;
+            return {
+                ...this.formData,
+                type: mainData.EMAIL_EMPLOYER_INTEREST,
+                subject: 'Employer interest'
+            };
         },
         saveChange() {
             this.superSaveChange({method: 'POST'})
