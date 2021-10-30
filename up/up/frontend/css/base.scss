@@ -12,20 +12,6 @@
 @import "bootstrap/scss/bootstrap-grid";
 @import 'selectize/dist/css/selectize.css';
 
-.mobile-only {
-    display: none;
-    @include media-breakpoint-down(md) {
-        display: inherit;
-    }
-}
-
-.desktop-only {
-    display: none;
-    @include media-breakpoint-up(md) {
-        display: inherit;
-    }
-}
-
 .card-header {
     overflow: hidden;
 }

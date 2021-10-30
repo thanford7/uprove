@@ -36,19 +36,8 @@
     </div>
 </template>
 <script>
-import {mapState} from 'vuex';
 
 export default {
-    computed: {
-        ...mapState({
-            eventBus: 'eventBus'
-        })
-    },
-    props: {
-        isMobile: {
-            type: Boolean,
-            default: false
-        }
-    }
+
 }
 </script>

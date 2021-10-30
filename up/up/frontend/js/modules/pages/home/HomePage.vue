@@ -5,7 +5,7 @@
                 <h3 class="-text-center -color-moderategrey-text"><em>A picture is worth 1,000 words; A project is worth 1,000 resumes</em></h3>
             </div>
         </div>
-        <div class="desktop-only">
+        <div v-if="!isMobile">
             <div class="row mt-4">
                 <div class="col-md-6 pb-2">
                     <OverviewEmployer/>
@@ -25,7 +25,7 @@
                 </div>
             </div>
         </div>
-        <div class="mobile-only">
+        <div v-if="isMobile">
             <ul class="nav nav-tabs" id="viewerTypeTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="employer-tab" data-bs-toggle="tab" data-bs-target="#employer" type="button" role="tab" aria-controls="employer" aria-selected="true">Employers</button>
@@ -37,7 +37,7 @@
             <div class="tab-content" id="viewerTypeContent">
                 <div class="tab-pane fade show active" id="employer" role="tabpanel" aria-labelledby="employer-tab">
                     <div class="col-12 pb-2">
-                        <OverviewEmployer :isMobile="true"/>
+                        <OverviewEmployer v-if="isMobile"/>
                     </div>
                     <div class="col-12 mb-2 pb-2">
                         <h4>How it works</h4>
@@ -46,7 +46,7 @@
                 </div>
                 <div class="tab-pane fade" id="seeker" role="tabpanel" aria-labelledby="seeker-tab">
                     <div class="col-12 pb-2">
-                        <OverviewSeeker :isMobile="true"/>
+                        <OverviewSeeker v-if="isMobile"/>
                     </div>
                     <div class="col-12 mb-2 pb-2">
                         <h4>How it works</h4>

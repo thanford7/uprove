@@ -3,7 +3,7 @@
         <a class="navbar-brand" href="/">
             <img class="logo" src="/static/img/logo.png" alt="Uprove">
         </a>
-        <font-awesome-icon class="mobile-only" :icon="['fas', 'user-circle']" size="lg"/>
+        <font-awesome-icon v-if="isMobile" :icon="['fas', 'user-circle']" size="lg"/>
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
                 <template v-if="!userId">
@@ -14,7 +14,7 @@
                         <a class="nav-link" href="#">Pricing</a>
                     </li>
                 </template>
-                <li class="nav-item desktop-only">
+                <li v-if="!isMobile" class="nav-item">
                     <a v-if="!userId" class="nav-link" href="#">
                         <font-awesome-icon :icon="['fas', 'user-circle']"/>
                         Sign in</a>

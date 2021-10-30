@@ -39,7 +39,6 @@
 </template>
 
 <script>
-import {mapState} from 'vuex';
 import BannerAlert from "../../components/BannerAlert";
 import InputEmail from "../../inputs/InputEmail";
 import mainData from "../../../mainData";
@@ -50,16 +49,9 @@ export default {
         BannerAlert,
         InputEmail
     },
-    computed: mapState({
-        eventBus: 'eventBus',
-        isMobile: 'isMobile'
-    }),
     data() {
         return {
-            baseUrl: '/api/v1/',
-            crudUrl: 'email/',
-            formData: {},
-            alerts: []
+            crudUrl: 'email/'
         }
     },
     methods: {
@@ -70,13 +62,10 @@ export default {
                 subject: 'Email from contact page'
             };
         },
-        processFormData(formData) {
-            return formData;
-        },
         isGoodFormData(formData) {
             const {fromEmail, name, message} = formData;
             if (!fromEmail) {
-                // TODO: Add popover, add regex for email
+                this.addPopover($('#contactEmail'), {content: 'Email is required', isOnce: true});
                 return false;
             }
             if (!name) {
@@ -85,41 +74,11 @@ export default {
             if (!message) {
                 return false;
             }
+            return true;
         },
-        saveChange(e) {
-            e.preventDefault();
-            this.superSaveChange({method: 'POST'});
-            this.formData = {};
+        getAjaxCfgOverride() {
+            return {method: 'POST'};
         },
-        onSaveSuccess() {
-            this.alerts.push({
-                message: 'Email sent successfully',
-                alertType: 'success'
-            });
-        },
-        onSaveFailure(xhr, textStatus, errorThrown) {
-            this.alerts.push({
-                message: `Email failed: ${errorThrown}`,
-                alertType: 'danger'
-            });
-        },
-        superSaveChange(cfg = {}) {
-            const formData = this.readForm();
-            const requestData = this.processFormData(formData);
-            if(!this.isGoodFormData(formData)) {
-                return;
-            }
-
-            $.ajax(Object.assign({
-                url: this.baseUrl + this.crudUrl,
-                method: 'PUT',
-                data: JSON.stringify(requestData),
-                contentType: 'application/json',
-                success: this.onSaveSuccess,
-                error: this.onSaveFailure
-            }, cfg));
-        },
-
     },
 }
 </script>

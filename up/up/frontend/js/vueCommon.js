@@ -37,6 +37,7 @@ import {
     faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon, FontAwesomeLayers, FontAwesomeLayersText} from '@fortawesome/vue-fontawesome';
+import {ajaxRequestMixin, globalVarsMixin, popoverMixin} from './vueMixins';
 
 import vueSuperCall from './utils/vue-util';
 import Vue3Sanitize from "vue-3-sanitize";
@@ -66,14 +67,17 @@ const initVue = (mainComponent, el, data, eventBus, components = []) => {
 
     $(window).on('resize', () => {
         store.commit('updateIsMobile');
-    })
+    });
 
     const vueComponent = createApp(mainComponent, data)
         .component('font-awesome-icon', FontAwesomeIcon)
         .component('font-awesome-layers', FontAwesomeLayers)
         .component('font-awesome-layers-text', FontAwesomeLayersText)
         .use(Vue3Sanitize)
-        .use(store);
+        .use(store)
+        .mixin(ajaxRequestMixin)
+        .mixin(globalVarsMixin)
+        .mixin(popoverMixin);
 
     vueComponent.mount(el);
     vueComponent.provide('$super', vueSuperCall);

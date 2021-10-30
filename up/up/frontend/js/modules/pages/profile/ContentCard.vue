@@ -17,12 +17,12 @@
                     <font-awesome-icon 
                         v-if="!isFirstItem"
                         @click="move(-1)"
-                        :icon="['fas', `arrow-${(isMobileDevice) ? 'up' : 'left'}`]" :title="`Move content card ${(isMobileDevice) ? 'up' : 'left'}`"
+                        :icon="['fas', `arrow-${(isMobile) ? 'up' : 'left'}`]" :title="`Move content card ${(isMobile) ? 'up' : 'left'}`"
                     />
                     <font-awesome-icon 
                         v-if="!isLastItem"
                         @click="move(1)"
-                        :icon="['fas', `arrow-${(isMobileDevice) ? 'down' : 'right'}`]" :title="`Move content card ${(isMobileDevice) ? 'down' : 'right'}`"
+                        :icon="['fas', `arrow-${(isMobile) ? 'down' : 'right'}`]" :title="`Move content card ${(isMobile) ? 'down' : 'right'}`"
                     />
                 </span>
             </h5>
@@ -72,11 +72,6 @@ export default {
             }
             return `open:edit${openType}Modal`
         },
-        ...mapState({
-            eventBus: 'eventBus',
-            crudUrl: 'crudUrlProfile',
-            isMobileDevice: 'isMobileDevice'
-        }),
         ...mapGetters({
             getContentItem: 'getContentItem'
         })
