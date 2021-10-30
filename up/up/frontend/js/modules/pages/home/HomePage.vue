@@ -1,5 +1,5 @@
 <template>
-    <div id="vue-container" class="container-fluid">
+    <div>
         <div class="row mt-4">
             <div class="col-12">
                 <h3 class="-text-center -color-moderategrey-text"><em>A picture is worth 1,000 words; A project is worth 1,000 resumes</em></h3>

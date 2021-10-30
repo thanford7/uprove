@@ -1,4 +1,4 @@
-const mainData = Object.assign({
+const globalData = Object.assign({
     ALLOWED_UPLOADS: {
         VIDEO: ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg'],
         IMAGE: ['png', 'jpeg', 'jpg', 'gif'],
@@ -65,4 +65,4 @@ const mainData = Object.assign({
     }
 }, window.initData);
 
-export default mainData;
+export default globalData;

@@ -1,5 +1,5 @@
 <template>
-    <div id="vue-container" class="container-fluid">
+    <div>
         <BannerRow/>
 
         <div v-for="(section, idx) in profile.sections" :key="`section-${idx}`" class="row -border-bottom--light mb-2 pb-2 ">

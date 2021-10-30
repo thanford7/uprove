@@ -39,7 +39,6 @@ import {
 import {FontAwesomeIcon, FontAwesomeLayers, FontAwesomeLayersText} from '@fortawesome/vue-fontawesome';
 import {ajaxRequestMixin, globalVarsMixin, popoverMixin} from './vueMixins';
 
-import vueSuperCall from './utils/vue-util';
 import Vue3Sanitize from "vue-3-sanitize";
 
 library.add(faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, faArrowLeft, faArrowRight, faArrowUp,
@@ -50,7 +49,7 @@ const isMobileFn = () => {
     return window.innerWidth < 768;  // md breakpoint for bootstrap
 }
 
-const initVue = (mainComponent, el, data, eventBus, components = []) => {
+const initVue = (mainComponent, el, eventBus) => {
     const store = createStore({
         state() {
             return {
@@ -69,7 +68,7 @@ const initVue = (mainComponent, el, data, eventBus, components = []) => {
         store.commit('updateIsMobile');
     });
 
-    const vueComponent = createApp(mainComponent, data)
+    const vueComponent = createApp(mainComponent)
         .component('font-awesome-icon', FontAwesomeIcon)
         .component('font-awesome-layers', FontAwesomeLayers)
         .component('font-awesome-layers-text', FontAwesomeLayersText)
@@ -80,8 +79,6 @@ const initVue = (mainComponent, el, data, eventBus, components = []) => {
         .mixin(popoverMixin);
 
     vueComponent.mount(el);
-    vueComponent.provide('$super', vueSuperCall);
-
     return vueComponent
 }
 

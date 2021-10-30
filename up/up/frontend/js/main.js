@@ -6,7 +6,6 @@ import $ from 'jquery';
 import initVue from './vueCommon';
 import dayjs from "dayjs/esm";
 import '../css/base.scss';
-import mainData from './mainData';
 import Pages from './mainPageLoader';
 import _ from 'lodash';
 
@@ -21,9 +20,9 @@ if (jQueryConsole) {
 _.defer(() => {
     const pageName = $('body').data('page');
     const {page, eventBus} = Pages[pageName];
-    initVue(page, '#vue-container', mainData, eventBus);
-    initVue(header, '#site-header .navbar', {postType: null, userId: 0}, eventBus);
-    initVue(footer, '#site-footer', {postType: null}, eventBus);
+    initVue(page, '#vue-container', eventBus);
+    initVue(header, '#site-header .navbar', eventBus);
+    initVue(footer, '#site-footer', eventBus);
 
     $('.modal').on('hide.bs.modal', (e) => {
         $(document.body).removeClass('modal-open');

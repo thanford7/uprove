@@ -1,5 +1,5 @@
 <template>
-    <div id="vue-container" class="container-fluid">
+    <div>
         <div class="row mt-4">
             <h1>Terms and Conditions</h1>
             <p>Last updated: October 26, 2021</p>

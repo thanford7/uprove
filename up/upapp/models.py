@@ -82,7 +82,7 @@ class UserProfileSectionItem(models.Model):
 
 
 class UserEducation(AuditFields):
-    # Keep in sync with mainData.js
+    # Keep in sync with globalData.js
     OPTIONS_DEGREE = [
         'Associate of Arts',
         'Associate of Science',
@@ -107,7 +107,7 @@ class UserEducation(AuditFields):
 
 
 class UserExperience(AuditFields):
-    # Keep in sync with mainData.js
+    # Keep in sync with globalData.js
     OPTIONS_EMPLOYMENT_TYPE = [
         'Full-time',
         'Part-time',
@@ -174,7 +174,7 @@ class UserImage(AuditFields):
 
 
 class UserTag(AuditFields):
-    # Keep in sync with mainData.js
+    # Keep in sync with globalData.js
     TYPE_INTEREST = 'interest'
     TYPE_SKILL = 'skill'
     TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]

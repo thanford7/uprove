@@ -1,6 +1,6 @@
 <template>
     <div class="pt-4 pb-2 ps-4 pe-4">
-        <div class="row algin-items-center mb-2">
+        <div class="row align-items-center mb-2">
             <div v-for="(section, idx) in sections" :key="idx" class="col-md-3 col-12 mb-2">
                 <ul class="list-table">
                     <li><span class="-text-bold">{{section.header}}</span></li>
@@ -12,39 +12,11 @@
                     </li>
                 </ul>
             </div>
-            <div v-if="!isProfile" class="col-md-6 col-12">
-                <span class="-text-bold">Get started</span>
-                <div class="row mb-2">
-                    <div class="col-3">
-                        <label for="employerEmail" class="col-form-label">Employers</label>
-                    </div>
-                    <div class="col-9">
-                        <div class="input-group input-group-sm">
-                            <input type="email" class="form-control" id="employerEmail" placeholder="Email...">
-                            <span class="input-group-text -color-orange" @click="sendEmail">
-                                <font-awesome-icon :icon="['fas', 'paper-plane']"/>&nbsp;
-                                Request demo&nbsp;&nbsp;&nbsp;&nbsp;
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-3 ">
-                        <label for="seekerEmail" class="col-form-label">Job seekers</label>
-                    </div>
-                    <div class="col-9">
-                        <div class="input-group input-group-sm">
-                            <input type="email" class="form-control" id="seekerEmail" placeholder="Email...">
-                            <span class="input-group-text -color-orange" @click="sendEmail">
-                                <font-awesome-icon :icon="['fas', 'paper-plane']"/>&nbsp;
-                                Request account
-                            </span>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-md-6 col-12 mb-2">
+                <img class="logo" :class="(isMobile) ? '' : 'float-end'" src="/static/img/logo.png" alt="Uprove" height="40" width="118">
             </div>
         </div>
-        <div class="d-md-inline-block">&copy; {{currentYear}} Uprove, Inc.&nbsp;&nbsp;</div>
+        <div class="d-md-inline-block">&copy; {{(startYear !== currentYear) ? `${startYear}-` : ''}}{{currentYear}} Uprove, Inc.&nbsp;&nbsp;</div>
         <div class="d-md-inline-block"><a href="/terms-of-service">Terms of service</a>&nbsp;&nbsp;</div>
         <div class="d-md-inline-block"><a href="/privacy">Privacy policy</a></div>
     </div>
@@ -89,14 +61,9 @@ export default {
                     ]
                 }
             ],
-            currentYear: dayjs().year()
+            currentYear: dayjs().year(),
+            startYear: 2021
         }
     },
-    props: ['isProfile'],
-    methods: {
-        sendEmail() {
-            //
-        }
-    }
 }
 </script>

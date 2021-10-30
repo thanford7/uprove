@@ -1,5 +1,5 @@
 <template>
-    <div id="vue-container" class="container-fluid">
+    <div>
         <BannerAlert :alerts="alerts"/>
         <div class="row mt-3 mb-3">
             <h2>Contact us</h2>
@@ -40,8 +40,8 @@
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
+import FormChecker from "../../../utils/form";
 import InputEmail from "../../inputs/InputEmail";
-import mainData from "../../../mainData";
 
 export default {
     name: 'ContactPage.vue',
@@ -58,7 +58,7 @@ export default {
         readForm() {
             return {
                 ...this.formData,
-                type: mainData.EMAIL_CONTACT,
+                type: this.globalData.EMAIL_CONTACT,
                 subject: 'Email from contact page'
             };
         },
@@ -68,10 +68,16 @@ export default {
                 this.addPopover($('#contactEmail'), {content: 'Email is required', isOnce: true});
                 return false;
             }
+            if (!FormChecker.isGoodEmail(fromEmail)) {
+                this.addPopover($('#contactEmail'), {content: 'Please add valid email', isOnce: true});
+                return false;
+            }
             if (!name) {
+                this.addPopover($('#contactName'), {content: 'Name is required', isOnce: true});
                 return false;
             }
             if (!message) {
+                this.addPopover($('#contactMessage'), {content: 'Message is required', isOnce: true});
                 return false;
             }
             return true;

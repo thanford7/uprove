@@ -62,7 +62,6 @@ import {mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
 import InputEmail from "../inputs/InputEmail";
 import InputSelectize from "../inputs/InputSelectize";
-import mainData from "../../mainData";
 
 export default {
     name: "EmployerRequestInfoModal.vue",
@@ -86,20 +85,21 @@ export default {
                     {value: '1001+', text: '1001+'},
                 ]
             },
-            functionsCfg: {
-                maxItems: null,
-                options: Object.entries(mainData.SUPPORTED_FUNCTIONS).map(([key, txt]) => ({value: key, text: txt}))
-            },
-            skillsCfg: {
-                maxItems: null,
-                options: Object.entries(mainData.SUPPORTED_SKILLS).map(([key, txt]) => ({value: key, text: txt}))
-            }
         }
     },
     computed: {
-        ...mapState({
-            eventBus: 'eventBus'
-        }),
+        functionsCfg() {
+            return {
+                maxItems: null,
+                options: Object.entries(this.globalData.SUPPORTED_FUNCTIONS).map(([key, txt]) => ({value: key, text: txt}))
+            }
+        },
+        skillsCfg() {
+            return {
+                maxItems: null,
+                options: Object.entries(this.globalData.SUPPORTED_SKILLS).map(([key, txt]) => ({value: key, text: txt}))
+            }
+        }
     },
     methods: {
         hookEvents() {
@@ -110,7 +110,7 @@ export default {
         readForm() {
             return {
                 ...this.formData,
-                type: mainData.EMAIL_EMPLOYER_INTEREST,
+                type: this.globalData.EMAIL_EMPLOYER_INTEREST,
                 subject: 'Employer interest'
             };
         },

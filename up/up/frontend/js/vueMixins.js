@@ -1,5 +1,6 @@
 import {Popover} from "bootstrap";
 import {mapState} from "vuex";
+import globalData from './globalData';
 
 
 const ajaxRequestMixin = {
@@ -43,8 +44,10 @@ const ajaxRequestMixin = {
         },
         saveChange(e) {
             e.preventDefault();
-            this.readAndSubmitForm();
-            this.formData = {};
+            const isSubmitted = this.readAndSubmitForm();
+            if (isSubmitted) {
+                this.formData = {};
+            }
         },
         getAjaxCfgOverride() {
             return {};
@@ -64,6 +67,11 @@ const ajaxRequestMixin = {
 
 
 const globalVarsMixin = {
+    data() {
+        return {
+            globalData
+        }
+    },
     computed: mapState({
         eventBus: 'eventBus',
         isMobile: 'isMobile'
