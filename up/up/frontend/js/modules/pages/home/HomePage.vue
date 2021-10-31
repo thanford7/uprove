@@ -121,7 +121,7 @@ export default {
         });
         this.eventBus.on('ajaxFailure', ({xhr, textStatus, errorThrown}) => {
             this.alerts.push({
-                message: `Email failed: ${errorThrown}`,
+                message: `Failed: ${xhr.responseText || errorThrown}`,
                 alertType: 'danger'
             });
         });

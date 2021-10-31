@@ -37,7 +37,7 @@
         cursor: pointer;
     }
 
-    .navbar-collapse.show ~ button .hamburger .bar {
+    .navbar-collapse.show ~ div button .hamburger .bar {
         &:nth-child(2) {
             opacity: 0;
         }

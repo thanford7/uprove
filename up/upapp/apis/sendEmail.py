@@ -69,6 +69,7 @@ class EmailView(APIView):
                 ('Note', 'note')
             ))
         elif contactType == self.TYPE_CANDIDATE_INTEREST:
+            _saveCandidateInterest(request.data)
             content = _generateEmailBody(request.data, (
                 ('First name', 'firstName'),
                 ('Last name', 'lastName'),
