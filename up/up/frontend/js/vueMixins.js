@@ -38,13 +38,18 @@ const ajaxRequestMixin = {
             crudUrl: null,
             alerts: [],
             formData: {},
-            requiredFields: {}  // <formData field name>: <form DOM id>
+            requiredFields: {}, // <formData field name>: <form DOM id>
+            isAjaxModal: false
         }
     },
     methods: {
         onSaveSuccess() {
             // subclass
             eventBus.emit('ajaxSuccess');
+            this.formData = {};
+            if (this.isAjaxModal) {
+                this.modal$.hide();
+            }
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
             // subclass
@@ -81,13 +86,8 @@ const ajaxRequestMixin = {
         },
         saveChange(e) {
             e.preventDefault();
-            const isSubmitted = this.readAndSubmitForm();
-            if (isSubmitted) {
-                this.formData = {};
-                if ($(e.targetElement).parents('.modal').length) {
-                    this.modal$.hide();
-                }
-            }
+            this.isAjaxModal = Boolean($(e.currentTarget).parents('.modal').length)
+            return this.readAndSubmitForm();
         },
         getAjaxCfgOverride() {
             return {};
@@ -145,8 +145,13 @@ const modalsMixin = {
 const popoverMixin = {
     methods: {
         addPopover(el$, {content, isOnce = false}) {
+            let container = 'body';
+            const modal = el$.parents('.modal');
+            if (modal.length) {
+                container = `#${$(modal[0]).attr('id')}`;
+            }
             const popover = new Popover(el$, {
-                container: (el$.parents('.modal').length) ? '.modal' : 'body',
+                container,
                 content,
                 placement: 'auto'
             });

@@ -12,6 +12,11 @@
 @import "bootstrap/scss/bootstrap-grid";
 @import 'selectize/dist/css/selectize.css';
 
+
+#vue-container {
+    width: 95%;
+}
+
 .card-header {
     overflow: hidden;
 }

@@ -10,9 +10,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#">Projects</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Pricing</a>
-                    </li>
                 </template>
                 <li v-if="!isMobile" class="nav-item">
                     <a v-if="!userId" class="nav-link" href="#">

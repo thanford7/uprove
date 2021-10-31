@@ -9,11 +9,12 @@ apiPath = 'api/v1/'
 urlpatterns = [
     # Views
     path('', views.homepage, name='index'),
-    path('privacy/', views.privacy, name='privacy'),
-    path('terms-of-service/', views.termsOfService, name='termsOfService'),
+    path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
-    path('user/<int:userId>/', views.user, name='user'),
+    path('privacy/', views.privacy, name='privacy'),
     path('profile/<int:profileId>/', views.profile, name='profile'),
+    path('terms-of-service/', views.termsOfService, name='termsOfService'),
+    path('user/<int:userId>/', views.user, name='user'),
 
     # APIs
 

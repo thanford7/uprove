@@ -3,7 +3,7 @@ import logging
 from http import HTTPStatus
 
 import pytz
-from django.db import IntegrityError
+from django.db import models
 from django.db.transaction import atomic
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 from django.conf import settings
-from ..models import EmployerInterest, ProjectFunction, ProjectSkill
+from ..models import CandidateInterest, EmployerInterest, ProjectFunction, ProjectSkill
 
 
 TEST_EMAIL_ADDRESS = 'test@uprove.co'
@@ -70,7 +70,14 @@ class EmailView(APIView):
             ))
         elif contactType == self.TYPE_CANDIDATE_INTEREST:
             content = _generateEmailBody(request.data, (
-                ('Todo', 'todo'),
+                ('First name', 'firstName'),
+                ('Last name', 'lastName'),
+                ('Email', 'fromEmail'),
+                ('LinkedIn link', 'linkedInLink'),
+                ('Interested in roles', 'roleFunctions'),
+                ('Current skills', 'roleSkills'),
+                ('Referrer', 'referrer'),
+                ('Note', 'note')
             ))
         else:
             logging.log(logging.ERROR, f'Unknown contact type of {contactType}')
@@ -88,8 +95,19 @@ class EmailView(APIView):
 
 
 def _generateEmailBody(data: dict, emailRows: tuple):
-    generateRow = lambda name, key: f'<tr><td><strong>{name}</strong></td><td>{data.get(key, None)}</td></tr>'
-    return '<table>' + ''.join((generateRow(*row) for row in emailRows)) + '</table>'
+    return '<table>' + ''.join((_generateEmailTableRow(data, *row) for row in emailRows)) + '</table>'
+
+
+def _generateEmailTableRow(data, name, key):
+    val = data.get(key, None)
+    if isinstance(val, list):
+        val = '<ul style="margin:0; margin-left: 25px; padding:0;">' + ''.join((f'<li>{li}</li>' for li in val)) + '</ul>'
+    return f'''
+        <tr>
+            <td style="border: solid 1px #e9e9e9;"><strong>{name}</strong></td>
+            <td style="border: solid 1px #e9e9e9;">{val}</td>
+        </tr>
+    '''
 
 
 @atomic
@@ -120,16 +138,49 @@ def _saveEmployerInterest(data: dict):
         )
         employerInterest.save()
 
+    _saveProjectTags(data, employerInterest, 'hiringFunctions', 'hiringSkills')
+
+
+@atomic
+def _saveCandidateInterest(data: dict):
+    try:
+        candidateInterest = CandidateInterest.objects.get(email=data['fromEmail'])
+        candidateInterest.firstName = data['firstName']
+        candidateInterest.lastName = data['lastName']
+        candidateInterest.linkedInProfile = data['linkedInLink']
+        candidateInterest.referrer = data.get('referrer')
+        candidateInterest.note = data.get('note')
+        candidateInterest.modifiedDateTime = datetime.now(tz=pytz.UTC)
+        candidateInterest.interestedFunctions.clear()
+        candidateInterest.currentSkills.clear()
+        candidateInterest.save()
+    except CandidateInterest.DoesNotExist:
+        candidateInterest = CandidateInterest(
+            firstName=data['firstName'],
+            lastName=data['lastName'],
+            email=data['fromEmail'],
+            linkedInProfile=data['linkedInLink'],
+            referrer=data.get('referrer'),
+            note=data.get('note'),
+            createdDateTime=datetime.now(tz=pytz.UTC),
+            modifiedDateTime=datetime.now(tz=pytz.UTC)
+        )
+        candidateInterest.save()
+
+    _saveProjectTags(data, candidateInterest, 'interestedFunctions', 'currentSkills')
+
+
+def _saveProjectTags(data: dict, modelInstance: models.Model, roleFunctionAttr: str, roleSkillAttr: str):
     existingRfs = {pf.functionName: pf for pf in ProjectFunction.objects.all()}
     for roleFunction in data.get('roleFunctions', []):
         if not (rf := existingRfs.get(roleFunction)):
             rf = ProjectFunction(functionName=roleFunction)
             rf.save()
-        employerInterest.hiringFunctions.add(rf)
+        getattr(modelInstance, roleFunctionAttr).add(rf)
 
     existingRss = {ps.skillName: ps for ps in ProjectSkill.objects.all()}
     for roleSkill in data.get('roleSkills', []):
         if not (rs := existingRss.get(roleSkill)):
             rs = ProjectSkill(skillName=roleSkill)
             rs.save()
-        employerInterest.hiringSkills.add(rs)
+        getattr(modelInstance, roleSkillAttr).add(rs)

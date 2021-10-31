@@ -57,17 +57,20 @@
             </div>
         </div>
         <EmployerRequestInfoModal/>
+        <CandidateRequestAccountModal/>
     </div>
 </template>
 <script>
 import BannerAlert from "../../components/BannerAlert";
+import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import OrderedList from '../../components/OrderedList.vue';
 import OverviewEmployer from './OverviewEmployer.vue';
 import OverviewSeeker from './OverviewSeeker.vue';
 
 export default {
-    components: {BannerAlert, EmployerRequestInfoModal, OrderedList, OverviewEmployer, OverviewSeeker},
+    components: {
+        BannerAlert, CandidateRequestAccountModal, EmployerRequestInfoModal, OrderedList, OverviewEmployer, OverviewSeeker},
     data() {
         return {
             employerHowItWorks: [
@@ -116,7 +119,7 @@ export default {
                 alertType: 'success'
             });
         });
-        this.eventBus.on('ajaxFailure', (xhr, textStatus, errorThrown) => {
+        this.eventBus.on('ajaxFailure', ({xhr, textStatus, errorThrown}) => {
             this.alerts.push({
                 message: `Email failed: ${errorThrown}`,
                 alertType: 'danger'

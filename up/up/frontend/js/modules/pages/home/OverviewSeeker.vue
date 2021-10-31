@@ -1,13 +1,13 @@
 <template>
     <div>
         <div v-if="isMobile" class="mb-2 pt-2 sticky-top -color-white">
-            <button type="button" class="btn btn-sm btn-primary btn-full-width" @click="eventBus.$emit('open:something')">
+            <button type="button" class="btn btn-sm btn-primary btn-full-width" @click="eventBus.emit('open:candidateRequestAccountModal')">
                 Request account
             </button>
         </div>
         <div v-if="!isMobile">
             <h2 class="d-inline-block">Job seekers</h2>
-            <button type="button" class="btn btn-sm btn-primary d-inline-block -float-right" @click="eventBus.$emit('open:something')">
+            <button type="button" class="btn btn-sm btn-primary d-inline-block -float-right" @click="eventBus.emit('open:candidateRequestAccountModal')">
                 Request account
             </button>
         </div>
@@ -28,7 +28,7 @@
             <li>
                 <font-awesome-icon :icon="['fas', 'plus-circle']" class="-color-darkblue-fa"/>&nbsp;
                 <span class="-text-bold">Be smart</span>
-                <div class="-sub-text pb-2">Create multiple profiles targeted to unqiue employers or positions, see metrics on each of your profiles' performance, and get anonymous feedback from employers you interview with.
+                <div class="-sub-text pb-2">Create multiple profiles targeted to unique employers or positions, see metrics on each of your profiles' performance, and get anonymous feedback from employers you interview with.
                 </div>
             </li>
         </ul>

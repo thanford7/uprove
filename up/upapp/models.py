@@ -224,6 +224,17 @@ class EmployerInterest(AuditFields):
     note = models.TextField(null=True)
 
 
+class CandidateInterest(AuditFields):
+    firstName = models.CharField(max_length=20)
+    lastName = models.CharField(max_length=30)
+    email = models.EmailField(unique=True)
+    linkedInProfile = models.CharField(max_length=100)
+    referrer = models.CharField(max_length=50, null=True)
+    interestedFunctions = models.ManyToManyField('ProjectFunction')
+    currentSkills = models.ManyToManyField('ProjectSkill')
+    note = models.TextField(null=True)
+
+
 class ProjectFunction(models.Model):
     functionName = models.CharField(max_length=100, unique=True)
 
