@@ -170,7 +170,7 @@ else:
     AWS_LOCATION = 'uploads'
 
     STATIC_URL = 'https://%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
-    STATICFILES_STORAGE = 'storage.ManifestS3Storage'
+    STATICFILES_STORAGE = '.storage.ManifestS3Storage'
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY')
