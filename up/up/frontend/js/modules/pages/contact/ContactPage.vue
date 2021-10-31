@@ -51,7 +51,12 @@ export default {
     },
     data() {
         return {
-            crudUrl: 'email/'
+            crudUrl: 'email/',
+            requiredFields: {
+                fromEmail: 'contactEmail',
+                name: 'contactName',
+                message: 'contactMessage'
+            }
         }
     },
     methods: {
@@ -62,22 +67,9 @@ export default {
                 subject: 'Email from contact page'
             };
         },
-        isGoodFormData(formData) {
-            const {fromEmail, name, message} = formData;
-            if (!fromEmail) {
-                this.addPopover($('#contactEmail'), {content: 'Email is required', isOnce: true});
-                return false;
-            }
-            if (!FormChecker.isGoodEmail(fromEmail)) {
+        isGoodFormFields(formData) {
+            if (!FormChecker.isGoodEmail(formData.fromEmail)) {
                 this.addPopover($('#contactEmail'), {content: 'Please add valid email', isOnce: true});
-                return false;
-            }
-            if (!name) {
-                this.addPopover($('#contactName'), {content: 'Name is required', isOnce: true});
-                return false;
-            }
-            if (!message) {
-                this.addPopover($('#contactMessage'), {content: 'Message is required', isOnce: true});
                 return false;
             }
             return true;
@@ -86,5 +78,19 @@ export default {
             return {method: 'POST'};
         },
     },
+    mounted() {
+        this.eventBus.on('ajaxSuccess', () => {
+            this.alerts.push({
+                message: 'Email sent successfully',
+                alertType: 'success'
+            });
+        });
+        this.eventBus.on('ajaxFailure', ({xhr, textStatus, errorThrown}) => {
+            this.alerts.push({
+                message: `Email failed: ${errorThrown}`,
+                alertType: 'danger'
+            });
+        });
+    }
 }
 </script>

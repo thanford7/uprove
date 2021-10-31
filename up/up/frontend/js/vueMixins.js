@@ -1,6 +1,34 @@
 import {Popover} from "bootstrap";
-import {mapState} from "vuex";
+import {createStore, mapState} from "vuex";
 import globalData from './globalData';
+import mitt from "mitt";  // https://github.com/developit/mitt
+import Modal from "bootstrap/js/dist/modal";
+import $ from 'jquery';
+
+
+const eventBus = mitt();
+
+const isMobileFn = () => {
+    return window.innerWidth < 768;  // md breakpoint for bootstrap
+}
+
+const store = createStore({
+    state() {
+        return {
+            eventBus,
+            isMobile: isMobileFn()
+        }
+    },
+    mutations: {
+        updateIsMobile(state) {
+            state.isMobile = isMobileFn()
+        }
+    }
+});
+
+$(window).on('resize', () => {
+    store.commit('updateIsMobile');
+});
 
 
 const ajaxRequestMixin = {
@@ -9,21 +37,18 @@ const ajaxRequestMixin = {
             apiUrl: '/api/v1/',
             crudUrl: null,
             alerts: [],
-            formData: {}
+            formData: {},
+            requiredFields: {}  // <formData field name>: <form DOM id>
         }
     },
     methods: {
         onSaveSuccess() {
-            this.alerts.push({
-                message: 'Email sent successfully',
-                alertType: 'success'
-            });
+            // subclass
+            eventBus.emit('ajaxSuccess');
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
-            this.alerts.push({
-                message: `Email failed: ${errorThrown}`,
-                alertType: 'danger'
-            });
+            // subclass
+            eventBus.emit('ajaxFailure', {xhr, textStatus, errorThrown});
         },
         readForm() {
             return this.formData;
@@ -31,9 +56,21 @@ const ajaxRequestMixin = {
         processFormData() {
             return this.readForm();
         },
-        isGoodFormData() {
-            // subclass
+        isGoodFormData(formData) {
+            return this.hasRequiredFormFields(formData) & this.isGoodFormFields(formData);
+        },
+        isGoodFormFields(formData) {
+            // subclass - add logic checks other than required fields
             return true;
+        },
+        hasRequiredFormFields(formData) {
+            return Object.entries(this.requiredFields).reduce((hasRequired, [field, domId]) => {
+                if (!formData[field]) {
+                    this.addPopover($(`#${domId}`), {content: 'Required field', isOnce: true});
+                    return false;
+                }
+                return hasRequired & true
+            }, true);
         },
         readAndSubmitForm() {
             const formData = this.processFormData();
@@ -47,6 +84,9 @@ const ajaxRequestMixin = {
             const isSubmitted = this.readAndSubmitForm();
             if (isSubmitted) {
                 this.formData = {};
+                if ($(e.targetElement).parents('.modal').length) {
+                    this.modal$.hide();
+                }
             }
         },
         getAjaxCfgOverride() {
@@ -78,12 +118,35 @@ const globalVarsMixin = {
     })
 }
 
+const modalsMixin = {
+    data() {
+        return {
+            modalName: null,
+            modal$: null
+        }
+    },
+    methods: {
+        clearFormData() {
+            // subclass for clearing selectize and other objects not directly tied to a v-model
+        }
+    },
+    mounted() {
+        eventBus.on(`open:${this.modalName}`, () => {
+            if (!this.modal$) {
+                this.modal$ = new Modal($(`#${this.modalName}`));
+            }
+            this.clearFormData();
+            this.modal$.show();
+        });
+    }
+}
+
 
 const popoverMixin = {
     methods: {
         addPopover(el$, {content, isOnce = false}) {
             const popover = new Popover(el$, {
-                container: 'body',
+                container: (el$.parents('.modal').length) ? '.modal' : 'body',
                 content,
                 placement: 'auto'
             });
@@ -98,4 +161,4 @@ const popoverMixin = {
     }
 }
 
-export {ajaxRequestMixin, globalVarsMixin, popoverMixin};
+export {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store};

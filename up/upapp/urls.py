@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-from .apis import employer, sendEmail
+from .apis import sendEmail
 from .apis import user
 
 apiPath = 'api/v1/'
@@ -16,7 +16,6 @@ urlpatterns = [
     path('profile/<int:profileId>/', views.profile, name='profile'),
 
     # APIs
-    path(apiPath + 'employer_interest/', employer.EmployerInterestView.as_view()),
 
     # Email
     path(apiPath + 'email/', sendEmail.EmailView.as_view())

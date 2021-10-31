@@ -1,6 +1,6 @@
 <template>
     <BaseModal
-        modalId="editExperienceModal"
+        :modalId="modalName"
         modalTitle="Edit experience"
         :isLargeDisplay="true"
         @saveChange="saveChange"
@@ -18,7 +18,7 @@ export default {
     extends: BaseModal,
     data() {
         return {
-            modal$: null,
+            modalName: 'editExperienceModal',
             contentId: null,
         }
     },
@@ -26,7 +26,6 @@ export default {
     components: {BaseModal, ExperienceFormContent},
     computed: {
         ...mapState({
-            eventBus: 'eventBus',
             contentItem(state) {
                 return (this.contentId) ? state.content[this.contentId] : {}
             },
@@ -52,10 +51,5 @@ export default {
             return this.$refs.form.getPreSaveChange();
         },
     },
-    mounted() {
-        if (!this.modal$) {
-            this.modal$ = new Modal($('#editExperienceModal'));
-        }
-    }
 }
 </script>

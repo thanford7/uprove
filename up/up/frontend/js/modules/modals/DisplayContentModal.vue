@@ -1,6 +1,6 @@
 <template>
     <BaseModal
-        modalId="displayContentModal"
+        :modalId="modalName"
         :isReadOnly="true"
         :modalTitle="contentItem.post_title"
         :isFooterHidden="true"
@@ -50,15 +50,12 @@ export default {
     components: {BaseModal},
     data() {
         return {
-            modal$: null,
+            modalName: 'displayContentModal',
             contentItem: {}
         }
     },
     inheritAttrs: false,
     computed: {
-        ...mapState({
-            eventBus: 'eventBus',
-        }),
         ...mapGetters({
             getContentItem: 'getContentItem'
         })
@@ -82,10 +79,5 @@ export default {
             return Data.formatDate(dateVal, {dateFormat: this.dateFormat, isReturnNull: true});
         }
     },
-    mounted() {
-        if (!this.modal$) {
-            this.modal$ = new Modal($('#displayContentModal'));
-        }
-    }
 }
 </script>

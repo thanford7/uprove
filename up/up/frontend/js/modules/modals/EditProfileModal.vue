@@ -29,7 +29,7 @@ export default {
     extends: BaseModal,
     data() {
         return {
-            modal$: null,
+            modalName: 'editProfileModal',
 
             inputs: {
                 profile_name: {
@@ -42,7 +42,6 @@ export default {
     components: {BaseModal, InputSelectOrUploadMedia},
     computed: {
         ...mapState({
-            eventBus: 'eventBus',
             profile: 'profile',
             profilePicture: 'profilePicture',
             crudUrl: 'crudUrlProfile'
@@ -56,9 +55,6 @@ export default {
         }
     },
     methods: {
-        readForm() {
-            return this.formData;
-        },
         onSaveSuccess(requestData, responseData) {
             this.eventBus.loadContent(['profile', 'media'])
         },
@@ -84,9 +80,6 @@ export default {
         },
     },
     mounted() {
-        if (!this.modal$) {
-            this.modal$ = new Modal($('#editProfileModal'));
-        }
         this.imageSel$ = $(`#formImageSel-${this.profile.ID}`).parent().find('.selectize-control');
         this.imageUpload$ = $(`#formImageUpload-${this.profile.ID}`);
         this.imageToggle$ = $(`#formToggleImageUpload-${this.profile.ID}`);

@@ -15,27 +15,17 @@
                 </div>
                 <div v-if="!isFooterHidden" class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button v-if="!isReadOnly" @click="$emit('saveChange')" type="button" class="btn btn-primary" data-bs-dismiss="modal">{{primaryButtonText || 'Save changes'}}</button>
+                    <button v-if="!isReadOnly" @click="$emit('saveChange', $event)" type="button" class="btn btn-primary">{{primaryButtonText || 'Save changes'}}</button>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <script>
-import {mapState} from 'vuex';
 
 export default {
     props: ['modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable', 'isFooterHidden', 'isLargeDisplay'],
-    data() {
-        return {
-            baseUrl: 'api/v1/',
-            crudUrl: null
-        }
-    },
     computed: {
-        ...mapState({
-            eventBus: 'eventBus'
-        }),
         modalClasses() {
             const classes = [];
             if (this.isScrollable) {
@@ -47,43 +37,5 @@ export default {
             return classes.join(' ');
         }
     },
-    methods: {
-        readForm() {
-            // subclass
-        },
-        hookEvents() {
-            // subclass
-        },
-        isGoodFormData(formData) {
-            return true;
-            // subclass
-        },
-        processFormData(formData) {
-            // subclass
-            return formData;
-        },
-        onSaveSuccess(requestData, responseData) {
-            // subclass
-        },
-        superSaveChange(cfg = {}) {
-            const formData = this.readForm();
-            const requestData = this.processFormData(formData);
-            if(!this.isGoodFormData(formData)) {
-                return;
-            }
-
-            $.ajax(Object.assign({
-                url: this.baseUrl + this.crudUrl,
-                method: 'PUT',
-                data: JSON.stringify(requestData),
-                contentType: 'application/json',
-                dataType: 'json',
-                success: this.onSaveSuccess
-            }, cfg));
-        },
-    },
-    mounted() {
-        this.hookEvents();
-    }
 }
 </script>

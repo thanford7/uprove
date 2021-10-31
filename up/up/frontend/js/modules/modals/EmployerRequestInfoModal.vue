@@ -1,6 +1,6 @@
 <template>
     <BaseModal
-        modalId="employerRequestInfoModal"
+        :modalId="modalName"
         modalTitle="Request information"
         headerSubtext="Once you submit the form, we'll email you additional information and find a time to demo the platform"
         primaryButtonText="Send me info"
@@ -29,18 +29,21 @@
         <div class="mb-3">
             <label for="formEmployerRequestCoSize" class="form-label">Company Employee Count</label>
             <InputSelectize
+                ref="sel1"
                 elId="formEmployerRequestCoSize"
                 placeholder="Optional" :cfg="coSizeCfg" @selected="formData.size = $event"/>
         </div>
         <div class="mb-3">
             <label for="formEmployerRequestFunctions" class="form-label">Functions You're Hiring</label>
             <InputSelectize
+                ref="sel2"
                 elId="formEmployerRequestFunctions"
                 placeholder="Optional" :cfg="functionsCfg" @selected="formData.roleFunctions = $event"/>
         </div>
         <div>
             <label for="formEmployerRequestSkills" class="form-label">Skills You're Hiring</label>
             <InputSelectize
+                ref="sel3"
                 elId="formEmployerRequestSkills"
                 placeholder="Optional" :cfg="skillsCfg" @selected="formData.roleSkills = $event"/>
         </div>
@@ -57,11 +60,10 @@
 </template>
 
 <script>
-import Modal from 'bootstrap/js/dist/modal';
-import {mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
 import InputEmail from "../inputs/InputEmail";
 import InputSelectize from "../inputs/InputSelectize";
+import FormChecker from "../../utils/form";
 
 export default {
     name: "EmployerRequestInfoModal.vue",
@@ -70,9 +72,8 @@ export default {
     components: {BaseModal, InputEmail, InputSelectize},
     data() {
         return {
-            modal$: null,
+            modalName: 'employerRequestInfoModal',
             crudUrl: 'email/',
-            formData: {},
             coSizeCfg: {
                 maxItems: 1,
                 options: [
@@ -85,6 +86,13 @@ export default {
                     {value: '1001+', text: '1001+'},
                 ]
             },
+            requiredFields: {
+                firstName: 'formEmployerRequestFName',
+                lastName: 'formEmployerRequestLName',
+                companyName: 'formEmployerRequestCName',
+                fromEmail: 'formEmployerRequestEmail',
+                title: 'formEmployerRequestTitle'
+            }
         }
     },
     computed: {
@@ -102,11 +110,6 @@ export default {
         }
     },
     methods: {
-        hookEvents() {
-            this.eventBus.on('open:employerRequestInfoModal', () => {
-                this.modal$.show();
-            });
-        },
         readForm() {
             return {
                 ...this.formData,
@@ -114,14 +117,22 @@ export default {
                 subject: 'Employer interest'
             };
         },
-        saveChange() {
-            this.superSaveChange({method: 'POST'})
-        }
-    },
-    mounted() {
-        if (!this.modal$) {
-            this.modal$ = new Modal($('#employerRequestInfoModal'));
-        }
+        clearFormData() {
+            ['sel1', 'sel2', 'sel3'].forEach((selRef) => {
+                const sel = this.$refs[selRef];
+                sel.elSel.clear(true);
+            });
+        },
+        isGoodFormFields(formData) {
+            if (!FormChecker.isGoodEmail(formData.fromEmail)) {
+                this.addPopover($('#formEmployerRequestEmail'), {content: 'Please add valid email', isOnce: true});
+                return false;
+            }
+            return true;
+        },
+        getAjaxCfgOverride() {
+            return {method: 'POST'};
+        },
     }
 }
 </script>

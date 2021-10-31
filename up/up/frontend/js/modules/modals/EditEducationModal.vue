@@ -1,6 +1,6 @@
 <template>
     <BaseModal
-        modalId="editEducationModal"
+        :modalId="modalName"
         modalTitle="Edit education"
         :isScrollable="true"
         :isLargeDisplay="true"
@@ -71,7 +71,7 @@ export default {
     extends: BaseModal,
     data() {
         return {
-            modal$: null,
+            modalName: 'editEducationModal',
             contentId: null,
             newEducationItemIdPrefix: 'new-',
             newEducationItems: 0,
@@ -220,11 +220,6 @@ export default {
             upload$.toggle(!isUploadShown);
             sel$.toggle(!isSelShown);
         },
-    },
-    mounted() {
-        if (!this.modal$) {
-            this.modal$ = new Modal($('#editEducationModal'));
-        }
     },
     updated() {
         Object.entries(this.formData).forEach(([educationItemId, educationItem]) => {

@@ -1,5 +1,6 @@
 <template>
     <div>
+        <BannerAlert :alerts="alerts"/>
         <div class="row mt-4">
             <div class="col-12">
                 <h3 class="-text-center -color-moderategrey-text"><em>A picture is worth 1,000 words; A project is worth 1,000 resumes</em></h3>
@@ -59,13 +60,14 @@
     </div>
 </template>
 <script>
+import BannerAlert from "../../components/BannerAlert";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import OrderedList from '../../components/OrderedList.vue';
 import OverviewEmployer from './OverviewEmployer.vue';
 import OverviewSeeker from './OverviewSeeker.vue';
 
 export default {
-    components: {EmployerRequestInfoModal, OrderedList, OverviewEmployer, OverviewSeeker},
+    components: {BannerAlert, EmployerRequestInfoModal, OrderedList, OverviewEmployer, OverviewSeeker},
     data() {
         return {
             employerHowItWorks: [
@@ -107,5 +109,19 @@ export default {
             ]
         }
     },
+    mounted() {
+        this.eventBus.on('ajaxSuccess', () => {
+            this.alerts.push({
+                message: 'Email sent successfully',
+                alertType: 'success'
+            });
+        });
+        this.eventBus.on('ajaxFailure', (xhr, textStatus, errorThrown) => {
+            this.alerts.push({
+                message: `Email failed: ${errorThrown}`,
+                alertType: 'danger'
+            });
+        });
+    }
 }
 </script>

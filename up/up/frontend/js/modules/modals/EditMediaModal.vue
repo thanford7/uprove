@@ -1,6 +1,6 @@
 <template>
     <BaseModal
-        modalId="editMediaModal"
+        :modalId="modalName"
         :modalTitle="`Edit ${contentItem.post_type}`"
         :isLargeDisplay="true"
         @saveChange="saveChange"
@@ -24,7 +24,7 @@ export default {
     extends: BaseModal,
     data() {
         return {
-            modal$: null,
+            modalName: 'editMediaModal',
             contentId: null,
         }
     },
@@ -32,7 +32,6 @@ export default {
     components: {BaseModal, MediaFormContent},
     computed: {
         ...mapState({
-            eventBus: 'eventBus',
             contentItem(state) {
                 return (this.contentId) ? state.content[this.contentId] : {}
             },
@@ -61,10 +60,5 @@ export default {
             return this.$refs.form.getPreSaveChange();
         },
     },
-    mounted() {
-        if (!this.modal$) {
-            this.modal$ = new Modal($('#editMediaModal'));
-        }
-    }
 }
 </script>

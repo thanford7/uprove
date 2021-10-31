@@ -1,6 +1,6 @@
 <template>
     <BaseModal
-        modalId="addSectionModal"
+        :modalId="modalName"
         modalTitle="Add section"
         :isLargeDisplay="true"
         @saveChange="saveChange"
@@ -23,9 +23,8 @@ export default {
     inheritAttrs: false,
     data() {
         return {
+            modalName: 'addSectionModal',
             contentSection: null,
-            modal$: null,
-            formData: {},
             addSectionCfg: {
                 maxItems: 1,
                 create: true,
@@ -49,14 +48,6 @@ export default {
         }),
     },
     methods: {
-        hookEvents() {
-            this.eventBus.$on('open:addSectionModal', () => {
-                this.modal$.show();
-            });
-        },
-        readForm() {
-            return this.formData;
-        },
         processFormData(formData) {
             if (_.isNil(formData)) {
                 return null;
@@ -66,11 +57,6 @@ export default {
         onSaveSuccess(newContentItem) {
             this.eventBus.loadContent(['profile']);
         },
-    },
-    mounted() {
-        if(!this.modal$) {
-            this.modal$ = new Modal($('#addSectionModal'));
-        }
     },
 }
 </script>

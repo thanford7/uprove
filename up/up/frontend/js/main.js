@@ -19,10 +19,10 @@ if (jQueryConsole) {
 
 _.defer(() => {
     const pageName = $('body').data('page');
-    const {page, eventBus} = Pages[pageName];
-    initVue(page, '#vue-container', eventBus);
-    initVue(header, '#site-header .navbar', eventBus);
-    initVue(footer, '#site-footer', eventBus);
+    const {page} = Pages[pageName];
+    initVue(page, '#vue-container', );
+    initVue(header, '#site-header .navbar');
+    initVue(footer, '#site-footer');
 
     $('.modal').on('hide.bs.modal', (e) => {
         $(document.body).removeClass('modal-open');

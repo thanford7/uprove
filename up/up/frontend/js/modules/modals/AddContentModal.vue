@@ -1,6 +1,6 @@
 <template>
     <BaseModal
-        modalId="addContentModal"
+        :modalId="modalName"
         modalTitle="Add content"
         :isLargeDisplay="true"
         @saveChange="saveChange"
@@ -39,7 +39,7 @@ export default {
         return {
             contentSection: null,  // Either highlights or section. The highlights section is at the top of the page and may restrict content types
             contentSectionOrder: null, // For all "section" content sections, the contentSectionOrder is used to save updates to the appropriate section
-            modal$: null,
+            modalName: 'addContentModal',
             selectedContentId: null,
             isNewItem: false,
             newItemToggle$: null,
