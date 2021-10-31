@@ -173,7 +173,6 @@ else:
     STATICFILES_STORAGE = 'ManifestS3Storage'
 
 # Email
-SEND_IN_BLUE_API_KEY = env('SEND_IN_BLUE_API_KEY')
 SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 
 # Default primary key field type
