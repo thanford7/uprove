@@ -18,9 +18,9 @@ module.exports = function (env, argv) {
         mode: (env.production) ? 'production' : 'development',
         context: __dirname,
         devtool: 'source-map',
-        entry: path.resolve(__dirname, './js/main.js'),
+        entry: path.resolve(__dirname, 'up/frontend/js/main.js'),
         output: {
-            path: path.resolve(__dirname, './dist'),
+            path: path.resolve(__dirname, 'up/frontend/dist'),
             publicPath: '/static/',
             filename: `[name]${(env.production) ? '.[chunkhash]' : ''}.js`,
             chunkFilename: '[name].[chunkhash].js',
@@ -59,7 +59,7 @@ module.exports = function (env, argv) {
                 },
                 {
                     test: /\.js$/,
-                    include: path.resolve(__dirname, 'js'),
+                    include: path.resolve(__dirname, 'up/frontend/js'),
                     exclude: /(node_modules)/,
                     use: {
                         loader: 'babel-loader',
@@ -108,7 +108,7 @@ module.exports = function (env, argv) {
         devServer: {
             host: '0.0.0.0',
             historyApiFallback: true,
-            watchFiles: ['./js/*.js', './js/*.vue', './js/**/*.js', './js/**/*.vue'],
+            watchFiles: ['up/frontend/js/*.js', 'up/frontend/js/*.vue', 'up/frontend/js/**/*.js', 'up/frontend/js/**/*.vue'],
             hot: true,
             port: 3000,
             proxy: {
@@ -117,7 +117,7 @@ module.exports = function (env, argv) {
                 }
             },
             static: {
-                directory: path.join(__dirname, 'dist')
+                directory: path.join(__dirname, 'up/frontend/dist')
             }
         }
     }
@@ -126,7 +126,7 @@ module.exports = function (env, argv) {
         cfg.module.rules.push({
             test: /\.(js|vue)$/,
             enforce: 'pre',
-            include: path.resolve(__dirname, 'js'),
+            include: path.resolve(__dirname, 'up/frontend/js'),
             exclude: /node_modules/,
             use: [{
                 loader: 'webpack-strip-block',
