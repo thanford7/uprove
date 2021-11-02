@@ -160,6 +160,7 @@ STATICFILES_DIRS = [
 if DEBUG:
     STATIC_URL = '/static/'
 else:
+    AWS_QUERYSTRING_AUTH = False
     AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
@@ -170,7 +171,7 @@ else:
     AWS_LOCATION = 'uploads'
 
     STATIC_URL = 'https://%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
-    STATICFILES_STORAGE = 'storage.ManifestS3Storage'
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3ManifestStaticStorage'
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY')
