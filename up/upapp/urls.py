@@ -27,4 +27,4 @@ urlpatterns = [
 
     # Authentication
     path(apiPath + 'login/', viewsAuth.LoginView.as_view()),
-] + static(settings.STATIC_URL)
+]
