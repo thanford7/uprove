@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.template.context_processors import static
 from django.urls import path, include
 
 from . import views
@@ -25,4 +27,4 @@ urlpatterns = [
 
     # Authentication
     path(apiPath + 'login/', viewsAuth.LoginView.as_view()),
-]
+] + static(settings.STATIC_URL)
