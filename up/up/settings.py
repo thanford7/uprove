@@ -183,7 +183,7 @@ else:
     }
     AWS_LOCATION = 'uploads'
 
-    STATIC_URL = 'https://%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
+    STATIC_URL = '%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3ManifestStaticStorage'
 
 # Email
