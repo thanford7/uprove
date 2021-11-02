@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import logging as log
 import os
 import sys
 from pathlib import Path
@@ -87,6 +88,7 @@ WSGI_APPLICATION = 'up.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 if DEBUG is True:
+    log.info('CURRENTLY IN DEBUG MODE')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -98,6 +100,7 @@ if DEBUG is True:
         }
     }
 elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
+    log.info('CURRENTLY IN PRODUCTION MODE')
     if os.getenv("DATABASE_URL", None) is None:
         raise Exception("DATABASE_URL environment variable not defined")
     DATABASES = {
