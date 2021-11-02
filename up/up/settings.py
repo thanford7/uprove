@@ -18,6 +18,9 @@ import dj_database_url
 import environ
 from django.core.management.utils import get_random_secret_key
 
+logger = log.getLogger()
+logger.setLevel(10)
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,7 +36,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')  # False if not in os.environ because of casting above
+DEBUG = env('DEBUG') or (os.getenv("DEBUG", "False") == "True")  # False if not in os.environ because of casting above
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
@@ -88,7 +91,7 @@ WSGI_APPLICATION = 'up.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 if DEBUG is True:
-    log.info('CURRENTLY IN DEBUG MODE')
+    logger.info('CURRENTLY IN DEBUG MODE')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -100,7 +103,7 @@ if DEBUG is True:
         }
     }
 elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
-    log.info('CURRENTLY IN PRODUCTION MODE')
+    logger.info('CURRENTLY IN PRODUCTION MODE')
     if os.getenv("DATABASE_URL", None) is None:
         raise Exception("DATABASE_URL environment variable not defined")
     DATABASES = {
@@ -164,9 +167,9 @@ if DEBUG:
     STATIC_URL = '/static/'
 else:
     AWS_QUERYSTRING_AUTH = False
-    AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_ENDPOINT_URL = 'https://nyc3.digitaloceanspaces.com'
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
@@ -177,7 +180,7 @@ else:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3ManifestStaticStorage'
 
 # Email
-SENDGRID_API_KEY = env('SENDGRID_API_KEY')
+SENDGRID_API_KEY = env('SENDGRID_API_KEY') or os.getenv('SENDGRID_API_KEY')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
