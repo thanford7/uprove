@@ -109,7 +109,6 @@ if DEBUG is True:
             'PORT': 5432
         }
     }
-    logger.info(env('DB_USER'))
 elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
     logger.info('CURRENTLY IN PRODUCTION MODE')
     if os.getenv("DATABASE_URL", None) is None:
