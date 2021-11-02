@@ -1,15 +1,16 @@
+import logging
 from hashlib import md5
 from threading import local
 
 from django.conf import settings
 from django.contrib.auth import logout
 
-from upapp.logging import logger
 from upapp.models import User
 
 PASSWORD_HASH_KEY = getattr(settings, 'PASSWORD_SESSION_PASSWORD_HASH_KEY', 'password_session_password_hash_key')
 
 _threadlocals = local()
+logger = logging.getLogger()
 
 
 def getPasswordHash(user):

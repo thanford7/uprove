@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-import logging as log
+import logging
 import os
 import sys
 from pathlib import Path
@@ -17,9 +17,6 @@ from pathlib import Path
 import dj_database_url
 import environ
 from django.core.management.utils import get_random_secret_key
-
-logger = log.getLogger()
-logger.setLevel(10)
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,6 +34,16 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG') or (os.getenv("DEBUG", "False") == "True")  # False if not in os.environ because of casting above
+
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
+logger = logging.getLogger()
+logger.setLevel(LOG_LEVEL)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(LOG_LEVEL)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
@@ -102,6 +109,7 @@ if DEBUG is True:
             'PORT': 5432
         }
     }
+    logger.info(env('DB_USER'))
 elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
     logger.info('CURRENTLY IN PRODUCTION MODE')
     if os.getenv("DATABASE_URL", None) is None:
