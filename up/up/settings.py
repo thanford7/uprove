@@ -170,9 +170,11 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'up/static'),
 ]
 
-if DEBUG:
+if env('USE_LOCAL', cast=bool):
+    logger.info('Using local storage')
     STATIC_URL = '/static/'
 else:
+    logger.info('Using S3 storage')
     AWS_QUERYSTRING_AUTH = False
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -182,9 +184,12 @@ else:
         'CacheControl': 'max-age=86400',
     }
     AWS_LOCATION = 'uploads'
+    AWS_DEFAULT_ACL = 'public-read'
+    STATIC_ROOT = 'uploads/'
 
-    STATIC_URL = '%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3ManifestStaticStorage'
+    STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_LOCATION}/'
+    STATICFILES_STORAGE = 'up.customManifest.S3ManifestStaticStorageWithLog'
+    logger.info(f'Using static URL: {STATIC_URL}')
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY') or os.getenv('SENDGRID_API_KEY')
