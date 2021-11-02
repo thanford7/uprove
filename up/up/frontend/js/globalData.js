@@ -63,6 +63,6 @@ const globalData = Object.assign({
         'bi_software': 'Business intelligence software',
         'wireframe': 'Wireframes',
     }
-}, window.initData);
+});
 
 export default globalData;

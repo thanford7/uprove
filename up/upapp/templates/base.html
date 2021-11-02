@@ -43,10 +43,7 @@
 
         {% block scripts %}
             <script type="text/javascript" src="{% static 'external-packages.js' %}"></script>
-            <script>
-                window.initData = {% initBaseVariables %}
-            </script>
-            <script type="text/javascript" src={% static 'main.js' %}></script>
+            <script type="text/javascript" src="{% static 'main.js' %}"></script>
         {% endblock %}
     </body>
 </html>
