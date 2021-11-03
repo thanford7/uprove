@@ -1,7 +1,7 @@
 <template>
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
-            <img class="logo" src="/static/img/logo.png" alt="Uprove">
+            <img class="logo" :src="globalData.STATIC_URL + 'img/logo.png'" alt="Uprove">
         </a>
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">

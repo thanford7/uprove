@@ -13,7 +13,7 @@
                 </ul>
             </div>
             <div class="col-md-6 col-12 mb-2">
-                <img class="logo" :class="(isMobile) ? '' : 'float-end'" src="/static/img/logo.png" alt="Uprove" height="40" width="118">
+                <img class="logo" :class="(isMobile) ? '' : 'float-end'" :src="globalData.STATIC_URL + 'img/logo.png'" alt="Uprove" height="40" width="118">
             </div>
         </div>
         <div class="d-md-inline-block">&copy; {{(startYear !== currentYear) ? `${startYear}-` : ''}}{{currentYear}} Uprove, Inc.&nbsp;&nbsp;</div>

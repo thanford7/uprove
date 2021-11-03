@@ -33,7 +33,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG') or (os.getenv("DEBUG", "False") == "True")  # False if not in os.environ because of casting above
+DEBUG = env('DEBUG', cast=bool, default=False)
 
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logger = logging.getLogger()
@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'up.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-if DEBUG is True:
+if DEBUG is True or env('DB') == 'local':
     logger.info('CURRENTLY IN DEBUG MODE')
     DATABASES = {
         'default': {
