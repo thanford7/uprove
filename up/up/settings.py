@@ -170,7 +170,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'up/static'),
 ]
 
-if env('USE_LOCAL', cast=bool):
+if env('USE_LOCAL', cast=bool, default=False):
     logger.info('Using local storage')
     STATIC_URL = '/static/'
 else:
