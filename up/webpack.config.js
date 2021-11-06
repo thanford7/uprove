@@ -21,7 +21,7 @@ module.exports = function (env, argv) {
         entry: path.resolve(__dirname, 'up/frontend/js/main.js'),
         output: {
             path: path.resolve(__dirname, 'up/frontend/dist'),
-            publicPath: 'auto',
+            publicPath: '/static/',
             filename: `[name].js`,
             chunkFilename: '[name].[chunkhash].js',
         },
