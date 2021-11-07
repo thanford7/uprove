@@ -2,7 +2,7 @@
     <BaseModal
         :modalId="modalName"
         primaryButtonText="Sign in"
-        @saveChange="saveChange"
+        @saveChange="saveChange($event, true)"
     >
         <div class="mb-3">
             <label for="signInEmail" class="form-label">Email</label>
@@ -45,7 +45,7 @@ export default {
         },
         getAjaxCfgOverride() {
             return {method: 'POST'};
-        },
+        }
     }
 }
 </script>

@@ -2,7 +2,7 @@ from datetime import datetime
 
 import six
 from rest_framework import serializers
-from models import *
+from upapp.models import *
 
 
 # See link for explanation of meta class mixin

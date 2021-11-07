@@ -43,12 +43,15 @@ const ajaxRequestMixin = {
         }
     },
     methods: {
-        onSaveSuccess() {
+        onSaveSuccess({pageRedirect}) {
             // subclass
             eventBus.emit('ajaxSuccess');
             this.formData = {};
             if (this.isAjaxModal) {
                 this.modal$.hide();
+            }
+            if (pageRedirect) {
+                window.location.replace(pageRedirect);
             }
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
@@ -84,23 +87,28 @@ const ajaxRequestMixin = {
             }
             return this.submitAjaxRequest(formData)
         },
-        saveChange(e) {
-            e.preventDefault();
+        saveChange(e, allowDefault=false) {
+            if (allowDefault) {
+                e.preventDefault();
+            }
             this.isAjaxModal = Boolean($(e.currentTarget).parents('.modal').length)
             return this.readAndSubmitForm();
         },
         getAjaxCfgOverride() {
             return {};
         },
-        submitAjaxRequest(requestData) {
+        submitAjaxRequest(requestData, requestCfg={}) {
+            console.log($('[name=csrfmiddlewaretoken]').val());
             return $.ajax(Object.assign({
                 url: this.apiUrl + this.crudUrl,
                 method: 'PUT',
+                mode: 'same-origin',
+                headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
                 data: JSON.stringify(requestData),
                 contentType: 'application/json',
                 success: this.onSaveSuccess,
                 error: this.onSaveFailure
-            }, this.getAjaxCfgOverride()));
+            }, this.getAjaxCfgOverride(), requestCfg));
         }
     }
 }

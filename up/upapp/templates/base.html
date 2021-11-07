@@ -41,6 +41,7 @@
 
         {%  block components %}{% endblock %}
 
+        {% csrf_token %}
         {% block scripts %}
             <script type="text/javascript" src="{% static 'external-packages.js' %}"></script>
             <script>

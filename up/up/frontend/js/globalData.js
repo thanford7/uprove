@@ -1,4 +1,5 @@
 const globalData = Object.assign({
+    API_URL: '/api/v1/',
     ALLOWED_UPLOADS: {
         VIDEO: ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg'],
         IMAGE: ['png', 'jpeg', 'jpg', 'gif'],

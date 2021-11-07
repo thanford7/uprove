@@ -72,3 +72,7 @@ $secondary: colors.$color-lightgrey;
     border-bottom: 1px solid colors.$color-lightgrey;
     margin-bottom: 10px;
 }
+
+.dropdown-toggle.no-caret::after {
+    display: none;
+}

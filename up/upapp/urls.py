@@ -27,4 +27,5 @@ urlpatterns = [
 
     # Authentication
     path(apiPath + 'login/', viewsAuth.LoginView.as_view()),
+    path(apiPath + 'logout/', viewsAuth.LogoutView.as_view()),
 ]
