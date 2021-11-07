@@ -15,13 +15,19 @@
                        @click="eventBus.emit('open:signInModal')">
                         <font-awesome-icon :icon="['fas', 'user-circle']"/>
                         Sign in</a>
-                    <a v-else class="nav-link dropdown-toggle no-caret" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-                        <font-awesome-icon :icon="['fas', 'user-circle']" size="lg"/>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" href="/account-settings">Account settings</a>
-                        <a class="dropdown-item" href="#" @click="submitAjaxRequest({}, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log out</a>
-                    </div>
+                    <template v-else>
+                        <a class="nav-link dropdown-toggle no-caret" data-toggle="dropdown" href="#"
+                           role="button" aria-haspopup="true" aria-expanded="false">
+                            <font-awesome-icon :icon="['fas', 'user-circle']" size="lg"/>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
+                                settings</a>
+                            <a class="dropdown-item" href="#"
+                               @click="submitAjaxRequest({}, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
+                                out</a>
+                        </div>
+                    </template>
                 </li>
             </ul>
         </div>
@@ -35,17 +41,22 @@
                 </div>
             </button>
             <div class="dropdown show" style="display: inline-block" v-if="isMobile">
-              <a class="dropdown-toggle no-caret" href="#" role="button" id="accountDropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <font-awesome-icon class="ms-1 mb-2" :icon="['fas', 'user-circle']" size="lg"/>
-              </a>
+                <a class="dropdown-toggle no-caret" href="#" role="button" id="accountDropdownMenu"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <font-awesome-icon class="ms-1 mb-2" :icon="['fas', 'user-circle']" size="lg"/>
+                </a>
 
-              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdownMenu">
-                <a v-if="!globalData.uproveUser" class="dropdown-item" href="#" @click="eventBus.emit('open:signInModal')">Sign in</a>
-                  <template v-else>
-                        <a class="dropdown-item" href="/account-settings">Account settings</a>
-                        <a class="dropdown-item" href="#" @click="submitAjaxRequest({}, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log out</a>
-                  </template>
-              </div>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdownMenu">
+                    <a v-if="!globalData.uproveUser" class="dropdown-item" href="#"
+                       @click="eventBus.emit('open:signInModal')">Sign in</a>
+                    <template v-else>
+                        <a class="dropdown-item" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
+                            settings</a>
+                        <a class="dropdown-item" href="#"
+                           @click="submitAjaxRequest({}, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
+                            out</a>
+                    </template>
+                </div>
             </div>
         </div>
     </div>

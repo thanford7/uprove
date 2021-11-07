@@ -117,7 +117,8 @@ const ajaxRequestMixin = {
 const globalVarsMixin = {
     data() {
         return {
-            globalData
+            globalData,
+            initData: window.initData
         }
     },
     computed: mapState({

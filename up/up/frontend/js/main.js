@@ -24,6 +24,10 @@ _.defer(() => {
     initVue(header, '#site-header .navbar');
     initVue(footer, '#site-footer');
 
+    // Remove globalData script so it's not visible after data has been loaded in Vue
+    $('#globalData').remove();
+    $('#initData').remove();
+
     $('.modal').on('hide.bs.modal', (e) => {
         $(document.body).removeClass('modal-open');
         $('.modal-backdrop').remove();

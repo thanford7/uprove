@@ -262,7 +262,7 @@ class UserProfileSectionView(APIView):
 
 
 class UserView(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,)
 
     def get(self, request, userId=None):
         return Response(self.serializeUser(self.getUser(userId)), status=status.HTTP_200_OK)

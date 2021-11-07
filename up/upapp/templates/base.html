@@ -44,8 +44,11 @@
         {% csrf_token %}
         {% block scripts %}
             <script type="text/javascript" src="{% static 'external-packages.js' %}"></script>
-            <script>
-                window.initData = {% initBaseVariables %}
+            <script id="globalData">
+                window.globalData = {% initBaseVariables %}
+            </script>
+            <script id="initData">
+                window.initData = (Boolean("{{data}}")) ? JSON.parse("{{data|escapejs}}") : {};
             </script>
             <script type="text/javascript" src="{% static 'main.js' %}"></script>
         {% endblock %}
