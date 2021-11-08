@@ -2,7 +2,9 @@ const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const {VueLoaderPlugin} = require('vue-loader');
 const webpack = require('webpack');
+const CompressionPlugin = require("compression-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const zlib = require("zlib");
 
 const path = require('path');
 const postCSSPlugins = [require("postcss-import"), require("postcss-mixins"), require("postcss-simple-vars"), require("postcss-nested"), require("postcss-hexrgba"), require("postcss-color-function"), require("autoprefixer")]
@@ -35,7 +37,20 @@ module.exports = function (env, argv) {
             }),
             new VueLoaderPlugin(),
             new CleanWebpackPlugin({
-                    cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
+                cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
+            }),
+            new CompressionPlugin({
+                filename: "[path][base].br",
+                algorithm: "brotliCompress",
+                test: /\.(js|css|html|svg)$/,
+                compressionOptions: {
+                    params: {
+                        [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+                    },
+                },
+                threshold: 10240,
+                minRatio: 0.8,
+                deleteOriginalAssets: false,
             })
         ],
         resolve: {
