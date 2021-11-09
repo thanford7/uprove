@@ -188,9 +188,9 @@ else:
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
-    AWS_LOCATION = 'uploads'
+    AWS_LOCATION = 'static'
     AWS_DEFAULT_ACL = 'public-read'
-    STATIC_ROOT = 'uploads/'
+    STATIC_ROOT = 'static/'
 
     STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_LOCATION}/'
     STATICFILES_STORAGE = 'up.customManifest.S3ManifestStaticStorageWithLog'
