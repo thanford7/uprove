@@ -33,11 +33,11 @@ export default {
                     items: [
                         {
                             title: 'About us',
-                            link: 'about'
+                            link: '/about'
                         },
                         {
                             title: 'Contact',
-                            link: 'contact'
+                            link: '/contact'
                         }
                         // {
                         //     title: 'Blog',
