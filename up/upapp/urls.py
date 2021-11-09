@@ -1,10 +1,9 @@
-from django.conf import settings
-from django.template.context_processors import static
-from django.urls import path, include
+from django.urls import path
 
 from . import views
 from . import viewsAuth
 from .apis import sendEmail
+from .apis import storage
 from .apis import user
 
 apiPath = 'api/v1/'
@@ -29,4 +28,7 @@ urlpatterns = [
     # Authentication
     path(apiPath + 'login/', viewsAuth.LoginView.as_view()),
     path(apiPath + 'logout/', viewsAuth.LogoutView.as_view()),
+
+    # Storage
+    path(apiPath + 'user-storage/', storage.UserStorageView.as_view())
 ]

@@ -191,11 +191,11 @@ if env('USE_LOCAL', cast=bool, default=False):
     STATIC_URL = '/static/'
 else:
     logger.info('Using S3 static storage')
-    STATIC_ROOT = 'static/'
+    STATIC_ROOT = 'static-files/'
     STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_LOCATION}/'
     STATICFILES_STORAGE = 'up.customManifest.S3ManifestStaticStorageWithLog'
 
-STORAGE_UPLOAD_BUCKET = 'test-uploads' if DEBUG else 'uploads'
+STORAGE_UPLOAD_BUCKET = 'uploads-test' if DEBUG else 'uploads'
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY') or os.getenv('SENDGRID_API_KEY')
