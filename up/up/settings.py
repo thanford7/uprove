@@ -175,26 +175,27 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'up/static'),
 ]
 
+AWS_QUERYSTRING_AUTH = False
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = 'https://nyc3.digitaloceanspaces.com'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_LOCATION = 'static-files'
+AWS_DEFAULT_ACL = 'public-read'
+
 if env('USE_LOCAL', cast=bool, default=False):
-    logger.info('Using local storage')
+    logger.info('Using local static storage')
     STATIC_URL = '/static/'
 else:
-    logger.info('Using S3 storage')
-    AWS_QUERYSTRING_AUTH = False
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = 'https://nyc3.digitaloceanspaces.com'
-    AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',
-    }
-    AWS_LOCATION = 'static'
-    AWS_DEFAULT_ACL = 'public-read'
+    logger.info('Using S3 static storage')
     STATIC_ROOT = 'static/'
-
     STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_LOCATION}/'
     STATICFILES_STORAGE = 'up.customManifest.S3ManifestStaticStorageWithLog'
-    logger.info(f'Using static URL: {STATIC_URL}')
+
+STORAGE_UPLOAD_BUCKET = 'test-uploads' if DEBUG else 'uploads'
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY') or os.getenv('SENDGRID_API_KEY')
