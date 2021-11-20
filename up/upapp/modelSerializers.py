@@ -1,96 +1,214 @@
-from datetime import datetime
+from operator import itemgetter
 
-import six
-from rest_framework import serializers
 from upapp.models import *
 
 
-# See link for explanation of meta class mixin
-# https://github.com/encode/django-rest-framework/issues/4482
-@six.add_metaclass(serializers.SerializerMetaclass)
-class AuditSerializerMixin:
-    createdDateTime = serializers.DateTimeField(initial=datetime.now())
-    modifiedDateTime = serializers.DateTimeField(default=datetime.now(), initial=datetime.now())
+def getDateTimeFormatOrNone(val):
+    """Serialize a date or datetime value if it exists, otherwise return None"""
+    if val:
+        return val.isoformat()
+    return None
 
 
-class UserSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
+def serializeAuditFields(obj):
+    return {
+        'createdDateTime': obj.createdDateTime.isoformat(),
+        'modifiedDateTime': obj.modifiedDateTime.isoformat()
+    }
 
 
-class UserProfileSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = '__all__'
-        depth = 1
+def serializeGenericItem(item):
+    if item.contentType == 'UserVideo':
+        return getSerializedUserVideo(item.contentObject)
+    if item.contentType == 'UserFile':
+        return getSerializedUserFile(item.contentObject)
+    if item.contentType == 'UserImage':
+        return getSerializedUserImage(item.contentObject)
+    if item.contentType == 'UserEducation':
+        return getSerializedUserEducation(item.contentObject)
+    if item.contentType == 'UserExperience':
+        return getSerializedUserExperience(item.contentObject)
+    raise ValueError(f'Unknown content type: {item.contentType}')
 
 
-class UserProfileSectionSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserProfileSection
-        fields = '__all__'
-        depth = 1
+def getSerializedUser(user: User, isIncludeAssets: bool=False):
+    serializedUser = {
+        'id': user.id,
+        'firstName': user.firstName,
+        'middleName': user.middleName,
+        'lastName': user.lastName,
+        'birthDate': user.birthDate.isoformat(),
+        'email': user.email,
+        'userTypeBits': user.userTypeBits,
+        'isStaff': user.djangoUser.is_staff,
+        'isActive': user.djangoUser.is_active,
+        'isSuperUser': user.djangoUser.is_superuser,
+        **serializeAuditFields(user)
+    }
+
+    if isIncludeAssets:
+        serializedUser['profiles'] = [getSerializedUserProfile(p) for p in user.profile.all()]
+        serializedUser['education'] = [getSerializedUserEducation(e) for e in user.education.all()]
+        serializedUser['experience'] = [getSerializedUserExperience(e) for e in user.experience.all()]
+        serializedUser['content'] = [getSerializedUserContentItem(ci) for ci in user.contentItem.all()]
+        serializedUser['videos'] = [getSerializedUserVideo(v) for v in user.video.all()]
+        serializedUser['files'] = [getSerializedUserFile(f) for f in user.file.all()]
+        serializedUser['images'] = [getSerializedUserImage(i) for i in user.image.all()]
+        serializedUser['tags'] = [getSerializedUserTag(t) for t in user.tag.all()]
+
+    return serializedUser
 
 
-class UserProfileSectionItemSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserProfileSectionItem
-        fields = '__all__'
-        depth = 1
+def getSerializedUserProfile(userProfile: UserProfile):
+    return {
+        'profileName': userProfile.profileName,
+        'makePublic': userProfile.makePublic,
+        'profilePicture': getSerializedUserImage(userProfile.profilePicture),
+        'sections': [getSerializedUserProfileSection(ps) for ps in userProfile.section.all()],
+        **getSerializedUser(userProfile.user),
+        **serializeAuditFields(userProfile)
+    }
 
 
-class UserEducationSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserEducation
-        fields = '__all__'
-        depth = 1
+def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
+    return {
+        'title': userProfileSection.title,
+        'description': userProfileSection.description,
+        'sectionOrder': userProfileSection.sectionOrder,
+        'sectionItems': sorted(
+            [getSerializedUserProfileSectionItem(psi) for psi in userProfileSection.sectionItem.all()],
+            key=itemgetter('contentOrder')
+        )
+    }
 
 
-class UserContentItemSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserContentItem
-        fields = '__all__'
-        depth = 1
+def getSerializedUserProfileSectionItem(userProfileSectionItem: UserProfileSectionItem):
+    return {
+        'id': userProfileSectionItem.id,
+        'contentOrder': userProfileSectionItem.contentOrder,
+        'item': serializeGenericItem(userProfileSectionItem)
+    }
 
 
-class UserContentItemSectionSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserContentItemSection
-        fields = '__all__'
-        depth = 1
+def getSerializedUserEducation(userEducation: UserEducation):
+    return {
+        'id': userEducation.id,
+        'school': getSerializedOrganization(userEducation.school),
+        'degree': userEducation.degree,
+        'degreeSubject': userEducation.degreeSubject,
+        'activities': userEducation.activities,
+        'startDate': getDateTimeFormatOrNone(userEducation.startDate),
+        'endDate': getDateTimeFormatOrNone(userEducation.endDate),
+        **serializeAuditFields(userEducation)
+    }
 
 
-class UserVideoSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserVideo
-        fields = '__all__'
-        depth = 1
+def getSerializedUserExperience(userExperience: UserExperience):
+    return {
+        'id': userExperience.id,
+        'organization': getSerializedOrganization(userExperience.organization),
+        'positionTitle': userExperience.positionTitle,
+        'employmentType': userExperience.employmentType,
+        'startDate': userExperience.startDate.isoformat(),
+        'endDate': getDateTimeFormatOrNone(userExperience.endDate),
+        'description': userExperience.description,
+        **serializeAuditFields(userExperience)
+    }
 
 
-class UserFileSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserFile
-        fields = '__all__'
-        depth = 1
+def getSerializedUserContentItem(userContentItem: UserContentItem):
+    return {
+        'id': userContentItem.id,
+        'title': userContentItem.title,
+        'sections': sorted([getSerializedUserContentItemSection(cis) for cis in userContentItem.section.all()], key=itemgetter('contentOrder')),
+        **serializeAuditFields(userContentItem)
+    }
 
 
-class UserImageSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserImage
-        fields = '__all__'
-        depth = 1
+def getSerializedUserContentItemSection(userContentItemSection: UserContentItemSection):
+    return {
+        'id': userContentItemSection.id,
+        'contentOrder': userContentItemSection.contentOrder,
+        'text': userContentItemSection.text,
+        'item': serializeGenericItem(userContentItemSection)
+    }
 
 
-class UserTagSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = UserTag
-        fields = '__all__'
-        depth = 1
+def getSerializedUserVideo(userVideo: UserVideo):
+    return {
+        'id': userVideo.id,
+        'title': userVideo.title,
+        'video': userVideo.video,
+        **serializeAuditFields(userVideo)
+    }
 
 
-class OrganizationSerializer(AuditSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = Organization
-        fields = '__all__'
-        depth = 1
+def getSerializedUserFile(userFile: UserFile):
+    return {
+        'id': userFile.id,
+        'title': userFile.title,
+        'file': userFile.file,
+        **serializeAuditFields(userFile)
+    }
+
+
+def getSerializedUserImage(userImage: UserImage):
+    return {
+        'id': userImage.id,
+        'title': userImage.title,
+        'file': userImage.image,
+        **serializeAuditFields(userImage)
+    }
+
+
+def getSerializedUserTag(userTag: UserTag):
+    return {
+        'id': userTag.id,
+        'tagType': userTag.tagType,
+        'title': userTag.title,
+        'description': userTag.description,
+        'skillLevelNum': userTag.skillLevel,
+        **serializeAuditFields(userTag)
+    }
+
+
+def getSerializedOrganization(organization: Organization):
+    return {
+        'id': organization.id,
+        'name': organization.name,
+        'orgType': organization.orgType,
+        'logo': organization.logo
+    }
+
+
+def getSerializedProject(project: Project):
+    return {
+        'id': project.id,
+        'title': project.title,
+        'function': project.function.functionName,
+        'functionId': project.function.id,
+        'skills': [{'name': s.skillName, 'id': s.id} for s in project.skills.all()],
+        'skillLevel': project.skillLevel,
+        'description': project.description,
+        'employer': getSerializedEmployer(project.employer),
+        'files': [getSerializedProjectFile(pf) for pf in project.projectFile.all()]
+    }
+
+
+def getSerializedProjectFile(projectFile: ProjectFile):
+    return {
+        'id': projectFile.id,
+        'title': projectFile.title,
+        'description': projectFile.description,
+        'file': projectFile.file,
+        **serializeAuditFields(projectFile)
+    }
+
+
+def getSerializedEmployer(employer: Employer):
+    return {
+        'id': employer.id,
+        'companyName': employer.companyName,
+        'logo': employer.logo,
+        **serializeAuditFields(employer)
+    }

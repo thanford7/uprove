@@ -76,3 +76,12 @@ $secondary: colors.$color-lightgrey;
 .dropdown-toggle.no-caret::after {
     display: none;
 }
+
+.popover {
+    &.warn {
+        background-color: $warning;
+        .popover-arrow::after {
+            border-top-color: $warning;
+        }
+    }
+}

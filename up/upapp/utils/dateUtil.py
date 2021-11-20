@@ -6,6 +6,9 @@ FORMAT_DATE = '%m-%d-%Y'
 FORMAT_TIME = '%H:%M:%S'
 FORMAT_DATETIME = f'{FORMAT_DATE} {FORMAT_TIME}'
 
+DESERIALIZE_DATE_FORMAT = '%Y-%m-%d'
+DESERIALIZE_TIME_FORMAT = '%H:%M:%S'
+DESERIALIZE_DATETIME_FORMAT = f'{DESERIALIZE_DATE_FORMAT} {DESERIALIZE_TIME_FORMAT}'
 
 class FormatType(Enum):
     DATE = 'date'
@@ -45,3 +48,20 @@ def serializeDatetime(val: Union[date, time, datetime, None], formatAs: Optional
     formatString = FORMAT_LOOKUP.get(formatAs) or FORMAT_LOOKUP.get(objectType)
 
     return val.strftime(formatString)
+
+
+def deserializeDateTime(val: str, formatAs: FormatType, allowNone: Optional[bool] = False):
+    if val is None:
+        if allowNone:
+            return None
+        else:
+            raise ValueError('Datetime value cannot be None')
+
+    if formatAs == FormatType.TIME:
+        return datetime.strptime(val, DESERIALIZE_TIME_FORMAT).time()
+    if formatAs == FormatType.DATE:
+        return datetime.strptime(val, DESERIALIZE_DATE_FORMAT).date()
+    if formatAs == FormatType.DATETIME:
+        return datetime.strptime(val, DESERIALIZE_DATETIME_FORMAT)
+
+    raise ValueError('Incorrect format type')

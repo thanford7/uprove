@@ -113,4 +113,15 @@ $color-green: rgb(115, 201, 170);
             }
         }
     }
+    &green {
+        background-color: $color-green;
+        &-text {
+            color: $color-green;
+        }
+        &-fa {
+            path {
+                fill: $color-green;
+            }
+        }
+    }
 }

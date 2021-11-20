@@ -12,6 +12,7 @@ import {
     faArrowUp,
     faBold,
     faChartLine,
+    faCheck,
     faCircle,
     faExternalLinkAlt,
     faGripHorizontal,
@@ -41,7 +42,7 @@ import {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store} fro
 import Vue3Sanitize from "vue-3-sanitize";
 
 library.add(faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, faArrowLeft, faArrowRight, faArrowUp,
-    faBold, faChartLine, faCircle, faExternalLinkAlt, faGripHorizontal, faItalic, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
+    faBold, faChartLine, faCheck, faCircle, faExternalLinkAlt, faGripHorizontal, faItalic, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
     faQuoteLeft, faRedo, faSquare, faStrikethrough, faTextHeight, faTrash, faTrashAlt, faTwitterSquare, faUnderline, faUndo, faUnlink, faUserCircle);
 
 const initVue = (mainComponent, el) => {

@@ -63,6 +63,12 @@ const globalData = Object.assign({
         'python': 'Python',
         'bi_software': 'Business intelligence software',
         'wireframe': 'Wireframes',
+    },
+    // Keep in sync with User model
+    USER_TYPES: {
+        1: 'Candidate',
+        2: 'Employer',
+        4: 'Admin'
     }
 }, window.globalData);
 

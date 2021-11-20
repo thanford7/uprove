@@ -122,7 +122,9 @@ module.exports = function (env, argv) {
         },
         devServer: {
             host: '0.0.0.0',
-            historyApiFallback: true,
+            historyApiFallback: {
+                index: '/404/'
+            },
             watchFiles: ['up/frontend/js/*.js', 'up/frontend/js/*.vue', 'up/frontend/js/**/*.js', 'up/frontend/js/**/*.vue'],
             hot: true,
             port: 3000,

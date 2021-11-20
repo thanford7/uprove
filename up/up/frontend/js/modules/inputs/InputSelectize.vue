@@ -5,26 +5,30 @@
 export default {
     data() {
         return {
-            elSel: null
+            elSel: null,
+            targetEl: null  // Select element is not displayed so we need to target an inner html element
         }
     },
-    watch: {
-        currentItem(newVal) {
-            this.elSel.addItem(newVal, true);
+    props: ['elId', 'placeholder', 'cfg', 'isParseAsInt'],
+    methods: {
+        parseInteger(val) {
+            if (Array.isArray(val)) {
+                return val.map((v) => parseInt(v));
+            }
+            return parseInt(val);
         }
     },
-    props: ['currentItem', 'elId', 'placeholder', 'cfg'],
     mounted() {
         if(!this.elSel) {
-            this.elSel = $(`#${this.elId || this._uid}`).selectize(this.cfg)[0].selectize;
+            const el$ = $(`#${this.elId || this._uid}`);
+            this.elSel = el$.selectize(this.cfg)[0].selectize;
 
             this.elSel.on('change', () => {
-                this.$emit('selected', this.elSel.getValue());
+                const val = this.elSel.getValue();
+                this.$emit('selected', (this.isParseAsInt) ? this.parseInteger(val) : val);
             });
-        }
 
-        if (this.currentItem) {
-            this.elSel.addItem(this.currentItem, true);
+            this.targetEl = el$.siblings('.selectize-control')[0]
         }
     }
 }

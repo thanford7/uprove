@@ -1,23 +1,24 @@
-from rest_framework import status, authentication
+from datetime import datetime
+
+from django.conf import settings
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import User as DjangoUser, UserManager
+from django.db import IntegrityError
+from django.db.transaction import atomic
+from django.utils import crypto
+from rest_framework import status, authentication, request
 from rest_framework.views import APIView
 from rest_framework.response import Response
-# TODO create an IsOwnerOrReadOnly wrapper
-from ..models import *
-from ..utils.dateUtil import serializeDatetime
+
+import security
+from modelSerializers import getSerializedUser
+from utils import dataUtil, dateUtil
+from upapp.models import *
 
 __all__ = [
     'OrganizationView', 'UserVideoView', 'UserFileView', 'UserImageView', 'UserEducationItemView',
-    'UserExperienceItemView', 'UserContentItemView', 'UserProfileSectionView', 'UserView', 'UserProfileView'
+    'UserExperienceItemView', 'UserContentItemView', 'UserView', 'UserProfileView'
 ]
-
-
-def serializeAuditFields(obj):
-    createdDateTime = getattr(obj, 'createdDateTime', None)
-    modifiedDateTime = getattr(obj, 'modifiedDateTime', None)
-    return {
-        'createdDateTime': serializeDatetime(createdDateTime) if createdDateTime else None,
-        'modifiedDateTime': serializeDatetime(modifiedDateTime) if modifiedDateTime else None
-    }
 
 
 class OrganizationView(APIView):
@@ -34,15 +35,6 @@ class OrganizationView(APIView):
         except Organization.DoesNotExist as e:
             raise e
 
-    @staticmethod
-    def serializeOrganization(org):
-        return {
-            'orgId': org.id,
-            'name': org.name,
-            'orgType': org.orgType,
-            'logo': org.logo,
-        }
-
 
 class UserVideoView(APIView):
     def post(self, request):
@@ -57,15 +49,6 @@ class UserVideoView(APIView):
             return UserVideo.objects.get(id=videoId)
         except UserVideo.DoesNotExist as e:
             raise e
-
-    @staticmethod
-    def serializeVideo(video):
-        return {
-            'videoId': video.id,
-            'title': video.title,
-            'video': video.video,
-            **serializeAuditFields(video)
-        }
 
 
 class UserFileView(APIView):
@@ -82,15 +65,6 @@ class UserFileView(APIView):
         except UserFile.DoesNotExist as e:
             raise e
 
-    @staticmethod
-    def serializeFile(file):
-        return {
-            'fileId': file.id,
-            'title': file.title,
-            'file': file.file,
-            **serializeAuditFields(file)
-        }
-
 
 class UserImageView(APIView):
     def post(self, request):
@@ -105,16 +79,6 @@ class UserImageView(APIView):
             return UserImage.objects.get(id=imageId)
         except UserImage.DoesNotExist as e:
             raise e
-
-    @staticmethod
-    def serializeImage(image):
-        return {
-            'imageId': image.id,
-            'title': image.title,
-            'image': image.image,
-            'isDefault': image.isDefault,
-            **serializeAuditFields(image)
-        }
 
 
 class UserEducationItemView(APIView):
@@ -131,19 +95,6 @@ class UserEducationItemView(APIView):
         except UserEducation.DoesNotExist as e:
             raise e
 
-    @staticmethod
-    def serializeEducationItem(educationItem):
-        return {
-            'educationId': educationItem.id,
-            'school': OrganizationView.serializeOrganization(educationItem.school),
-            'degree': educationItem.degree,
-            'degreeSubject': educationItem.degreeSubject,
-            'activities': educationItem.activities,
-            'startDate': serializeDatetime(educationItem.startDate, allowNone=True),
-            'endDate': serializeDatetime(educationItem.endDate, allowNone=True),
-            **serializeAuditFields(educationItem)
-        }
-
 
 class UserExperienceItemView(APIView):
     def post(self, request):
@@ -159,26 +110,8 @@ class UserExperienceItemView(APIView):
         except UserExperience.DoesNotExist as e:
             raise e
 
-    @staticmethod
-    def serializeExperienceItem(experienceItem):
-        return {
-            'experienceId': experienceItem.id,
-            'organization': OrganizationView.serializeOrganization(experienceItem.organization),
-            'positionTitle': experienceItem.positionTitle,
-            'employmentType': experienceItem.employmentType,
-            'startDate': serializeDatetime(experienceItem.startDate),
-            'endDate': serializeDatetime(experienceItem.endDate, allowNone=True),
-            'description': experienceItem.description,
-            **serializeAuditFields(experienceItem)
-        }
-
 
 class UserContentItemView(APIView):
-    CONTENT_ITEM_SERIALIZERS = {
-        'UserVideo': UserVideoView.serializeVideo,
-        'UserFile': UserFileView.serializeFile,
-        'UserImage': UserImageView.serializeImage
-    }
 
     def post(self, request):
         pass
@@ -193,102 +126,140 @@ class UserContentItemView(APIView):
         except UserExperience.DoesNotExist as e:
             raise e
 
-    @staticmethod
-    def serializeContentItem(contentItem):
-        return {
-            'contentId': contentItem.id,
-            'title': contentItem.title,
-            'sections': [
-                {
-                    'contentOrder': section.contentOrder,
-                    'text': section.text,
-                    'content': UserContentItemView.serializeContentSection(section)
-                } for section in contentItem.section.all()
-            ],
-            **serializeAuditFields(contentItem)
-        }
-
-    @staticmethod
-    def serializeContentSection(section):
-        if not section.contentType:
-            return None
-
-        serializer = UserContentItemView.CONTENT_ITEM_SERIALIZERS[section.contentType.model]
-        return serializer(section.contentObject)
-
-
-class UserProfileSectionView(APIView):
-    CONTENT_ITEM_SERIALIZERS = {
-        'UserEducation': UserEducationItemView.serializeEducationItem,
-        'UserExperience': UserExperienceItemView.serializeExperienceItem,
-        'UserContentItem': UserContentItemView.serializeContentItem
-    }
-
-    def post(self, request):
-        pass
-
-    def put(self, request, sectionId):
-        pass
-
-    @staticmethod
-    def getProfileSection(sectionId):
-        try:
-            return UserProfileSection.objects.prefetch_related('sectionItem', 'sectionItem__contentObject').get(id=sectionId)
-        except UserProfileSection.DoesNotExist as e:
-            raise e
-
-    @staticmethod
-    def serializeProfileSection(section):
-        return {
-            'sectionId': section.id,
-            'title': section.title,
-            'description': section.description,
-            'sectionOrder': section.sectionOrder,
-            'items': [
-                {
-                    'contentOrder': item.contentOrder,
-                    'content': UserProfileSectionView.serializeItemContent(item)
-                } for item in section.sectionItem
-            ]
-        }
-
-    @staticmethod
-    def serializeItemContent(item):
-        if not item.contentType:
-            return None
-
-        serializer = UserProfileSectionView.CONTENT_ITEM_SERIALIZERS[item.contentType.model]
-        return serializer(item.contentObject)
-
 
 class UserView(APIView):
-    authentication_classes = (authentication.SessionAuthentication,)
 
     def get(self, request, userId=None):
-        return Response(self.serializeUser(self.getUser(userId)), status=status.HTTP_200_OK)
+        return Response(getSerializedUser(self.getUser(userId)), status=status.HTTP_200_OK)
 
+    @atomic
     def put(self, request, userId=None):
+        userId = userId or request.data.get('id')
+        if not userId:
+            return Response('User ID is required to perform this operation', status=status.HTTP_400_BAD_REQUEST)
+        if not (security.isPermittedAdmin(request) or security.isSelf(request, userId)):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         user = self.getUser(userId)
-        # TODO: get data and add to model
+        self.updateUser(user, request.data)
+        return Response(getSerializedUser(user), status=status.HTTP_200_OK)
+
+    @atomic
+    def post(self, request):
+        if not security.isPermittedAdmin(request):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        user, hasPassword = self.createUser(request.data)
+        if not hasPassword:
+            reset_form = PasswordResetForm({'email': user.email})
+            assert reset_form.is_valid()
+            reset_form.save(
+                request=request,
+                subject_template_name='email/newUserPasswordEmailSubject.txt',
+                email_template_name='email/newUserPasswordBody.html',
+                html_email_template_name='email/newUserPassword.html',
+                extra_email_context={
+                    'supportEmail': 'community@uprove.co'
+                }
+            )
+
+        return Response(status=status.HTTP_200_OK, data={'user': getSerializedUser(user), 'hasPassword': hasPassword})
+
+    @atomic
+    def delete(self, request):
+        if not security.isPermittedAdmin(request):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        if not (userId := request.data.get('id')):
+            return Response('User ID is required to perform this operation', status=status.HTTP_400_BAD_REQUEST)
+
+        user = self.getUser(userId)
+        if user.djangoUser.is_superuser:
+            user.djangoUser.is_active = False
+            return Response('Super user deactivated, but not deleted', status=status.HTTP_200_OK)
+
+        user.djangoUser.delete()
+        user.delete()
+        return Response(f'User <{user.firstName} {user.lastName} ({user.id})> deleted', status=status.HTTP_200_OK)
 
     @staticmethod
     def getUser(userId):
         try:
-            return User.objects.prefetch_related('image').get(id=userId)
+            return User.objects.select_related('djangoUser').prefetch_related('image').get(id=userId)
         except User.DoesNotExist as e:
             raise e
 
     @staticmethod
-    def serializeUser(user):
-        return {
-            'userId': user.id,
-            'firstName': user.firstName,
-            'middleName': user.middleName,
-            'lastName': user.lastName,
-            'birthDate': serializeDatetime(user.birthDate),
-            'profilePicture': next((image.image for image in user.image.all() if image.isDefault), None),
-            **serializeAuditFields(user)
-        }
+    def getUserProfiles(userId):
+        profiles = User.objects\
+            .select_related('djangoUser')\
+            .prefetch_related(
+                'profile'
+                'profile__section',
+                'profile__section__sectionItem',
+                'profile__section__sectionItem__contentObject',
+                'education',
+                'experience',
+                'contentItem',
+                'contentItem__section',
+                'video',
+                'file',
+                'image',
+                'tag'
+            )
+
+    @staticmethod
+    def getUsers():
+        return User.objects.select_related('djangoUser').prefetch_related('image').all()
+
+    @staticmethod
+    def updateUser(user, data):
+        dataUtil.setObjectAttributes(user, data, {
+            'firstName': None,
+            'middleName': None,
+            'lastName': None,
+            'birthDate': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True),
+            'email': None,
+            'userTypeBits': None
+        })
+
+        user.modifiedDateTime = datetime.utcnow()
+        user.save()
+
+    @staticmethod
+    def createUser(data):
+        password = data.get('password', None)
+        djangoUserKwargs = dict(
+            email=data['email'],
+            first_name=data['firstName'],
+            last_name=data['lastName'],
+            password=password or generatePassword()
+        )
+        try:
+            if data.get('isSuperUser'):
+                djangoUser = DjangoUser.objects.create_superuser(data['email'], **djangoUserKwargs)
+            else:
+                djangoUserKwargs['is_staff'] = data.get('isStaff', False)
+                djangoUser = DjangoUser.objects.create_user(data['email'], **djangoUserKwargs)
+        except IntegrityError:
+            return Response(f'''
+            User with email={data["email"]} already exists. If you forgot your password, please use the "reset password"
+            link in the sign in menu.
+            ''', status=status.HTTP_409_CONFLICT)
+
+        user = User(
+            djangoUser=djangoUser,
+            firstName=data['firstName'],
+            middleName=data.get('middleName'),
+            lastName=data['lastName'],
+            birthDate=dateUtil.deserializeDateTime(data.get('birthDate'), dateUtil.FormatType.DATE, allowNone=True),
+            email=data['email'],
+            modifiedDateTime=datetime.utcnow(),
+            createdDateTime=datetime.utcnow()
+        )
+        user.save()
+
+        return user, bool(password)
 
 
 class UserProfileView(APIView):
@@ -334,3 +305,7 @@ class UserProfileView(APIView):
                 UserProfileSectionView.serializeProfileSection(section) for section in profile.section.all()
             ]
         }
+
+
+def generatePassword():
+    return crypto.get_random_string(length=30, allowed_chars=crypto.RANDOM_STRING_CHARS+'!@#$%^&*()-+=')

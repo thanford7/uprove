@@ -10,6 +10,11 @@
                         <a class="nav-link" href="/projects">Projects</a>
                     </li>
                 </template>
+                <template v-if="globalData.uproveUser && globalData.uproveUser.isSuperUser">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin">Admin</a>
+                    </li>
+                </template>
                 <li v-if="!isMobile" class="nav-item" :class="(isMobile) ? '' : 'dropdown'">
                     <a v-if="!globalData.uproveUser" class="nav-link" href="#"
                        @click="eventBus.emit('open:signInModal')">

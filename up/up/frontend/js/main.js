@@ -24,7 +24,7 @@ _.defer(() => {
     initVue(header, '#site-header .navbar');
     initVue(footer, '#site-footer');
 
-    // Remove globalData script so it's not visible after data has been loaded in Vue
+    // Remove data scripts so it's not visible after data has been loaded in Vue
     $('#globalData').remove();
     $('#initData').remove();
 

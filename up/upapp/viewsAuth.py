@@ -1,24 +1,62 @@
 import logging
 from http import HTTPStatus
 
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect
-from django.contrib.auth import login, authenticate, logout
+from django.contrib import messages
+from django.contrib.auth import login, authenticate, logout, views as viewsDjangoAuth
 from django.contrib.auth.backends import ModelBackend, UserModel
+from django.contrib.auth.views import PasswordResetConfirmView
 from django.db.models import Q
-from django.urls import reverse
-from rest_framework.permissions import AllowAny
+from django.http import HttpResponseRedirect
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apis.user import UserView
 from upapp.models import User
-from upapp.modelSerializers import UserSerializer
+from upapp.modelSerializers import getSerializedUser
 
 logger = logging.getLogger()
 
 
+def logoutUser(request):
+    logout(request)
+    request.session['uproveUser'] = None
+
+
+def setUproveUser(request, user):
+    try:
+        uproveUser = User.objects.select_related('djangoUser').get(djangoUser=user)
+        request.session['uproveUser'] = getSerializedUser(uproveUser)
+    except User.DoesNotExist:
+        msg = 'No Uprove user exists for this Django user'
+        logger.error(msg)
+        messages.error(request, msg)
+        return msg
+
+
+def getLoginRedirectUrl(request):
+    pageRedirect = '/projects/'
+    uproveUser = request.session['uproveUser']
+    if uproveUser['isSuperUser']:
+        pageRedirect = '/admin/'
+    elif uproveUser['userTypeBits'] & User.USER_TYPE_CANDIDATE:
+        pageRedirect = '/profiles/'
+
+    return pageRedirect
+
+
+class LoginPageView(viewsDjangoAuth.LoginView):
+
+    def form_valid(self, form):
+        user = form.get_user()
+        login(self.request, user)
+        setUproveUser(self.request, user)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return getLoginRedirectUrl(self.request)
+
+
 class LoginView(APIView):
-    permission_classes = [AllowAny]
 
     def post(self, request):
         email = request.data['email']
@@ -29,22 +67,47 @@ class LoginView(APIView):
         user = authenticate(username=email, password=password)
         if user is not None:
             login(request, user)
-            try:
-                uproveUser = User.objects.get(djangoUser=request.user)
-            except User.DoesNotExist:
-                logger.error('No Uprove user exists for this Django user')
-            request.session['uproveUser'] = UserSerializer(uproveUser).data
-            return Response(status=HTTPStatus.OK, data={'pageRedirect': 'projects/'})
+            if errorMsg := setUproveUser(request, user):
+                return Response(status=HTTPStatus.UNAUTHORIZED, data=errorMsg)
+
+            return Response(status=HTTPStatus.OK, data={'pageRedirect': getLoginRedirectUrl(request)})
         else:
-            return Response(status=HTTPStatus.UNAUTHORIZED, data='Invalid username or password.')
+            msg = 'Invalid username or password.'
+            messages.error(request, msg)
+            return Response(status=HTTPStatus.UNAUTHORIZED, data=msg)
 
 
 class LogoutView(APIView):
-    permission_classes = [AllowAny]
 
     def post(self, request):
-        logout(request)
+        logoutUser(request)
         return Response(status=HTTPStatus.OK, data={'pageRedirect': '/'})
+
+
+class PasswordResetView(PasswordResetConfirmView):
+    def get_user(self, uidb64):
+        user = super().get_user(uidb64)
+        setUproveUser(self.request, user)
+        return user
+
+
+class SetPasswordView(APIView):
+
+    def post(self, request):
+        logoutUser(request)
+        uproveUserId = request.data['uproveUserId']
+        newPassword = request.data['password']
+
+        if not uproveUserId:
+            return Response('You do not have access to change this password', status=HTTPStatus.UNAUTHORIZED)
+        if not newPassword:
+            return Response('Please provide a valid password', status=HTTPStatus.BAD_REQUEST)
+
+        uproveUser = UserView.getUser(uproveUserId)
+        uproveUser.djangoUser.set_password(newPassword)
+        uproveUser.djangoUser.save()
+
+        return Response(status=HTTPStatus.OK, data={'pageRedirect': '/login/'})
 
 
 class EmailAuthentication(ModelBackend):

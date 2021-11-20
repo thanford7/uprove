@@ -1,22 +1,26 @@
 from enum import IntEnum
 
+from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.files.storage import FileSystemStorage
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
-    'EmployerInterest', 'ProjectFunction', 'ProjectSkill'
+    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectFile', 'Employer'
 )
 
 
 ALLOWED_UPLOADS_VIDEO = ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg']
 ALLOWED_UPLOADS_IMAGE = ['png', 'jpeg', 'jpg', 'gif']
 ALLOWED_UPLOADS_FILE = ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet']
+
+
+def getUploadLocation(relPath):
+    return f'{relPath}{"-test/" if settings.DEBUG else "/"}'
 
 
 # Create your models here.
@@ -38,16 +42,21 @@ Each content item can have one or more content sections. Content sections are or
 
 
 class User(AuditFields):
+    USER_TYPE_CANDIDATE = 0x1
+    USER_TYPE_EMPLOYER = 0x2
+    USER_TYPE_ADMIN = 0x4
+
     djangoUser = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, editable=False)
     firstName = models.CharField(max_length=20)
     middleName = models.CharField(max_length=20, null=True)
     lastName = models.CharField(max_length=30)
-    birthDate = models.DateTimeField(null=True)
+    birthDate = models.DateField(null=True)
     email = models.EmailField(unique=True)
+    userTypeBits = models.SmallIntegerField(default=USER_TYPE_CANDIDATE)
 
 
 class UserProfile(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='profile')
     profileName = models.CharField(max_length=100)
     profilePicture = models.ForeignKey('UserImage', on_delete=models.SET_NULL, null=True)
     makePublic = models.BooleanField(default=False)
@@ -102,8 +111,8 @@ class UserEducation(AuditFields):
     degree = models.CharField(max_length=50, null=True, choices=[(o, o) for o in OPTIONS_DEGREE])
     degreeSubject = models.CharField(max_length=200, null=True)
     activities = models.TextField(null=True)
-    startDate = models.DateTimeField(null=True)
-    endDate = models.DateTimeField(null=True)
+    startDate = models.DateField(null=True)
+    endDate = models.DateField(null=True)
 
 
 class UserExperience(AuditFields):
@@ -120,8 +129,8 @@ class UserExperience(AuditFields):
     organization = models.ForeignKey('Organization', on_delete=models.PROTECT)
     positionTitle = models.CharField(max_length=100)
     employmentType = models.CharField(max_length=20, choices=[(o, o) for o in OPTIONS_EMPLOYMENT_TYPE])
-    startDate = models.DateTimeField()
-    endDate = models.DateTimeField(null=True)
+    startDate = models.DateField()
+    endDate = models.DateField(null=True)
     description = models.TextField(null=True)
 
 
@@ -151,7 +160,7 @@ class UserContentItemSection(models.Model):
 class UserVideo(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='video')
     video = models.FileField(
-        upload_to='videos/',
+        upload_to=getUploadLocation('uploads-candidate'),
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_VIDEO)]
     )
     title = models.CharField(max_length=100)
@@ -160,7 +169,7 @@ class UserVideo(AuditFields):
 class UserFile(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='file')
     file = models.FileField(
-        upload_to='files/',
+        upload_to=getUploadLocation('uploads-candidate'),
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_FILE)]
     )
     title = models.CharField(max_length=100)
@@ -168,7 +177,7 @@ class UserFile(AuditFields):
 
 class UserImage(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='image')
-    image = models.ImageField(upload_to='images/')
+    image = models.ImageField(upload_to=getUploadLocation('uploads-candidate'))
     title = models.CharField(max_length=100)
     isDefault = models.BooleanField(default=False)
 
@@ -205,7 +214,7 @@ class Organization(models.Model):
 
     name = models.CharField(max_length=100)
     orgType = models.CharField(max_length=30, choices=TYPES_ORG)
-    logo = models.ImageField(upload_to='logos/', null=True)
+    logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
     user = models.ForeignKey('User', null=True, on_delete=models.CASCADE, related_name='organization')
 
     class Meta:
@@ -241,3 +250,24 @@ class ProjectFunction(models.Model):
 
 class ProjectSkill(models.Model):
     skillName = models.CharField(max_length=100, unique=True)
+
+
+class Project(AuditFields):
+    title = models.CharField(max_length=250)
+    function = models.ForeignKey(ProjectFunction, on_delete=models.PROTECT)
+    skills = models.ManyToManyField(ProjectSkill)
+    skillLevel = models.SmallIntegerField(choices=UserTag.SKILL_LEVELS, null=True)
+    employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
+    description = models.TextField()
+
+
+class ProjectFile(AuditFields):
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='projectFile')
+    title = models.CharField(max_length=100)
+    description = models.TextField(null=True)
+    file = models.FileField(upload_to=getUploadLocation('uploads-project'))
+
+
+class Employer(AuditFields):
+    companyName = models.CharField(max_length=150, unique=True)
+    logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
