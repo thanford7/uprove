@@ -35,8 +35,8 @@ const globalData = Object.assign({
     SKILL_LEVEL: {
         1: 'Novice',
         2: 'Intermediate',
-        3: 'Advanced',
-        4: 'Expert'
+        4: 'Advanced',
+        8: 'Expert'
     },
     TAG_TYPE: [
         'interest',

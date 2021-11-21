@@ -30,7 +30,7 @@
         <div class="mb-3">
             <label for="userTypes" class="form-label">User Types</label>
             <InputSelectize
-                ref="sel1"
+                ref="userTypes"
                 elId="userTypes"
                 :isParseAsInt="true"
                 placeholder="Required" :cfg="userTypesCfg" @selected="formData.userTypes = $event"
@@ -45,7 +45,8 @@
             </div>
             <div class="mb-3">
                 <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="userIsSuperUser" v-model="formData.isSuperUser">
+                    <input type="checkbox" class="custom-control-input" id="userIsSuperUser"
+                           v-model="formData.isSuperUser">
                     &nbsp;<label class="custom-control-label" for="userIsSuperUser">Is Super User</label>
                 </div>
             </div>
@@ -90,20 +91,14 @@ export default {
         }
     },
     methods: {
-        clearFormData() {
-            ['sel1'].forEach((selRef) => {
-                const sel = this.$refs[selRef];
-                sel.elSel.clear(true);
-            });
-        },
         getAjaxCfgOverride() {
             return {method: (this.formData.id) ? 'PUT' : 'POST'};
         },
         processRawData(rawData) {
             const userTypes = Object.keys(this.globalData.USER_TYPES)
-                .filter((t) => parseInt(t) & rawData.userTypeBits);
-            this.$refs['sel1'].elSel.setValue(userTypes);
-            return Object.assign(rawData, {userTypes});
+                .filter((t) => parseInt(t) & rawData.formData.userTypeBits);
+            this.$refs['userTypes'].elSel.setValue(userTypes);
+            return Object.assign(rawData.formData, {userTypes});
         },
         processFormData() {
             const formData = this.readForm();
@@ -111,7 +106,7 @@ export default {
         }
     },
     mounted() {
-        this.requiredFields.userTypes = this.$refs['sel1'].targetEl;
+        this.requiredFields.userTypes = this.$refs['userTypes'].targetEl;
     }
 }
 </script>

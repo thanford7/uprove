@@ -39,6 +39,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'lastName': user.lastName,
         'birthDate': user.birthDate.isoformat(),
         'email': user.email,
+        'employerId': user.employer_id,
         'userTypeBits': user.userTypeBits,
         'isStaff': user.djangoUser.is_staff,
         'isActive': user.djangoUser.is_active,
@@ -188,7 +189,7 @@ def getSerializedProject(project: Project):
         'function': project.function.functionName,
         'functionId': project.function.id,
         'skills': [{'name': s.skillName, 'id': s.id} for s in project.skills.all()],
-        'skillLevel': project.skillLevel,
+        'skillLevelBits': project.skillLevelBits,
         'description': project.description,
         'employer': getSerializedEmployer(project.employer),
         'files': [getSerializedProjectFile(pf) for pf in project.projectFile.all()]
@@ -209,6 +210,6 @@ def getSerializedEmployer(employer: Employer):
     return {
         'id': employer.id,
         'companyName': employer.companyName,
-        'logo': employer.logo,
+        'logo': employer.logo.url if employer.logo else None,
         **serializeAuditFields(employer)
     }

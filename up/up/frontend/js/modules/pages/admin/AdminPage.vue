@@ -8,7 +8,7 @@
                 <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editEmployerModal')">Employer account</button>
             </div>
             <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editProjectModal')">Project</button>
+                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="openEditProjectModal.bind(this)(null, false)">Project</button>
             </div>
             <div class="col-md-3 me-2 mb-2">
                 <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editUserModal')">User</button>
@@ -18,49 +18,51 @@
             <h3>Edit</h3>
             <div class="col-md-3 me-2">
                 <InputSelectize
-                    ref="sel1"
+                    ref="editEmployer"
                     elId="editEmployer"
                     placeholder="Select employer"
                     :cfg="employerCfg"
                     :isParseAsInt="true"
-                    @selected="selectedEmployer = openEditEmployerModal.bind(this)($event)"
+                    @selected="openEditEmployerModal.bind(this)($event)"
                 />
             </div>
             <div class="col-md-3 me-2">
                 <InputSelectize
-                    ref="sel2"
+                    ref="editProject"
                     elId="editProject"
                     placeholder="Select project"
                     :cfg="projectCfg"
                     :isParseAsInt="true"
-                    @selected="selectedProject = openEditProjectModal.bind(this)($event)"
+                    @selected="openEditProjectModal.bind(this)($event, true)"
                 />
             </div>
             <div class="col-md-3 me-2">
                 <InputSelectize
-                    ref="sel3"
+                    ref="editUser"
                     elId="editUser"
                     placeholder="Select user"
                     :cfg="userCfg"
                     :isParseAsInt="true"
-                    @selected="selectedUser = openEditUserModal.bind(this)($event)"
+                    @selected="openEditUserModal.bind(this)($event)"
                 />
             </div>
         </div>
     </div>
     <EditEmployerModal/>
+    <EditProjectModal/>
     <EditUserModal/>
 </template>
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
 import EditEmployerModal from "../../modals/EditEmployerModal";
+import EditProjectModal from "../../modals/EditProjectModal";
 import EditUserModal from "../../modals/EditUserModal";
 import InputSelectize from "../../inputs/InputSelectize";
 
 export default {
     name: "AdminPage.vue",
-    components: {BannerAlert, EditEmployerModal, EditUserModal, InputSelectize},
+    components: {BannerAlert, EditEmployerModal, EditProjectModal, EditUserModal, InputSelectize},
     computed: {
         employerCfg() {
             return {
@@ -96,24 +98,27 @@ export default {
                 return;
             }
             this.eventBus.emit('open:editEmployerModal', this.getEmployer(employerId));
-            const sel = this.$refs['sel1'];
+            const sel = this.$refs['editEmployer'];
             sel.elSel.clear(true);
         },
-        openEditProjectModal(projectId) {
-            if (!projectId) {
+        openEditProjectModal(projectId, isEdit) {
+            if (!projectId && isEdit) {
                 return;
             }
-            this.eventBus.emit('open:editProjectModal', this.getProject(projectId));
-            const sel = this.$refs['sel2'];
+            this.eventBus.emit('open:editProjectModal', {
+                formData: this.getProject(projectId),
+                employers: this.initData.employers
+            });
+            const sel = this.$refs['editProject'];
             sel.elSel.clear(true);
         },
         openEditUserModal(userId) {
             if (!userId) {
                 return;
             }
-            const sel = this.$refs['sel3'];
+            const sel = this.$refs['editUser'];
             sel.elSel.clear(true);
-            this.eventBus.emit('open:editUserModal', this.getUser(userId));
+            this.eventBus.emit('open:editUserModal', {formData: this.getUser(userId)});
         },
     },
     mounted() {

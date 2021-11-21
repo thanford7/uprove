@@ -1,19 +1,18 @@
 from datetime import datetime
 
-from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import User as DjangoUser, UserManager
+from django.contrib.auth.models import User as DjangoUser
 from django.db import IntegrityError
 from django.db.transaction import atomic
 from django.utils import crypto
-from rest_framework import status, authentication, request
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-import security
-from modelSerializers import getSerializedUser
-from utils import dataUtil, dateUtil
+from upapp import security
 from upapp.models import *
+from upapp.modelSerializers import getSerializedUser
+from upapp.utils import dataUtil, dateUtil
 
 __all__ = [
     'OrganizationView', 'UserVideoView', 'UserFileView', 'UserImageView', 'UserEducationItemView',
@@ -191,22 +190,26 @@ class UserView(APIView):
 
     @staticmethod
     def getUserProfiles(userId):
-        profiles = User.objects\
-            .select_related('djangoUser')\
-            .prefetch_related(
-                'profile'
-                'profile__section',
-                'profile__section__sectionItem',
-                'profile__section__sectionItem__contentObject',
-                'education',
-                'experience',
-                'contentItem',
-                'contentItem__section',
-                'video',
-                'file',
-                'image',
-                'tag'
-            )
+        try:
+            return User.objects\
+                .select_related('djangoUser')\
+                .prefetch_related(
+                    'profile'
+                    'profile__section',
+                    'profile__section__sectionItem',
+                    'profile__section__sectionItem__contentObject',
+                    'education',
+                    'experience',
+                    'contentItem',
+                    'contentItem__section',
+                    'video',
+                    'file',
+                    'image',
+                    'tag'
+                )\
+                .get(id=userId)
+        except User.DoesNotExist as e:
+            raise e
 
     @staticmethod
     def getUsers():
@@ -289,22 +292,6 @@ class UserProfileView(APIView):
                 .get(id=profileId)
         except UserProfile.DoesNotExist as e:
             raise e
-
-    @staticmethod
-    def serializeUserProfile(profile):
-        # TODO: only add password if the user owns the profile
-        # 'password': profile.password
-        return {
-            'user': UserView.serializeUser(profile.user),
-            'profileId': profile.id,
-            'profileName': profile.profileName,
-            'profilePicture': profile.profilePicture,
-            'makePublic': profile.makePublic,
-            **serializeAuditFields(profile),
-            'sections': [
-                UserProfileSectionView.serializeProfileSection(section) for section in profile.section.all()
-            ]
-        }
 
 
 def generatePassword():

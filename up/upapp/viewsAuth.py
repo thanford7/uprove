@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apis.user import UserView
+from upapp.apis.user import UserView
 from upapp.models import User
 from upapp.modelSerializers import getSerializedUser
 

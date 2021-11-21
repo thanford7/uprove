@@ -92,7 +92,10 @@ const ajaxRequestMixin = {
             if(!this.isGoodFormData(formData)) {
                 return false;
             }
-            return this.submitAjaxRequest(formData)
+            const ajaxData = new FormData();
+            ajaxData.append('data', JSON.stringify(_.omit(formData, this.fileFields || [])));
+            (this.fileFields || []).forEach((field) => { ajaxData.append(field, formData[field]); })
+            return this.submitAjaxRequest(ajaxData)
         },
         saveChange(e, allowDefault=false) {
             if (allowDefault) {
@@ -124,11 +127,12 @@ const ajaxRequestMixin = {
         submitAjaxRequest(requestData, requestCfg={}) {
             return $.ajax(Object.assign({
                 url: this.apiUrl + this.crudUrl,
-                method: 'PUT',
+                method: (this.formData.id) ? 'PUT': 'POST',
                 mode: 'same-origin',
                 headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
-                data: JSON.stringify(requestData),
-                contentType: 'application/json',
+                data: requestData,
+                contentType: false,
+                processData: false,
                 success: this.onSaveSuccess,
                 error: this.onSaveFailure
             }, this.getAjaxCfgOverride(), requestCfg));
@@ -161,6 +165,14 @@ const modalsMixin = {
     methods: {
         clearFormData() {
             // subclass for clearing selectize and other objects not directly tied to a v-model
+            this.formData = {};
+        },
+        clearSelectizeElements() {
+            Object.values(this.$refs).forEach((ref) => {
+                if (ref.elSel) {
+                    ref.elSel.clear(true);
+                }
+            });
         },
         processRawData(rawData) {
             // subclass
@@ -173,6 +185,7 @@ const modalsMixin = {
                 this.modal$ = new Modal($(`#${this.modalName}`));
             }
             this.clearFormData();
+            this.clearSelectizeElements();
             this.modal$.show();
             if (rawData) {
                 this.formData = this.processRawData(rawData);

@@ -23,3 +23,9 @@ def isSelf(request, userId):
     if user := getSessionUser(request):
         return user['id'] == userId
     return False
+
+
+def isPermittedEmployer(request, employerId):
+    if user := getSessionUser(request):
+        return user['employerId'] == employerId
+    return False

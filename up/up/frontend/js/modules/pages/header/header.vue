@@ -5,11 +5,9 @@
         </a>
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
-                <template v-if="!globalData.uproveUser">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/projects">Projects</a>
-                    </li>
-                </template>
+                <li class="nav-item">
+                    <a class="nav-link" href="/projects">Projects</a>
+                </li>
                 <template v-if="globalData.uproveUser && globalData.uproveUser.isSuperUser">
                     <li class="nav-item">
                         <a class="nav-link" href="/admin">Admin</a>

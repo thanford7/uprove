@@ -3,11 +3,11 @@ from json import dumps
 
 from django.shortcuts import render
 
-from apis.employer import EmployerView
-from apis.project import ProjectView
-from modelSerializers import getSerializedProject, getSerializedEmployer, getSerializedUser
-from . import security
-from .apis.user import UserView, UserProfileView
+from upapp import security
+from upapp.modelSerializers import getSerializedProject, getSerializedEmployer, getSerializedUser
+from upapp.apis.employer import EmployerView
+from upapp.apis.project import ProjectView
+from upapp.apis.user import UserView, UserProfileView
 
 
 # Create your views here.
@@ -73,5 +73,9 @@ def termsOfService(request):
 
 
 def _getUnauthorizedPage(request):
-    return render(request, 'errors.html', {
-        'data': dumps({'error': HTTPStatus.UNAUTHORIZED, 'text': 'You do not have permission to view this account'})})
+    # If the use is logged in, they are truly unauthorized
+    if security.getSessionUser(request):
+        return render(request, 'errors.html', {
+            'data': dumps({'error': HTTPStatus.UNAUTHORIZED, 'text': 'You do not have permission to view this account'})})
+    else:
+        return render(request, 'login.html')

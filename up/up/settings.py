@@ -87,7 +87,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'up.uproveDjangoContext.uproveDjangoContext',
             ],
         },
     },
@@ -143,7 +142,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
+        'up.multiPartJsonParser.MultiPartJsonParser',
     ]
 }
 

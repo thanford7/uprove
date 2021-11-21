@@ -3,6 +3,7 @@ import logging
 from http import HTTPStatus
 
 import pytz
+from django.conf import settings
 from django.db import models
 from django.db.transaction import atomic
 from rest_framework.permissions import AllowAny
@@ -11,8 +12,7 @@ from rest_framework.views import APIView
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-from django.conf import settings
-from ..models import CandidateInterest, EmployerInterest, ProjectFunction, ProjectSkill
+from upapp.models import CandidateInterest, EmployerInterest, ProjectFunction, ProjectSkill
 
 
 TEST_EMAIL_ADDRESS = 'test@uprove.co'

@@ -53,6 +53,7 @@ class User(AuditFields):
     birthDate = models.DateField(null=True)
     email = models.EmailField(unique=True)
     userTypeBits = models.SmallIntegerField(default=USER_TYPE_CANDIDATE)
+    employer = models.ForeignKey('Employer', on_delete=models.PROTECT, null=True)
 
 
 class UserProfile(AuditFields):
@@ -189,10 +190,10 @@ class UserTag(AuditFields):
     TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]
 
     class SkillLevel(IntEnum):
-        NOVICE = 1
-        INTERMEDIATE = 2
-        ADVANCED = 3
-        EXPERT = 4
+        NOVICE = 0x1
+        INTERMEDIATE = 0x2
+        ADVANCED = 0x4
+        EXPERT = 0x8
 
     SKILL_LEVELS = [(int(i), int(i)) for i in SkillLevel]
 
@@ -256,7 +257,7 @@ class Project(AuditFields):
     title = models.CharField(max_length=250)
     function = models.ForeignKey(ProjectFunction, on_delete=models.PROTECT)
     skills = models.ManyToManyField(ProjectSkill)
-    skillLevel = models.SmallIntegerField(choices=UserTag.SKILL_LEVELS, null=True)
+    skillLevelBits = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
     employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
 
