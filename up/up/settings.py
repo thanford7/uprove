@@ -169,36 +169,35 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'up/static'),
 ]
 
+AWS_QUERYSTRING_AUTH = False
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_ACCESS_KEY_ID_READ_ONLY = os.getenv('AWS_ACCESS_KEY_ID_READ_ONLY')
+AWS_SECRET_ACCESS_KEY_READ_ONLY = os.getenv('AWS_SECRET_ACCESS_KEY_READ_ONLY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = 'https://nyc3.digitaloceanspaces.com'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_DEFAULT_ACL = 'public-read'
+AWS_IS_GZIPPED = True
+
 if env('USE_LOCAL', cast=bool, default=False):
-    logger.info('Using local storage')
+    logger.info('Using local static storage')
     STATIC_URL = '/static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    # MEDIA_URL = '/media/'
+    # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     logger.info('Using S3 static storage')
-    AWS_QUERYSTRING_AUTH = False
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_ACCESS_KEY_ID_READ_ONLY = os.getenv('AWS_ACCESS_KEY_ID_READ_ONLY')
-    AWS_SECRET_ACCESS_KEY_READ_ONLY = os.getenv('AWS_SECRET_ACCESS_KEY_READ_ONLY')
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = 'https://nyc3.digitaloceanspaces.com'
-    AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',
-    }
-    AWS_DEFAULT_ACL = 'public-read'
-    AWS_IS_GZIPPED = True
-    
     STATIC_LOCATION = 'static-files'
-    STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{STATIC_LOCATION}/'
+    STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{STATIC_LOCATION}/'
     STATICFILES_STORAGE = 'up.customManifest.S3ManifestStaticStorageWithLog'
 
-    # Media file storage
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    MEDIA_LOCATION = 'media'
-    MEDIA_URL = f'https://{AWS_S3_ENDPOINT_URL}/{MEDIA_LOCATION}/'
-
+# Media file storage
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIA_LOCATION = 'media'
+MEDIA_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{MEDIA_LOCATION}/'
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY') or os.getenv('SENDGRID_API_KEY')

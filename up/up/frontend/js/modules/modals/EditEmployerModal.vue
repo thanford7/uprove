@@ -45,7 +45,6 @@ export default {
     },
     methods: {
         processRawData(rawData) {
-            console.log(rawData);
             return rawData;
         },
         toggleLogoUpload(isShown) {

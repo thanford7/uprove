@@ -111,7 +111,9 @@ const ajaxRequestMixin = {
                 eventBus.emit('failure:delete', 'No selection');
                 return;
             }
-            this.submitAjaxRequest(deleteData, {method: 'DELETE'})
+            const ajaxData = new FormData();
+            ajaxData.append('data', JSON.stringify(ajaxData));
+            this.submitAjaxRequest(deleteData, {method: 'DELETE'});
         },
         getDeleteObjectData() {
             // subclass
