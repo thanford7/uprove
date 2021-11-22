@@ -22,14 +22,17 @@ module.exports = function (env, argv) {
         devtool: 'source-map',
         entry: path.resolve(__dirname, 'up/frontend/js/main.js'),
         output: {
-            path: path.resolve(__dirname, 'up/frontend/dist'),
+            path: path.resolve(__dirname, 'up/frontend/dist/'),
             publicPath: '/static/',
             filename: `[name].js`,
             chunkFilename: '[name].[chunkhash].js',
         },
         plugins: [
             // new BundleAnalyzerPlugin(),
-            new MiniCssExtractPlugin(),
+            new MiniCssExtractPlugin({
+              filename: '[name].css',
+              chunkFilename: '[name].[hash].css'
+            }),
             new webpack.DefinePlugin({
                 PRODUCTION: Boolean(env.production),
                 __VUE_OPTIONS_API__: true,
