@@ -175,7 +175,8 @@ AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_ACCESS_KEY_ID_READ_ONLY = os.getenv('AWS_ACCESS_KEY_ID_READ_ONLY')
 AWS_SECRET_ACCESS_KEY_READ_ONLY = os.getenv('AWS_SECRET_ACCESS_KEY_READ_ONLY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = 'https://nyc3.digitaloceanspaces.com'
+logger.info(f'Storage bucket: {AWS_STORAGE_BUCKET_NAME}')
+AWS_S3_ENDPOINT_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.nyc3.digitaloceanspaces.com'
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
@@ -191,13 +192,14 @@ if env('USE_LOCAL', cast=bool, default=False):
 else:
     logger.info('Using S3 static storage')
     STATIC_LOCATION = 'static-files'
-    STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{STATIC_LOCATION}/'
+    STATIC_URL = f'{AWS_S3_ENDPOINT_URL}/{STATIC_LOCATION}/'
+    logger.info(f'Static URL: {STATIC_URL}')
     STATICFILES_STORAGE = 'up.customManifest.S3ManifestStaticStorageWithLog'
 
 # Media file storage
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_LOCATION = 'media'
-MEDIA_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{MEDIA_LOCATION}/'
+MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{MEDIA_LOCATION}/'
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY') or os.getenv('SENDGRID_API_KEY')
