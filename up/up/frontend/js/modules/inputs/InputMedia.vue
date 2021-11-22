@@ -1,5 +1,5 @@
 <template>
-    <div class="input-image">
+    <div class="input-image" :id="elId">
         <input 
             ref="fileInput"
             type="file"
@@ -41,6 +41,9 @@ export default {
         },
         isMultiUpload: {
             type: Boolean
+        },
+        elId: {
+            type: String
         }
     },
     methods: {

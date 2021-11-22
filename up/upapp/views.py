@@ -4,15 +4,20 @@ from json import dumps
 from django.shortcuts import render
 
 from upapp import security
-from upapp.modelSerializers import getSerializedProject, getSerializedEmployer, getSerializedUser
+from upapp.modelSerializers import getSerializedProject, getSerializedEmployer, getSerializedUser, \
+    getSerializedProjectSkill, getSerializedProjectFunction
 from upapp.apis.employer import EmployerView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import UserView, UserProfileView
+from upapp.models import ProjectFunction, ProjectSkill
 
 
 # Create your views here.
 def homepage(request):
-    return render(request, 'home.html', context={})
+    return render(request, 'home.html', {'data': dumps({
+        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
+        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+    })})
 
 
 def about(request):
@@ -36,7 +41,9 @@ def admin(request):
         'projects': [getSerializedProject(p) for p in ProjectView.getProjects()],
         # TODO: Lazy load employers and users since this will get long
         'employers': [getSerializedEmployer(e) for e in EmployerView.getEmployers()],
-        'users': [getSerializedUser(u) for u in UserView.getUsers()]
+        'users': [getSerializedUser(u) for u in UserView.getUsers()],
+        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
+        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
     })})
 
 

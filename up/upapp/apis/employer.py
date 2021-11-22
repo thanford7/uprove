@@ -54,6 +54,7 @@ class EmployerView(APIView):
                 'companyName': None,
                 'logo': None
             })
+            employer.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer))
         except IntegrityError:
             return Response(f'Company with name={data["companyName"]} already exists.', status=status.HTTP_409_CONFLICT)

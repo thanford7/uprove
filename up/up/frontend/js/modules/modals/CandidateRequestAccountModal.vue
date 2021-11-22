@@ -83,13 +83,13 @@ export default {
         functionsCfg() {
             return {
                 maxItems: null,
-                options: Object.entries(this.globalData.SUPPORTED_FUNCTIONS).map(([key, txt]) => ({value: key, text: txt}))
+                options: _.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), ['text'])
             }
         },
         skillsCfg() {
             return {
                 maxItems: null,
-                options: Object.entries(this.globalData.SUPPORTED_SKILLS).map(([key, txt]) => ({value: key, text: txt}))
+                options: _.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
             }
         }
     },

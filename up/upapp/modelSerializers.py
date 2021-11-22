@@ -201,7 +201,7 @@ def getSerializedProjectFile(projectFile: ProjectFile):
         'id': projectFile.id,
         'title': projectFile.title,
         'description': projectFile.description,
-        'file': projectFile.file,
+        'file': projectFile.file.url,
         **serializeAuditFields(projectFile)
     }
 
@@ -213,3 +213,11 @@ def getSerializedEmployer(employer: Employer):
         'logo': employer.logo.url if employer.logo else None,
         **serializeAuditFields(employer)
     }
+
+
+def getSerializedProjectFunction(projectFunction: ProjectFunction):
+    return {'id': projectFunction.id, 'functionName': projectFunction.functionName}
+
+
+def getSerializedProjectSkill(projectSkill: ProjectSkill):
+    return {'id': projectSkill.id, 'skillName': projectSkill.skillName}

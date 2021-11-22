@@ -16,7 +16,8 @@
             <InputSelectize
                 ref="projectFunction"
                 elId="projectFunction"
-                placeholder="Required" :cfg="projectFunctionsCfg" @selected="formData.function = $event"
+                :isParseAsInt="true"
+                placeholder="Required" :cfg="projectFunctionsCfg" @selected="formData.functionId = $event"
             />
         </div>
         <div class="mb-3">
@@ -24,7 +25,8 @@
             <InputSelectize
                 ref="projectSkills"
                 elId="projectSkills"
-                placeholder="Required" :cfg="projectSkillsCfg" @selected="formData.skills = $event"
+                :isParseAsInt="true"
+                placeholder="Required" :cfg="projectSkillsCfg" @selected="formData.skillIds = $event"
             />
         </div>
         <div class="mb-3">
@@ -50,8 +52,13 @@
             <InputWsiwyg elId="projectDescription" placeholder="Add a description..." v-model="formData.description"/>
         </div>
         <div class="mb-3">
-            <label for="projectFiles" class="form-label">Description</label>
-            <InputMedia elId="projectFiles" :mediaTypes="['file', 'video']" @selected="formData.files = $event"/>
+            <label for="projectFiles" class="form-label">Files</label>
+            <InputMedia
+                elId="projectFiles"
+                :mediaTypes="['file', 'video']"
+                :isMultiUpload="true"
+                @selected="formData.files = $event"
+            />
         </div>
     </BaseModal>
 </template>
@@ -75,8 +82,8 @@ export default {
                 title: '#projectTitle',
                 description: '#projectDescription',
                 // Add on mounted
-                function: null,
-                skills: null,
+                functionId: null,
+                skillIds: null,
                 skillLevels: null
             },
         }
@@ -85,13 +92,13 @@ export default {
         projectFunctionsCfg() {
             return {
                 maxItems: 1,
-                options: _.sortBy(Object.entries(this.globalData.SUPPORTED_FUNCTIONS).map(([key, txt]) => ({value: key, text: txt})), ['text'])
+                options: _.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), ['text'])
             };
         },
         projectSkillsCfg() {
             return {
                 maxItems: null,
-                options: _.sortBy(Object.entries(this.globalData.SUPPORTED_SKILLS).map(([key, txt]) => ({value: key, text: txt})), ['text'])
+                options: _.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
             };
         },
         projectSkillLevelsCfg() {
@@ -103,14 +110,18 @@ export default {
     },
     methods: {
         processRawData(rawData) {
-            // Set skill levels from bits
-            const skillLevels = Object.keys(this.globalData.SKILL_LEVEL)
-                .filter((t) => parseInt(t) & rawData.skillLevelBits);
-            this.$refs['projectSkillLevels'].elSel.setValue(skillLevels);
-
             // Update employer selectize with data
             this.$refs['projectEmployer'].elSel.addOption((rawData.employers || []).map((e) => ({value: e.id, text: e.companyName})))
             this.$refs['projectEmployer'].elSel.refreshOptions(false);
+
+            if (!rawData.formData) {
+                return {};
+            }
+
+            // Set skill levels from bits
+            const skillLevels = Object.keys(this.globalData.SKILL_LEVEL)
+                .filter((t) => parseInt(t) & rawData.formData.skillLevelBits);
+            this.$refs['projectSkillLevels'].elSel.setValue(skillLevels);
 
             return Object.assign(rawData.formData, {skillLevels});
         },
@@ -119,8 +130,8 @@ export default {
             return Object.assign({}, formData, {skillLevelBits: _.sum(formData.skillLevels)});
         },
         mounted() {
-            this.requiredFields.function = this.$refs['projectFunction'].targetEl;
-            this.requiredFields.skills = this.$refs['projectSkills'].targetEl;
+            this.requiredFields.functionId = this.$refs['projectFunction'].targetEl;
+            this.requiredFields.skillIds = this.$refs['projectSkills'].targetEl;
             this.requiredFields.skillLevels = this.$refs['projectSkillLevels'].targetEl;
         }
     }

@@ -13,7 +13,12 @@
         </div>
         <div class="mb-3">
             <label for="employerLogo" class="form-label">Company logo</label>
+            <div v-if="formData.logo && !isLogoUpload" class="mb-1">
+                <img :src="formData.logo" style="height: 40px;"><br>
+                <a href="#" @click="toggleLogoUpload(true)">Change logo</a>
+            </div>
             <InputMedia elId="employerLogo" :mediaTypes="['image']" @selected="formData.logo = $event"/>
+            <a v-if="formData.logo && isLogoUpload" href="#" @click="toggleLogoUpload(false)">Use existing logo</a>
         </div>
     </BaseModal>
 </template>
@@ -34,14 +39,25 @@ export default {
             requiredFields: {
                 companyName: 'employerCompanyName',
             },
-            fileFields: ['logo']
+            fileFields: ['logo'],
+            isLogoUpload: true
         }
     },
     methods: {
         processRawData(rawData) {
             console.log(rawData);
             return rawData;
+        },
+        toggleLogoUpload(isShown) {
+            this.isLogoUpload = isShown;
+            $('#employerLogo').toggle(isShown);
         }
+    },
+    mounted() {
+        this.toggleLogoUpload(!Boolean(this.formData.logo));
+    },
+    updated() {
+        this.toggleLogoUpload(!Boolean(this.formData.logo));
     }
 }
 </script>
