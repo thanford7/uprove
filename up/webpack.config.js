@@ -7,15 +7,15 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const zlib = require("zlib");
 
 const path = require('path');
-const postCSSPlugins = [require("postcss-import"), require("postcss-mixins"), require("postcss-simple-vars"), require("postcss-nested"), require("postcss-hexrgba"), require("postcss-color-function"), require("autoprefixer")]
+// const postCSSPlugins = [require("postcss-import"), require("postcss-mixins"), require("postcss-simple-vars"), require("postcss-nested"), require("postcss-hexrgba"), require("postcss-color-function"), require("autoprefixer")]
 
 
 module.exports = function (env, argv) {
-    const task = env.npm_lifecycle_event;
-    const isFullBuild = ['build', 'buildWatch'].includes(task);
-    if (isFullBuild) {
-        postCSSPlugins.push(require('cssnano'));
-    }
+    // const task = env.npm_lifecycle_event;
+    // const isFullBuild = ['build', 'buildWatch'].includes(task);
+    // if (isFullBuild) {
+    //     postCSSPlugins.push(require('cssnano'));
+    // }
     const cfg = {
         mode: (env.production) ? 'production' : 'development',
         context: __dirname,
@@ -60,7 +60,7 @@ module.exports = function (env, argv) {
             alias: {
                 vue: '@vue/runtime-dom',  // https://v3.vuejs.org/guide/installation.html#release-notes
             },
-            extensions: ['.tsx', '.ts', '.js', '.vue']
+            extensions: ['.tsx', '.ts', '.js', '.vue', '.scss']
         },
         module: {
             rules: [
@@ -70,7 +70,7 @@ module.exports = function (env, argv) {
                         MiniCssExtractPlugin.loader,
                         // Translates CSS into CommonJS
                         'css-loader?url=false',
-                        {loader: 'postcss-loader', options: {postcssOptions: {plugins: postCSSPlugins}}},
+                        // {loader: 'postcss-loader', options: {postcssOptions: {plugins: postCSSPlugins}}},
                         // Compiles Sass to CSS
                         'sass-loader',
                     ],
