@@ -51,13 +51,12 @@
             <label for="projectDescription" class="form-label">Description</label>
             <InputWsiwyg elId="projectDescription" placeholder="Add a description..." v-model="formData.description"/>
         </div>
-        <div class="mb-3">
-            <label for="projectFiles" class="form-label">Files</label>
+        <div class="mb-3" v-for="(file, fileId, idx) in formData.newFiles">
+            <label :for="`projectFile-${fileId}`" class="form-label">File {{ idx + 1 }}</label>
             <InputMedia
                 elId="projectFiles"
                 :mediaTypes="['file', 'video']"
-                :isMultiUpload="true"
-                @selected="formData.files = $event"
+                @selected="formData.newFiles[fileId].file = $event"
             />
         </div>
     </BaseModal>
@@ -122,8 +121,12 @@ export default {
             const skillLevels = Object.keys(this.globalData.SKILL_LEVEL)
                 .filter((t) => parseInt(t) & rawData.formData.skillLevelBits);
             this.$refs['projectSkillLevels'].elSel.setValue(skillLevels);
+            const newFiles = rawData.formData.files.reduce((newFiles, file) => {
+                newFiles[file.id] = file;
+                return newFiles;
+            }, {})
 
-            return Object.assign(rawData.formData, {skillLevels});
+            return Object.assign(rawData.formData, {skillLevels, newFiles});
         },
         processFormData() {
             const formData = this.readForm();
