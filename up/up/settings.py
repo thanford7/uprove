@@ -179,7 +179,7 @@ AWS_S3_ENDPOINT_URL = 'https://nyc3.digitaloceanspaces.com'
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
-AWS_LOCATION = 'media'
+AWS_LOCATION = 'static-files'  # TODO: Figure out media
 AWS_DEFAULT_ACL = 'public-read'
 AWS_IS_GZIPPED = True
 
