@@ -194,10 +194,10 @@ else:
     AWS_LOCATION = 'static-files'
     STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_LOCATION}/'
     logger.info(f'Static URL: {STATIC_URL}')
-    STATICFILES_STORAGE = 'up.customManifest.S3ManifestStaticStorageWithLog'
+    STATICFILES_STORAGE = 'up.customStorage.S3ManifestStaticStorageWithLog'
 
 # Media file storage
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'up.customStorage.MediaStorage'
 MEDIA_LOCATION = 'media'
 MEDIA_URL = f'https://{AWS_S3_ENDPOINT_URL}/{MEDIA_LOCATION}/'
 

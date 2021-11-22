@@ -112,8 +112,8 @@ const ajaxRequestMixin = {
                 return;
             }
             const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(ajaxData));
-            this.submitAjaxRequest(deleteData, {method: 'DELETE'});
+            ajaxData.append('data', JSON.stringify(deleteData));
+            return this.submitAjaxRequest(ajaxData, {method: 'DELETE'});
         },
         getDeleteObjectData() {
             // subclass

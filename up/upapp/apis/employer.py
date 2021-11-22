@@ -31,6 +31,7 @@ class EmployerView(APIView):
         try:
             employer = Employer(
                 companyName=data['companyName'],
+                logo=data['logo'],
                 modifiedDateTime=datetime.utcnow(),
                 createdDateTime=datetime.utcnow()
             )
