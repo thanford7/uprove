@@ -183,12 +183,13 @@ AWS_S3_OBJECT_PARAMETERS = {
 AWS_DEFAULT_ACL = 'public-read'
 AWS_IS_GZIPPED = True
 
-if env('USE_LOCAL', cast=bool, default=False):
+USE_LOCAL = env('USE_LOCAL', cast=bool, default=False)
+if USE_LOCAL:
     logger.info('Using local static storage')
     STATIC_URL = '/static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    # MEDIA_URL = '/media/'
-    # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     logger.info('Using S3 static storage')
     AWS_LOCATION = 'static-files'
@@ -196,10 +197,10 @@ else:
     logger.info(f'Static URL: {STATIC_URL}')
     STATICFILES_STORAGE = 'up.customStorage.S3ManifestStaticStorageWithLog'
 
-# Media file storage
-DEFAULT_FILE_STORAGE = 'up.customStorage.MediaStorage'
-MEDIA_LOCATION = 'media'
-MEDIA_URL = f'https://{AWS_S3_ENDPOINT_URL}/{MEDIA_LOCATION}/'
+    # Media file storage
+    DEFAULT_FILE_STORAGE = 'up.customStorage.MediaStorage'
+    MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'https://{AWS_S3_ENDPOINT_URL}/{MEDIA_LOCATION}/'
 
 # Email
 SENDGRID_API_KEY = env('SENDGRID_API_KEY') or os.getenv('SENDGRID_API_KEY')

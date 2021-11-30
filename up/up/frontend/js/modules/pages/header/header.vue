@@ -27,7 +27,7 @@
                             <a class="dropdown-item" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
                                 settings</a>
                             <a class="dropdown-item" href="#"
-                               @click="submitAjaxRequest({}, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
+                               @click="submitAjaxRequest(null, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
                                 out</a>
                         </div>
                     </template>

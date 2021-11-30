@@ -98,12 +98,14 @@ export default {
     computed: {
         functionsCfg() {
             return {
+                plugins: ['remove_button'],
                 maxItems: null,
                 options: _.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), ['text'])
             }
         },
         skillsCfg() {
             return {
+                plugins: ['remove_button'],
                 maxItems: null,
                 options: _.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
             }

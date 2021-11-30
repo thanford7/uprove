@@ -130,7 +130,7 @@
         </div>
 
         <!-- The editor -->
-        <editor-content :editor="editor"/>
+        <editor-content :editor="editor" :id="elId"/>
     </div>
 </template>
 <script>
@@ -161,7 +161,7 @@ export default {
     },
 
     props: {
-        value: {
+        modelValue: {
             type: String,
             default: '',
         },
@@ -182,7 +182,7 @@ export default {
         }
     },
     watch: {
-        value(value) {
+        modelValue(value) {
             // HTML
             const isSame = this.editor.getHTML() === value
 
@@ -190,10 +190,10 @@ export default {
             // const isSame = this.editor.getJSON().toString() === value.toString()
 
             if (isSame) {
-                return
+                return;
             }
 
-            this.editor.commands.setContent(this.value, false)
+            this.editor.commands.setContent(this.modelValue, false)
         },
     },
     methods: {
@@ -257,10 +257,10 @@ export default {
                 }
             },
             // autofocus: true,
-            content: this.value,
+            content: this.modelValue,
             onUpdate: () => {
                 // HTML
-                this.$emit('input', this.$sanitize(this.editor.getHTML()));
+                this.$emit('update:modelValue', this.$sanitize(this.editor.getHTML()));
 
                 // JSON
                 // this.$emit('input', this.editor.getJSON())

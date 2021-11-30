@@ -1,15 +1,18 @@
 import {Popover} from "bootstrap";
-import {createStore, mapState} from "vuex";
+import {createStore, mapGetters, mapState} from "vuex";
 import globalData from './globalData';
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
 import $ from 'jquery';
 
 
-const SEVERITY_SUCCESS = 'success';
-const SEVERITY_WARN = 'warn';
-const SEVERITY_DANGER = 'danger';
+const severity = {
+    SUCCESS: 'success',
+    WARN: 'warn',
+    DANGER: 'danger'
+}
 
+let elUid = 0;
 
 const eventBus = mitt();
 
@@ -22,6 +25,12 @@ const store = createStore({
         return {
             eventBus,
             isMobile: isMobileFn()
+        }
+    },
+    getters: {
+        newElUid(state) {
+            elUid += 1
+            return elUid.toString();
         }
     },
     mutations: {
@@ -41,6 +50,8 @@ const ajaxRequestMixin = {
         return {
             apiUrl: '/api/v1/',
             crudUrl: null,
+            initDataKey: null,  // The key to access the data structure to be update after CRUD operation
+            isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
             alerts: [],
             formData: {},
             requiredFields: {}, // <formData field name>: <form DOM id>
@@ -48,16 +59,47 @@ const ajaxRequestMixin = {
         }
     },
     methods: {
-        onSaveSuccess(data) {
-            // subclass
-            eventBus.emit('ajaxSuccess', data);
-            this.formData = {};
-            if (this.isAjaxModal) {
-                this.modal$.hide();
+        onSaveSuccessFn(method) {
+            return (data, textStatus, xhr) => {
+                eventBus.emit('ajaxSuccess', data);
+                if (this.isUpdateData) {
+                    this.updateInitData(method, data);
+                }
+                this.formData = {};
+                if (this.isAjaxModal) {
+                    this.modal$.hide();
+                }
+                if (data.pageRedirect) {
+                    window.location.replace(data.pageRedirect);
+                }
             }
-            if (data.pageRedirect) {
-                window.location.replace(data.pageRedirect);
+        },
+        updateInitData(method, newData) {
+            if (method === 'POST') {
+                this.updateInitDataPost(newData);
             }
+            if (method === 'PUT') {
+                this.updateInitDataPut(newData);
+            }
+            if (method === 'DELETE') {
+                this.updateInitDataDelete(newData)
+            }
+        },
+        getUpdateObject() {
+            return (this.initDataKey) ? this.initData[this.initDataKey] : this.initData;
+        },
+        updateInitDataPost(newData) {
+            const updateList = this.getUpdateObject();
+            updateList.push(newData);
+        },
+        updateInitDataPut(newData) {
+            const updateList = this.getUpdateObject();
+            const item = updateList.find((item) => item.id === newData.id);
+            Object.assign(item, newData);
+        },
+        updateInitDataDelete(deleteId) {
+            const updateList = this.getUpdateObject();
+            _.remove(updateList, (item) => item.id === deleteId);
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
             // subclass
@@ -80,7 +122,7 @@ const ajaxRequestMixin = {
             return Object.entries(this.requiredFields).reduce((hasRequired, [field, domSel]) => {
                 if (!formData[field]) {
                     this.addPopover($(domSel),
-                        {severity: SEVERITY_WARN, content: 'Required field', isOnce: true}
+                {severity: severity.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
@@ -93,8 +135,16 @@ const ajaxRequestMixin = {
                 return false;
             }
             const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(_.omit(formData, this.fileFields || [])));
-            (this.fileFields || []).forEach((field) => { ajaxData.append(field, formData[field]); })
+            ajaxData.append('data', JSON.stringify(_.omit(formData, this.mediaFields || [])));
+            (this.mediaFields || []).forEach((field) => {
+                if (Array.isArray(formData[field])) {
+                    formData[field].forEach((file) => {
+                        ajaxData.append(field, file);
+                    })
+                } else {
+                    ajaxData.append(field, formData[field]);
+                }
+            })
             return this.submitAjaxRequest(ajaxData)
         },
         saveChange(e, allowDefault=false) {
@@ -127,17 +177,24 @@ const ajaxRequestMixin = {
             return {};
         },
         submitAjaxRequest(requestData, requestCfg={}) {
+            const overrides = Object.assign(this.getAjaxCfgOverride(), requestCfg);
+            let method;
+            if (overrides.method) {
+                method = overrides.method;
+            } else {
+                method = (this.formData.id) ? 'PUT': 'POST';
+            }
             return $.ajax(Object.assign({
                 url: this.apiUrl + this.crudUrl,
-                method: (this.formData.id) ? 'PUT': 'POST',
+                method,
                 mode: 'same-origin',
                 headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
                 data: requestData,
                 contentType: false,
                 processData: false,
-                success: this.onSaveSuccess,
+                success: this.onSaveSuccessFn(method),
                 error: this.onSaveFailure
-            }, this.getAjaxCfgOverride(), requestCfg));
+            }, overrides));
         }
     }
 }
@@ -151,10 +208,15 @@ const globalVarsMixin = {
             djangoData: window.djangoData
         }
     },
-    computed: mapState({
-        eventBus: 'eventBus',
-        isMobile: 'isMobile'
-    })
+    computed: {
+        ...mapState({
+             eventBus: 'eventBus',
+             isMobile: 'isMobile'
+         }),
+        ...mapGetters({
+            newElUid: 'newElUid'
+        })
+    }
 }
 
 const modalsMixin = {
@@ -171,7 +233,7 @@ const modalsMixin = {
         },
         clearSelectizeElements() {
             Object.values(this.$refs).forEach((ref) => {
-                if (ref.elSel) {
+                if (ref && ref.elSel) {
                     ref.elSel.clear(true);
                 }
             });
@@ -180,6 +242,9 @@ const modalsMixin = {
             // subclass
             return rawData;
         },
+        setFormFields() {
+            // subclass - use for form fields that don't have a v-model property (mainly selectize fields)
+        }
     },
     mounted() {
         eventBus.on(`open:${this.modalName}`, (rawData) => {
@@ -191,6 +256,7 @@ const modalsMixin = {
             this.modal$.show();
             if (rawData) {
                 this.formData = this.processRawData(rawData);
+                this.setFormFields();
             }
         });
     }
@@ -212,6 +278,9 @@ const popoverMixin = {
                 template,
                 placement: 'auto'
             });
+            $(container).animate({
+                scrollTop: el$.offset().top
+            }, 500);
             el$.focus();
             popover.show();
             if(isOnce) {
@@ -223,4 +292,4 @@ const popoverMixin = {
     }
 }
 
-export {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store};
+export {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store, severity};

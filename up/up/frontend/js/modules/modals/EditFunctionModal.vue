@@ -26,6 +26,8 @@ export default {
         return {
             modalName: 'editFunctionModal',
             crudUrl: 'project-function/',
+            isUpdateData: true,
+            initDataKey: 'functions',
             requiredFields: {
                 functionName: 'functionName',
             },

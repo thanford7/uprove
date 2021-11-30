@@ -25,7 +25,7 @@ def about(request):
 
 
 def accountSettings(request, userId):
-    if not security.isPermittedSessionUser(request, userId):
+    if not security.isSelf(request, userId):
         return _getUnauthorizedPage(request)
     user = UserView.getUser(userId)
     serializedUser = {}
@@ -38,7 +38,7 @@ def admin(request):
     if not security.isPermittedAdmin(request):
         return _getUnauthorizedPage(request)
     return render(request, 'admin.html', {'data': dumps({
-        'projects': [getSerializedProject(p) for p in ProjectView.getProjects()],
+        'projects': [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)],
         # TODO: Lazy load employers and users since this will get long
         'employers': [getSerializedEmployer(e) for e in EmployerView.getEmployers()],
         'users': [getSerializedUser(u) for u in UserView.getUsers()],
@@ -71,8 +71,20 @@ def profiles(request, userId):
     return render(request, 'userProfiles.html', context={'data': None})  # TODO
 
 
+def project(request, projectId):
+    return render(request, 'project.html', context={'data': dumps({
+        'project': getSerializedProject(ProjectView.getProject(projectId), isIncludeDetails=security.isPermittedSessionUser(request)),
+        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
+        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+    })})
+
+
 def projects(request):
-    return render(request, 'projects.html', context={})
+    return render(request, 'projects.html', context={'data': dumps({
+        'projects': [getSerializedProject(p) for p in ProjectView.getProjects()],
+        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
+        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+    })})
 
 
 def termsOfService(request):

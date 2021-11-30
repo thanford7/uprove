@@ -1,12 +1,12 @@
-import 'bootstrap';
-import header from './modules/pages/header/header.vue';
-import footer from './modules/pages/footer/footer.vue';
-import 'selectize/dist/js/selectize.min.js';
-import $ from 'jquery';
-import initVue from './vueCommon';
-import dayjs from "dayjs/esm";
 import '../css/base.scss';
+import 'bootstrap';
+import 'selectize/dist/js/selectize.min.js';
+import dayjs from "dayjs/esm";
+import footer from './modules/pages/footer/footer.vue';
+import header from './modules/pages/header/header.vue';
+import initVue from './vueCommon';
 import Pages from './mainPageLoader';
+import $ from 'jquery';
 import _ from 'lodash';
 
 let jQueryConsole = false;
@@ -20,7 +20,7 @@ if (jQueryConsole) {
 _.defer(() => {
     const pageName = $('body').data('page');
     const {page} = Pages[pageName];
-    initVue(page, '#vue-container', );
+    initVue(page, '#vue-container');
     initVue(header, '#site-header .navbar');
     initVue(footer, '#site-footer');
 

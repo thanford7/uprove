@@ -20,7 +20,7 @@
     <body data-page="{% block baseClass %}BasePage{% endblock %}">
         {% block navBar %}
             <header id="site-header">
-                <nav class="navbar navbar-expand-md"></nav>
+                <nav class="navbar navbar-expand-md container-lg"></nav>
             </header>
         {% endblock %}
 
@@ -30,7 +30,7 @@
 
         <main>
             <div id="banner-message"></div>
-            <div id="vue-container" class="container-fluid">
+            <div id="vue-container" class="container-lg">
                 {% block mainContent %}{% endblock %}
             </div>
         </main>

@@ -44,6 +44,9 @@ export default {
         },
         elId: {
             type: String
+        },
+        value: {
+            type: String
         }
     },
     methods: {

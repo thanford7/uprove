@@ -260,6 +260,8 @@ class Project(AuditFields):
     skillLevelBits = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
     employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
+    instructions = models.TextField(null=True)
+    image = models.ImageField(upload_to=getUploadLocation('uploads-project'), null=True)
 
 
 class ProjectFile(AuditFields):
@@ -267,6 +269,7 @@ class ProjectFile(AuditFields):
     title = models.CharField(max_length=100)
     description = models.TextField(null=True)
     file = models.FileField(upload_to=getUploadLocation('uploads-project'))
+    skillLevelBits = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
 
 
 class Employer(AuditFields):

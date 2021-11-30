@@ -93,53 +93,93 @@ import InputSelectize from "../../inputs/InputSelectize";
 export default {
     name: "AdminPage.vue",
     components: {BannerAlert, EditEmployerModal, EditFunctionModal, EditProjectModal, EditSkillModal, EditUserModal, InputSelectize},
+    watch: {
+        initData: {
+            deep: true,
+            handler(initData) {
+                [
+                    ['editEmployer', this.getEmployerOptions],
+                    ['editFunction', this.getProjectFunctionOptions],
+                    ['editProject', this.getProjectOptions],
+                    ['editSkill', this.getProjectSkillOptions],
+                    ['editUser', this.getUserOptions]
+                ].forEach(([ref, optionFn]) => {
+                    const sel = this.$refs[ref].elSel;
+                    sel.clearOptions(true);
+                    sel.addOption(optionFn());
+                    sel.refreshOptions(false);
+                })
+            }
+        }
+    },
     computed: {
         employerCfg() {
             return {
                 maxItems: 1,
-                options: this.initData.employers.map((e) => ({value: e.id, text: e.companyName}))
+                sortField: 'text',
+                options: this.getEmployerOptions()
             }
         },
         functionCfg() {
             return {
                 maxItems: 1,
-                options: this.initData.functions.map((f) => ({value: f.id, text: f.functionName}))
+                sortField: 'text',
+                options: this.getProjectFunctionOptions()
             }
         },
         projectCfg() {
             return {
                 maxItems: 1,
-                options: this.initData.projects.map((p) => ({value: p.id, text: p.title}))
+                sortField: 'text',
+                options: this.getProjectOptions()
             }
         },
         skillCfg() {
             return {
                 maxItems: 1,
-                options: this.initData.skills.map((s) => ({value: s.id, text: s.skillName}))
+                sortField: 'text',
+                options: this.getProjectSkillOptions()
             }
         },
         userCfg() {
             return {
                 maxItems: 1,
-                options: this.initData.users.map((u) => ({value: u.id, text: `${u.firstName} ${u.lastName} (${u.id})`}))
+                sortField: 'text',
+                options: this.getUserOptions()
             }
         }
     },
     methods: {
         getEmployer(employerId) {
-            return this.initData.employers.find((e) => e.id === employerId);
+            // Copy so the form doesn't mutate the original data
+            return Object.assign({}, this.initData.employers.find((e) => e.id === employerId));
+        },
+        getEmployerOptions() {
+            return this.initData.employers.map((e) => ({value: e.id, text: e.companyName}));
         },
         getProject(projectId) {
-            return this.initData.projects.find((p) => p.id === projectId);
+            return Object.assign({}, this.initData.projects.find((p) => p.id === projectId));
+        },
+        getProjectOptions() {
+            return this.initData.projects.map((p) => ({value: p.id, text: p.title}));
         },
         getProjectFunction(functionId) {
-            return this.initData.functions.find((f) => f.id === functionId);
+            return Object.assign({}, this.initData.functions.find((f) => f.id === functionId));
+        },
+        getProjectFunctionOptions() {
+            return this.initData.functions.map((f) => ({value: f.id, text: f.functionName}));
         },
         getProjectSkill(skillId) {
-            return this.initData.skills.find((s) => s.id === skillId);
+            return Object.assign({}, this.initData.skills.find((s) => s.id === skillId));
+        },
+        getProjectSkillOptions() {
+            return this.initData.skills.map((s) => ({value: s.id, text: s.skillName}));
         },
         getUser(userId) {
-            return this.initData.users.find((u) => u.id === userId);
+            return Object.assign({}, this.initData.users.find((u) => u.id === userId));
+        },
+        getUserOptions() {
+            return this.initData.users.map((u) => ({value: u.id, text: `${u.firstName} ${u.lastName} (${u.id})`}));
         },
         openEditEmployerModal(employerId) {
             if (!employerId) {

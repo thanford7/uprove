@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, re_path
 
 from upapp import views
@@ -21,6 +23,7 @@ urlpatterns = [
     path('privacy/', views.privacy, name='privacy'),
     path('profile/<int:profileId>/', views.profile, name='profile'),
     path('profiles/<int:userId>/', views.profiles, name='profiles'),
+    path('project/<int:projectId>/', views.project, name='project'),
     path('projects/', views.projects, name='projects'),
     path('terms-of-service/', views.termsOfService, name='termsOfService'),
 
@@ -45,3 +48,7 @@ urlpatterns = [
     # Storage
     path(apiPath + 'user-storage/', storage.UserStorageView.as_view())
 ]
+
+if settings.USE_LOCAL:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

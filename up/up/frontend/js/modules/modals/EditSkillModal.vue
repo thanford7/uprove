@@ -26,6 +26,8 @@ export default {
         return {
             modalName: 'editSkillModal',
             crudUrl: 'project-skill/',
+            isUpdateData: true,
+            initDataKey: 'skills',
             requiredFields: {
                 skillName: 'skillName',
             },

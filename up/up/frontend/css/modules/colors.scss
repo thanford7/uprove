@@ -15,112 +15,134 @@ $color-green: rgb(115, 201, 170);
 
 .-color- {
     &yellow { 
-        background-color: $color-yellow;
+        background-color: $color-yellow !important;
         &-text {
-            color: $color-yellow;
+            color: $color-yellow !important;
         }
         &-fa {
             path {
-                fill: $color-yellow;
+                fill: $color-yellow !important;
             }
         }
     }
     &orange {
-        background-color: $color-orange;
+        background-color: $color-orange !important;
         &-text {
-            color: $color-orange;
+            color: $color-orange !important;
         }
         &-fa {
             path {
-                fill: $color-orange;
+                fill: $color-orange !important;
             }
         }
     }
     &darkblue {
-        background-color: $color-darkblue;
+        background-color: $color-darkblue !important;
         &-text {
-            color: $color-darkblue;
+            color: $color-darkblue !important;
         }
         &-fa {
             path {
-                fill: $color-darkblue;
+                fill: $color-darkblue !important;
             }
         }
     }
     &teal {
-        background-color: $color-teal;
+        background-color: $color-teal !important;
         &-text {
-            color: $color-teal;
+            color: $color-teal !important;
         }
         &-fa {
             path {
-                fill: $color-teal;
+                fill: $color-teal !important;
             }
         }
     }
     &lightblue {
-        background-color: $color-lightblue;
+        background-color: $color-lightblue !important;
         &-text {
-            color: $color-lightblue;
+            color: $color-lightblue !important;
         }
         &-fa {
             path {
-                fill: $color-lightblue;
+                fill: $color-lightblue !important;
             }
         }
     }
     &lightgrey {
-        background-color: $color-lightgrey;
+        background-color: $color-lightgrey !important;
         &-text {
-            color: $color-lightgrey;
+            color: $color-lightgrey !important;
         }
         &-fa {
             path {
-                fill: $color-lightgrey;
+                fill: $color-lightgrey !important;
             }
         }
     }
     &moderategrey {
-        background-color: $color-moderategrey;
+        background-color: $color-moderategrey !important;
         &-text {
-            color: $color-moderategrey;
+            color: $color-moderategrey !important;
         }
         &-fa {
             path {
-                fill: $color-moderategrey;
+                fill: $color-moderategrey !important;
             }
         }
     }
     &darkgrey {
-        background-color: $color-darkgrey;
+        background-color: $color-darkgrey !important;
         &-text {
-            color: $color-darkgrey;
+            color: $color-darkgrey !important;
         }
         &-fa {
             path {
-                fill: $color-darkgrey;
+                fill: $color-darkgrey !important;
             }
         }
     }
     &white {
-        background-color: $color-white;
+        background-color: $color-white !important;
         &-text {
-            color: $color-white;
+            color: $color-white !important;
         }
         &-fa {
             path {
-                fill: $color-white;
+                fill: $color-white !important;
             }
         }
     }
     &green {
-        background-color: $color-green;
+        background-color: $color-green !important;
         &-text {
-            color: $color-green;
+            color: $color-green !important;
         }
         &-fa {
             path {
-                fill: $color-green;
+                fill: $color-green !important;
+            }
+        }
+    }
+    &red {
+        background-color: $color-red !important;
+        &-text {
+            color: $color-red !important;
+        }
+        &-fa {
+            path {
+                fill: $color-red !important;
+            }
+        }
+    }
+    &black {
+        background-color: $color-black !important;
+        &-text {
+            color: $color-black !important;
+        }
+        &-fa {
+            path {
+                fill: $color-black !important;
             }
         }
     }

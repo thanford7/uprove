@@ -36,10 +36,12 @@ export default {
         return {
             modalName: 'editEmployerModal',
             crudUrl: 'account-employer/',
+            isUpdateData: true,
+            initDataKey: 'employers',
             requiredFields: {
                 companyName: 'employerCompanyName',
             },
-            fileFields: ['logo'],
+            mediaFields: ['logo'],
             isLogoUpload: true
         }
     },

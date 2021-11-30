@@ -31,7 +31,7 @@ class EmployerView(APIView):
         try:
             employer = Employer(
                 companyName=data['companyName'],
-                logo=data['logo'],
+                logo=data.get('logo'),
                 modifiedDateTime=datetime.utcnow(),
                 createdDateTime=datetime.utcnow()
             )
@@ -69,7 +69,7 @@ class EmployerView(APIView):
             return Response('Employer ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         self.getEmployer(employerId).delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK, data=employerId)
 
     @staticmethod
     def getEmployer(employerId):

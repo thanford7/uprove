@@ -74,6 +74,8 @@ export default {
         return {
             modalName: 'editUserModal',
             crudUrl: 'account-user/',
+            isUpdateData: true,
+            initDataKey: 'users',
             requiredFields: {
                 firstName: '#userFName',
                 lastName: '#userLName',
@@ -85,6 +87,7 @@ export default {
     computed: {
         userTypesCfg() {
             return {
+                plugins: ['remove_button'],
                 maxItems: null,
                 options: Object.entries(this.globalData.USER_TYPES).map(([key, txt]) => ({value: key, text: txt}))
             }

@@ -131,3 +131,21 @@ div {
         }
     }
 }
+
+.row.filter {
+    border-bottom: scale-color(colors.$color-lightgrey, $lightness: 70%) 1px solid;
+    justify-content: center;
+    align-items: center;
+
+    div {
+        margin-top: 5px;
+    }
+}
+
+.sidebar {
+    background-color: colors.$color-white;
+    border: colors.$color-lightgrey 1px solid;
+    border-radius: 10px;
+    padding: 10px;
+    height: fit-content;
+}

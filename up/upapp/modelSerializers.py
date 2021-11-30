@@ -1,6 +1,8 @@
 from operator import itemgetter
 
 from upapp.models import *
+from upapp.utils.dataUtil import getFileNameFromUrl
+from upapp.utils.htmlTruncate import truncate
 
 
 def getDateTimeFormatOrNone(val):
@@ -182,26 +184,31 @@ def getSerializedOrganization(organization: Organization):
     }
 
 
-def getSerializedProject(project: Project):
+def getSerializedProject(project: Project, isIncludeDetails:bool=False):
     return {
         'id': project.id,
         'title': project.title,
+        'image': project.image.url if project.image else None,
         'function': project.function.functionName,
         'functionId': project.function.id,
         'skills': [{'name': s.skillName, 'id': s.id} for s in project.skills.all()],
         'skillLevelBits': project.skillLevelBits,
         'description': project.description,
-        'employer': getSerializedEmployer(project.employer),
-        'files': [getSerializedProjectFile(pf) for pf in project.projectFile.all()]
+        'instructions': project.instructions if isIncludeDetails else truncate(project.instructions, 250, ellipsis='...'),
+        'employer': getSerializedEmployer(project.employer) if project.employer else None,
+        'files': [getSerializedProjectFile(pf, isIncludeDetails) for pf in project.projectFile.all()],
+        'isLimited': not isIncludeDetails
     }
 
 
-def getSerializedProjectFile(projectFile: ProjectFile):
+def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails:bool=False):
     return {
         'id': projectFile.id,
         'title': projectFile.title,
         'description': projectFile.description,
-        'file': projectFile.file.url,
+        'file': projectFile.file.url if isIncludeDetails else None,
+        'fileName': getFileNameFromUrl(projectFile.file.url),
+        'skillLevelBits': projectFile.skillLevelBits,
         **serializeAuditFields(projectFile)
     }
 

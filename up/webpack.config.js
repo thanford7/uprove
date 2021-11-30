@@ -7,15 +7,15 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const zlib = require("zlib");
 
 const path = require('path');
-// const postCSSPlugins = [require("postcss-import"), require("postcss-mixins"), require("postcss-simple-vars"), require("postcss-nested"), require("postcss-hexrgba"), require("postcss-color-function"), require("autoprefixer")]
+const postCSSPlugins = [require("postcss-import"), require("postcss-mixins"), require("postcss-simple-vars"), require("postcss-nested"), require("postcss-hexrgba"), require("postcss-color-function"), require("autoprefixer")]
 
 
 module.exports = function (env, argv) {
-    // const task = env.npm_lifecycle_event;
-    // const isFullBuild = ['build', 'buildWatch'].includes(task);
-    // if (isFullBuild) {
-    //     postCSSPlugins.push(require('cssnano'));
-    // }
+    const task = env.npm_lifecycle_event;
+    const isFullBuild = ['build', 'buildWatch'].includes(task);
+    if (isFullBuild) {
+        postCSSPlugins.push(require('cssnano'));
+    }
     const cfg = {
         mode: (env.production) ? 'production' : 'development',
         context: __dirname,

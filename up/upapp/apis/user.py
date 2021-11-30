@@ -179,7 +179,7 @@ class UserView(APIView):
 
         user.djangoUser.delete()
         user.delete()
-        return Response(f'User <{user.firstName} {user.lastName} ({user.id})> deleted', status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK, data=userId)
 
     @staticmethod
     def getUser(userId):
@@ -221,7 +221,7 @@ class UserView(APIView):
             'firstName': None,
             'middleName': None,
             'lastName': None,
-            'birthDate': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True),
+            'birthDate': {'propFunc': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)},
             'email': None,
             'userTypeBits': None
         })

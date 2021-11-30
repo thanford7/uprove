@@ -7,9 +7,9 @@ def getSessionUser(request):
         return None
 
 
-def isPermittedSessionUser(request, userId):
+def isPermittedSessionUser(request):
     if user := getSessionUser(request):
-        return user.id == userId  and user['isActive']
+        return user['isActive']
     return False
 
 
@@ -21,7 +21,7 @@ def isPermittedAdmin(request):
 
 def isSelf(request, userId):
     if user := getSessionUser(request):
-        return user['id'] == userId
+        return user['id'] == userId and user['isActive']
     return False
 
 

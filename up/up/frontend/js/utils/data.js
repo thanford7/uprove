@@ -51,6 +51,19 @@ class Data {
         }
         return ((_.isNil(dateVal) || dateVal === NULL_DATE_STRING) && !isConvertNull) ? null : dayjs(dateVal);
     }
+
+    getFileNameFromUrl(fileUrl) {
+        const [fileName] = fileUrl.split('/').slice(-1);
+        return fileName;
+    }
+
+    getFileType(fileName) {
+        if (!fileName) {
+            return null;
+        }
+        const [fileType] = fileName.split('.').slice(-1);
+        return fileType;
+    }
 }
 
 export default new Data();

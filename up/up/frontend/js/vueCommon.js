@@ -14,6 +14,8 @@ import {
     faChartLine,
     faCheck,
     faCircle,
+    faDownload,
+    faExchangeAlt,
     faExternalLinkAlt,
     faGripHorizontal,
     faItalic,
@@ -36,14 +38,28 @@ import {
     faUnlink,
     faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
+import {
+    faFile,
+    faFileExcel,
+    faFileImage,
+    faFilePdf,
+    faFilePowerpoint,
+    faFileWord,
+    faFileVideo
+} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon, FontAwesomeLayers, FontAwesomeLayersText} from '@fortawesome/vue-fontawesome';
 import {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store} from './vueMixins';
 
 import Vue3Sanitize from "vue-3-sanitize";
 
+// Solid icons
 library.add(faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, faArrowLeft, faArrowRight, faArrowUp,
-    faBold, faChartLine, faCheck, faCircle, faExternalLinkAlt, faGripHorizontal, faItalic, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
-    faQuoteLeft, faRedo, faSquare, faStrikethrough, faTextHeight, faTrash, faTrashAlt, faTwitterSquare, faUnderline, faUndo, faUnlink, faUserCircle);
+    faBold, faChartLine, faCheck, faCircle, faDownload, faExchangeAlt, faExternalLinkAlt, faGripHorizontal, faItalic, faLink, faLinkedin,
+    faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle, faQuoteLeft, faRedo, faSquare, faStrikethrough,
+    faTextHeight, faTrash, faTrashAlt, faTwitterSquare, faUnderline, faUndo, faUnlink, faUserCircle);
+
+// Regular icons
+library.add(faFile, faFileExcel, faFileImage, faFilePdf, faFilePowerpoint, faFileWord, faFileVideo);
 
 const initVue = (mainComponent, el) => {
     const vueComponent = createApp(mainComponent)

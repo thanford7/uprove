@@ -83,3 +83,10 @@ i {
 blockquote {
 	margin: 30px;
 }
+
+.text-label {
+    color: colors.$color-moderategrey;
+    &-sm {
+        font-size: 0.7rem;
+    }
+}

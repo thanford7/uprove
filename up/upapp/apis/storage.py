@@ -54,7 +54,7 @@ class ProjectStorageHandler(BaseStorageHandler):
     STORAGE_TYPE = 'project'
 
     def setPermissionLevel(self):
-        if self.user.djangoUser.is_superuser:
+        if self.user['isSuperUser']:
             self.permissionLevel = self.PERMISSION_LEVEL_RW
 
 

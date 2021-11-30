@@ -1,5 +1,5 @@
 <template>
-    <div class="view-more" :id="_uid">
+    <div class="view-more" :id="elId">
         <a :href="href">{{text}}</a>
     </div>
 </template>
@@ -21,11 +21,14 @@ export default {
         },
         clickFn: {
             type: Function
+        },
+        elId: {
+            type: String,
         }
     },
     mounted() {
         if(!this.el$) {
-            this.el$ = $(`#${this._uid}`);
+            this.el$ = $(`#${this.elId}`);
             if (this.clickFn) {
                 this.el$.find('a').on('click', this.clickFn);
             }

@@ -9,6 +9,13 @@ class FormChecker {
     isGoodWebLink(rawVal) {
         return this.WEB_LINK_REGEX.test(String(rawVal))
     }
+
+    isEmptyWysiwyg(rawVal) {
+        if (rawVal === '<p></p>') {
+            return true;
+        }
+        return false;
+    }
 }
 
 export default new FormChecker();

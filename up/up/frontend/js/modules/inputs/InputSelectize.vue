@@ -9,7 +9,7 @@ export default {
             targetEl: null  // Select element is not displayed so we need to target an inner html element
         }
     },
-    props: ['elId', 'placeholder', 'cfg', 'isParseAsInt'],
+    props: ['cfg', 'elId', 'isParseAsInt', 'isParseAsBits', 'placeholder', 'items'],
     methods: {
         parseInteger(val) {
             if (Array.isArray(val)) {
@@ -21,11 +21,20 @@ export default {
     mounted() {
         if(!this.elSel) {
             const el$ = $(`#${this.elId || this._uid}`);
+            if (this.items) {
+                this.cfg.items = this.items;
+            }
             this.elSel = el$.selectize(this.cfg)[0].selectize;
 
             this.elSel.on('change', () => {
-                const val = this.elSel.getValue();
-                this.$emit('selected', (this.isParseAsInt) ? this.parseInteger(val) : val);
+                let val = this.elSel.getValue();
+                if (this.isParseAsInt || this.isParseAsBits) {
+                    val = this.parseInteger(val);
+                }
+                if (this.isParseAsBits && Array.isArray(val)) {
+                    val = _.sum(val);
+                }
+                this.$emit('selected', val);
             });
 
             this.targetEl = el$.siblings('.selectize-control')[0]
