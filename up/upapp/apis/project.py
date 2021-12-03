@@ -53,7 +53,7 @@ class ProjectView(APIView):
         self.setInstructions(project, data.get('instructions'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
 
-        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id)))
+        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), security.isPermittedSessionUser(request)))
 
     @atomic
     def put(self, request, projectId=None):
@@ -81,7 +81,7 @@ class ProjectView(APIView):
         self.setSkills(project, data.get('skillIds'), isNew=False)
         self.setInstructions(project, data.get('instructions'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
-        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id)))
+        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), security.isPermittedSessionUser(request)))
 
     def delete(self, request, projectId=None):
         if not security.isPermittedAdmin(request):
