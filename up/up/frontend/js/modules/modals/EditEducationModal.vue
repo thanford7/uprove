@@ -61,7 +61,7 @@
 import Modal from 'bootstrap/js/dist/modal';
 import {mapGetters, mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
-import Data from '../../utils/data';
+import dataUtil from '../../utils/data';
 import InputMedia from '../inputs/InputMedia.vue';
 import InputMonthYear from '../inputs/InputMonthYear.vue';
 import InputWsiwyg from '../inputs/InputWsiwyg.vue';
@@ -91,10 +91,10 @@ export default {
                     setter: (educationItem) => educationItem.degree_subject
                 },
                 start_date: {
-                    setter: (educationItem) => Data.convertToDayJS(educationItem.start_date)
+                    setter: (educationItem) => dataUtil.convertToDayJS(educationItem.start_date)
                 },
                 end_date: {
-                    setter: (educationItem) => Data.convertToDayJS(educationItem.end_date)
+                    setter: (educationItem) => dataUtil.convertToDayJS(educationItem.end_date)
                 },
                 activities: {
                     setter: (educationItem) => educationItem.activities
@@ -150,8 +150,8 @@ export default {
             }
         },
         processFormData(data, imageData) {
-            data.start_date = Data.formatDate(data.start_date);
-            data.end_date = Data.formatDate(data.end_date, {isReturnNull: true});
+            data.start_date = dataUtil.formatDate(data.start_date);
+            data.end_date = dataUtil.formatDate(data.end_date, {isReturnNull: true});
             data.school_logo = data.selectedLogoPicId;
             return this.$super(BaseModal).processFormData(data, imageData);
         },

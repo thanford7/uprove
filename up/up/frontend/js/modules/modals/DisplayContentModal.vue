@@ -43,7 +43,7 @@
 import Modal from 'bootstrap/js/dist/modal';
 import {mapGetters, mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
-import Data from '../../utils/data';
+import dataUtil from '../../utils/data';
 
 export default {
     extends: BaseModal,
@@ -76,7 +76,7 @@ export default {
             });
         },
         formatDate(dateVal) {
-            return Data.formatDate(dateVal, {dateFormat: this.dateFormat, isReturnNull: true});
+            return dataUtil.formatDate(dateVal, {dateFormat: this.dateFormat, isReturnNull: true});
         }
     },
 }

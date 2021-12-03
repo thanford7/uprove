@@ -1,3 +1,9 @@
+const USER_BITS = {
+    CANDIDATE: 1,
+    EMPLOYER: 2,
+    ADMIN: 4
+}
+
 const globalData = Object.assign({
     API_URL: '/api/v1/',
     ALLOWED_UPLOADS: {
@@ -33,7 +39,7 @@ const globalData = Object.assign({
         'school'
     ],
     SKILL_LEVEL: {
-        1: 'Novice',
+        1: 'Entry',
         2: 'Intermediate',
         4: 'Advanced',
         8: 'Expert'
@@ -44,10 +50,10 @@ const globalData = Object.assign({
     ],
     // Keep in sync with User model
     USER_TYPES: {
-        1: 'Candidate',
-        2: 'Employer',
-        4: 'Admin'
+        [USER_BITS.CANDIDATE]: 'Candidate',
+        [USER_BITS.EMPLOYER]: 'Employer',
+        [USER_BITS.ADMIN]: 'Admin'
     }
 }, window.globalData);
 
-export default globalData;
+export {globalData as default, USER_BITS};

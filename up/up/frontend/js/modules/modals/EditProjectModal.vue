@@ -49,7 +49,7 @@
                 ref="projectSkillLevels"
                 elId="projectSkillLevels"
                 :isParseAsBits="true"
-                placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="formData.skillLevelBits = $event"
+                placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="setProjectSkillLevelBits"
             />
         </div>
         <div class="mb-3">
@@ -70,11 +70,21 @@
             />
         </div>
         <div class="mb-3">
-            <label for="projectDescription" class="form-label">Instructions</label>
+            <label for="projectDescription" class="form-label">Background</label>
             <InputWsiwyg
-                elId="projectInstructions"
+                elId="projectBackground"
+                placeholder="Add background..."
+                v-model="formData.background"
+            />
+        </div>
+        <div class="mb-3 pt-1" v-for="(instruction, skillLevelBit) in formData.newInstructions">
+            <label :for="`projectInstruction-${skillLevelBit}`" class="form-label">
+                Instructions for {{globalData.SKILL_LEVEL[skillLevelBit]}} Level
+            </label>
+            <InputWsiwyg
+                :elId="`projectInstruction-${skillLevelBit}`"
                 placeholder="Add instructions..."
-                v-model="formData.instructions"
+                v-model="instruction.instructions"
             />
         </div>
         <div class="mb-3 pt-1 border-top" v-for="(file, fileId, idx) in formData.newFiles">
@@ -99,7 +109,7 @@
                 :ref="`projectFile-skillBits-${fileId}`"
                 :elId="`projectFile-skillBits-${fileId}`"
                 :isParseAsBits="true"
-                :items="getSkillLevelsFromBits(file.skillLevelBits)"
+                :items="getSkillLevelNumbersFromBits(file.skillLevelBits)"
                 placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="file.skillLevelBits = $event"
             />
             <a href="#" @click="removeFileInput(fileId)"><font-awesome-icon :icon="['fas', 'trash']" class="-color-red-fa"/> Remove file</a>
@@ -118,7 +128,9 @@
 <script>
 import {severity} from "../../vueMixins";
 import BaseModal from "./BaseModal";
+import dataUtil from "../../utils/data";
 import FileDisplay from "../components/FileDisplay";
+import FormChecker from '../../utils/form';
 import InputMedia from "../inputs/InputMedia";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
@@ -140,7 +152,7 @@ export default {
             requiredFields: {
                 title: '#projectTitle',
                 description: '#projectDescription',
-                instructions: '#projectInstructions',
+                background: '#projectBackground',
                 // Add on mounted
                 functionId: null,
                 skillIds: null,
@@ -200,6 +212,26 @@ export default {
         removeFileInput(fileId) {
             delete this.formData.newFiles[fileId];
         },
+        setProjectSkillLevelBits(skillLevelBits) {
+            this.formData.skillLevelBits = skillLevelBits;
+            this.updateSkillLevelInstructions(this.formData, skillLevelBits);
+        },
+        updateSkillLevelInstructions(formData, skillLevelBits) {
+            let skillLevelNumbers = this.getSkillLevelNumbersFromBits(skillLevelBits);
+            // Keep any instructions that exist for selected skill levels
+            formData.newInstructions = Object.entries(formData.newInstructions).reduce((instructions, [bit, instruction]) => {
+                if (skillLevelNumbers.includes(bit)) {
+                    instructions[bit] = instruction;
+                    skillLevelNumbers = skillLevelNumbers.filter((n) => n !== bit);
+                }
+                return instructions;
+            }, {});
+
+            // Add new instruction fields for skill levels that are new
+            skillLevelNumbers.forEach((bit) => {
+                formData.newInstructions[bit] = {skillLevelBit: bit};
+            });
+        },
         toggleImageUpload() {
             const currentImage = this.formData.image;
             this.formData.image = this.formData.oldImage;
@@ -216,7 +248,7 @@ export default {
 
             const formData = rawData.formData;
             if (!formData || _.isEmpty(formData)) {
-                return {newFiles: {}};
+                return {newFiles: {}, newInstructions: {}};
             }
 
             const newFiles = formData.files.reduce((newFiles, file) => {
@@ -227,14 +259,19 @@ export default {
                 return newFiles;
             }, {})
 
+            formData.newInstructions = formData.instructions.reduce((newInstructions, instruction) => {
+                newInstructions[instruction.skillLevelBit] = instruction;
+                return newInstructions;
+            }, {});
+            this.updateSkillLevelInstructions(formData, formData.skillLevelBits);
             return Object.assign(formData, {newFiles});
         },
-        getSkillLevelsFromBits(skillLevelBits) {
-            return Object.keys(this.globalData.SKILL_LEVEL).filter((t) => parseInt(t) & skillLevelBits);
+        getSkillLevelNumbersFromBits(skillLevelBits) {
+            return dataUtil.getSkillLevelNumbersFromBits(skillLevelBits, this.globalData.SKILL_LEVEL);
         },
         setFormFields() {
             const {skillLevelBits, functionId, skills, employer} = this.formData;
-            this.$refs['projectSkillLevels'].elSel.setValue(this.getSkillLevelsFromBits(skillLevelBits));
+            this.$refs['projectSkillLevels'].elSel.setValue(this.getSkillLevelNumbersFromBits(skillLevelBits));
 
             // Set other selectize elements
             this.$refs['projectFunction'].elSel.setValue(functionId);
@@ -244,7 +281,7 @@ export default {
         processFormData() {
             const formData = this.readForm();
             return Object.assign({},
-                _.omit(formData, ['files', 'newFiles']),
+                _.omit(formData, ['files', 'newFiles', 'instructions', 'newInstructions']),
                 {
                     filesMetaData: Object.values(formData.newFiles).map((file) => {
                         return Object.assign(
@@ -252,7 +289,8 @@ export default {
                             {fileKey: _.isString(file.file) ? null : file.file.name}
                         )
                     }),
-                    files: Object.values(formData.newFiles).map((file) => file.file)
+                    files: Object.values(formData.newFiles).map((file) => file.file),
+                    instructions: Object.values(formData.newInstructions)
                 }
             );
         },
@@ -294,6 +332,31 @@ export default {
                 if (fileMetaData.fileKey) {
                     uniqueFileKeys.push(fileMetaData.fileKey);
                 }
+            }
+
+            let skillLevelBits = formData.skillLevelBits;
+            for (let i=0; i<formData.instructions.length; i++) {
+                const instruction = formData.instructions[i];
+                if (!instruction.instructions || FormChecker.isEmptyWysiwyg(instruction.instructions)) {
+                    this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
+                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    );
+                    return false;
+                }
+                if (!(skillLevelBits & instruction.skillLevelBit)) {
+                    this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
+                {severity: severity.WARN, content: 'Skill level must be included at the project level', isOnce: true}
+                    );
+                    return false;
+                }
+                // Negate the skill level bits on the project so we can check whether there are any skill levels without instructions
+                skillLevelBits = skillLevelBits & ~instruction.skillLevelBit;
+            }
+            if (skillLevelBits) {
+                this.addPopover($('#projectSkillLevels'),
+            {severity: severity.WARN, content: 'Skill level must have instructions', isOnce: true}
+                );
+                return false;
             }
             return true;
         }

@@ -38,7 +38,7 @@
 <script>
 import {mapState} from 'vuex';
 import ContentCard from './ContentCard.vue';
-import Data from '../../../utils/data';
+import dataUtil from '../../../utils/data';
 
 export default {
     computed: mapState({
@@ -52,7 +52,7 @@ export default {
     components: {ContentCard},
     methods: {
         onSaveSuccess(requestData, responseData) {
-            this.$store.commit(`setHighlightIds`, Data.parseIdString(requestData.highlight_ids));
+            this.$store.commit(`setHighlightIds`, dataUtil.parseIdString(requestData.highlight_ids));
         }
     },
     mounted() {

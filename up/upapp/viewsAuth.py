@@ -1,4 +1,5 @@
 import logging
+import re
 from http import HTTPStatus
 
 from django.contrib import messages
@@ -34,6 +35,9 @@ def setUproveUser(request, user):
 
 
 def getLoginRedirectUrl(request):
+    pageRedirect = request.data.get('redirect')
+    if pageRedirect and not re.match('^/[#]?$', pageRedirect):
+        return pageRedirect
     pageRedirect = '/projects/'
     uproveUser = request.session['uproveUser']
     if uproveUser['isSuperUser']:

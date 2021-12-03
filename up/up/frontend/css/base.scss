@@ -14,6 +14,10 @@
 @import 'selectize/dist/css/selectize.css';
 
 
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  @import "~bootstrap-ie11/scss/bootstrap-ie11.scss";
+}
+
 #vue-container {
     width: 95%;
 }
@@ -24,4 +28,11 @@ body {
     height: 100vh;
     margin: 0;
     background-color: rgba(colors.$color-lightgrey, .2);
+}
+
+.mobile {
+    &-top {
+        display: flex;
+        flex-direction: column-reverse;
+    }
 }

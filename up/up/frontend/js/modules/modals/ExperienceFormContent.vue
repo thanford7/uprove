@@ -47,7 +47,7 @@
 </template>
 <script>
 import {mapState} from 'vuex';
-import Data from '../../utils/data';
+import dataUtil from '../../utils/data';
 import InputMonthYear from '../inputs/InputMonthYear.vue';
 import InputSelectize from '../inputs/InputSelectize.vue';
 import InputSelectOrUploadMedia from '../inputs/InputSelectOrUploadMedia.vue';
@@ -112,8 +112,8 @@ export default {
     methods: {
         readForm() {
             const formData = {...this.formData};
-            formData.start_date = Data.formatDate(formData.start_date, {isReturnNull: true});
-            formData.end_date = Data.formatDate(formData.end_date, {isReturnNull: true});
+            formData.start_date = dataUtil.formatDate(formData.start_date, {isReturnNull: true});
+            formData.end_date = dataUtil.formatDate(formData.end_date, {isReturnNull: true});
             formData.title = formData.company;
             return formData;
         },

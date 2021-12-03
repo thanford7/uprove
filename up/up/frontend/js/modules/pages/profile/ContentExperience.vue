@@ -16,7 +16,7 @@
     </div>
 </template>
 <script>
-import Data from '../../../utils/data';
+import dataUtil from '../../../utils/data';
 
 
 export default {
@@ -38,7 +38,7 @@ export default {
     },
     methods: {
         formatDate(dateVal) {
-            return Data.formatDate(dateVal, {dateFormat: this.dateFormat, isReturnNull: true});
+            return dataUtil.formatDate(dateVal, {dateFormat: this.dateFormat, isReturnNull: true});
         }
     }
 }

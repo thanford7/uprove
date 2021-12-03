@@ -3,7 +3,7 @@ import dayjs from "dayjs/esm";
 const NULL_DATE_STRING = '0000-00-00';  // Wordpress API returns this value if a date is null
 const escapeChars = { lt: '<', gt: '>', quot: '"', apos: "'", amp: '&' };
 
-class Data {
+class DataUtil {
     dateFormat = 'MM/DD/YYYY';
 
     parseIdString(val, separator=',') {
@@ -64,6 +64,19 @@ class Data {
         const [fileType] = fileName.split('.').slice(-1);
         return fileType;
     }
+
+    getSkillLevelNumbersFromBits(skillLevelBits, allSkillLevels) {
+        return Object.keys(allSkillLevels).filter((level) => parseInt(level) & skillLevelBits);
+    }
+
+    getSkillLevelsFromBits(skillLevelBits, allSkillLevels) {
+        return Object.entries(allSkillLevels).reduce((levels, [level, levelName]) => {
+            if(parseInt(level) & skillLevelBits) {
+                levels.push(levelName);
+            }
+            return levels;
+        }, []);
+    }
 }
 
-export default new Data();
+export default new DataUtil();

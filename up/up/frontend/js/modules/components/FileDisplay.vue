@@ -4,19 +4,21 @@
         <font-awesome-icon :icon="['fas', 'download']"/>&nbsp;
         {{(isUseFileName) ? file.fileName : file.title}}
     </a>
-    <span v-else>{{file.title}}</span>
-    <p v-if="isIncludeDescription">{{file.description}}</p>
+    <span v-else>{{file.title}}</span>&nbsp;<BadgesSkillLevels v-if="isIncludeSkillLevels" :skillLevels="getSkillLevelsFromBits(file.skillLevelBits)"/>
+    <p v-if="isIncludeDescription" class="-sub-text">{{file.description}}</p>
 </template>
 
 <script>
-import data from "../../utils/data";
+import BadgesSkillLevels from "./BadgesSkillLevels";
+import dataUtil from "../../utils/data";
 
 export default {
     name: "FileDisplay.vue",
-    props: ['file', 'isIncludeDescription', 'isUseFileName'],
+    props: ['file', 'isIncludeDescription', 'isIncludeSkillLevels', 'isUseFileName'],
+    components: {BadgesSkillLevels},
     computed: {
         fileIcon() {
-            const fileType = data.getFileType(this.file.fileName);
+            const fileType = dataUtil.getFileType(this.file.fileName);
             if (!fileType) {
                 return 'file';
             }
@@ -39,6 +41,11 @@ export default {
                 return 'file-video';
             }
             return 'file';
+        }
+    },
+    methods: {
+        getSkillLevelsFromBits(skillLevelBits) {
+            return dataUtil.getSkillLevelsFromBits(skillLevelBits, this.globalData.SKILL_LEVEL);
         }
     }
 }

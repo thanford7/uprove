@@ -10,7 +10,7 @@ from django.db import models
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
-    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectFile', 'Employer'
+    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectFile', 'Employer'
 )
 
 
@@ -190,7 +190,7 @@ class UserTag(AuditFields):
     TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]
 
     class SkillLevel(IntEnum):
-        NOVICE = 0x1
+        ENTRY = 0x1
         INTERMEDIATE = 0x2
         ADVANCED = 0x4
         EXPERT = 0x8
@@ -260,8 +260,14 @@ class Project(AuditFields):
     skillLevelBits = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
     employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
-    instructions = models.TextField(null=True)
+    background = models.TextField(null=True)
     image = models.ImageField(upload_to=getUploadLocation('uploads-project'), null=True)
+
+
+class ProjectInstructions(AuditFields):
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='projectInstructions')
+    instructions = models.TextField()
+    skillLevelBit = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
 
 
 class ProjectFile(AuditFields):

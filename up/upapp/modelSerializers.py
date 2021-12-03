@@ -194,10 +194,20 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False):
         'skills': [{'name': s.skillName, 'id': s.id} for s in project.skills.all()],
         'skillLevelBits': project.skillLevelBits,
         'description': project.description,
-        'instructions': project.instructions if isIncludeDetails else truncate(project.instructions, 250, ellipsis='...'),
+        'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
+        'instructions': [getSerializedProjectInstructions(pi) for pi in project.projectInstructions.all()],
         'employer': getSerializedEmployer(project.employer) if project.employer else None,
         'files': [getSerializedProjectFile(pf, isIncludeDetails) for pf in project.projectFile.all()],
         'isLimited': not isIncludeDetails
+    }
+
+
+def getSerializedProjectInstructions(projectInstructions: ProjectInstructions):
+    return {
+        'id': projectInstructions.id,
+        'instructions': projectInstructions.instructions,
+        'skillLevelBit': projectInstructions.skillLevelBit,
+        **serializeAuditFields(projectInstructions)
     }
 
 

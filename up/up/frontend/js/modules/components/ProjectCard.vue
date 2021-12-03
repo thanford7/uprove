@@ -9,15 +9,11 @@
         <template v-slot:body>
             <div class="mb-1 pb-1 -border-bottom--light">
                 <div class="text-label text-label-sm">CAREER LEVELS</div>
-                <template v-for="skillLevel in cardItem.skillLevels">
-                    <span class="badge -color-lightgrey -color-black-text">{{skillLevel}}</span>&nbsp;
-                </template>
+                <BadgesSkillLevels :skillLevels="cardItem.skillLevels"/>
             </div>
             <div class="mb-1 pb-1 -border-bottom--light">
                 <div class="text-label text-label-sm">SKILLS</div>
-                <template v-for="skill in cardItem.skills">
-                    <span class="badge -color-lightblue -color-black-text">{{skill.name}}</span>&nbsp;
-                </template>
+                <BadgesSkills :skills="cardItem.skills"/>
             </div>
             <div v-html="cardItem.description"></div>
             <ViewMoreLink :href="`/project/${cardItem.id}/`" text="View project details" :elId="newElUid"/>
@@ -26,6 +22,8 @@
 </template>
 
 <script>
+import BadgesSkillLevels from "./BadgesSkillLevels";
+import BadgesSkills from "./BadgesSkills";
 import BaseCard from "./BaseCard";
 import ViewMoreLink from "./ViewMoreLink";
 
@@ -33,6 +31,6 @@ export default {
     name: "cardItemCard.vue",
     extends: BaseCard,
     inheritAttrs: false,
-    components: {BaseCard}
+    components: {BadgesSkillLevels, BadgesSkills, BaseCard, ViewMoreLink}
 }
 </script>

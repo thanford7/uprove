@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 
 from upapp import security
 from upapp.modelSerializers import getSerializedProject, getSerializedProjectFunction, getSerializedProjectSkill
-from upapp.models import Project, ProjectFunction, ProjectSkill, ProjectFile
+from upapp.models import Project, ProjectFunction, ProjectSkill, ProjectFile, ProjectInstructions
 from upapp.utils import dataUtil
 
 
@@ -42,7 +42,7 @@ class ProjectView(APIView):
             function_id=data['functionId'],
             skillLevelBits=data['skillLevelBits'],
             description=data['description'],
-            instructions=data['instructions'],
+            background=data['background'],
             employer_id=data.get('employerId'),
             modifiedDateTime=datetime.utcnow(),
             createdDateTime=datetime.utcnow()
@@ -50,6 +50,7 @@ class ProjectView(APIView):
         project.save()
 
         self.setSkills(project, data.get('skillIds'), isNew=True)
+        self.setInstructions(project, data.get('instructions'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id)))
@@ -70,7 +71,7 @@ class ProjectView(APIView):
             'function_id': {'formName': 'functionId'},
             'skillLevelBits': None,
             'description': None,
-            'instructions': None,
+            'background': None,
             'employer_id': {'formName': 'employerId'}
         })
         if image := data.get('image'):
@@ -78,6 +79,7 @@ class ProjectView(APIView):
         project.save()
 
         self.setSkills(project, data.get('skillIds'), isNew=False)
+        self.setInstructions(project, data.get('instructions'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id)))
 
@@ -98,7 +100,7 @@ class ProjectView(APIView):
         try:
             return Project.objects \
                 .select_related('employer', 'function') \
-                .prefetch_related('projectFile', 'skills') \
+                .prefetch_related('projectFile', 'projectInstructions', 'skills') \
                 .get(id=projectId)
         except Project.DoesNotExist as e:
             raise e
@@ -113,7 +115,7 @@ class ProjectView(APIView):
                 q |= Q(employer_id=employerId)
         return Project.objects\
             .select_related('employer', 'function')\
-            .prefetch_related('projectFile', 'skills')\
+            .prefetch_related('projectFile', 'projectInstructions', 'skills')\
             .filter(q)
 
     @staticmethod
@@ -147,7 +149,8 @@ class ProjectView(APIView):
                 usedProjectFileIds.append(projectFileId)
                 dataUtil.setObjectAttributes(existingProjectFile, metaData, {
                     'title': None,
-                    'description': None
+                    'description': None,
+                    'skillLevelBits': None
                 })
                 if file:
                     existingProjectFile.file = file
@@ -157,6 +160,31 @@ class ProjectView(APIView):
         deleteProjectFileIds = [id for id in existingProjectFiles.keys() if id not in usedProjectFileIds]
         if deleteProjectFileIds:
             ProjectFile.objects.filter(id__in=deleteProjectFileIds).delete()
+
+    @staticmethod
+    def setInstructions(project, instructions):
+        usedInstructionIds = []
+        existingInstructions = {pi.id: pi for pi in ProjectInstructions.objects.filter(project=project)}
+        for instruction in instructions:
+            if existingInstruction := existingInstructions.get(instruction.get('id')):
+                dataUtil.setObjectAttributes(existingInstruction, instruction, {
+                    'instructions': None,
+                    'skillLevelBit': None
+                })
+                existingInstruction.save()
+                usedInstructionIds.append(instruction['id'])
+            else:
+                newInstruction = ProjectInstructions(
+                    project=project,
+                    instructions=instruction['instructions'],
+                    skillLevelBit=instruction['skillLevelBit'],
+                    modifiedDateTime=datetime.utcnow(),
+                    createdDateTime=datetime.utcnow()
+                )
+                newInstruction.save()
+        deleteInstructionIds = [id for id in existingInstructions.keys() if id not in usedInstructionIds]
+        if deleteInstructionIds:
+            ProjectInstructions.objects.filter(id__in=deleteInstructionIds).delete()
 
     @staticmethod
     def setSkills(project, skillIds, isNew=False):

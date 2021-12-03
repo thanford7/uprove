@@ -8,13 +8,13 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/projects">Projects</a>
                 </li>
-                <template v-if="globalData.uproveUser && globalData.uproveUser.isSuperUser">
+                <template v-if="isSuperUser">
                     <li class="nav-item">
                         <a class="nav-link" href="/admin">Admin</a>
                     </li>
                 </template>
                 <li v-if="!isMobile" class="nav-item" :class="(isMobile) ? '' : 'dropdown'">
-                    <a v-if="!globalData.uproveUser" class="nav-link" href="#"
+                    <a v-if="!isLoggedIn" class="nav-link" href="#"
                        @click="eventBus.emit('open:signInModal')">
                         <font-awesome-icon :icon="['fas', 'user-circle']"/>
                         Sign in</a>
@@ -50,7 +50,7 @@
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdownMenu">
-                    <a v-if="!globalData.uproveUser" class="dropdown-item" href="#"
+                    <a v-if="!isLoggedIn" class="dropdown-item" href="#"
                        @click="eventBus.emit('open:signInModal')">Sign in</a>
                     <template v-else>
                         <a class="dropdown-item" :href="`/account-settings/${globalData.uproveUser.id}/`">Account

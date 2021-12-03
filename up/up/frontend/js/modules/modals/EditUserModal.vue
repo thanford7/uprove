@@ -36,7 +36,7 @@
                 placeholder="Required" :cfg="userTypesCfg" @selected="formData.userTypes = $event"
             />
         </div>
-        <template v-if="globalData.uproveUser && globalData.uproveUser.isSuperUser">
+        <template v-if="isSuperUser">
             <div class="mb-3">
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="userIsStaff" v-model="formData.isStaff">

@@ -5,7 +5,7 @@
     </div>
 </template>
 <script>
-import Data from '../../utils/data';
+import dataUtil from '../../utils/data';
 
 export default {
     data() {
@@ -24,13 +24,13 @@ export default {
     computed: {
         month() {
             if (this.value) {
-                return Data.convertToDayJS(this.value).format('MM');
+                return dataUtil.convertToDayJS(this.value).format('MM');
             }
             return null;
         },
         year() {
             if (this.value) {
-                return Data.convertToDayJS(this.value).format('YYYY');
+                return dataUtil.convertToDayJS(this.value).format('YYYY');
             }
             return null;
         }

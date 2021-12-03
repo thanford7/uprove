@@ -43,8 +43,8 @@ export default {
             }
             return true;
         },
-        getAjaxCfgOverride() {
-            return {method: 'POST'};
+        processFormData(rawData) {
+            return Object.assign({}, this.readForm(), {redirect: window.location.pathname});
         }
     }
 }

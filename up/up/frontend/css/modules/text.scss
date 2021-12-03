@@ -90,3 +90,20 @@ blockquote {
         font-size: 0.7rem;
     }
 }
+
+.-sub-text {
+    font-size: 0.8rem;
+    color: colors.$color-moderategrey
+}
+
+.-text- {
+    &medium {
+        font-size: 0.9rem;
+    }
+    &small {
+        font-size: 0.6rem;
+    }
+    &bold {
+        font-weight: bold;
+    }
+}

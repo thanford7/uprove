@@ -1,6 +1,6 @@
 import {Popover} from "bootstrap";
 import {createStore, mapGetters, mapState} from "vuex";
-import globalData from './globalData';
+import globalData, {USER_BITS} from './globalData';
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
 import $ from 'jquery';
@@ -215,7 +215,28 @@ const globalVarsMixin = {
          }),
         ...mapGetters({
             newElUid: 'newElUid'
-        })
+        }),
+        isLoggedIn() {
+            return Boolean(globalData.uproveUser);
+        },
+        isSuperUser() {
+            if(!globalData.uproveUser) {
+                return false;
+            }
+            return globalData.uproveUser.isSuperUser;
+        },
+        isEmployer() {
+            if(!globalData.uproveUser) {
+                return false;
+            }
+            return Boolean(globalData.uproveUser.userTypeBits & USER_BITS.EMPLOYER);
+        },
+        isCandidate() {
+            if(!globalData.uproveUser) {
+                return false;
+            }
+            return Boolean(globalData.uproveUser.userTypeBits & USER_BITS.CANDIDATE);
+        }
     }
 }
 
