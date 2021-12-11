@@ -74,7 +74,21 @@ class EmployerView(APIView):
     @staticmethod
     def getEmployer(employerId):
         try:
-            return Employer.objects.get(id=employerId)
+            return Employer.objects.prefetch_related(
+                'employerJob',
+                'employerJob__allowedProjects',
+                'employerJob__allowedProjects__skills',
+                'employerJob__jobApplication',
+                'employerJob__jobApplication__userProject',
+                'employerJob__jobApplication__userProject__user',
+                'employerJob__jobApplication__userProject__customProject',
+                'employerJob__jobApplication__userProject__customProject__project',
+                'employerJob__jobApplication__userProject__customProject__project__function',
+                'employerJob__jobApplication__userProject__customProject__skills',
+                'employerJob__jobApplication__userProject__files',
+                'employerJob__jobApplication__userProject_videos',
+                'employerJob__jobApplication__userProject__images',
+            ).get(id=employerId)
         except Employer.DoesNotExist as e:
             raise e
 

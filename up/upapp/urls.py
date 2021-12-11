@@ -19,6 +19,7 @@ urlpatterns = [
     path('admin/', views.admin, name='admin'),
     path('account-settings/<int:userId>/', views.accountSettings, name='accountSettings'),
     path('contact/', views.contact, name='contact'),
+    re_path('employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
     path('errors/', views.errors, name='errors'),
     path('privacy/', views.privacy, name='privacy'),
     path('profile/<int:profileId>/', views.profile, name='profile'),

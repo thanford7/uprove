@@ -86,7 +86,7 @@ const ajaxRequestMixin = {
             }
         },
         getUpdateObject() {
-            return (this.initDataKey) ? this.initData[this.initDataKey] : this.initData;
+            return (this.initDataKey) ? _.get(this.initData, this.initDataKey) : this.initData;
         },
         updateInitDataPost(newData) {
             const updateList = this.getUpdateObject();
@@ -270,7 +270,7 @@ const modalsMixin = {
     mounted() {
         eventBus.on(`open:${this.modalName}`, (rawData) => {
             if (!this.modal$) {
-                this.modal$ = new Modal($(`#${this.modalName}`));
+                this.modal$ = new Modal($(`#${this.modalName}`), {backdrop: 'static'});
             }
             this.clearFormData();
             this.clearSelectizeElements();

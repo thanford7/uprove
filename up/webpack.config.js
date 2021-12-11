@@ -30,8 +30,8 @@ module.exports = function (env, argv) {
         plugins: [
             // new BundleAnalyzerPlugin(),
             new MiniCssExtractPlugin({
-              filename: '[name].css',
-              chunkFilename: '[name].[hash].css'
+                filename: '[name].css',
+                chunkFilename: '[name].[hash].css'
             }),
             new webpack.DefinePlugin({
                 PRODUCTION: Boolean(env.production),
@@ -54,6 +54,10 @@ module.exports = function (env, argv) {
                 threshold: 10240,
                 minRatio: 0.8,
                 deleteOriginalAssets: false,
+            }),
+            new webpack.ProvidePlugin({
+              $: 'jquery',
+              jQuery: 'jquery',
             })
         ],
         resolve: {

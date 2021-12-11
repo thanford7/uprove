@@ -7,9 +7,6 @@
         </div>
         <div v-if="!isMobile">
             <h2 class="d-inline-block">Employers</h2>
-            <button type="button" class="btn btn-sm btn-primary d-inline-block -float-right" @click="eventBus.emit('open:employerRequestInfoModal')">
-                Request demo
-            </button>
         </div>
         <h4>Get proof that candidates are the best fit by using project based interviews</h4>
         <ul class="list-table">

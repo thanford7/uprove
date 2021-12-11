@@ -141,7 +141,7 @@ def getSerializedUserVideo(userVideo: UserVideo):
     return {
         'id': userVideo.id,
         'title': userVideo.title,
-        'video': userVideo.video,
+        'video': userVideo.video.url,
         **serializeAuditFields(userVideo)
     }
 
@@ -150,7 +150,7 @@ def getSerializedUserFile(userFile: UserFile):
     return {
         'id': userFile.id,
         'title': userFile.title,
-        'file': userFile.file,
+        'file': userFile.file.url,
         **serializeAuditFields(userFile)
     }
 
@@ -159,7 +159,7 @@ def getSerializedUserImage(userImage: UserImage):
     return {
         'id': userImage.id,
         'title': userImage.title,
-        'file': userImage.image,
+        'file': userImage.image.url,
         **serializeAuditFields(userImage)
     }
 
@@ -196,7 +196,10 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False):
         'description': project.description,
         'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
         'instructions': [getSerializedProjectInstructions(pi) for pi in project.projectInstructions.all()],
-        'employer': getSerializedEmployer(project.employer) if project.employer else None,
+        'employer': {
+            'id': project.employer.id,
+            'companyName': project.employer.companyName
+        } if project.employer else None,
         'files': [getSerializedProjectFile(pf, isIncludeDetails) for pf in project.projectFile.all()],
         'isLimited': not isIncludeDetails
     }
@@ -223,18 +226,87 @@ def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails:bool=Fal
     }
 
 
-def getSerializedEmployer(employer: Employer):
-    return {
-        'id': employer.id,
-        'companyName': employer.companyName,
-        'logo': employer.logo.url if employer.logo else None,
-        **serializeAuditFields(employer)
-    }
-
-
 def getSerializedProjectFunction(projectFunction: ProjectFunction):
     return {'id': projectFunction.id, 'functionName': projectFunction.functionName}
 
 
 def getSerializedProjectSkill(projectSkill: ProjectSkill):
     return {'id': projectSkill.id, 'skillName': projectSkill.skillName}
+
+
+def getSerializedEmployer(employer: Employer):
+    return {
+        'id': employer.id,
+        'companyName': employer.companyName,
+        'logo': employer.logo.url if employer.logo else None,
+        'jobs': [getSerializedEmployerJob(ej) for ej in employer.employerJob.all()],
+        **serializeAuditFields(employer)
+    }
+
+
+def getSerializedCustomProject(customProject: CustomProject):
+    return {
+        'id': customProject.id,
+        'skillLevelBit': customProject.skillLevelBit,
+        'skills': [getSerializedProjectSkill(s) for s in customProject.skills.all()],
+        'projectId': customProject.project_id,
+        **serializeAuditFields(customProject)
+    }
+
+
+def getSerializedEmployerJob(employerJob: EmployerJob):
+    return {
+        'id': employerJob.id,
+        'jobTitle': employerJob.jobTitle,
+        'jobDescription': employerJob.jobDescription,
+        'allowedProjects': [getSerializedCustomProject(ep) for ep in employerJob.allowedProjects.all()],
+        'applications': [getSerializedJobApplication(app) for app in employerJob.jobApplication.all()],
+        'openDate': employerJob.openDate.isoformat() if employerJob.openDate else None,
+        'pauseDate': employerJob.pauseDate.isoformat() if employerJob.pauseDate else None,
+        'closeDate': employerJob.closeDate.isoformat() if employerJob.closeDate else None,
+        'salaryFloor': employerJob.salaryFloor,
+        'salaryCeiling': employerJob.salaryCeiling,
+        'salaryUnit': employerJob.salaryUnit,
+        **serializeAuditFields(employerJob)
+    }
+
+
+def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):
+    val = {
+        'id': jobApplication.id,
+        'userProject': getSerializedUserProject(jobApplication.userProject),
+        'inviteDateTime': getDateTimeFormatOrNone(jobApplication.inviteDateTime),
+        'submissionDateTime': getDateTimeFormatOrNone(jobApplication.submissionDateTime),
+        'approveDateTime': getDateTimeFormatOrNone(jobApplication.approveDateTime),
+        'declineDateTime': getDateTimeFormatOrNone(jobApplication.declineDateTime)
+    }
+
+    if includeJob:
+        val['job'] = {
+            'id': jobApplication.employerJob.id,
+            'jobTitle': jobApplication.employerJob.jobTitle
+        }
+
+    return val
+
+
+def getSerializedUserProject(userProject: UserProject):
+    return {
+        'id': userProject.id,
+        'user': {
+            'firstName': userProject.user.firstName,
+            'middleName': userProject.user.middleName,
+            'lastName': userProject.user.lastName,
+            'email': userProject.user.email
+        },
+        'customProject': {
+            'id': userProject.customProject.id,
+            'skillLevelBit': userProject.customProject.skillLevelBit,
+            'skills': [{'name': s.skillName, 'id': s.id} for s in userProject.customProject.skills.all()],
+            'projectTitle': userProject.customProject.project.title,
+            'function': userProject.customProject.project.function.functionName,
+        },
+        'files': [getSerializedUserFile(f) for f in userProject.files.all()],
+        'videos': [getSerializedUserVideo(v) for v in userProject.videos.all()],
+        'images': [getSerializedUserImage(i) for i in userProject.images.all()]
+    }

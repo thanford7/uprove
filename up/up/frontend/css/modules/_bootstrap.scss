@@ -1,0 +1,136 @@
+@use 'colors';
+@import "bootstrap/scss/functions";
+
+// For overriding bootstrap variables https://getbootstrap.com/docs/5.0/customize/sass/
+$primary: colors.$color-blue;
+$secondary: colors.$color-lightgrey;
+
+@import "bootstrap/scss/bootstrap";
+
+.modal {
+    z-index: 10000;
+
+    .modal-body-banner {
+        margin: auto -16px;
+        padding-left: 16px;
+        padding-right: 16px;
+        color: colors.$color-moderategrey;
+        background-color: rgba(colors.$color-lightgrey, .2);
+        font-size: 1rem;
+        font-style: italic;
+
+        &--top {
+            margin-top: -16px;
+            margin-bottom: 5px;
+        }
+
+        &--bottom {
+            margin-bottom: -16px;
+        }
+    }
+}
+
+.row {
+    .card {
+        padding-right: 0;
+        padding-left: 0;
+        margin-right: calc(var(--bs-gutter-x) / 2);
+        margin-left: calc(var(--bs-gutter-x) / 2);
+        overflow: hidden;
+        transition: all .2s;
+
+        &:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 3px colors.$color-lightgrey;
+        }
+
+        .card-img-top {
+            height: 145px;
+            object-fit: cover;
+        }
+
+        .card-header {
+            overflow: hidden;
+        }
+
+        .card-inner {
+            max-height: 300px;
+        }
+
+        .card-body {
+            font-size: 0.9rem;
+        }
+
+        img {
+            max-height: 174px;
+            object-fit: cover;
+        }
+    }
+}
+
+.view-more {
+    width: 100%;
+    background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,1));
+    position: absolute;
+    display: block;
+    bottom: 0;
+    left: 0;
+    padding: 5px 0 2px 10px;
+}
+
+.btn {
+    &-primary {
+        color: white;
+        border-color: scale-color($primary, $lightness: -30%);
+    }
+
+    &-secondary {
+        border-color: scale-color($secondary, $lightness: -30%);
+
+        &:hover {
+            color: white;
+        }
+    }
+
+    &-full-width {
+        width: 100%;
+    }
+}
+
+.form-section {
+    border-bottom: 1px solid colors.$color-lightgrey;
+    margin-bottom: 10px;
+}
+
+.dropdown-toggle.no-caret::after {
+    display: none;
+}
+
+.popover {
+    &.warn {
+        background-color: $warning;
+        .popover-arrow::after {
+            border-top-color: $warning;
+            border-bottom-color: $warning;
+        }
+    }
+}
+
+.card {
+    &:after {
+        display: table;
+          content: "";
+          clear: both;
+    }
+
+    &.badge-card-top {
+        overflow: visible;
+
+        .badge-top {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -10px;
+        }
+    }
+}

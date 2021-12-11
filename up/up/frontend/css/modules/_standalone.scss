@@ -1,0 +1,98 @@
+@use 'colors';
+
+.-hidden {
+    display: none;
+}
+
+.-no-horizontal-padding {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.-float-right {
+    float: right;
+}
+
+.-float-left {
+    float: left;
+}
+
+.-text-center {
+    text-align: center;
+}
+
+.-border-left {
+    &--light {
+        border-left: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-border-bottom {
+    &--light {
+        border-bottom: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-border-top {
+    &--light {
+        border-top: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-border-left {
+    &--light {
+        border-left: 1px solid colors.$color-lightgrey;
+    }
+}
+
+.-hover-display {
+    display: none;
+    &:hover {
+        display: inline-block;
+    }
+}
+
+.-absolute-top {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 10px;
+    width: 100%;
+}
+
+.-absolute-bottom {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 10px;
+    width: 100%;
+}
+
+.-bg-clip-border {
+    background-clip: border-box;
+}
+
+.position {
+    position: relative;
+    display: table;
+
+    &__center-vertical {
+        display: table-cell;
+        vertical-align: middle;
+    }
+
+    &__top-vertical {
+        display: table-cell;
+        vertical-align: top;
+    }
+}
+
+.-vertical-align {
+    &-top {
+        vertical-align: top;
+    }
+
+    &-center {
+        vertical-align: center;
+    }
+}

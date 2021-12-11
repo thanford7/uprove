@@ -10,7 +10,8 @@ from django.db import models
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
-    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectFile', 'Employer'
+    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectFile', 'Employer',
+    'CustomProject', 'EmployerJob', 'UserJobApplication', 'UserProject'
 )
 
 
@@ -269,6 +270,9 @@ class ProjectInstructions(AuditFields):
     instructions = models.TextField()
     skillLevelBit = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
 
+    class Meta:
+        unique_together = ('project', 'skillLevelBit')
+
 
 class ProjectFile(AuditFields):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='projectFile')
@@ -281,3 +285,51 @@ class ProjectFile(AuditFields):
 class Employer(AuditFields):
     companyName = models.CharField(max_length=150, unique=True)
     logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
+
+
+class CustomProject(AuditFields):
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='customProject')
+    skillLevelBit = models.SmallIntegerField()
+    skills = models.ManyToManyField(ProjectSkill)
+
+    class Meta:
+        # Skills should be unique as well, but many-to-many can't be enforced at DB level
+        # Instead this will be enforced in CRUD operations
+        unique_together = ('project', 'skillLevelBit')
+
+    def isSame(self, otherProject):
+        return (
+            {s.id for s in self.skills.all()} == {s.id for s in otherProject.skills.all()}
+            and self.project == otherProject.project
+            and self.skillLevelBit == otherProject.skillLevelBit
+        )
+
+
+class EmployerJob(AuditFields):
+    employer = models.ForeignKey(Employer, on_delete=models.PROTECT, related_name='employerJob')
+    jobTitle = models.CharField(max_length=100)
+    jobDescription = models.TextField()
+    allowedProjects = models.ManyToManyField(CustomProject, related_name='employerJobProjects')
+    openDate = models.DateField(null=True)
+    pauseDate = models.DateField(null=True)
+    closeDate = models.DateField(null=True)
+    salaryFloor = models.FloatField(null=True)
+    salaryCeiling = models.FloatField(null=True)
+    salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
+
+
+class UserJobApplication(models.Model):
+    userProject = models.ForeignKey('UserProject', on_delete=models.PROTECT)
+    employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
+    inviteDateTime = models.DateTimeField(null=True)
+    submissionDateTime = models.DateTimeField(null=True)
+    approveDateTime = models.DateTimeField(null=True)
+    declineDateTime = models.DateTimeField(null=True)
+
+
+class UserProject(AuditFields):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    customProject = models.ForeignKey(CustomProject, on_delete=models.PROTECT)
+    files = models.ManyToManyField(UserFile)
+    videos = models.ManyToManyField(UserVideo)
+    images = models.ManyToManyField(UserImage)

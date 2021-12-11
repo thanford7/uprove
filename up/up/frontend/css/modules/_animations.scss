@@ -1,0 +1,219 @@
+@use 'colors';
+
+#hero-benefits-rotation {
+    &:after {
+        animation: benefitsRotation 10s linear infinite;
+        display: block;
+        content: 'Save time';
+        color: colors.$color-teal;
+        text-transform: uppercase;
+    }
+}
+
+@keyframes benefitsRotation {
+    0% {
+        color: colors.$color-teal;
+    }
+    12% {
+        content: 'Save time';
+        color: colors.$color-darkblue;
+    }
+    24% {
+        color: colors.$color-teal;
+    }
+    36% {
+        content: 'Avoid bad hires';
+        color: colors.$color-darkblue;
+    }
+    48% {
+        color: colors.$color-teal;
+    }
+    60% {
+        content: 'Find "diamonds in the rough"';
+        color: colors.$color-darkblue;
+    }
+    72% {
+        color: colors.$color-teal;
+    }
+    84% {
+        content: 'Leverage industry expertise';
+        color: colors.$color-darkblue;
+    }
+    100% {
+        color: colors.$color-teal;
+    }
+}
+
+#roles-rotation {
+    &:after {
+        margin-top: 10px;
+        animation: rolesRotation 20s linear infinite;
+        display: block;
+        content: 'Business analysis';
+        color: colors.$color-white;
+        text-transform: uppercase;
+    }
+}
+
+@keyframes rolesRotation {
+    0% {
+        color: colors.$color-white;
+    }
+    5% {
+        content: 'Business analysis';
+        color: colors.$color-darkblue;
+    }
+    10% {
+        color: colors.$color-white;
+    }
+    15% {
+        content: 'Customer success';
+        color: colors.$color-darkblue;
+    }
+    20% {
+        color: colors.$color-white;
+    }
+    25% {
+        content: 'Data analysis';
+        color: colors.$color-darkblue;
+    }
+    30% {
+        color: colors.$color-white;
+    }
+    35% {
+        content: 'Finance';
+        color: colors.$color-darkblue;
+    }
+    40% {
+        color: colors.$color-white;
+    }
+    45% {
+        content: 'Marketing';
+        color: colors.$color-darkblue;
+    }
+    50% {
+        color: colors.$color-white;
+    }
+    55% {
+        content: 'Operations management';
+        color: colors.$color-darkblue;
+    }
+    60% {
+        color: colors.$color-white;
+    }
+    65% {
+        content: 'Product management';
+        color: colors.$color-darkblue;
+    }
+    70% {
+        color: colors.$color-white;
+    }
+    75% {
+        content: 'Project management';
+        color: colors.$color-darkblue;
+    }
+    80% {
+        color: colors.$color-white;
+    }
+    85% {
+        content: 'Supply chain management';
+        color: colors.$color-darkblue;
+    }
+    90% {
+        color: colors.$color-white;
+    }
+    95% {
+        content: 'User experience';
+        color: colors.$color-darkblue;
+    }
+    100% {
+        color: colors.$color-white;
+    }
+}
+
+#skills-rotation {
+    &:after {
+        margin-top: 10px;
+        animation: skillsRotation 20s linear infinite;
+        display: block;
+        content: 'Business analysis';
+        color: colors.$color-white;
+        text-transform: uppercase;
+    }
+}
+
+@keyframes skillsRotation {
+    0% {
+        color: colors.$color-white;
+    }
+    5% {
+        content: 'Business intelligence software';
+        color: colors.$color-darkblue;
+    }
+    10% {
+        color: colors.$color-white;
+    }
+    15% {
+        content: 'Excel';
+        color: colors.$color-darkblue;
+    }
+    20% {
+        color: colors.$color-white;
+    }
+    25% {
+        content: 'Marketing plan creation';
+        color: colors.$color-darkblue;
+    }
+    30% {
+        color: colors.$color-white;
+    }
+    35% {
+        content: 'MVP development';
+        color: colors.$color-darkblue;
+    }
+    40% {
+        color: colors.$color-white;
+    }
+    45% {
+        content: 'Powerpoint';
+        color: colors.$color-darkblue;
+    }
+    50% {
+        color: colors.$color-white;
+    }
+    55% {
+        content: 'Product management';
+        color: colors.$color-darkblue;
+    }
+    60% {
+        color: colors.$color-white;
+    }
+    65% {
+        content: 'Project management';
+        color: colors.$color-darkblue;
+    }
+    70% {
+        color: colors.$color-white;
+    }
+    75% {
+        content: 'Project plan creation';
+        color: colors.$color-darkblue;
+    }
+    80% {
+        color: colors.$color-white;
+    }
+    85% {
+        content: 'Python';
+        color: colors.$color-darkblue;
+    }
+    90% {
+        color: colors.$color-white;
+    }
+    95% {
+        content: 'SQL';
+        color: colors.$color-darkblue;
+    }
+    100% {
+        color: colors.$color-white;
+    }
+}

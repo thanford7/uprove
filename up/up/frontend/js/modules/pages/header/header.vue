@@ -8,11 +8,12 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/projects">Projects</a>
                 </li>
-                <template v-if="isSuperUser">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin">Admin</a>
-                    </li>
-                </template>
+                <li v-if="isSuperUser || isEmployer">
+                    <a class="nav-link" href="/employerDashboard">Employer Dashboard</a>
+                </li>
+                <li v-if="isSuperUser" class="nav-item">
+                    <a class="nav-link" href="/admin">Admin</a>
+                </li>
                 <li v-if="!isMobile" class="nav-item" :class="(isMobile) ? '' : 'dropdown'">
                     <a v-if="!isLoggedIn" class="nav-link" href="#"
                        @click="eventBus.emit('open:signInModal')">

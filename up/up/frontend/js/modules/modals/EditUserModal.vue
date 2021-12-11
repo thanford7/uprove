@@ -36,6 +36,15 @@
                 placeholder="Required" :cfg="userTypesCfg" @selected="formData.userTypes = $event"
             />
         </div>
+        <div class="mb-3">
+            <label for="userEmployer" class="form-label">Employer</label>
+            <InputSelectize
+                ref="userEmployer"
+                elId="userEmployer"
+                :isParseAsInt="true"
+                placeholder="Optional" :cfg="userEmployerCfg" @selected="formData.employerId = $event"
+            />
+        </div>
         <template v-if="isSuperUser">
             <div class="mb-3">
                 <div class="custom-control custom-checkbox">
@@ -61,9 +70,11 @@
 </template>
 
 <script>
+import {USER_BITS} from '../../globalData';
 import BaseModal from "./BaseModal";
 import InputEmail from "../inputs/InputEmail";
 import InputSelectize from "../inputs/InputSelectize";
+import {severity} from "../../vueMixins";
 
 export default {
     name: "EditUserModal.vue",
@@ -85,6 +96,12 @@ export default {
         }
     },
     computed: {
+        userEmployerCfg() {
+            return {
+                maxItems: 1,
+                options: this.initData.employers.map((e) => ({value: e.id, text: e.companyName}))
+            }
+        },
         userTypesCfg() {
             return {
                 plugins: ['remove_button'],
@@ -99,13 +116,32 @@ export default {
         },
         processRawData(rawData) {
             const userTypes = Object.keys(this.globalData.USER_TYPES)
-                .filter((t) => parseInt(t) & rawData.formData.userTypeBits);
+                .reduce((userTypes, t) => {
+                    const val = parseInt(t);
+                    if (val & rawData.formData.userTypeBits) {
+                        userTypes.push(val);
+                    }
+                    return userTypes;
+                }, []);
             this.$refs['userTypes'].elSel.setValue(userTypes);
+            this.$refs['userEmployer'].elSel.setValue(rawData.formData.employerId);
             return Object.assign(rawData.formData, {userTypes});
         },
         processFormData() {
             const formData = this.readForm();
             return Object.assign({}, formData, {userTypeBits: _.sum(formData.userTypes)});
+        },
+        isGoodFormFields(formData) {
+            if (formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
+                console.log($(this.$refs.userEmployer.targetEl));
+                this.addPopover($(this.$refs.userEmployer.targetEl), {
+                    severity: severity.WARN,
+                    content: 'Employer and user type of "employer" must both be set',
+                    isOnce: true
+                });
+                return false;
+            }
+            return true;
         }
     },
     mounted() {

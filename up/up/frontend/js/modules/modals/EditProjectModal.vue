@@ -70,7 +70,7 @@
             />
         </div>
         <div class="mb-3">
-            <label for="projectDescription" class="form-label">Background</label>
+            <label for="projectBackground" class="form-label">Background</label>
             <InputWsiwyg
                 elId="projectBackground"
                 placeholder="Add background..."

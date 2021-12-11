@@ -51,6 +51,24 @@ def contact(request):
     return render(request, 'contact.html', context={})
 
 
+def employerDashboard(request, employerId=None):
+    user = security.getSessionUser(request)
+    if not user:
+        return _getUnauthorizedPage(request)
+
+    employerId = employerId or user['employerId']
+    if not employerId:
+        return _getErrorPage(request, HTTPStatus.BAD_REQUEST, 'An employer ID is required')
+
+    if not security.isPermittedEmployer(request, employerId):
+        return _getUnauthorizedPage(request)
+
+    return render(request, 'employerDashboard.html', context={'data': dumps({
+        'employer': getSerializedEmployer(EmployerView.getEmployer(employerId)),
+        'projects': [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(employerId=employerId)],
+    })})
+
+
 def errors(request):
     return render(request, 'errors.html', context={})
 
@@ -92,9 +110,13 @@ def termsOfService(request):
 
 
 def _getUnauthorizedPage(request):
-    # If the use is logged in, they are truly unauthorized
+    # If the user is logged in, they are truly unauthorized
     if security.getSessionUser(request):
-        return render(request, 'errors.html', {
-            'data': dumps({'error': HTTPStatus.UNAUTHORIZED, 'text': 'You do not have permission to view this account'})})
+        return _getErrorPage(request, HTTPStatus.UNAUTHORIZED, 'You do not have permission to view this account')
     else:
         return render(request, 'login.html')
+
+
+def _getErrorPage(request, errorStatus, errorMessage):
+    return render(request, 'errors.html', {
+        'data': dumps({'error': errorStatus, 'text': errorMessage})})

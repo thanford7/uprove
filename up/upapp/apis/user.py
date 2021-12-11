@@ -133,6 +133,8 @@ class UserView(APIView):
 
     @atomic
     def put(self, request, userId=None):
+        from viewsAuth import setUproveUser
+
         userId = userId or request.data.get('id')
         if not userId:
             return Response('User ID is required to perform this operation', status=status.HTTP_400_BAD_REQUEST)
@@ -141,6 +143,7 @@ class UserView(APIView):
 
         user = self.getUser(userId)
         self.updateUser(user, request.data)
+        setUproveUser(request, user.djangoUser)
         return Response(getSerializedUser(user), status=status.HTTP_200_OK)
 
     @atomic
@@ -223,7 +226,8 @@ class UserView(APIView):
             'lastName': None,
             'birthDate': {'propFunc': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)},
             'email': None,
-            'userTypeBits': None
+            'userTypeBits': None,
+            'employer_id': {'formName': 'employerId'}
         })
 
         user.modifiedDateTime = datetime.utcnow()

@@ -1,6 +1,8 @@
-@use 'modules/bootstrap';
 @use 'modules/colors';
+@use 'modules/animations';
+@use 'modules/bootstrap';
 @use 'modules/elements';
+@use 'modules/employer-dashboard';
 @use 'modules/fa';
 @use 'modules/footer';
 @use 'modules/header';
@@ -10,16 +12,16 @@
 @use 'modules/standalone';
 @use 'modules/text';
 @use 'modules/tiptap';
+
 @import "bootstrap/scss/bootstrap-grid";
 @import 'selectize/dist/css/selectize.css';
 
+$fa-font-path: 'webfonts';
+@import "@fortawesome/fontawesome-free/scss/fontawesome";
+@import "@fortawesome/fontawesome-free/scss/solid";
 
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-  @import "~bootstrap-ie11/scss/bootstrap-ie11.scss";
-}
-
-#vue-container {
-    width: 95%;
+    @import "~bootstrap-ie11/scss/bootstrap-ie11.scss";
 }
 
 body {
@@ -35,4 +37,9 @@ body {
         display: flex;
         flex-direction: column-reverse;
     }
+}
+
+.background-video {
+    object-fit: cover;
+    z-index: -1;
 }

@@ -1,116 +1,119 @@
 <template>
-    <div>
-        <BannerAlert :alerts="alerts"/>
-        <div class="row mt-4">
-            <div class="col-12">
-                <h3 class="-text-center -color-moderategrey-text"><em>A picture is worth 1,000 words; A project is worth 1,000 resumes</em></h3>
+    <div id="home-page">
+        <div class="row justify-content-center">
+            <div class="col-md-8 mt-5 mb-4">
+                <h2 class="text-center">
+                    <strong>
+                        Adding Uprove to your hiring process can reduce the frequency of bad hires by <span class="-color-orange-text">80%</span>
+                    </strong>
+                </h2>
             </div>
         </div>
-        <div v-if="!isMobile">
-            <div class="row mt-4">
-                <div class="col-md-6 pb-2">
-                    <OverviewEmployer/>
-                </div>
-                <div class="col-md-6 pb-2 -border-left--light">
-                    <OverviewSeeker/>
-                </div>
+        <div class="pt-3 pb-1 -border-top--light -border-bottom--light">
+            <div class="row mb-2">
+                <h1>Hiring made easy</h1>
             </div>
-            <div class="row">
-                <div class="col-md-6 mb-2 pb-2">
-                    <h4>How it works</h4>
-                    <OrderedList :listItems="employerHowItWorks"/>
+            <template v-if="!isMobile">
+                <div class="row skewer-container skewer-container-hz justify-content-between">
+                    <div v-for="num in [...Array(4).keys()]" class="circle emphasize" :data-em-key="num + 1">{{num + 1}}</div>
+                    <div class="triangle__right" style="margin-right: -3px;"></div>
+                    <div class="skewer"></div>
                 </div>
-                <div class="col-md-6 mb-2 pb-2 -border-left--light">
-                    <h4>How it works</h4>
-                    <OrderedList :listItems="seekerHowItWorks"/>
+                <div class="row mt-2">
+                    <div class="col-md-3 p-2 emphasize" data-em-key="1">
+                        <p>Find top-performing candidates with relevant skills by using Uprove's search engine <strong>or</strong>
+                        direct your existing candidates to the Uprove platform</p>
+                    </div>
+                    <div class="col-md-3 p-2 emphasize" data-em-key="2">
+                        <p>Candidates complete customized exercises that assess their talent in specific areas your hiring hiring for</p>
+                    </div>
+                    <div class="col-md-3 p-2 emphasize" data-em-key="3">
+                        <p>Review submitted projects on your own time and select top candidates for further vetting</p>
+                    </div>
+                    <div class="col-md-3 p-2 emphasize" data-em-key="4">
+                        <p>Hire better candidates in less time, and save money!</p>
+                    </div>
+                </div>
+            </template>
+            <template v-if="isMobile">
+                <div class="row emphasize">
+                    <div class="col-12" data-em-key="1">
+                        <div class="circle d-inline-block -vertical-align-top">1</div>
+                        <p class="d-inline-block w-75 ms-3">Find top-performing candidates with relevant skills by using Uprove's search engine <strong>or</strong>
+                        direct your existing candidates to the Uprove platform</p>
+                    </div>
+                    <div class="col-12" data-em-key="2">
+                        <div class="circle d-inline-block -vertical-align-top">2</div>
+                        <p class="d-inline-block w-75 ms-3">Candidates complete customized exercises that assess their talent in specific areas your hiring hiring for</p>
+                    </div>
+                    <div class="col-12" data-em-key="3">
+                        <div class="circle d-inline-block -vertical-align-top">3</div>
+                        <p class="d-inline-block w-75 ms-3">Review submitted projects on your own time and select top candidates for further vetting</p>
+                    </div>
+                    <div class="col-12" data-em-key="4">
+                        <div class="circle d-inline-block -vertical-align-top">4</div>
+                        <p class="d-inline-block w-75 ms-3">Hire better candidates in less time, and save money!</p>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div class="row justify-content-center -border-bottom--light">
+            <div class="col-md-8 mt-4 mb-4">
+                <h2 class="text-center">
+                    <strong>
+                        Uprove users can expect to save <span class="-color-orange-text">$7,500</span> per hire against standard recruiting practices
+                    </strong>
+                </h2>
+            </div>
+        </div>
+        <div class="row mt-4 mb-4 pb-4 -border-bottom--light">
+            <div class="col-md-7">
+                <h2 class="text-center">
+                    Uprove projects are built to assess the true talent of a candidate
+                </h2>
+                <img :src="globalData.STATIC_URL + 'img/projectChartExample.png'" alt="">
+            </div>
+            <div class="col-md-5 justify-content-center" style="flex-direction: column; display: flex;">
+                <div class="mb-3">
+                    <h3 id="roles-rotation">Uprove has customized exercises for:</h3>
+                </div>
+                <div>
+                    <h3 id="skills-rotation">Across a variety of tools and skills:</h3>
                 </div>
             </div>
         </div>
-        <div v-if="isMobile">
-            <ul class="nav nav-tabs" id="viewerTypeTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="employer-tab" data-bs-toggle="tab" data-bs-target="#employer" type="button" role="tab" aria-controls="employer" aria-selected="true">Employers</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="seeker-tab" data-bs-toggle="tab" data-bs-target="#seeker" type="button" role="tab" aria-controls="job seeker" aria-selected="false">Job seekers</button>
-                </li>
-            </ul>
-            <div class="tab-content" id="viewerTypeContent">
-                <div class="tab-pane fade show active" id="employer" role="tabpanel" aria-labelledby="employer-tab">
-                    <div class="col-12 pb-2">
-                        <OverviewEmployer v-if="isMobile"/>
-                    </div>
-                    <div class="col-12 mb-2 pb-2">
-                        <h4>How it works</h4>
-                        <OrderedList :listItems="employerHowItWorks"/>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="seeker" role="tabpanel" aria-labelledby="seeker-tab">
-                    <div class="col-12 pb-2">
-                        <OverviewSeeker v-if="isMobile"/>
-                    </div>
-                    <div class="col-12 mb-2 pb-2">
-                        <h4>How it works</h4>
-                        <OrderedList :listItems="seekerHowItWorks"/>
-                    </div>
-                </div>
+        <div class="row mt-4 mb-4 pb-4 -border-bottom--light">
+            <div class="col-md-4 justify-content-center" style="flex-direction: column; display: flex;">
+                <h1>Uprove helps non-traditional candidates display their talent and find jobs they are qualified for.</h1>
+                <p class="-color-moderategrey-text">
+                    There are over 70 million Americans who are STARs...or “skilled through alternative routes”.
+                    Many hiring processes automatically filter out these candidates due to their non-traditional
+                    background. Uprove gives all candidates a channel to display their talent and find
+                    fulfilling employment.
+                </p>
             </div>
+            <div class="col-md-8">
+                <img :src="globalData.STATIC_URL + 'img/happyCandidates.jpg'" alt="">
+            </div>
+        </div>
+        <div class="row mt-4 mb-4 pb-4">
+            <h2><strong>Uprove was started after the founders saw the benefits and positive impact project interviews had
+            on their hiring process.
+            </strong></h2>
+            <div><a href="/about/">Learn more about Uprove's origin and mission</a></div>
         </div>
         <EmployerRequestInfoModal/>
         <CandidateRequestAccountModal/>
     </div>
 </template>
 <script>
-import BannerAlert from "../../components/BannerAlert";
 import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import OrderedList from '../../components/OrderedList.vue';
-import OverviewEmployer from './OverviewEmployer.vue';
-import OverviewSeeker from './OverviewSeeker.vue';
 
 export default {
     components: {
-        BannerAlert, CandidateRequestAccountModal, EmployerRequestInfoModal, OrderedList, OverviewEmployer, OverviewSeeker},
-    data() {
-        return {
-            employerHowItWorks: [
-                {
-                    main: 'Pick one or more positions to create job openings'
-                },
-                {
-                    main: 'Select from a catalogue of projects that demonstrate skills for the specified positions'
-                },
-                {
-                    main: 'Optionally add common interview screening questions (e.g. What interests you in this position?)'
-                },
-                {
-                    main: 'Review and select candidates that have completed the project and screening questions'
-                },
-                {
-                    main: 'Schedule any additional interviews you want candidates to complete'
-                },
-                {
-                    main: 'Extend an offer!'
-                },
-            ],
-            seekerHowItWorks: [
-                {
-                    main: 'Pick one or more positions you want to be hired for'
-                },
-                {
-                    main: 'Optionally select the types of employers (e.g. size, industry, geography) and specific employers you want to work for'
-                },
-                {
-                    main: 'Complete one or more projects that are used by employers to identify candidates'
-                },
-                {
-                    main: 'Receive interview requests from employers you have selected and others that fit your interests'
-                },
-                {
-                    main: 'Get hired!'
-                }
-            ]
-        }
+        CandidateRequestAccountModal, EmployerRequestInfoModal, OrderedList
     },
     mounted() {
         this.eventBus.on('ajaxSuccess', () => {
@@ -123,6 +126,19 @@ export default {
             this.alerts.push({
                 message: `Failed: ${xhr.responseText || errorThrown}`,
                 alertType: 'danger'
+            });
+        });
+
+        $('#home-page').on('mouseenter mouseleave', '.emphasize', (e) => {
+            const emKey = $(e.currentTarget).data('em-key');
+            const turnOn = e.type === 'mouseenter';
+            $(`[data-em-key="${emKey}"]`).each((idx, domEl) => {
+                const domEl$ = $(domEl);
+                if (domEl$.hasClass('circle')) {
+                    domEl$.toggleClass('circle-inverse', turnOn);
+                } else {
+                    domEl$.toggleClass('-text-bold', turnOn);
+                }
             });
         });
     }
