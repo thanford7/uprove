@@ -1,15 +1,17 @@
 <template>
     <div id="home-page">
-        <div class="row justify-content-center">
-            <div class="col-md-8 mt-5 mb-4">
-                <h2 class="text-center">
-                    <strong>
-                        Adding Uprove to your hiring process can reduce the frequency of bad hires by <span class="-color-orange-text">80%</span>
-                    </strong>
-                </h2>
+        <div class="container-lg">
+            <div class="row justify-content-center">
+                <div class="col-md-8 mt-5 mb-4">
+                    <h2 class="text-center">
+                        <strong>
+                            Adding Uprove to your hiring process can reduce the frequency of bad hires by <span class="-color-orange-text">80%</span>
+                        </strong>
+                    </h2>
+                </div>
             </div>
         </div>
-        <div class="pt-3 pb-1 -border-top--light -border-bottom--light">
+        <div class="container-fluid pt-3 pb-1 ps-md-5 pe-md-5 -color-yellow__light">
             <div class="row mb-2">
                 <h1>Hiring made easy</h1>
             </div>
@@ -57,50 +59,129 @@
                 </div>
             </template>
         </div>
-        <div class="row justify-content-center -border-bottom--light">
-            <div class="col-md-8 mt-4 mb-4">
-                <h2 class="text-center">
-                    <strong>
-                        Uprove users can expect to save <span class="-color-orange-text">$7,500</span> per hire against standard recruiting practices
-                    </strong>
-                </h2>
-            </div>
-        </div>
-        <div class="row mt-4 mb-4 pb-4 -border-bottom--light">
-            <div class="col-md-7">
-                <h2 class="text-center">
-                    Uprove projects are built to assess the true talent of a candidate
-                </h2>
-                <img :src="globalData.STATIC_URL + 'img/projectChartExample.png'" alt="">
-            </div>
-            <div class="col-md-5 justify-content-center" style="flex-direction: column; display: flex;">
-                <div class="mb-3">
-                    <h3 id="roles-rotation">Uprove has customized exercises for:</h3>
-                </div>
-                <div>
-                    <h3 id="skills-rotation">Across a variety of tools and skills:</h3>
+        <div class="container-lg">
+            <div class="row justify-content-center">
+                <div class="col-md-8 mt-5 mb-4">
+                    <h2 class="text-center">
+                        <strong>
+                            Uprove users can expect to save <span class="-color-orange-text">$7,500</span> per hire against standard recruiting practices
+                        </strong>
+                    </h2>
                 </div>
             </div>
         </div>
-        <div class="row mt-4 mb-4 pb-4 -border-bottom--light">
-            <div class="col-md-4 justify-content-center" style="flex-direction: column; display: flex;">
-                <h1>Uprove helps non-traditional candidates display their talent and find jobs they are qualified for.</h1>
-                <p class="-color-moderategrey-text">
-                    There are over 70 million Americans who are STARs...or “skilled through alternative routes”.
-                    Many hiring processes automatically filter out these candidates due to their non-traditional
-                    background. Uprove gives all candidates a channel to display their talent and find
-                    fulfilling employment.
-                </p>
-            </div>
-            <div class="col-md-8">
-                <img :src="globalData.STATIC_URL + 'img/happyCandidates.jpg'" alt="">
+        <div class="container-fluid -color-darkblue__light">
+            <div class="row mt-4 mb-4 pb-4 pt-4">
+                <div class="col-md-7">
+                    <h2 class="text-center">
+                        Uprove projects are built to assess the true talent of a candidate
+                    </h2>
+                    <img :src="globalData.STATIC_URL + 'img/projectChartExample.png'" alt="" class="p-5">
+                </div>
+                <div class="col-md-5 justify-content-center" style="flex-direction: column; display: flex;">
+                    <div class="mb-3">
+                        <h3 id="roles-rotation">Uprove has customized projects for:</h3>
+                    </div>
+                    <div>
+                        <h3 id="skills-rotation">Across a variety of tools and skills:</h3>
+                    </div>
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-lg btn-primary -color-darkblue" @click="openProjectsPage">
+                            View projects <i class="fas fa-external-link-alt"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="row mt-4 mb-4 pb-4">
-            <h2><strong>Uprove was started after the founders saw the benefits and positive impact project interviews had
-            on their hiring process.
-            </strong></h2>
-            <div><a href="/about/">Learn more about Uprove's origin and mission</a></div>
+        <div class="container-lg">
+            <div class="row mb-2">
+                <h1>How it works</h1>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-3 text-center">
+                    <h4 class="mb-3">You are looking for a...</h4>
+                    <div class="text-center" style="display: inline-block">
+                        <font-awesome-icon :icon="['fas', 'user-tie']" size="4x" class="-color-blue-fa"/>
+                        <div class="-sub-text">Product manager</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3 text-center">
+                    <h4 class="mb-3">Who is proficient in...</h4>
+                    <div class="mb-2">
+                        <div class="text-center" style="display: inline-block">
+                            <font-awesome-icon :icon="['far', 'file-powerpoint']" size="4x" class="-color-blue-fa"/>
+                            <div class="-sub-text">Powerpoint</div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-center" style="display: inline-block">
+                            <font-awesome-icon :icon="['fas', 'laptop-code']" size="4x" class="-color-blue-fa"/>
+                            <div class="-sub-text">Wireframing</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-center" style="display: inline-block">
+                            <font-awesome-icon :icon="['fas', 'chalkboard-teacher']" size="4x" class="-color-blue-fa"/>
+                            <div class="-sub-text">Public speaking</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3 text-center">
+                    <h4 class="mb-3">And has...</h4>
+                    <div>
+                        <div class="text-center" style="display: inline-block">
+                            <font-awesome-icon :icon="['fas', 'user-ninja']" size="4x" class="-color-blue-fa"/>
+                            <div class="-sub-text">Advanced experience (5+ years)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3 text-center">
+                    <h4 class="mb-3">Uprove provides...</h4>
+                    <div class="mb-3">
+                        <div class="text-center" style="display: inline-block">
+                            <font-awesome-icon :icon="['fas', 'users']" size="4x" class="-color-orange-fa"/>
+                            <div class="-sub-text">Top performing candidates who have completed projects that match your criteria</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-center" style="display: inline-block">
+                            <font-awesome-icon :icon="['fas', 'tasks']" size="4x" class="-color-orange-fa"/>
+                            <div class="-sub-text">Projects that can be facilitated and evaluated through Uprove which assess candidates for your selected skills</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="mt-4" :class="(isMobile) ? 'text-center' : ''">
+                    <button type="button" class="btn btn-lg btn-primary -color-darkblue" @click="eventBus.emit('open:employerRequestInfoModal')">
+                        Request demo
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid -color-yellow__light">
+            <div class="row mt-4 mb-4 pb-4 ps-4 pe-4 pt-4">
+                <div class="col-md-6 justify-content-center" style="flex-direction: column; display: flex;">
+                    <h1>Uprove helps non-traditional candidates display their talent and find jobs they are qualified for.</h1>
+                    <p class="-color-moderategrey-text">
+                        There are over 70 million Americans who are STARs...or “skilled through alternative routes”.
+                        Many hiring processes automatically filter out these candidates due to their non-traditional
+                        background. Uprove gives all candidates a channel to display their talent and find
+                        fulfilling employment.
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <img :src="globalData.STATIC_URL + 'img/happyCandidates.jpg'" alt="" class="p-md-5">
+                </div>
+            </div>
+        </div>
+        <div class="container-lg">
+            <div class="row mt-4 mb-4 pb-4">
+                <h2><strong>Uprove was started after the founders saw the benefits and positive impact project interviews had
+                on their hiring process.
+                </strong></h2>
+                <div><a href="/about/">Learn more about Uprove's origin and mission</a></div>
+            </div>
         </div>
         <EmployerRequestInfoModal/>
         <CandidateRequestAccountModal/>
@@ -114,6 +195,11 @@ import OrderedList from '../../components/OrderedList.vue';
 export default {
     components: {
         CandidateRequestAccountModal, EmployerRequestInfoModal, OrderedList
+    },
+    methods: {
+        openProjectsPage() {
+            window.open('/projects/', '_blank').focus();
+        }
     },
     mounted() {
         this.eventBus.on('ajaxSuccess', () => {

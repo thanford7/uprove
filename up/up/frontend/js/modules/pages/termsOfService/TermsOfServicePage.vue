@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container-lg">
         <div class="row mt-4">
             <h1>Terms and Conditions</h1>
             <p>Last updated: October 26, 2021</p>

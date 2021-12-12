@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container-lg">
         <div class="row mt-4">
             <h2>Error: {{initData.error}}</h2>
             <h4>{{initData.text}}</h4>

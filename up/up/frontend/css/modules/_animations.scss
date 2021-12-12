@@ -52,82 +52,83 @@
         content: 'Business analysis';
         color: colors.$color-white;
         text-transform: uppercase;
+        font-size: 1rem;
     }
 }
 
 @keyframes rolesRotation {
     0% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     5% {
         content: 'Business analysis';
         color: colors.$color-darkblue;
     }
     10% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     15% {
         content: 'Customer success';
         color: colors.$color-darkblue;
     }
     20% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     25% {
         content: 'Data analysis';
         color: colors.$color-darkblue;
     }
     30% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     35% {
         content: 'Finance';
         color: colors.$color-darkblue;
     }
     40% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     45% {
         content: 'Marketing';
         color: colors.$color-darkblue;
     }
     50% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     55% {
         content: 'Operations management';
         color: colors.$color-darkblue;
     }
     60% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     65% {
         content: 'Product management';
         color: colors.$color-darkblue;
     }
     70% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     75% {
         content: 'Project management';
         color: colors.$color-darkblue;
     }
     80% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     85% {
         content: 'Supply chain management';
         color: colors.$color-darkblue;
     }
     90% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     95% {
         content: 'User experience';
         color: colors.$color-darkblue;
     }
     100% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
 }
 
@@ -137,83 +138,84 @@
         animation: skillsRotation 20s linear infinite;
         display: block;
         content: 'Business analysis';
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
         text-transform: uppercase;
+        font-size: 1rem;
     }
 }
 
 @keyframes skillsRotation {
     0% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     5% {
         content: 'Business intelligence software';
         color: colors.$color-darkblue;
     }
     10% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     15% {
         content: 'Excel';
         color: colors.$color-darkblue;
     }
     20% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     25% {
         content: 'Marketing plan creation';
         color: colors.$color-darkblue;
     }
     30% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     35% {
         content: 'MVP development';
         color: colors.$color-darkblue;
     }
     40% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     45% {
         content: 'Powerpoint';
         color: colors.$color-darkblue;
     }
     50% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     55% {
         content: 'Product management';
         color: colors.$color-darkblue;
     }
     60% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     65% {
         content: 'Project management';
         color: colors.$color-darkblue;
     }
     70% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     75% {
         content: 'Project plan creation';
         color: colors.$color-darkblue;
     }
     80% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     85% {
         content: 'Python';
         color: colors.$color-darkblue;
     }
     90% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
     95% {
         content: 'SQL';
         color: colors.$color-darkblue;
     }
     100% {
-        color: colors.$color-white;
+        color: adjust-color(colors.$color-darkblue, $alpha: -0.7);
     }
 }

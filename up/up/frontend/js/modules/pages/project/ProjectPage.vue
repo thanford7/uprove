@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container-lg">
         <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-9">
                 <h1>{{this.initData.project.title}} <span class="badge -color-darkblue">{{this.initData.project.function}}</span></h1>

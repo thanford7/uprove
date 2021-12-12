@@ -11,6 +11,7 @@ import {
     faArrowRight,
     faArrowUp,
     faBold,
+    faChalkboardTeacher,
     faChartLine,
     faCheck,
     faCircle,
@@ -19,6 +20,7 @@ import {
     faExternalLinkAlt,
     faGripHorizontal,
     faItalic,
+    faLaptopCode,
     faLink,
     faListOl,
     faListUl,
@@ -30,13 +32,17 @@ import {
     faRedo,
     faSquare,
     faStrikethrough,
+    faTasks,
     faTextHeight,
     faTrash,
     faTrashAlt,
     faUnderline,
     faUndo,
     faUnlink,
-    faUserCircle
+    faUserCircle,
+    faUserNinja,
+    faUsers,
+    faUserTie
 } from '@fortawesome/free-solid-svg-icons';
 import {
     faFile,
@@ -54,9 +60,10 @@ import Vue3Sanitize from "vue-3-sanitize";
 
 // Solid icons
 library.add(faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, faArrowLeft, faArrowRight, faArrowUp,
-    faBold, faChartLine, faCheck, faCircle, faDownload, faExchangeAlt, faExternalLinkAlt, faGripHorizontal, faItalic, faLink, faLinkedin,
-    faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle, faQuoteLeft, faRedo, faSquare, faStrikethrough,
-    faTextHeight, faTrash, faTrashAlt, faTwitterSquare, faUnderline, faUndo, faUnlink, faUserCircle);
+    faBold, faChalkboardTeacher, faChartLine, faCheck, faCircle, faDownload, faExchangeAlt, faExternalLinkAlt, faGripHorizontal,
+    faItalic, faLaptopCode, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
+    faQuoteLeft, faRedo, faSquare, faStrikethrough, faTasks, faTextHeight, faTrash, faTrashAlt, faTwitterSquare,
+    faUnderline, faUndo, faUnlink, faUserCircle, faUserNinja, faUsers, faUserTie);
 
 // Regular icons
 library.add(faFile, faFileExcel, faFileImage, faFilePdf, faFilePowerpoint, faFileWord, faFileVideo);

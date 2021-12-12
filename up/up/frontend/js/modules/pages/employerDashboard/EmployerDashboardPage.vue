@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container-lg">
         <div class="row mt-3 mb-3">
             <div class="align-items-center" style="display: flex">
                 <img v-if="initData.employer.logo" :src="initData.employer.logo" alt="" class="employer-logo">

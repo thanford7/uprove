@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container-lg">
         <BannerAlert :alerts="alerts"/>
         <div class="row mt-3 mb-3">
             <h2>Contact us</h2>
