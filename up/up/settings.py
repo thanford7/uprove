@@ -167,9 +167,29 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '/up/frontend/dist'),
-    os.path.join(BASE_DIR, '/up/static'),
+    os.path.join(BASE_DIR, 'up/frontend/dist'),
+    os.path.join(BASE_DIR, 'up/static'),
 ]
+
+logger.info(f'STATIC DIRS: {STATICFILES_DIRS}')
+
+
+def logListOfFiles(dirName):
+    # create a list of file and sub directories
+    # names in the given directory
+    # Iterate over all the entries
+    for entry in os.listdir(dirName):
+        # Create full path
+        fullPath = os.path.join(dirName, entry)
+        # If entry is a directory then get the list of files in this directory
+        if os.path.isdir(fullPath):
+            logger.info(fullPath)
+
+logger.info('File paths from up')
+logListOfFiles(os.path.join(BASE_DIR, 'up'))
+
+logger.info('File paths from frontend')
+logListOfFiles(os.path.join(BASE_DIR, 'up/frontend'))
 
 AWS_QUERYSTRING_AUTH = False
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
