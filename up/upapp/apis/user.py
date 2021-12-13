@@ -133,7 +133,7 @@ class UserView(APIView):
 
     @atomic
     def put(self, request, userId=None):
-        from viewsAuth import setUproveUser
+        from upapp.viewsAuth import setUproveUser
 
         userId = userId or request.data.get('id')
         if not userId:
