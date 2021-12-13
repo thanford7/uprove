@@ -1,6 +1,6 @@
 <template>
-    <BannerAlert :alerts="alerts"/>
     <div class="container-lg">
+        <BannerAlert :alerts="alerts"/>
         <div class="row mt-3">
             <h1>Admin Page</h1>
             <h3>Create</h3>

@@ -8,8 +8,16 @@
 </template>
 
 <script>
+import {severity} from "../../vueMixins";
+
 export default {
     name: "BannerAlert.vue",
-    props: ['alerts']
+    props: ['alerts'],
+    updated() {
+        // Close success alerts after 5 seconds
+        setTimeout(() => {
+            $(`.alert-${severity.SUCCESS}`).alert('close')
+        }, 5000);
+    }
 }
 </script>

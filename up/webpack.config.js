@@ -74,7 +74,7 @@ module.exports = function (env, argv) {
                         MiniCssExtractPlugin.loader,
                         // Translates CSS into CommonJS
                         'css-loader?url=false',
-                        {loader: 'postcss-loader', options: {postcssOptions: {plugins: postCSSPlugins}}},
+                        // {loader: 'postcss-loader', options: {postcssOptions: {plugins: postCSSPlugins}}},
                         // Compiles Sass to CSS
                         'sass-loader',
                     ],

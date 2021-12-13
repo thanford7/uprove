@@ -3,7 +3,6 @@ import {createStore, mapGetters, mapState} from "vuex";
 import globalData, {USER_BITS} from './globalData';
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
-import $ from 'jquery';
 
 
 const severity = {
