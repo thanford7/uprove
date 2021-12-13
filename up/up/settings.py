@@ -49,6 +49,8 @@ PREPEND_WWW = not DEBUG
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 CSRF_USE_SESSIONS = True
 
+logger.info(f'Base directory is: {BASE_DIR}')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -165,8 +167,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'up/frontend/dist'),
-    os.path.join(BASE_DIR, 'up/static'),
+    os.path.join(BASE_DIR, '/up/frontend/dist'),
+    os.path.join(BASE_DIR, '/up/static'),
 ]
 
 AWS_QUERYSTRING_AUTH = False
