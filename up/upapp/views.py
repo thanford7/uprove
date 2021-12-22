@@ -79,7 +79,9 @@ def jobPosting(request, jobId):
     return render(request, 'jobPosting.html', context={'data': dumps({
         'job': getSerializedEmployerJob(job, isEmployer=isEmployer),
         'employer': getSerializedEmployer(EmployerView.getEmployer(job.employer_id), isEmployer=isEmployer),
-        'projects': {p.id: getSerializedProject(p, isIncludeDetails=True) for p in projects}
+        'projects': {p.id: getSerializedProject(p, isIncludeDetails=True) for p in projects},
+        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
+        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
     })})
 
 
