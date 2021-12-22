@@ -7,19 +7,21 @@
                 <div v-html="this.initData.project.description" class="-border-bottom--light mb-2"></div>
                 <h3>Project brief</h3>
                 <div v-html="this.initData.project.background" class="-border-bottom--light mb-2"></div>
-                <h3>Instructions</h3>
-                <template v-if="formData.skillLevelBit">
-                    <div v-html="projectInstructions" class="-border-bottom--light mb-2"></div>
+                <template v-if="isLoggedIn">
+                    <h3>Instructions</h3>
+                    <template v-if="formData.skillLevelBit">
+                        <div v-html="projectInstructions" class="-border-bottom--light mb-2"></div>
+                    </template>
+                    <div v-else class="-sub-text -border-bottom--light mb-2">Select skill level to view instructions</div>
                 </template>
-                <div v-else class="-sub-text -border-bottom--light mb-2">Select skill level to view instructions</div>
-                <div>
+                <div v-if="this.initData.project.files.length">
                     <h3>Files</h3>
                     <div v-for="file in this.initData.project.files">
                         <FileDisplay :file="file" :isIncludeDescription="true" :isIncludeSkillLevels="true"/>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 sidebar mb-3">
+            <div class="col-md-3 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
                 <div v-if="this.initData.project.isLimited">
                     <div class="-text-center">
                         Want to view the full project brief and files?

@@ -33,6 +33,11 @@ body {
 }
 
 .mobile {
+    &-side-margin {
+        width: calc(100% - calc(var(--bs-gutter-x) * 1));
+        margin-left: calc(var(--bs-gutter-x) * 0.5);
+        margin-right: calc(var(--bs-gutter-x) * 0.5);
+    }
     &-top {
         display: flex;
         flex-direction: column-reverse;

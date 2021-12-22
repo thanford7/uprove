@@ -9,7 +9,7 @@
             </td>
             <td class="ps-2">
                 {{item.main}}
-                <div>{{item.sub}}</div>
+                <div v-if="item.sub">{{item.sub}}</div>
             </td>
         </tr>
     </table>

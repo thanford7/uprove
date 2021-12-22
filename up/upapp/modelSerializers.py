@@ -253,6 +253,7 @@ def getSerializedCustomProject(customProject: CustomProject):
         'skillLevelBit': customProject.skillLevelBit,
         'skills': [getSerializedProjectSkill(s) for s in customProject.skills.all()],
         'projectId': customProject.project_id,
+        'projectTitle': customProject.project.title
     }
 
 
