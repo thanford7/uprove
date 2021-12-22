@@ -1,8 +1,10 @@
 import {Popover} from "bootstrap";
+import {TOOLTIPS} from "./definitions";
 import {createStore, mapGetters, mapState} from "vuex";
 import globalData, {USER_BITS} from './globalData';
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
+import pluralize from 'pluralize';
 
 
 const severity = {
@@ -10,9 +12,7 @@ const severity = {
     WARN: 'warn',
     DANGER: 'danger'
 }
-
-let elUid = 0;
-
+let newElUid = 0;
 const eventBus = mitt();
 
 const isMobileFn = () => {
@@ -23,18 +23,28 @@ const store = createStore({
     state() {
         return {
             eventBus,
-            isMobile: isMobileFn()
-        }
-    },
-    getters: {
-        newElUid(state) {
-            elUid += 1
-            return elUid.toString();
+            isMobile: isMobileFn(),
+            TOOLTIPS,
+            alerts: [],
+            alertCount: 0,
         }
     },
     mutations: {
         updateIsMobile(state) {
             state.isMobile = isMobileFn()
+        },
+        addAlert(state, alert) {
+            state.alertCount++;
+            state.alerts.push({...alert, id: state.alertCount});
+        },
+        clearAlert(state, alertId) {
+            state.alerts = state.alerts.filter((alert) => alert.id !== alertId);
+        },
+        clearAllAlerts(state) {
+            state.alerts = [];
+        },
+        clearSuccessAlerts(state) {
+            state.alerts = state.alerts.filter((alert) => alert.alertType !== severity.SUCCESS);
         }
     }
 });
@@ -49,10 +59,9 @@ const ajaxRequestMixin = {
         return {
             apiUrl: '/api/v1/',
             crudUrl: null,
-            initDataKey: null,  // The key to access the data structure to be update after CRUD operation
+            initDataKey: null,  // The key to access the data structure to be updated after CRUD operation
             isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
-            alerts: [],
-            formData: {},
+            formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
             isAjaxModal: false
         }
@@ -61,6 +70,10 @@ const ajaxRequestMixin = {
         onSaveSuccessFn(method) {
             return (data, textStatus, xhr) => {
                 eventBus.emit('ajaxSuccess', data);
+                store.commit('addAlert', {
+                    message: this.getSuccessMessage(data),
+                    alertType: severity.SUCCESS
+                });
                 if (this.isUpdateData) {
                     this.updateInitData(method, data);
                 }
@@ -72,6 +85,10 @@ const ajaxRequestMixin = {
                     window.location.replace(data.pageRedirect);
                 }
             }
+        },
+        getSuccessMessage(data) {
+            // subclass
+            return 'Success';
         },
         updateInitData(method, newData) {
             if (method === 'POST') {
@@ -101,8 +118,15 @@ const ajaxRequestMixin = {
             _.remove(updateList, (item) => item.id === deleteId);
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
-            // subclass
+            store.commit('addAlert', {
+                message: this.getFailureMessage(errorThrown),
+                alertType: severity.DANGER
+            });
             eventBus.emit('ajaxFailure', {xhr, textStatus, errorThrown});
+        },
+        getFailureMessage(errorThrown) {
+            // subclass
+            return errorThrown;
         },
         readForm() {
             return this.formData;
@@ -121,7 +145,7 @@ const ajaxRequestMixin = {
             return Object.entries(this.requiredFields).reduce((hasRequired, [field, domSel]) => {
                 if (!formData[field]) {
                     this.addPopover($(domSel),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                        {severity: severity.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
@@ -130,7 +154,7 @@ const ajaxRequestMixin = {
         },
         readAndSubmitForm() {
             const formData = this.processFormData();
-            if(!this.isGoodFormData(formData)) {
+            if (!this.isGoodFormData(formData)) {
                 return false;
             }
             const ajaxData = new FormData();
@@ -146,7 +170,7 @@ const ajaxRequestMixin = {
             })
             return this.submitAjaxRequest(ajaxData)
         },
-        saveChange(e, allowDefault=false) {
+        saveChange(e, allowDefault = false) {
             if (allowDefault) {
                 e.preventDefault();
             }
@@ -175,13 +199,13 @@ const ajaxRequestMixin = {
         getAjaxCfgOverride() {
             return {};
         },
-        submitAjaxRequest(requestData, requestCfg={}) {
+        submitAjaxRequest(requestData, requestCfg = {}) {
             const overrides = Object.assign(this.getAjaxCfgOverride(), requestCfg);
             let method;
             if (overrides.method) {
                 method = overrides.method;
             } else {
-                method = (this.formData.id) ? 'PUT': 'POST';
+                method = (requestData.id) ? 'PUT' : 'POST';
             }
             return $.ajax(Object.assign({
                 url: this.apiUrl + this.crudUrl,
@@ -207,31 +231,38 @@ const globalVarsMixin = {
             djangoData: window.djangoData
         }
     },
+    methods: {
+        getNewElUid() {
+            newElUid++;
+            return newElUid.toString();
+        },
+        pluralize(word, count) {
+            return pluralize(word, count, true);
+        }
+    },
     computed: {
         ...mapState({
-             eventBus: 'eventBus',
-             isMobile: 'isMobile'
-         }),
-        ...mapGetters({
-            newElUid: 'newElUid'
+            eventBus: 'eventBus',
+            isMobile: 'isMobile',
+            TOOLTIPS: 'TOOLTIPS'
         }),
         isLoggedIn() {
             return Boolean(globalData.uproveUser);
         },
         isSuperUser() {
-            if(!globalData.uproveUser) {
+            if (!globalData.uproveUser) {
                 return false;
             }
             return globalData.uproveUser.isSuperUser;
         },
         isEmployer() {
-            if(!globalData.uproveUser) {
+            if (!globalData.uproveUser) {
                 return false;
             }
             return Boolean(globalData.uproveUser.userTypeBits & USER_BITS.EMPLOYER);
         },
         isCandidate() {
-            if(!globalData.uproveUser) {
+            if (!globalData.uproveUser) {
                 return false;
             }
             return Boolean(globalData.uproveUser.userTypeBits & USER_BITS.CANDIDATE);
@@ -247,10 +278,6 @@ const modalsMixin = {
         }
     },
     methods: {
-        clearFormData() {
-            // subclass for clearing selectize and other objects not directly tied to a v-model
-            this.formData = {};
-        },
         clearSelectizeElements() {
             Object.values(this.$refs).forEach((ref) => {
                 if (ref && ref.elSel) {
@@ -262,6 +289,10 @@ const modalsMixin = {
             // subclass
             return rawData;
         },
+        setEmptyFormData() {
+            // subclass
+            this.formData = {};
+        },
         setFormFields() {
             // subclass - use for form fields that don't have a v-model property (mainly selectize fields)
         }
@@ -271,7 +302,7 @@ const modalsMixin = {
             if (!this.modal$) {
                 this.modal$ = new Modal($(`#${this.modalName}`), {backdrop: 'static'});
             }
-            this.clearFormData();
+            this.setEmptyFormData();
             this.clearSelectizeElements();
             this.modal$.show();
             if (rawData) {
@@ -303,7 +334,7 @@ const popoverMixin = {
             }, 500);
             el$.focus();
             popover.show();
-            if(isOnce) {
+            if (isOnce) {
                 el$.one('focusout', () => {
                     popover.dispose();
                 })

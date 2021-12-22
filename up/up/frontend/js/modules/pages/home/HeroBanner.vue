@@ -1,5 +1,5 @@
 <template>
-    <BannerAlert :alerts="alerts"/>
+    <BannerAlert/>
     <div class="row mb-3 ms-0 me-0">
         <div class="col-12 -color-yellow text-center p-2">Are you a talented candidate looking for a job?
             <a href="#" @click="eventBus.emit('open:candidateRequestAccountModal')">Request an account now!</a>

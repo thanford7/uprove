@@ -43,3 +43,12 @@ body {
     object-fit: cover;
     z-index: -1;
 }
+
+.hover-menu {
+    &:not(:hover) .hover-show {
+        visibility: hidden;
+    }
+    &:hover .hover-show {
+        visibility: visible;
+    }
+}

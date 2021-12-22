@@ -11,7 +11,7 @@
         </template>
         <div>
             <template v-for="skill in formData.skills">
-                <span class="badge -color-lightblue -color-black-text">{{skill.name}}</span>&nbsp;
+                <span class="badge -color-lightblue -color-black-text">{{skill.skillName}}</span>&nbsp;
             </template>
         </div>
         <div class="mb-2">

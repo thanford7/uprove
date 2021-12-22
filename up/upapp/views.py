@@ -4,9 +4,8 @@ from json import dumps
 from django.shortcuts import render
 
 from upapp import security
-from upapp.modelSerializers import getSerializedProject, getSerializedEmployer, getSerializedUser, \
-    getSerializedProjectSkill, getSerializedProjectFunction
-from upapp.apis.employer import EmployerView
+from upapp.modelSerializers import *
+from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import UserView, UserProfileView
 from upapp.models import ProjectFunction, ProjectSkill
@@ -40,7 +39,7 @@ def admin(request):
     return render(request, 'admin.html', {'data': dumps({
         'projects': [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)],
         # TODO: Lazy load employers and users since this will get long
-        'employers': [getSerializedEmployer(e) for e in EmployerView.getEmployers()],
+        'employers': [getSerializedEmployer(e, isEmployer=True) for e in EmployerView.getEmployers()],
         'users': [getSerializedUser(u) for u in UserView.getUsers()],
         'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
         'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
@@ -64,13 +63,24 @@ def employerDashboard(request, employerId=None):
         return _getUnauthorizedPage(request)
 
     return render(request, 'employerDashboard.html', context={'data': dumps({
-        'employer': getSerializedEmployer(EmployerView.getEmployer(employerId)),
+        'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), isEmployer=True),
         'projects': [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(employerId=employerId)],
     })})
 
 
 def errors(request):
     return render(request, 'errors.html', context={})
+
+
+def jobPosting(request, jobId):
+    job = JobPostingView.getEmployerJob(jobId)
+    projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=[p.project_id for p in job.allowedProjects.all()])
+    isEmployer = security.isPermittedEmployer(request, job.employer_id)
+    return render(request, 'jobPosting.html', context={'data': dumps({
+        'job': getSerializedEmployerJob(job, isEmployer=isEmployer),
+        'employer': getSerializedEmployer(EmployerView.getEmployer(job.employer_id), isEmployer=isEmployer),
+        'projects': {p.id: getSerializedProject(p, isIncludeDetails=True) for p in projects}
+    })})
 
 
 def privacy(request):
@@ -90,11 +100,18 @@ def profiles(request, userId):
 
 
 def project(request, projectId):
-    return render(request, 'project.html', context={'data': dumps({
+    baseData = {
         'project': getSerializedProject(ProjectView.getProject(projectId), isIncludeDetails=security.isPermittedSessionUser(request)),
         'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
         'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
-    })})
+    }
+
+    extraData = {}
+    user = security.getSessionUser(request)
+    if user and (employerId := user['employerId']):
+        extraData['jobs'] = [getSerializedEmployerJob(j, isEmployer=False) for j in JobPostingView.getEmployerJobs(employerId)]
+
+    return render(request, 'project.html', context={'data': dumps({**baseData, **extraData})})
 
 
 def projects(request):

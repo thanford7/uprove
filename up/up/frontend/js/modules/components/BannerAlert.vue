@@ -2,21 +2,24 @@
     <div v-if="alerts.length" v-for="alert in alerts" class="mt-3">
         <div class="alert alert-dismissible fade show" :class="`alert-${alert.alertType}`" role="alert">
             {{alert.message}}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" @click="clearAlert(alert.id)"></button>
         </div>
     </div>
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {mapMutations, mapState} from "vuex";
 
 export default {
     name: "BannerAlert.vue",
-    props: ['alerts'],
+    computed: mapState(['alerts']),
+    methods: {
+        ...mapMutations(['clearAlert', 'clearSuccessAlerts'])
+    },
     updated() {
         // Close success alerts after 5 seconds
         setTimeout(() => {
-            $(`.alert-${severity.SUCCESS}`).alert('close')
+            this.clearSuccessAlerts();
         }, 5000);
     }
 }

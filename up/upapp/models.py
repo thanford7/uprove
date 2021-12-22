@@ -287,7 +287,7 @@ class Employer(AuditFields):
     logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
 
 
-class CustomProject(AuditFields):
+class CustomProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='customProject')
     skillLevelBit = models.SmallIntegerField()
     skills = models.ManyToManyField(ProjectSkill)

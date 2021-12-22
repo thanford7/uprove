@@ -1,7 +1,10 @@
-
+@use 'colors';
 
 .employer-logo {
     max-height: 40px;
     display: inline-block;
     margin-right: 10px;
+    border: rgba(colors.$color-moderategrey, .2) 1px solid;
+    padding: 2px;
+    border-radius: 3px;
 }

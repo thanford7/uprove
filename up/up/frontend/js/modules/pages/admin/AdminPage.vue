@@ -1,6 +1,6 @@
 <template>
     <div class="container-lg">
-        <BannerAlert :alerts="alerts"/>
+        <BannerAlert/>
         <div class="row mt-3">
             <h1>Admin Page</h1>
             <h3>Create</h3>
@@ -225,19 +225,5 @@ export default {
             this.eventBus.emit('open:editUserModal', {formData: this.getUser(userId)});
         },
     },
-    mounted() {
-        this.eventBus.on('ajaxSuccess', () => {
-            this.alerts.push({
-                message: 'Success',
-                alertType: 'success'
-            });
-        });
-        this.eventBus.on('ajaxFailure', ({xhr, textStatus, errorThrown}) => {
-            this.alerts.push({
-                message: `Failure: ${errorThrown}`,
-                alertType: 'danger'
-            });
-        });
-    }
 }
 </script>

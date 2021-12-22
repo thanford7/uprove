@@ -27,7 +27,7 @@
                         direct your existing candidates to the Uprove platform</p>
                     </div>
                     <div class="col-md-3 p-2 emphasize" data-em-key="2">
-                        <p>Candidates complete customized exercises that assess their talent in specific areas your hiring hiring for</p>
+                        <p>Candidates complete customized exercises that assess their talent in specific areas you're hiring for</p>
                     </div>
                     <div class="col-md-3 p-2 emphasize" data-em-key="3">
                         <p>Review submitted projects on your own time and select top candidates for further vetting</p>
@@ -202,19 +202,6 @@ export default {
         }
     },
     mounted() {
-        this.eventBus.on('ajaxSuccess', () => {
-            this.alerts.push({
-                message: 'Email sent successfully',
-                alertType: 'success'
-            });
-        });
-        this.eventBus.on('ajaxFailure', ({xhr, textStatus, errorThrown}) => {
-            this.alerts.push({
-                message: `Failed: ${xhr.responseText || errorThrown}`,
-                alertType: 'danger'
-            });
-        });
-
         $('#home-page').on('mouseenter mouseleave', '.emphasize', (e) => {
             const emKey = $(e.currentTarget).data('em-key');
             const turnOn = e.type === 'mouseenter';

@@ -21,6 +21,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     re_path('employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
     path('errors/', views.errors, name='errors'),
+    path('job-posting/<int:jobId>/', views.jobPosting, name='jobPosting'),
     path('privacy/', views.privacy, name='privacy'),
     path('profile/<int:profileId>/', views.profile, name='profile'),
     path('profiles/<int:userId>/', views.profiles, name='profiles'),
@@ -31,6 +32,8 @@ urlpatterns = [
     # APIs
     re_path(apiPath + 'account-employer/(?P<employerId>[0-9]+)?/?$', employer.EmployerView.as_view()),
     re_path(apiPath + 'account-user/(?P<userId>[0-9]+)?/?$', user.UserView.as_view()),
+    re_path(apiPath + 'job-posting/(?P<jobId>[0-9]+)?/?$', employer.JobPostingView.as_view()),
+    re_path(apiPath + 'job-project-link/(?P<projectId>[0-9]+)?/?$', employer.JobProjectLinkView.as_view()),
     re_path(apiPath + 'project/(?P<projectId>[0-9]+)?/?$', project.ProjectView.as_view()),
     re_path(apiPath + 'project-function/(?P<functionId>[0-9]+)?/?$', project.FunctionView.as_view()),
     re_path(apiPath + 'project-skill/(?P<skillId>[0-9]+)?/?$', project.SkillView.as_view()),

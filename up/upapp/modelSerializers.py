@@ -191,7 +191,7 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False):
         'image': project.image.url if project.image else None,
         'function': project.function.functionName,
         'functionId': project.function.id,
-        'skills': [{'name': s.skillName, 'id': s.id} for s in project.skills.all()],
+        'skills': [getSerializedProjectSkill(s) for s in project.skills.all()],
         'skillLevelBits': project.skillLevelBits,
         'description': project.description,
         'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
@@ -234,14 +234,17 @@ def getSerializedProjectSkill(projectSkill: ProjectSkill):
     return {'id': projectSkill.id, 'skillName': projectSkill.skillName}
 
 
-def getSerializedEmployer(employer: Employer):
-    return {
+def getSerializedEmployer(employer: Employer, isEmployer=False):
+    baseFields = {
         'id': employer.id,
         'companyName': employer.companyName,
         'logo': employer.logo.url if employer.logo else None,
-        'jobs': [getSerializedEmployerJob(ej) for ej in employer.employerJob.all()],
+        'jobs': [getSerializedEmployerJob(ej, isEmployer=isEmployer) for ej in employer.employerJob.all()],
+    }
+    employerFields = {
         **serializeAuditFields(employer)
     }
+    return baseFields if not isEmployer else {**baseFields, **employerFields}
 
 
 def getSerializedCustomProject(customProject: CustomProject):
@@ -250,25 +253,28 @@ def getSerializedCustomProject(customProject: CustomProject):
         'skillLevelBit': customProject.skillLevelBit,
         'skills': [getSerializedProjectSkill(s) for s in customProject.skills.all()],
         'projectId': customProject.project_id,
-        **serializeAuditFields(customProject)
     }
 
 
-def getSerializedEmployerJob(employerJob: EmployerJob):
-    return {
+def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
+    baseFields = {
         'id': employerJob.id,
         'jobTitle': employerJob.jobTitle,
         'jobDescription': employerJob.jobDescription,
         'allowedProjects': [getSerializedCustomProject(ep) for ep in employerJob.allowedProjects.all()],
+        'salaryFloor': employerJob.salaryFloor,
+        'salaryCeiling': employerJob.salaryCeiling,
+        'salaryUnit': employerJob.salaryUnit
+    }
+    employerFields = {
         'applications': [getSerializedJobApplication(app) for app in employerJob.jobApplication.all()],
         'openDate': employerJob.openDate.isoformat() if employerJob.openDate else None,
         'pauseDate': employerJob.pauseDate.isoformat() if employerJob.pauseDate else None,
         'closeDate': employerJob.closeDate.isoformat() if employerJob.closeDate else None,
-        'salaryFloor': employerJob.salaryFloor,
-        'salaryCeiling': employerJob.salaryCeiling,
-        'salaryUnit': employerJob.salaryUnit,
         **serializeAuditFields(employerJob)
     }
+
+    return baseFields if not isEmployer else {**baseFields, **employerFields}
 
 
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):

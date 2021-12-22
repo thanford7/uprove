@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import {severity} from "../../vueMixins";
 import BaseModal from "./BaseModal";
 import InputEmail from "../inputs/InputEmail";
 import FormChecker from "../../utils/form";
@@ -38,7 +39,7 @@ export default {
     methods: {
         isGoodFormFields(formData) {
             if (!FormChecker.isGoodEmail(formData.email)) {
-                this.addPopover($('#signInEmail'), {content: 'Please use valid email', isOnce: true});
+                this.addPopover($('#signInEmail'), {content: 'Please use valid email', severity: severity.WARN, isOnce: true});
                 return false;
             }
             return true;

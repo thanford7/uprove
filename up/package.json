@@ -42,6 +42,7 @@
     "lodash": "^4.17.21",
     "mitt": "^3.0.0",
     "npm": "^7.24.1",
+    "pluralize": "^8.0.0",
     "prosemirror-model": "^1.14.3",
     "selectize": "^0.12.6",
     "vue": "^3.2.19",

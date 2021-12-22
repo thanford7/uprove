@@ -15,27 +15,40 @@
                 <table class="table mt-3">
                     <thead>
                         <tr>
-                            <th colspan="2"></th>
-                            <th colspan="3" class="text-center">Applicants</th>
+                            <th colspan="3"></th>
+                            <th colspan="4" class="text-center border-start">Applicants</th>
                         </tr>
                         <tr>
+                            <th></th>
                             <th>Job title</th>
                             <th>Status</th>
-                            <th>Applied</th>
-                            <th>Selected</th>
-                            <th>Declined</th>
+                            <th class="text-center border-start">Invited</th>
+                            <th class="text-center">Applied</th>
+                            <th class="text-center">Selected</th>
+                            <th class="text-center">Declined</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="job in initData.employer.jobs">
+                        <tr v-for="job in initData.employer.jobs" class="hover-menu">
+                            <td>
+                                <span
+                                    class="hover-show" title="Edit job"
+                                    @click="eventBus.emit('open:editJobPostingModal', job)"
+                                ><font-awesome-icon :icon="['fas', 'pencil-alt']"/></span>
+                                <span
+                                    class="hover-show" title="Invite applicants"
+                                    @click="eventBus.emit('open:inviteJobApplicantModal', job)"
+                                ><font-awesome-icon :icon="['fas', 'user-plus']"/></span>
+                            </td>
                             <td>{{job.jobTitle}}</td>
                             <td>{{getJobStatus(job)}}</td>
-                            <td>{{job.applications.filter((a) => Boolean(a.submissionDateTime)).length}}</td>
-                            <td>{{job.applications.filter((a) => Boolean(a.approveDateTime)).length}}</td>
-                            <td>{{job.applications.filter((a) => Boolean(a.declineDateTime)).length}}</td>
+                            <td class="text-center border-start">{{job.applications.filter((a) => !Boolean(a.submissionDateTime)).length}}</td>
+                            <td class="text-center">{{job.applications.filter((a) => Boolean(a.submissionDateTime)).length}}</td>
+                            <td class="text-center">{{job.applications.filter((a) => Boolean(a.approveDateTime)).length}}</td>
+                            <td class="text-center">{{job.applications.filter((a) => Boolean(a.declineDateTime)).length}}</td>
                         </tr>
                         <tr v-if="!initData.employer.jobs.length">
-                            <td colspan="5">Post your first job</td>
+                            <td colspan="7">Post your first job</td>
                         </tr>
                     </tbody>
                 </table>
@@ -45,15 +58,17 @@
             </div>
         </div>
         <EditJobPostingModal/>
+        <InviteJobApplicantModal/>
     </div>
 </template>
 
 <script>
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
+import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 
 export default {
     name: "EmployerDashboardPage.vue",
-    components: {EditJobPostingModal},
+    components: {EditJobPostingModal, InviteJobApplicantModal},
     methods: {
         getJobStatus(job) {
             if (job.closeDate) {

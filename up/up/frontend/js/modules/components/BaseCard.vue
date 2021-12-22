@@ -7,7 +7,7 @@
             </div>
             <div class="card-body">
                 <slot name="body"></slot>
-                <ViewMoreLink v-if="isHeightExceeded && isShowViewMoreLink" :clickFn="getMoreContentFn" :elId="newElUid"/>
+                <ViewMoreLink v-if="isHeightExceeded && isShowViewMoreLink" :clickFn="getMoreContentFn" :elId="getNewElUid()"/>
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 <template>
     <div class="container-lg">
-        <BannerAlert :alerts="alerts"/>
+        <BannerAlert/>
         <div class="row mt-3 mb-3">
             <h2>Contact us</h2>
             <div class="col-md-6 pt-3 call-out-box" :class="(isMobile) ? 'mb-3' : ''">
@@ -77,20 +77,12 @@ export default {
         getAjaxCfgOverride() {
             return {method: 'POST'};
         },
-    },
-    mounted() {
-        this.eventBus.on('ajaxSuccess', () => {
-            this.alerts.push({
-                message: 'Email sent successfully',
-                alertType: 'success'
-            });
-        });
-        this.eventBus.on('ajaxFailure', ({xhr, textStatus, errorThrown}) => {
-            this.alerts.push({
-                message: `Email failed: ${errorThrown}`,
-                alertType: 'danger'
-            });
-        });
+        getSuccessMessage(data) {
+            return 'Email sent successfully';
+        },
+        getFailureMessage(errorThrown) {
+            return `Email failed: ${errorThrown}`;
+        }
     }
 }
 </script>

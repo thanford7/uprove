@@ -15,10 +15,12 @@ import {
     faChartLine,
     faCheck,
     faCircle,
+    faCopy,
     faDownload,
     faExchangeAlt,
     faExternalLinkAlt,
     faGripHorizontal,
+    faInfoCircle,
     faItalic,
     faLaptopCode,
     faLink,
@@ -40,6 +42,7 @@ import {
     faUndo,
     faUnlink,
     faUserCircle,
+    faUserPlus,
     faUserNinja,
     faUsers,
     faUserTie
@@ -60,10 +63,10 @@ import Vue3Sanitize from "vue-3-sanitize";
 
 // Solid icons
 library.add(faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faArrowDown, faArrowLeft, faArrowRight, faArrowUp,
-    faBold, faChalkboardTeacher, faChartLine, faCheck, faCircle, faDownload, faExchangeAlt, faExternalLinkAlt, faGripHorizontal,
-    faItalic, faLaptopCode, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
+    faBold, faChalkboardTeacher, faChartLine, faCheck, faCircle, faCopy, faDownload, faExchangeAlt, faExternalLinkAlt, faGripHorizontal,
+    faInfoCircle, faItalic, faLaptopCode, faLink, faLinkedin, faListOl, faListUl, faPaperPlane, faPencilAlt, faPlus, faPlusCircle,
     faQuoteLeft, faRedo, faSquare, faStrikethrough, faTasks, faTextHeight, faTrash, faTrashAlt, faTwitterSquare,
-    faUnderline, faUndo, faUnlink, faUserCircle, faUserNinja, faUsers, faUserTie);
+    faUnderline, faUndo, faUnlink, faUserCircle, faUserNinja, faUserPlus, faUsers, faUserTie);
 
 // Regular icons
 library.add(faFile, faFileExcel, faFileImage, faFilePdf, faFilePowerpoint, faFileWord, faFileVideo);

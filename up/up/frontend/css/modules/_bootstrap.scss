@@ -4,6 +4,9 @@
 // For overriding bootstrap variables https://getbootstrap.com/docs/5.0/customize/sass/
 $primary: colors.$color-blue;
 $secondary: colors.$color-lightgrey;
+$accordion-button-bg: rgba(colors.$color-lightgrey, .4);
+$accordion-button-active-bg: colors.$color-darkblue;
+$accordion-button-active-color: colors.$color-white;
 
 @import "bootstrap/scss/bootstrap";
 
@@ -106,12 +109,22 @@ $secondary: colors.$color-lightgrey;
     display: none;
 }
 
-.popover {
+.popover[data-popper-placement="top"], .popover[data-popper-placement="bottom"] {
     &.warn {
         background-color: $warning;
         .popover-arrow::after {
             border-top-color: $warning;
             border-bottom-color: $warning;
+        }
+    }
+}
+
+.popover[data-popper-placement="left"], .popover[data-popper-placement="right"] {
+    &.warn {
+        background-color: $warning;
+        .popover-arrow::after {
+            border-left-color: $warning;
+            border-right-color: $warning;
         }
     }
 }
@@ -132,5 +145,11 @@ $secondary: colors.$color-lightgrey;
             transform: translateX(-50%);
             top: -10px;
         }
+    }
+}
+
+.accordion {
+    .accordion-header * {
+        font-weight: bold;
     }
 }

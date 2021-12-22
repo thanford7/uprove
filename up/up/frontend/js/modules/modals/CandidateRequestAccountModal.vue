@@ -126,6 +126,12 @@ export default {
         getAjaxCfgOverride() {
             return {method: 'POST'};
         },
+        getSuccessMessage(data) {
+            return 'Email sent successfully';
+        },
+        getFailureMessage(errorThrown) {
+            return `Email failed: ${errorThrown}`;
+        }
     }
 }
 </script>

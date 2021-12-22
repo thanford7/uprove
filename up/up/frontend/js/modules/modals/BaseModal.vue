@@ -12,6 +12,7 @@
                 </div>
                 <div class="modal-body">
                     <div v-if="headerSubtext" class="modal-body-banner modal-body-banner--top">{{headerSubtext}}</div>
+                    <BannerAlert/>
                     <slot/>
                 </div>
                 <div v-if="!isFooterHidden" class="modal-footer">
@@ -26,8 +27,10 @@
     </div>
 </template>
 <script>
+import BannerAlert from "../components/BannerAlert";
 
 export default {
+    components: {BannerAlert},
     props: [
         'modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable',
         'isFooterHidden', 'isLargeDisplay', 'isAllowDelete'

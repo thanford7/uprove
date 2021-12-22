@@ -25,6 +25,7 @@ export default {
                 this.cfg.items = this.items;
             }
             this.elSel = el$.selectize(this.cfg)[0].selectize;
+            this.targetEl = el$.next('.selectize-control')[0];
 
             this.elSel.on('change', () => {
                 let val = this.elSel.getValue();
@@ -36,8 +37,6 @@ export default {
                 }
                 this.$emit('selected', val);
             });
-
-            this.targetEl = el$.siblings('.selectize-control')[0]
         }
     }
 }

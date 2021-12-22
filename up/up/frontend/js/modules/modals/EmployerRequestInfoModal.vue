@@ -119,12 +119,6 @@ export default {
                 subject: 'Employer interest'
             };
         },
-        clearFormData() {
-            ['sel1', 'sel2', 'sel3'].forEach((selRef) => {
-                const sel = this.$refs[selRef];
-                sel.elSel.clear(true);
-            });
-        },
         isGoodFormFields(formData) {
             if (!FormChecker.isGoodEmail(formData.fromEmail)) {
                 this.addPopover($('#formEmployerRequestEmail'), {content: 'Please add valid email', isOnce: true});
@@ -135,6 +129,12 @@ export default {
         getAjaxCfgOverride() {
             return {method: 'POST'};
         },
+        getSuccessMessage(data) {
+            return 'Email sent successfully';
+        },
+        getFailureMessage(errorThrown) {
+            return `Email failed: ${errorThrown}`;
+        }
     }
 }
 </script>

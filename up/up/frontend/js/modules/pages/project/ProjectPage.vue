@@ -1,11 +1,17 @@
 <template>
     <div class="container-lg">
+        <BannerAlert/>
         <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-9">
                 <h1>{{this.initData.project.title}} <span class="badge -color-darkblue">{{this.initData.project.function}}</span></h1>
                 <div v-html="this.initData.project.description" class="-border-bottom--light mb-2"></div>
                 <h3>Project brief</h3>
                 <div v-html="this.initData.project.background" class="-border-bottom--light mb-2"></div>
+                <h3>Instructions</h3>
+                <template v-if="formData.skillLevelBit">
+                    <div v-html="projectInstructions" class="-border-bottom--light mb-2"></div>
+                </template>
+                <div v-else class="-sub-text -border-bottom--light mb-2">Select skill level to view instructions</div>
                 <div>
                     <h3>Files</h3>
                     <div v-for="file in this.initData.project.files">
@@ -32,22 +38,29 @@
                     </div>
                 </div>
                 <div v-else>
-                    <h4 class="-text-center">Customize project</h4>
+                    <h4>Customize project</h4>
                     <template v-if="isEmployer">
-                        TODO: Hiring positions
+                        <InputSelectize
+                            ref="employerJobs"
+                            elId="employerJobs"
+                            placeholder="Job positions" :cfg="employerJobsCfg" @selected="formData.jobIds = $event"
+                        />
                     </template>
                     <InputSelectize
-                        ref="projectSkillLevels"
-                        elId="projectSkillLevels"
+                        ref="projectSkillLevel"
+                        elId="projectSkillLevel"
                         :isParseAsBits="true"
-                        placeholder="Skill level" :cfg="projectSkillLevelsCfg" @selected="pageData.skillLevelBits = $event"
+                        placeholder="Skill level" :cfg="projectSkillLevelCfg" @selected="formData.skillLevelBit = $event"
                     />
                     <InputSelectize
                         ref="projectSkills"
                         elId="projectSkills"
                         :isParseAsInt="true"
-                        placeholder="Project skills" :cfg="projectSkillsCfg" @selected="pageData.skillIds = $event"
+                        placeholder="Project skills" :cfg="projectSkillsCfg" @selected="formData.skillIds = $event"
                     />
+                    <template v-if="isEmployer">
+                        <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Link project to {{pluralize('job position', (formData.jobIds || []).length)}}</button>
+                    </template>
                 </div>
             </div>
         </div>
@@ -57,7 +70,10 @@
 </template>
 
 <script>
+import {severity} from "../../../vueMixins";
+import BannerAlert from "../../components/BannerAlert";
 import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
+import dataUtil from "../../../utils/data";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import FileDisplay from "../../components/FileDisplay";
 import InputSelectize from "../../inputs/InputSelectize";
@@ -65,26 +81,76 @@ import _ from "lodash";
 
 export default {
     name: "ProjectPage.vue",
-    components: {CandidateRequestAccountModal, EmployerRequestInfoModal, FileDisplay, InputSelectize},
+    components: {BannerAlert, CandidateRequestAccountModal, EmployerRequestInfoModal, FileDisplay, InputSelectize},
     data() {
         return {
-            pageData: {}
+            crudUrl: null,  // Set on mounted
+            isUpdateData: true,
+            initDataKey: 'jobs',
+            requiredFields: {
+                skillLevelBit: null,
+            }
         }
     },
     computed: {
+        employerJobsCfg() {
+            return {
+                plugins: ['remove_button'],
+                maxItems: null,
+                options: _.sortBy(this.initData.jobs.map((j) => ({value: j.id, text: j.jobTitle})), ['text'])
+            };
+        },
         projectSkillsCfg() {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
+                options: _.sortBy(this.initData.project.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
             };
         },
-        projectSkillLevelsCfg() {
+        projectSkillLevelCfg() {
+            const options = dataUtil.getSkillLevelNumbersFromBits(this.initData.project.skillLevelBits, this.globalData.SKILL_LEVEL).map((sBit) => {
+                return {
+                    value: sBit,
+                    text: this.globalData.SKILL_LEVEL[sBit]
+                };
+            });
             return {
                 maxItems: 1,
-                options: Object.entries(this.globalData.SKILL_LEVEL).map(([key, txt]) => ({value: key, text: txt}))
+                options
             }
+        },
+        projectInstructions() {
+            const instructions = this.initData.project.instructions.find((i) => i.skillLevelBit & this.formData.skillLevelBit)
+            return (instructions) ? instructions.instructions : '';
         }
+    },
+    methods: {
+        getSuccessMessage() {
+            return 'Successfully linked project to jobs'
+        },
+        getFailureMessage(errorThrown) {
+            return `Failed to link project to jobs: ${errorThrown}`
+        },
+        isGoodFormFields(formData) {
+            if(!formData.jobIds || !formData.jobIds.length) {
+                this.addPopover($(this.$refs['employerJobs'].targetEl), {content: 'At least one job is required', severity: severity.WARN, isOnce: true});
+                return false;
+            }
+            if(!formData.skillIds || !formData.skillIds.length) {
+                this.addPopover($(this.$refs['projectSkills'].targetEl), {content: 'At least one skill is required', severity: severity.WARN, isOnce: true});
+                return false;
+            }
+            return true;
+        }
+    },
+    mounted() {
+        if (this.isEmployer) {
+            this.requiredFields.skillLevelBit = this.$refs['projectSkillLevel'].targetEl;
+        }
+        this.crudUrl = `job-project-link/${this.initData.project.id}/`;
+        this.eventBus.on('ajaxSuccess', () => {
+            this.clearSelectizeElements()
+        });
     }
 }
 </script>

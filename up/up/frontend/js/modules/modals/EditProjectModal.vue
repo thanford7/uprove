@@ -297,7 +297,7 @@ export default {
         isGoodFormFields(formData) {
             if (form.isEmptyWysiwyg(formData.description)) {
                 this.addPopover($('#projectDescription'),
-                {severity: SEVERITY_WARN, content: 'Required field', isOnce: true}
+                {severity: severity.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
             }

@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from json import dumps
 
 from django.contrib import messages
 from django.db import IntegrityError
@@ -11,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from upapp import security
+from upapp.apis import setSkills
 from upapp.modelSerializers import getSerializedProject, getSerializedProjectFunction, getSerializedProjectSkill
 from upapp.models import Project, ProjectFunction, ProjectSkill, ProjectFile, ProjectInstructions
 from upapp.utils import dataUtil
@@ -49,7 +49,7 @@ class ProjectView(APIView):
         )
         project.save()
 
-        self.setSkills(project, data.get('skillIds'), isNew=True)
+        setSkills(project, data.get('skillIds'))
         self.setInstructions(project, data.get('instructions'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
 
@@ -78,7 +78,7 @@ class ProjectView(APIView):
             project.image = image
         project.save()
 
-        self.setSkills(project, data.get('skillIds'), isNew=False)
+        setSkills(project, data.get('skillIds'))
         self.setInstructions(project, data.get('instructions'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), security.isPermittedSessionUser(request)))
@@ -106,13 +106,15 @@ class ProjectView(APIView):
             raise e
 
     @staticmethod
-    def getProjects(employerId=None, isIgnoreEmployerId=False):
+    def getProjects(employerId=None, isIgnoreEmployerId=False, projectIds=None):
         if isIgnoreEmployerId:
             q = Q()
         else:
             q = Q(employer_id__isnull=True)
             if employerId:
                 q |= Q(employer_id=employerId)
+        if projectIds:
+            q &= Q(id__in=projectIds)
         return Project.objects\
             .select_related('employer', 'function')\
             .prefetch_related('projectFile', 'projectInstructions', 'skills')\
@@ -185,14 +187,6 @@ class ProjectView(APIView):
         deleteInstructionIds = [id for id in existingInstructions.keys() if id not in usedInstructionIds]
         if deleteInstructionIds:
             ProjectInstructions.objects.filter(id__in=deleteInstructionIds).delete()
-
-    @staticmethod
-    def setSkills(project, skillIds, isNew=False):
-        if not isNew:
-            project.skills.clear()
-
-        for skill in ProjectSkill.objects.filter(id__in=skillIds):
-            project.skills.add(skill)
 
 
 class FunctionView(APIView):

@@ -1,5 +1,5 @@
 <template>
-    <BannerAlert :alerts="alerts"/>
+    <BannerAlert/>
     <div class="container-lg">
         <div class="row mt-3 mb-3">
             <h2>Password Reset</h2>
