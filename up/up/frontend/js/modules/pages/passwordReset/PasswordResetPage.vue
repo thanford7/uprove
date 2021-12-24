@@ -11,18 +11,18 @@
                         <div class="mt-3">
                             Password must have:
                             <ul>
-                                <li>8 characters minimum<span v-if="has8Char">&nbsp;<font-awesome-icon :icon="['fas', 'check']" class="-color-green-fa"/></span></li>
-                                <li>At least 1 lowercase letter<span v-if="hasLowercaseChar">&nbsp;<font-awesome-icon :icon="['fas', 'check']" class="-color-green-fa"/></span></li>
-                                <li>At least 1 uppercase letter<span v-if="hasUppercaseChar">&nbsp;<font-awesome-icon :icon="['fas', 'check']" class="-color-green-fa"/></span></li>
-                                <li>At least 1 number<span v-if="hasNumber">&nbsp;<font-awesome-icon :icon="['fas', 'check']" class="-color-green-fa"/></span></li>
-                                <li>At least one symbol<span v-if="hasSymbolChar">&nbsp;<font-awesome-icon :icon="['fas', 'check']" class="-color-green-fa"/></span></li>
+                                <li>8 characters minimum<span v-if="has8Char">&nbsp;<i class="fas fa-check -color-green-text"></i></span></li>
+                                <li>At least 1 lowercase letter<span v-if="hasLowercaseChar">&nbsp;<i class="fas fa-check -color-green-text"></i></span></li>
+                                <li>At least 1 uppercase letter<span v-if="hasUppercaseChar">&nbsp;<i class="fas fa-check -color-green-text"></i></span></li>
+                                <li>At least 1 number<span v-if="hasNumber">&nbsp;<i class="fas fa-check -color-green-text"></i></span></li>
+                                <li>At least one symbol<span v-if="hasSymbolChar">&nbsp;<i class="fas fa-check -color-green-text"></i></span></li>
                             </ul>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="passwordConfirm" class="form-label">Password</label>
                         <input type="password" class="form-control" id="passwordConfirm" placeholder="Required" v-model="formData.passwordConfirm">
-                        <div v-if="hasPasswordConfirmMatch" class="mt-3">Passwords match&nbsp;<font-awesome-icon :icon="['fas', 'check']" class="-color-green-fa"/></div>
+                        <div v-if="hasPasswordConfirmMatch" class="mt-3">Passwords match&nbsp;<i class="fas fa-check -color-green-text"></i></div>
                     </div>
                     <button type="submit" class="btn btn-primary" @click="saveChange($event, true)">Save password</button>
                 </form>

@@ -112,15 +112,15 @@
                 :items="getSkillLevelNumbersFromBits(file.skillLevelBits)"
                 placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="file.skillLevelBits = $event"
             />
-            <a href="#" @click="removeFileInput(fileId)"><font-awesome-icon :icon="['fas', 'trash']" class="-color-red-fa"/> Remove file</a>
+            <a href="#" @click="removeFileInput(fileId)"><i class="fas fa-trash -color-red-fa"></i> Remove file</a>
             &nbsp;&nbsp;
             <a v-if="file.oldFile || file.id" href="#" @click="changeFile(fileId)">
-                <font-awesome-icon :icon="['fas', 'exchange-alt']"/>
+                <i class="fas fa-exchange-alt"></i>
                 &nbsp;{{(file.isShowUpload) ? 'Use existing file' : 'Change file'}}
             </a>
         </div>
         <div class="border-top pt-1">
-            <a href="#" @click="addFileInput"><font-awesome-icon :icon="['fas', 'plus']" class="-color-green-fa"/> Add new file</a>
+            <a href="#" @click="addFileInput"><i class="fas fa-plus -color-green-fa"></i> Add new file</a>
         </div>
     </BaseModal>
 </template>

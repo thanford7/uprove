@@ -17,12 +17,12 @@
                 <li v-if="!isMobile" class="nav-item" :class="(isMobile) ? '' : 'dropdown'">
                     <a v-if="!isLoggedIn" class="nav-link" href="#"
                        @click="eventBus.emit('open:signInModal')">
-                        <font-awesome-icon :icon="['fas', 'user-circle']"/>
+                        <i class="fas fa-user-circle"></i>
                         Sign in</a>
                     <template v-else>
                         <a class="nav-link dropdown-toggle no-caret" data-toggle="dropdown" href="#"
                            role="button" aria-haspopup="true" aria-expanded="false">
-                            <font-awesome-icon :icon="['fas', 'user-circle']" size="lg"/>
+                            <i class="fas fa-user-circle fa-lg"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
@@ -47,7 +47,7 @@
             <div class="dropdown show" style="display: inline-block" v-if="isMobile">
                 <a class="dropdown-toggle no-caret" href="#" role="button" id="accountDropdownMenu"
                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <font-awesome-icon class="ms-1 mb-2" :icon="['fas', 'user-circle']" size="lg"/>
+                    <i class="fas fa-user-circle fa-lg ms-1 mb-2"></i>
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdownMenu">

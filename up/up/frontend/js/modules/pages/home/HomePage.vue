@@ -101,7 +101,7 @@
                 <div class="col-md-3 mb-3 text-center">
                     <h4 class="mb-3">You are looking for a...</h4>
                     <div class="text-center" style="display: inline-block">
-                        <font-awesome-icon :icon="['fas', 'user-tie']" size="4x" class="-color-blue-fa"/>
+                        <i class="fas fa-user-tie fa-4x -color-blue-text"></i>
                         <div class="-sub-text">Product manager</div>
                     </div>
                 </div>
@@ -109,19 +109,19 @@
                     <h4 class="mb-3">Who is proficient in...</h4>
                     <div class="mb-2">
                         <div class="text-center" style="display: inline-block">
-                            <font-awesome-icon :icon="['far', 'file-powerpoint']" size="4x" class="-color-blue-fa"/>
+                            <i class="far fa-file-powerpoint fa-4x -color-blue-text"></i>
                             <div class="-sub-text">Powerpoint</div>
                         </div>
                     </div>
                     <div class="mb-2">
                         <div class="text-center" style="display: inline-block">
-                            <font-awesome-icon :icon="['fas', 'laptop-code']" size="4x" class="-color-blue-fa"/>
+                            <i class="fas fa-laptop-code fa-4x -color-blue-text"></i>
                             <div class="-sub-text">Wireframing</div>
                         </div>
                     </div>
                     <div>
                         <div class="text-center" style="display: inline-block">
-                            <font-awesome-icon :icon="['fas', 'chalkboard-teacher']" size="4x" class="-color-blue-fa"/>
+                            <i class="fas fa-chalkboard-teacher fa-4x -color-blue-text"></i>
                             <div class="-sub-text">Public speaking</div>
                         </div>
                     </div>
@@ -130,7 +130,7 @@
                     <h4 class="mb-3">And has...</h4>
                     <div>
                         <div class="text-center" style="display: inline-block">
-                            <font-awesome-icon :icon="['fas', 'user-ninja']" size="4x" class="-color-blue-fa"/>
+                            <i class="fas fa-user-ninja fa-4x -color-blue-text"></i>
                             <div class="-sub-text">Advanced experience (5+ years)</div>
                         </div>
                     </div>
@@ -139,13 +139,13 @@
                     <h4 class="mb-3">Uprove provides...</h4>
                     <div class="mb-3">
                         <div class="text-center" style="display: inline-block">
-                            <font-awesome-icon :icon="['fas', 'users']" size="4x" class="-color-orange-fa"/>
+                            <i class="fas fa-users fa-4x -color-orange-text"></i>
                             <div class="-sub-text">Top performing candidates who have completed projects that match your criteria</div>
                         </div>
                     </div>
                     <div>
                         <div class="text-center" style="display: inline-block">
-                            <font-awesome-icon :icon="['fas', 'tasks']" size="4x" class="-color-orange-fa"/>
+                            <i class="fas fa-tasks fa-4x -color-orange-text"></i>
                             <div class="-sub-text">Projects that can be facilitated and evaluated through Uprove which assess candidates for your selected skills</div>
                         </div>
                     </div>

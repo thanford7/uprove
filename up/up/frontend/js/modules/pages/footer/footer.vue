@@ -5,7 +5,7 @@
                 <ul class="list-table">
                     <li><span class="-text-bold">{{section.header}}</span></li>
                     <li v-for="(item, iIdx) in section.items" :key="iIdx">
-                        <font-awesome-icon v-if="item.icon" :icon="item.icon"/>&nbsp;
+                        <i v-if="item.icon" class="fab" :class="item.icon"></i>&nbsp;
                         <a :href="item.link">
                             {{item.title}}
                         </a>
@@ -49,12 +49,12 @@ export default {
                     header: 'Connect',
                     items: [
                         {
-                            icon: ['fab', 'twitter-square'],
+                            icon: 'fa-twitter-square',
                             title: 'Follow us on Twitter',
                             link: 'https://twitter.com/uprove_co'
                         },
                         {
-                            icon: ['fab', 'linkedin'],
+                            icon: 'fa-linkedin',
                             title: 'Connect on LinkedIn',
                             link: 'https://linkedin.com/company/uprove-co'
                         }

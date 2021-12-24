@@ -5,10 +5,7 @@
             <div class="col-md-2 col-12 profile-picture">
                 <span id="profilePic">
                     <img src="" alt="Profile picture">
-                    <font-awesome-icon
-                        id="editProfile"
-                        :icon="['fas', 'pencil-alt']"
-                    />
+                    <i class="fas fa-pencil-alt" id="editProfile"></i>
                 </span>
                 <h4 class="-text-center">{{initData.firstName}} {{initData.lastName}}</h4>
             </div>

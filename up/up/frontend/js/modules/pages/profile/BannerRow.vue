@@ -3,10 +3,10 @@
         <div class="col-md-2 col-12 profile-picture">
             <span id="profilePic">
                 <img :src="profilePicture" alt="Profile picture">
-                <font-awesome-icon 
+                <i
                     v-if="isOwner"
+                    class="fas fa-pencil-alt"
                     id="editProfile"
-                    :icon="['fas', 'pencil-alt']"
                     @click="eventBus.$emit('open:editProfileModal')"
                     :data-content-item="profile"
                 />
@@ -17,7 +17,7 @@
             <h4 class="d-inline-block">Highlights</h4>
             <div v-if="isOwner" class="d-inline-block -no-horizontal-padding">
                 <button type="button" class="btn btn-sm btn-outline-secondary" @click="eventBus.$emit('open:addContentModal', 'highlight')">
-                    <font-awesome-icon :icon="['fas', 'plus']"/> Add card
+                    <i class="fas fa-plus"></i> Add card
                 </button>
             </div>
 

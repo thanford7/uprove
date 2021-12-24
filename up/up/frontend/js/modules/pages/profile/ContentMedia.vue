@@ -5,7 +5,7 @@
         <div v-if="hasDescription || (contentItem.files && contentItem.files.length)" class="card-body pt-1 pb-1">
             <div v-if="hasDescription" v-html="contentItem.description"></div>
             <div v-for="file in contentItem.files" :key="file.guid">
-                <font-awesome-icon :icon="['fas', 'external-link-alt']"/> <a :href="file.guid" target="_blank">{{file.title}}</a>
+                <i class="fas fa-external-link-alt"></i> <a :href="file.guid" target="_blank">{{file.title}}</a>
             </div>
         </div>
     </div>

@@ -35,11 +35,11 @@
                                 <span
                                     class="hover-show" title="Edit job"
                                     @click="eventBus.emit('open:editJobPostingModal', job)"
-                                ><font-awesome-icon :icon="['fas', 'pencil-alt']"/></span>
+                                ><i class="fas fa-pencil-alt"></i></span>
                                 <span
                                     class="hover-show" title="Invite applicants"
                                     @click="eventBus.emit('open:inviteJobApplicantModal', job)"
-                                ><font-awesome-icon :icon="['fas', 'user-plus']"/></span>
+                                ><i class="fas fa-user-plus"></i></span>
                             </td>
                             <td>{{job.jobTitle}}</td>
                             <td>{{getJobStatus(job)}}</td>
