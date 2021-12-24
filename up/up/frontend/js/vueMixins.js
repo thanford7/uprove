@@ -202,9 +202,18 @@ const ajaxRequestMixin = {
         getAjaxCfgOverride() {
             return {};
         },
+        getDeleteConfirmationMessage() {
+            // subclass
+            return 'Are you sure you want to delete this item?';
+        },
         submitAjaxRequest(requestData, requestCfg = {}) {
             const overrides = Object.assign(this.getAjaxCfgOverride(), requestCfg);
             const method = overrides.method || 'PUT';
+            if (method === 'DELETE' && this.getDeleteConfirmationMessage()) {
+                if (!window.confirm(this.getDeleteConfirmationMessage())) {
+                    return;
+                }
+            }
             return $.ajax(Object.assign({
                 url: this.apiUrl + this.crudUrl,
                 method,

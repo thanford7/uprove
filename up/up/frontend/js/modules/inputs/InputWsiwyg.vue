@@ -258,7 +258,7 @@ export default {
             },
             // autofocus: true,
             content: this.modelValue,
-            onUpdate: () => {
+            onBlur: () => {
                 // HTML
                 this.$emit('update:modelValue', this.$sanitize(this.editor.getHTML()));
 
