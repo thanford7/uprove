@@ -266,7 +266,7 @@ class Project(AuditFields):
 
 
 class ProjectInstructions(AuditFields):
-    project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='projectInstructions')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='projectInstructions')
     instructions = models.TextField()
     skillLevelBit = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
 
