@@ -1,5 +1,6 @@
 <template>
     <div class="container-lg">
+        <BannerAlert/>
         <div class="row mt-3 mb-3">
             <div class="align-items-center" style="display: flex">
                 <img v-if="initData.employer.logo" :src="initData.employer.logo" alt="" class="employer-logo">
@@ -63,12 +64,13 @@
 </template>
 
 <script>
+import BannerAlert from "../../components/BannerAlert";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 
 export default {
     name: "EmployerDashboardPage.vue",
-    components: {EditJobPostingModal, InviteJobApplicantModal},
+    components: {BannerAlert, EditJobPostingModal, InviteJobApplicantModal},
     methods: {
         getJobStatus(job) {
             if (job.closeDate) {

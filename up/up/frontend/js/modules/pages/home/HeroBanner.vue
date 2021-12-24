@@ -17,7 +17,7 @@
         </div>
         <div class="col-md-6 position-relative -color-black -bg-clip-border ps-0 pe-0">
             <video class="background-video" autoplay loop muted poster="">
-              <source :src="globalData.STATIC_URL + 'video/ProjectDemo.mp4'" type="video/mp4">
+              <source :src="globalData.MEDIA_URL + 'ProjectDemo_Hero.mp4'" type="video/mp4">
             </video>
         </div>
     </div>

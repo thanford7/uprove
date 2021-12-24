@@ -153,6 +153,22 @@ class JobPostingView(APIView):
         self.setCustomProjects(employerJob, data['allowedProjects'])
         return Response(status=status.HTTP_200_OK, data=getSerializedEmployerJob(self.getEmployerJob(employerJob.id), isEmployer=True))
 
+    @atomic
+    def delete(self, request, jobId=None):
+        data = request.data
+        jobId = jobId or data['id']
+
+        if not jobId:
+            return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        job = self.getEmployerJob(jobId)
+
+        if not security.isPermittedEmployer(request, job.employer_id):
+            return Response('You do not have permission to delete for this employer', status=status.HTTP_401_UNAUTHORIZED)
+
+        job.delete()
+        return Response(status=status.HTTP_200_OK, data=jobId)
+
     @staticmethod
     def getEmployerJob(jobId):
         try:
