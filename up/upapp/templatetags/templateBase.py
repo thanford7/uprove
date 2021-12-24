@@ -17,10 +17,12 @@ def initBaseVariables(context):
 
     if 'http' in (static := settings.STATIC_URL):
         static = f'{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}/{settings.AWS_LOCATION}/'
+        media = f'{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}/{settings.MEDIA_LOCATION}/'
 
     baseVariables = json.dumps({
         'uproveUser': uproveUser,
-        'STATIC_URL': static
+        'STATIC_URL': static,
+        'MEDIA_URL': media
     })
 
     return mark_safe(baseVariables)
