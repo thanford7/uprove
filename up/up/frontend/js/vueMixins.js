@@ -168,7 +168,7 @@ const ajaxRequestMixin = {
                     ajaxData.append(field, formData[field]);
                 }
             })
-            return this.submitAjaxRequest(ajaxData)
+            return this.submitAjaxRequest(ajaxData, {method: (formData.id) ? 'PUT' : 'POST'})
         },
         saveChange(e, allowDefault = false) {
             if (allowDefault) {
@@ -201,12 +201,7 @@ const ajaxRequestMixin = {
         },
         submitAjaxRequest(requestData, requestCfg = {}) {
             const overrides = Object.assign(this.getAjaxCfgOverride(), requestCfg);
-            let method;
-            if (overrides.method) {
-                method = overrides.method;
-            } else {
-                method = (requestData.id) ? 'PUT' : 'POST';
-            }
+            const method = overrides.method || 'PUT';
             return $.ajax(Object.assign({
                 url: this.apiUrl + this.crudUrl,
                 method,
