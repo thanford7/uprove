@@ -114,6 +114,9 @@ const ajaxRequestMixin = {
             Object.assign(item, newData);
         },
         updateInitDataDelete(deleteId) {
+            if (!deleteId) {
+                return;
+            }
             const updateList = this.getUpdateObject();
             _.remove(updateList, (item) => item.id === deleteId);
         },
