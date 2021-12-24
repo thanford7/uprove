@@ -1,6 +1,6 @@
 <template>
     <span :id="elId">
-        <font-awesome-icon :icon="['fas', 'info-circle']"/>
+        <i class="fas fa-info-circle"></i>
         <slot></slot>
     </span>
 </template>

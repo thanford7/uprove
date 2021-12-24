@@ -9,7 +9,7 @@
     >
         <div class="mb-3">
             <label class="form-label">Suggested instructions
-                <font-awesome-icon :icon="['fas', 'copy']" @click="copyText"/>
+                <i class="fas fa-copy" @click="copyText"></i>
             </label>
             <div id="jobInviteInstructions" class="form-control copy-target">
                 We are using Uprove to conduct a project exercise which will evaluate your skills for the
@@ -20,7 +20,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Invite link
-                <font-awesome-icon :icon="['fas', 'copy']" @click="copyText"/>
+                <i class="fas fa-copy" @click="copyText"></i>
             </label>
             <div class="form-control copy-target">
                 {{ inviteUrl }}

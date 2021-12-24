@@ -51,10 +51,10 @@
                 </div>
             </div>
             <div class="mb-3">
-                <a href="#" @click="deleteEducationItem(educationItemId)"><font-awesome-icon :icon="['fas', 'trash-alt']"/> Delete education</a>
+                <a href="#" @click="deleteEducationItem(educationItemId)"><i class="fas fa-trash-alt"></i> Delete education</a>
             </div>
         </div>
-        <div><a href="#" @click="addEducationItem"><font-awesome-icon :icon="['fas', 'plus-circle']"/> Add new education</a></div>
+        <div><a href="#" @click="addEducationItem"><i class="fas fa-plus-circle"></i> Add new education</a></div>
     </BaseModal>
 </template>
 <script>

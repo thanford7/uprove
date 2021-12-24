@@ -5,28 +5,28 @@
         <div v-for="(section, idx) in profile.sections" :key="`section-${idx}`" class="row -border-bottom--light mb-2 pb-2 ">
             <div class="col-12">
                 <template>
-                    <font-awesome-icon 
+                    <i
                         v-if="!(idx === 0)"
                         @click="move(-1, idx)"
-                        :icon="['fas', 'arrow-up']"
+                        class="fas fa-arrow-up"
                         title="Move section up"
                     />
-                    <font-awesome-icon 
+                    <i
                         v-if="!(idx === profile.sections.length - 1)"
                         @click="move(1, idx)"
-                        :icon="['fas', 'arrow-down']"
+                        class="fas fa-arrow-down"
                         title="Move section down"
                     />
-                    <font-awesome-icon 
-                        :icon="['fas', 'trash']"
+                    <i
                         @click="removeSection(idx)"
-                        title="Remove section" 
+                        class="fas fa-trash"
+                        title="Remove section"
                     />
                 </template>
                 <h4 class="d-inline-block">{{section.title}}</h4>
                 <div v-if="isOwner" class="d-inline-block -no-horizontal-padding">
                     <button type="button" class="btn btn-sm btn-outline-secondary" @click="eventBus.$emit('open:addContentModal', 'section', idx)">
-                        <font-awesome-icon :icon="['fas', 'plus']"/> Add card
+                        <i class="fas fa-plus"></i> Add card
                     </button>
                 </div>
 
@@ -47,7 +47,7 @@
 
         <div class="row mb-2 pb-2 ">
             <button v-if="isOwner" type="button" class="btn btn-sm btn-outline-secondary" @click="eventBus.$emit('open:addSectionModal')">
-                <font-awesome-icon :icon="['fas', 'plus']"/> Add section
+                <i class="fas fa-plus"></i> Add section
             </button>
         </div>
 

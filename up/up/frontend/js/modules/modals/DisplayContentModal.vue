@@ -14,7 +14,7 @@
             <div class="row mb-3">
                 <div v-html="contentItem.description"></div>
                 <div v-for="file in contentItem.files" :key="file.guid">
-                    <font-awesome-icon :icon="['fas', 'external-link-alt']"/> <a :href="file.guid" target="_blank">{{file.title}}</a>
+                    <i class="fas fa-external-link-alt"></i> <a :href="file.guid" target="_blank">{{file.title}}</a>
                 </div>
             </div>
         </template>

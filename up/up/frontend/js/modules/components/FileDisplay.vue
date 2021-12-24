@@ -1,7 +1,7 @@
 <template>
-    <font-awesome-icon :icon="['far', fileIcon]"/>&nbsp;
+    <i class="far" :class="`fa-${fileIcon}`"></i>&nbsp;
     <a v-if="file.file" :href="file.file" download style="overflow-wrap: break-word;">
-        <font-awesome-icon :icon="['fas', 'download']"/>&nbsp;
+        <i class="fas fa-download"></i>&nbsp;
         {{(isUseFileName) ? file.fileName : file.title}}
     </a>
     <span v-else>{{file.title}}</span>&nbsp;<BadgesSkillLevels v-if="isIncludeSkillLevels" :skillLevels="getSkillLevelsFromBits(file.skillLevelBits)"/>

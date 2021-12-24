@@ -5,7 +5,7 @@
             <div class="btn-group">
                 <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" title="Font size"
                         aria-expanded="false">
-                    <font-awesome-icon :icon="['fas', 'text-height']"/>
+                    <i class="fas fa-text-height"></i>
                 </button>
                 <ul class="dropdown-menu">
                     <li :class="{ '-color-moderategray': editor.isActive('heading', {level: 1}) }"
@@ -38,56 +38,56 @@
                 <button type="button" class="btn" title="Bold (Ctrl/Cmd+B)"
                         @click="editor.chain().focus().toggleBold().run()"
                         :class="{ '-color-moderategray': editor.isActive('bold') }">
-                    <font-awesome-icon :icon="['fas', 'bold']"/>
+                    <i class="fas fa-bold"></i>
                 </button>
                 <button type="button" class="btn" title="Italic (Ctrl/Cmd+I)"
                         @click="editor.chain().focus().toggleItalic().run()"
                         :class="{ '-color-moderategray': editor.isActive('italic') }">
-                    <font-awesome-icon :icon="['fas', 'italic']"/>
+                    <i class="fas fa-italic"></i>
                 </button>
                 <button type="button" class="btn" title="Underline (Ctrl/Cmd+Shift+X)"
                         @click="editor.chain().focus().toggleStrike().run()"
                         :class="{ '-color-moderategray': editor.isActive('strike') }">
-                    <font-awesome-icon :icon="['fas', 'strikethrough']"/>
+                    <i class="fas fa-strikethrough"></i>
                 </button>
                 <button type="button" class="btn" title="Underline (Ctrl/Cmd+U)"
                         @click="editor.chain().focus().toggleUnderline().run()"
                         :class="{ '-color-moderategray': editor.isActive('underline') }">
-                    <font-awesome-icon :icon="['fas', 'underline']"/>
+                    <i class="fas fa-underline"></i>
                 </button>
 
                 <!-- Lists and indent -->
                 <button type="button" class="btn" title="Bullet list (Ctrl/Cmd+Shift+8)"
                         @click="editor.chain().focus().toggleBulletList().run()"
                         :class="{ '-color-moderategray': editor.isActive('bulletList') }">
-                    <font-awesome-icon :icon="['fas', 'list-ul']"/>
+                    <i class="fas fa-list-ul"></i>
                 </button>
                 <button type="button" class="btn" title="Numbered list (Ctrl/Cmd+Shift+7)"
                         @click="editor.chain().focus().toggleOrderedList().run()"
                         :class="{ '-color-moderategray': editor.isActive('orderedList') }">
-                    <font-awesome-icon :icon="['fas', 'list-ol']"/>
+                    <i class="fas fa-list-ol"></i>
                 </button>
 
                 <!-- Alignment -->
                 <button type="button" class="btn" title="Align Left (Ctrl/Cmd+L)"
                         @click="editor.chain().focus().setTextAlign('left').run()"
                         :class="{ '-color-moderategray': editor.isActive({ textAlign: 'left' }) }">
-                    <font-awesome-icon :icon="['fas', 'align-left']"/>
+                    <i class="fas fa-align-left"></i>
                 </button>
                 <button type="button" class="btn" title="Center (Ctrl/Cmd+E)"
                         @click="editor.chain().focus().setTextAlign('center').run()"
                         :class="{ '-color-moderategray': editor.isActive({ textAlign: 'center' }) }">
-                    <font-awesome-icon :icon="['fas', 'align-center']"/>
+                    <i class="fas fa-align-center"></i>
                 </button>
                 <button type="button" class="btn" title="Align Right (Ctrl/Cmd+R)"
                         @click="editor.chain().focus().setTextAlign('right').run()"
                         :class="{ '-color-moderategray': editor.isActive({ textAlign: 'right' }) }">
-                    <font-awesome-icon :icon="['fas', 'align-right']"/>
+                    <i class="fas fa-align-right"></i>
                 </button>
                 <button type="button" class="btn" title="Justify (Ctrl/Cmd+J)"
                         @click="editor.chain().focus().setTextAlign('justify').run()"
                         :class="{ '-color-moderategray': editor.isActive({ textAlign: 'justify' }) }">
-                    <font-awesome-icon :icon="['fas', 'align-justify']"/>
+                    <i class="fas fa-align-justify"></i>
                 </button>
             </div>
             <div class="btn-group">
@@ -95,7 +95,7 @@
                 <button type="button" class="btn" title="Block quote"
                         @click="editor.chain().focus().toggleBlockquote().run()"
                         :class="{ '-color-moderategray': editor.isActive('blockquote') }">
-                    <font-awesome-icon :icon="['fas', 'quote-left']"/>
+                    <i class="fas fa-quote-left"></i>
                 </button>
                 <button type="button" class="btn" title="Horizontal rule"
                         @click="editor.chain().focus().setHorizontalRule().run()">---
@@ -104,7 +104,7 @@
                 <!-- Hyperlink -->
                 <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
                         data-original-title="Hyperlink" aria-expanded="false" @click="setUrl">
-                    <font-awesome-icon :icon="['fas', 'link']"/>
+                    <i class="fas fa-link"></i>
                 </button>
                 <div class="dropdown-menu input-append url-form">
                     <div class="input-group">
@@ -114,17 +114,17 @@
                     </div>
                 </div>
                 <button type="button" class="btn" @click="editor.chain().focus().unsetLink().run()">
-                    <font-awesome-icon :icon="['fas', 'unlink']"/>
+                    <i class="fas fa-unlink"></i>
                 </button>
 
                 <!-- Undo/redo -->
                 <button type="button" class="btn" title="Undo (Ctrl/Cmd+Z)"
                         @click="editor.chain().focus().undo().run()">
-                    <font-awesome-icon :icon="['fas', 'undo']"/>
+                    <i class="fas fa-undo"></i>
                 </button>
                 <button type="button" class="btn" title="Redo (Ctrl/Cmd+Y)"
                         @click="editor.chain().focus().redo().run()">
-                    <font-awesome-icon :icon="['fas', 'redo']"/>
+                    <i class="fas fa-redo"></i>
                 </button>
             </div>
         </div>

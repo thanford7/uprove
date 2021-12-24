@@ -45,7 +45,7 @@
         <div class="mb-3 pt-1 border-top" v-for="customProject in formData.allowedProjects">
             <label :for="`modalJobCustomProject-skillBits-${customProject.id}`" class="form-label">
                 Customize {{getProject(customProject.projectId).title}} Project
-                <a href="#" @click="openCustomProject(customProject)"><font-awesome-icon :icon="['fas', 'external-link-alt']"/> View customized project</a>
+                <a href="#" @click="openCustomProject(customProject)"><i class="fas fa-external-link-alt"></i> View customized project</a>
             </label>
             <InputSelectize
                 :ref="`modalJobCustomProject-skillBits-${customProject.id}`"

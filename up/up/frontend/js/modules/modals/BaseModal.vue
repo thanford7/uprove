@@ -17,7 +17,7 @@
                 </div>
                 <div v-if="!isFooterHidden" class="modal-footer">
                     <button v-if="isAllowDelete" type="button" class="btn btn-danger" @click="$emit('deleteObject', $event)" title="Delete">
-                        <font-awesome-icon :icon="['fas', 'trash']" class="-color-white-fa"/>
+                        <i class="fas fa-trash -color-white-fa"></i>
                     </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button v-if="!isReadOnly" @click="$emit('saveChange', $event)" type="button" class="btn btn-primary">{{primaryButtonText || 'Save changes'}}</button>

@@ -4,25 +4,37 @@
             <h5 class="card-header">
                 {{contentItem.post_title}}
                 <span v-if="$store.state.isOwner" class="float-end">
-                    <font-awesome-icon 
-                        :icon="['fas', 'pencil-alt']" title="Edit content card" 
+                    <i
+                        title="Edit content card"
+                        class="fas fa-pencil-alt"
                         @click="eventBus.$emit(openEvent, contentId)"
                         :data-content-item="contentItem"
                     />
-                    <font-awesome-icon 
-                        :icon="['fas', 'trash']" title="Delete content card" 
+                    <i
+                        title="Delete content card"
+                        class="fas fa-trash"
                         @click="removeCard"
                         :data-content-item="contentItem"
                     />
-                    <font-awesome-icon 
+                    <i
+                        title="Delete content card"
+                        class="fas fa-trash"
+                        @click="removeCard"
+                        :data-content-item="contentItem"
+                    />
+                    <i
                         v-if="!isFirstItem"
                         @click="move(-1)"
-                        :icon="['fas', `arrow-${(isMobile) ? 'up' : 'left'}`]" :title="`Move content card ${(isMobile) ? 'up' : 'left'}`"
+                        class="fas"
+                        :class="`fa-arrow-${(isMobile) ? 'up' : 'left'}`"
+                        :title="`Move content card ${(isMobile) ? 'up' : 'left'}`"
                     />
-                    <font-awesome-icon 
+                    <i
                         v-if="!isLastItem"
                         @click="move(1)"
-                        :icon="['fas', `arrow-${(isMobile) ? 'down' : 'right'}`]" :title="`Move content card ${(isMobile) ? 'down' : 'right'}`"
+                        class="fas"
+                        :class="`fa-arrow-${(isMobile) ? 'down' : 'right'}`"
+                        :title="`Move content card ${(isMobile) ? 'down' : 'right'}`"
                     />
                 </span>
             </h5>

@@ -19,7 +19,7 @@
             <MediaFormContent v-if="['video', 'project'].includes(addContentType)" :contentType="addContentType" :allowedBannerMediaTypes="allowedBannerMediaTypes" ref="formContentMedia"/>
             <ExperienceFormContent v-if="addContentType === 'experience'" ref="formContentExperience"/>
         </div>
-        <div class="modal-body-banner modal-body-banner--bottom"><a id="newItemToggle" href="#" @click="toggleAddNewItem(!isNewItem)"><font-awesome-icon :icon="['fas', 'plus-circle']"/> Add new content</a></div>
+        <div class="modal-body-banner modal-body-banner--bottom"><a id="newItemToggle" href="#" @click="toggleAddNewItem(!isNewItem)"><i class="fas fa-plus-circle"></i> Add new content</a></div>
     </BaseModal>
 </template>
 <script>
