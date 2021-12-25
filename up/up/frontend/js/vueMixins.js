@@ -1,6 +1,7 @@
 import {Popover} from "bootstrap";
 import {TOOLTIPS} from "./definitions";
 import {createStore, mapGetters, mapState} from "vuex";
+import dataUtil from './utils/data'
 import globalData, {USER_BITS} from './globalData';
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
@@ -102,7 +103,7 @@ const ajaxRequestMixin = {
             }
         },
         getUpdateObject() {
-            return (this.initDataKey) ? _.get(this.initData, this.initDataKey) : this.initData;
+            return (this.initDataKey) ? dataUtil.get(this.initData, this.initDataKey) : this.initData;
         },
         updateInitDataPost(newData) {
             const updateList = this.getUpdateObject();
@@ -118,7 +119,7 @@ const ajaxRequestMixin = {
                 return;
             }
             const updateList = this.getUpdateObject();
-            _.remove(updateList, (item) => item.id === deleteId);
+            dataUtil.removeItemFromList(updateList, (item) => item.id === deleteId);
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
             store.commit('addAlert', {
