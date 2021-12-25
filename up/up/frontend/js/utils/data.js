@@ -49,7 +49,7 @@ class DataUtil {
             }
             return (isConvertNull) ? dayjs() : null;
         }
-        return ((_.isNil(dateVal) || dateVal === NULL_DATE_STRING) && !isConvertNull) ? null : dayjs(dateVal);
+        return ((this.isNil(dateVal) || dateVal === NULL_DATE_STRING) && !isConvertNull) ? null : dayjs(dateVal);
     }
 
     getFileNameFromUrl(fileUrl) {
@@ -78,6 +78,10 @@ class DataUtil {
         }, []);
     }
 
+    capitalize(string) {
+        return (string) ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : '';
+    }
+
     get(obj, path, defaultValue = undefined) {
         const travel = regexp =>
             String.prototype.split
@@ -88,6 +92,18 @@ class DataUtil {
         return result === undefined || result === obj ? defaultValue : result;
     }
 
+    isEmpty(obj) {
+        return [Object, Array].includes((obj || {}).constructor) && !Object.entries((obj || {})).length;
+    }
+
+    isNil(val) {
+        return val === undefined || val === null;
+    }
+
+    isString(val) {
+        return !this.isNil(val) && typeof val.valueOf() === 'string';
+    }
+
     removeItemFromList(targetList, itemFindFn) {
         const listIdx = targetList.findIndex(itemFindFn);
         if (listIdx !== -1) {
@@ -95,10 +111,39 @@ class DataUtil {
         }
     }
 
-    // omit(targetObject, omitList) {
-    //     const {...omitList, ...omitResult} = targetObject;
-    //     return omitResult;
-    // }
+    omit(targetObject, omitList) {
+        const objCopy = {...targetObject};
+        omitList.forEach((omission) => {
+            delete objCopy[omission];
+        })
+        return objCopy;
+    }
+
+    sortBy(targetArray, sortKey) {
+        const newArray = [...targetArray];
+        newArray.sort((a, b) => (a[sortKey] > b[sortKey]) ? 1 : ((b[sortKey] > a[sortKey]) ? -1 : 0));
+        return newArray;
+    }
+
+    sum(vals) {
+        if (!Array.isArray(vals)) {
+            return vals;
+        }
+        return vals.reduce((total, val) => {
+            total += val;
+            return total;
+        }, 0)
+    }
+
+    uniqWith(targetList, uniqFn) {
+        return targetList.filter((el, idx) => targetList.findIndex((step) => uniqFn(el, step)) === idx);
+    }
+
+    uniqBy(targetList, uniqKey) {
+        return this.uniqWith(targetList, (a, b) => this.get(a, uniqKey) === this.get(b, uniqKey));
+    }
 }
 
-export default new DataUtil();
+const dataUtil = new DataUtil();
+
+export default dataUtil;

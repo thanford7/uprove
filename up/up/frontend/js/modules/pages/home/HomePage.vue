@@ -171,7 +171,7 @@
                     </p>
                 </div>
                 <div class="col-md-6">
-                    <img :src="globalData.STATIC_URL + 'img/happyCandidates.jpg'" alt="" class="p-md-5">
+                    <img :src="globalData.STATIC_URL + 'img/happyCandidates.jpg'" alt="" class="p-md-5 w-100">
                 </div>
             </div>
         </div>

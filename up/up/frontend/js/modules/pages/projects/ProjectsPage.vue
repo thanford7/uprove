@@ -41,7 +41,7 @@
 <script>
 import InputSelectize from "../../inputs/InputSelectize";
 import ProjectCard from "../../components/ProjectCard";
-import _ from "lodash";
+import dataUtil from "../../../utils/data";
 
 export default {
     name: "ProjectsPage.vue",
@@ -73,14 +73,14 @@ export default {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), ['text'])
+                options: dataUtil.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), 'text')
             };
         },
         projectSkillsCfg() {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
+                options: dataUtil.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
             };
         },
         projectSkillLevelsCfg() {

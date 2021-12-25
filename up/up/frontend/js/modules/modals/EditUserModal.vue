@@ -75,6 +75,7 @@ import BaseModal from "./BaseModal";
 import InputEmail from "../inputs/InputEmail";
 import InputSelectize from "../inputs/InputSelectize";
 import {severity} from "../../vueMixins";
+import dataUtil from "../../utils/data";
 
 export default {
     name: "EditUserModal.vue",
@@ -129,7 +130,7 @@ export default {
         },
         processFormData() {
             const formData = this.readForm();
-            return Object.assign({}, formData, {userTypeBits: _.sum(formData.userTypes)});
+            return Object.assign({}, formData, {userTypeBits: dataUtil.sum(formData.userTypes)});
         },
         isGoodFormFields(formData) {
             if (formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
