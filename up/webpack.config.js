@@ -28,7 +28,7 @@ module.exports = function (env, argv) {
             chunkFilename: '[name].[chunkhash].js',
         },
         plugins: [
-            new BundleAnalyzerPlugin(),
+            // new BundleAnalyzerPlugin(),
             new MiniCssExtractPlugin({
                 filename: '[name].css',
                 chunkFilename: '[name].[hash].css'
