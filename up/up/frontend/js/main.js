@@ -17,7 +17,7 @@ if (jQueryConsole) {
     window.$ = window.jQuery = $;
 }
 
-_.defer(() => {
+setTimeout(() => {
     const pageName = $('body').data('page');
     const {page, banner} = Pages[pageName];
     initSelectize();
@@ -36,6 +36,6 @@ _.defer(() => {
         $(document.body).removeClass('modal-open');
         $('.modal-backdrop').remove();
     });
-});
+}, 1);
 
-_.defer(() => $(window).trigger('resize-throttled'));
+setTimeout(() => $(window).trigger('resize-throttled'), 1);
