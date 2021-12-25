@@ -136,7 +136,6 @@ import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import form from "../../utils/form";
 import $ from "jquery";
-import _ from 'lodash';
 
 export default {
     name: "EditProjectModal.vue",
@@ -164,22 +163,22 @@ export default {
     },
     computed: {
         allowImageToggle() {
-            return _.isString(this.formData.image) || _.isString(this.formData.oldImage);
+            return dataUtil.isString(this.formData.image) || dataUtil.isString(this.formData.oldImage);
         },
         isImageUpload() {
-            return !this.formData.image || !_.isString(this.formData.image);
+            return !this.formData.image || !dataUtil.isString(this.formData.image);
         },
         projectFunctionsCfg() {
             return {
                 maxItems: 1,
-                options: _.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), ['text'])
+                options: dataUtil.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), 'text')
             };
         },
         projectSkillsCfg() {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
+                options: dataUtil.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
             };
         },
         projectSkillLevelsCfg() {
@@ -247,7 +246,7 @@ export default {
             this.requiredFields.skillLevelBits = this.$refs['projectSkillLevels'].targetEl;
 
             const formData = rawData.formData;
-            if (!formData || _.isEmpty(formData)) {
+            if (!formData || dataUtil.isEmpty(formData)) {
                 return {newFiles: {}, newInstructions: {}};
             }
 
@@ -281,12 +280,12 @@ export default {
         processFormData() {
             const formData = this.readForm();
             return Object.assign({},
-                _.omit(formData, ['files', 'newFiles', 'instructions', 'newInstructions']),
+                dataUtil.omit(formData, ['files', 'newFiles', 'instructions', 'newInstructions']),
                 {
                     filesMetaData: Object.values(formData.newFiles).map((file) => {
                         return Object.assign(
-                            _.omit(file, 'file'),
-                            {fileKey: _.isString(file.file) ? null : file.file.name}
+                            dataUtil.omit(file, 'file'),
+                            {fileKey: dataUtil.isString(file.file) ? null : file.file.name}
                         )
                     }),
                     files: Object.values(formData.newFiles).map((file) => file.file),

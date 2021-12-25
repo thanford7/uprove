@@ -7,7 +7,6 @@ import initSelectize from "./customSelectize";
 import initVue from './vueCommon';
 import Pages from './mainPageLoader';
 import 'jquery';
-import _ from 'lodash';
 
 let jQueryConsole = false;
 /* dev-only */

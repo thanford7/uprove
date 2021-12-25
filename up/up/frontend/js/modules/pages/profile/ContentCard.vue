@@ -50,10 +50,11 @@
     </div>
 </template>
 <script>
-import {mapGetters, mapState} from 'vuex';
+import {mapGetters} from 'vuex';
 import ContentEducation from './ContentEducation.vue';
 import ContentExperience from './ContentExperience.vue';
 import ContentMedia from './ContentMedia.vue';
+import dataUtil from "../../../utils/data";
 import Layout from '../../../utils/layout';
 import ViewMoreLink from '../../components/ViewMoreLink.vue';
 
@@ -80,7 +81,7 @@ export default {
             if (['video', 'project'].includes(this.contentItem.post_type)) {
                 openType = 'Media'
             } else {
-                openType = _.capitalize(this.contentItem.post_type)
+                openType = dataUtil.capitalize(this.contentItem.post_type)
             }
             return `open:edit${openType}Modal`
         },
@@ -118,7 +119,7 @@ export default {
             if(!window.confirm(`Are you sure you want to remove this ${this.contentSection} card? This will not delete it, only remove it from the page.`)) {
                 return;
             }
-            this.$store.commit(`remove${_.capitalize(this.contentSection)}Id`, {id: this.contentId, sectionIdx: this.contentSectionOrder});
+            this.$store.commit(`remove${dataUtil.capitalize(this.contentSection)}Id`, {id: this.contentId, sectionIdx: this.contentSectionOrder});
         },
         getMoreContentFn() {
             return () => this.eventBus.$emit('open:displayContentModal', this.contentItem.ID);
@@ -131,7 +132,7 @@ export default {
             }
         },
         move(direction) {
-            this.$store.commit(`move${_.capitalize(this.contentSection)}Id`, {itemIdx: this.contentItemOrder, sectionIdx: this.contentSectionOrder, direction})
+            this.$store.commit(`move${dataUtil.capitalize(this.contentSection)}Id`, {itemIdx: this.contentItemOrder, sectionIdx: this.contentSectionOrder, direction})
         }
     },
     mounted() {

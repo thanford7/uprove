@@ -2,6 +2,8 @@
     <select :id="elId || _uid" :placeholder="placeholder"></select>
 </template>
 <script>
+import dataUtil from '../../utils/data';
+
 export default {
     data() {
         return {
@@ -33,7 +35,7 @@ export default {
                     val = this.parseInteger(val);
                 }
                 if (this.isParseAsBits && Array.isArray(val)) {
-                    val = _.sum(val);
+                    val = dataUtil.sum(val);
                 }
                 this.$emit('selected', val);
             });

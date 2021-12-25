@@ -3,6 +3,7 @@
 </template>
 <script>
 import {mapState} from 'vuex';
+import dataUtil from '../../utils/data';
 
 export default {
     data() {
@@ -54,7 +55,7 @@ export default {
             return parseInt(this.mediaSel.getValue());
         },
         createSelectize() {
-            const optgroups = _.uniqBy(this.media.map((mediaItem) => ({groupName: _.capitalize(mediaItem.type), groupValue: mediaItem.type})), 'groupName');
+            const optgroups = dataUtil.uniqBy(this.media.map((mediaItem) => ({groupName: dataUtil.capitalize(mediaItem.type), groupValue: mediaItem.type})), 'groupName');
             this.mediaSel = $(`#${this.elId || this._uid}`).selectize({
                 options: this.media,
                 valueField: 'id',

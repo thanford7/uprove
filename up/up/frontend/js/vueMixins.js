@@ -162,7 +162,7 @@ const ajaxRequestMixin = {
                 return false;
             }
             const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(_.omit(formData, this.mediaFields || [])));
+            ajaxData.append('data', JSON.stringify(dataUtil.omit(formData, this.mediaFields || [])));
             (this.mediaFields || []).forEach((field) => {
                 if (Array.isArray(formData[field])) {
                     formData[field].forEach((file) => {

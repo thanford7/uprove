@@ -79,7 +79,6 @@ import dataUtil from "../../../utils/data";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import FileDisplay from "../../components/FileDisplay";
 import InputSelectize from "../../inputs/InputSelectize";
-import _ from "lodash";
 
 export default {
     name: "ProjectPage.vue",
@@ -99,14 +98,14 @@ export default {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.jobs.map((j) => ({value: j.id, text: j.jobTitle})), ['text'])
+                options: dataUtil.sortBy(this.initData.jobs.map((j) => ({value: j.id, text: j.jobTitle})), 'text')
             };
         },
         projectSkillsCfg() {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.project.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
+                options: dataUtil.sortBy(this.initData.project.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
             };
         },
         projectSkillLevelCfg() {

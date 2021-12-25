@@ -3,6 +3,7 @@
 </template>
 <script>
 import {mapState} from 'vuex';
+import dataUtil from '../../utils/data';
 
 export default {
     data() {
@@ -47,7 +48,7 @@ export default {
     mounted() {
         if(!this.contentSel) {
             const options = this.getContentOptions();
-            const optgroups = _.uniqBy(options.map((option) => ({groupName: _.capitalize(option.post_type), groupValue: option.post_type})), 'groupValue');
+            const optgroups = dataUtil.uniqBy(options.map((option) => ({groupName: dataUtil.capitalize(option.post_type), groupValue: option.post_type})), 'groupValue');
             this.contentSel = $('#selectContent').selectize({
                 options,
                 valueField: 'ID',

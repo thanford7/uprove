@@ -12,9 +12,9 @@
     </BaseModal>
 </template>
 <script>
-import Modal from 'bootstrap/js/dist/modal';
 import {mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
+import dataUtil from '../../utils/data';
 import InputSelectize from '../inputs/InputSelectize.vue';
 
 export default {
@@ -49,7 +49,7 @@ export default {
     },
     methods: {
         processFormData(formData) {
-            if (_.isNil(formData)) {
+            if (dataUtil.isNil(formData)) {
                 return null;
             }
             return {sections: JSON.stringify([...this.profile.sections, {title: formData.title, ids: []}])};

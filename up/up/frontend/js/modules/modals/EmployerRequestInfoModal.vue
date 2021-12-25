@@ -61,9 +61,10 @@
 
 <script>
 import BaseModal from './BaseModal.vue';
-import InputEmail from "../inputs/InputEmail";
-import InputSelectize from "../inputs/InputSelectize";
-import FormChecker from "../../utils/form";
+import dataUtil from '../../utils/data';
+import InputEmail from '../inputs/InputEmail';
+import InputSelectize from '../inputs/InputSelectize';
+import FormChecker from '../../utils/form';
 
 export default {
     name: "EmployerRequestInfoModal.vue",
@@ -100,14 +101,14 @@ export default {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), ['text'])
+                options: dataUtil.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), 'text')
             }
         },
         skillsCfg() {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
+                options: dataUtil.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
             }
         }
     },

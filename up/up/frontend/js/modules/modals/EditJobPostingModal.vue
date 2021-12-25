@@ -74,7 +74,6 @@ import dataUtil from "../../utils/data";
 import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
-import _ from "lodash";
 import form from "../../utils/form";
 import $ from "jquery";
 
@@ -101,7 +100,7 @@ export default {
             return {
                 plugins: ['uprove', 'remove_button'],
                 maxItems: null,
-                optgroups: _.sortBy(_.uniqBy(this.initData.projects.map((p) => ({group: p.function})), 'group'), ['group']),
+                optgroups: dataUtil.sortBy(dataUtil.uniqBy(this.initData.projects.map((p) => ({group: p.function})), 'group'), 'group'),
                 optgroupValueField: 'group',
                 optgroupLabelField: 'group',
                 optgroupField: 'function',
@@ -166,7 +165,7 @@ export default {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: _.sortBy(project.skills.map((s) => ({value: s.id, text: s.skillName})), ['text'])
+                options: dataUtil.sortBy(project.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
             };
         },
         openCustomProject(customProject) {
@@ -208,14 +207,14 @@ export default {
 
             for (let i = 0; i < formData.allowedProjects.length; i++) {
                 const customProject = formData.allowedProjects[i];
-                if (_.isNil(customProject.skillLevelBit)) {
+                if (dataUtil.isNil(customProject.skillLevelBit)) {
                     this.addPopover($(this.$refs[`modalJobCustomProject-skillBits-${customProject.id}`].targetEl),
                     {severity: severity.WARN, content: 'Required field', isOnce: true}
                         );
                     return false;
                 }
 
-                if (_.isNil(customProject.skillIds)) {
+                if (dataUtil.isNil(customProject.skillIds)) {
                     this.addPopover($(this.$refs[`modalJobCustomProject-skills-${customProject.id}`].targetEl),
                     {severity: severity.WARN, content: 'Required field', isOnce: true}
                         );

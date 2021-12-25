@@ -23,13 +23,14 @@
     </BaseModal>
 </template>
 <script>
-import Modal from 'bootstrap/js/dist/modal';
 import {mapGetters, mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
 import ContentSelectize from '../inputs/ContentSelectize.vue';
+import dataUtil from '../../utils/data';
 import ExperienceFormContent from './ExperienceFormContent.vue';
-import MediaFormContent from './MediaFormContent.vue';
 import InputSelectize from '../inputs/InputSelectize.vue';
+import MediaFormContent from './MediaFormContent.vue';
+import Modal from 'bootstrap/js/dist/modal';
 
 export default {
     extends: BaseModal,
@@ -104,7 +105,7 @@ export default {
         },
         saveChange() {
             if (!this.isNewItem && this.selectedContentId) {
-                this.$store.commit(`add${_.capitalize(this.contentSection)}Id`, {id: this.selectedContentId, sectionIdx: this.contentSectionOrder});
+                this.$store.commit(`add${dataUtil.capitalize(this.contentSection)}Id`, {id: this.selectedContentId, sectionIdx: this.contentSectionOrder});
             } else {
                 this.$super(BaseModal).saveChange({method: 'POST'});
             }
@@ -112,7 +113,7 @@ export default {
         onSaveSuccess(newContentItem) {
             this.eventBus.loadContent(['media', this.addContentType]).then(() => {
                 const lastContentItem = this.getLastContentType(this.addContentType);
-                this.$store.commit(`add${_.capitalize(this.contentSection)}Id`, {id: lastContentItem.ID});
+                this.$store.commit(`add${dataUtil.capitalize(this.contentSection)}Id`, {id: lastContentItem.ID});
             });
         },
         toggleAddNewItem(isNewItem) {
