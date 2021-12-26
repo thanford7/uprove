@@ -4,6 +4,7 @@ const {VueLoaderPlugin} = require('vue-loader');
 const webpack = require('webpack');
 const CompressionPlugin = require("compression-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
 const zlib = require("zlib");
 
 const path = require('path');
@@ -39,9 +40,7 @@ module.exports = function (env, argv) {
                 __VUE_PROD_DEVTOOLS__: false
             }),
             new VueLoaderPlugin(),
-            new CleanWebpackPlugin({
-                cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
-            }),
+            new CleanWebpackPlugin(),
             new CompressionPlugin({
                 filename: "[path][base].br",
                 algorithm: "brotliCompress",
@@ -58,7 +57,8 @@ module.exports = function (env, argv) {
             new webpack.ProvidePlugin({
               $: 'jquery',
               jQuery: 'jquery',
-            })
+            }),
+            new WebpackManifestPlugin()
         ],
         resolve: {
             alias: {
