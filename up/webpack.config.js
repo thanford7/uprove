@@ -118,8 +118,8 @@ module.exports = function (env, argv) {
         },
         optimization: {
             splitChunks: {
-                chunks: 'all',
-                maxSize: 600000,
+                // chunks: 'all',
+                // maxSize: 600000,
                 cacheGroups: {
                     commons: {
                         test: /[\\/]node_modules[\\/]/,
