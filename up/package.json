@@ -87,6 +87,8 @@
     "webpack-cli": "^4.7.0",
     "webpack-dev-server": "^4.3.1",
     "webpack-manifest-plugin": "^4.0.2",
+    "webpack-nano": "^1.1.1",
+    "webpack-plugin-serve": "^1.5.0",
     "webpack-strip-block": "^0.3.0"
   }
 }

@@ -16,7 +16,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,400;0,700;1,200;1,400;1,700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" href="{% manifest 'main.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'main.css' %}">
     </head>
     <body data-page="{% block baseClass %}BasePage{% endblock %}">
         {% block navBar %}
@@ -52,7 +52,7 @@
                 window.initData = (Boolean("{{data}}")) ? JSON.parse("{{data|escapejs}}") : {};
             </script>
             {% block djangoDataScript %}{% endblock %}
-            {% manifest_match 'main*.js' '<script type="text/javascript" src="{match}"></script>' %}
+            <script type="text/javascript" src="{% static 'main.js' %}"></script>
             <!-- Start of HubSpot Embed Code -->
             <script type="text/javascript" id="hs-script-loader" async defer src="//js-na1.hs-scripts.com/21125066.js"></script>
             <!-- End of HubSpot Embed Code -->

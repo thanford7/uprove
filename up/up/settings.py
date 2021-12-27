@@ -175,9 +175,9 @@ STATICFILES_DIRS = [
 logger.info(f'STATIC DIRS: {STATICFILES_DIRS}')
 
 MANIFEST_LOADER = {
-    'output_dir': os.path.join(BASE_DIR, 'up/frontend/dist'),  # where webpack outputs to, if not set, will search in STATICFILES_DIRS for the manifest.
+    'output_dir': None,  # where webpack outputs to, if not set, will search in STATICFILES_DIRS for the manifest.
     'manifest_file': 'manifest.json',  # name of your manifest file
-    'cache': True,  # recommended True for production, requires a server restart to pick up new values from the manifest.
+    'cache': not DEBUG,  # recommended True for production, requires a server restart to pick up new values from the manifest.
 }
 
 
