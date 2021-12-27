@@ -1,9 +1,11 @@
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const {VueLoaderPlugin} = require('vue-loader');
-const webpack = require('webpack');
+const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
+const {WebpackPluginServe: Serve} = require('webpack-plugin-serve');
 const CompressionPlugin = require("compression-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
 const zlib = require("zlib");
 
 const path = require('path');
@@ -20,7 +22,7 @@ module.exports = function (env, argv) {
         mode: (env.production) ? 'production' : 'development',
         context: __dirname,
         devtool: 'source-map',
-        entry: path.resolve(__dirname, 'up/frontend/js/main.js'),
+        entry: [path.resolve(__dirname, 'up/frontend/js/main.js')],
         output: {
             path: path.resolve(__dirname, 'up/frontend/dist/'),
             publicPath: '/static/',
@@ -39,9 +41,7 @@ module.exports = function (env, argv) {
                 __VUE_PROD_DEVTOOLS__: false
             }),
             new VueLoaderPlugin(),
-            new CleanWebpackPlugin({
-                cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
-            }),
+            new CleanWebpackPlugin(),
             new CompressionPlugin({
                 filename: "[path][base].br",
                 algorithm: "brotliCompress",
@@ -56,8 +56,12 @@ module.exports = function (env, argv) {
                 deleteOriginalAssets: false,
             }),
             new webpack.ProvidePlugin({
-              $: 'jquery',
-              jQuery: 'jquery',
+                $: 'jquery',
+                jQuery: 'jquery',
+            }),
+            new WebpackManifestPlugin({
+                publicPath: '',
+                writeToFileEmit: true
             })
         ],
         resolve: {
@@ -129,23 +133,6 @@ module.exports = function (env, argv) {
                 }
             }
         },
-        devServer: {
-            host: '0.0.0.0',
-            historyApiFallback: {
-                index: '/404/'
-            },
-            watchFiles: ['up/frontend/js/*.js', 'up/frontend/js/*.vue', 'up/frontend/js/**/*.js', 'up/frontend/js/**/*.vue'],
-            hot: true,
-            port: 3000,
-            proxy: {
-                '!/static': {
-                    target: 'http://localhost:8000'
-                }
-            },
-            static: {
-                directory: path.join(__dirname, 'up/frontend/dist')
-            }
-        }
     }
 
     if (env.production) {
@@ -162,6 +149,22 @@ module.exports = function (env, argv) {
                 }
             }]
         });
+    } else {
+        // Add dev server
+        cfg.entry.unshift('webpack-plugin-serve/client');
+        cfg.plugins.push(new Serve({
+            host: '0.0.0.0',
+            port: 3000,
+            historyFallback: {
+                index: '/404/'
+            },
+            log: {level: 'debug'},
+            static: path.join(__dirname, 'up/frontend/dist'),
+            middleware: (app, builtins) => {
+                app.use(builtins.proxy('!/static', {target: 'http://localhost:8000'}));
+            }
+        }));
+        cfg.watch = true;
     }
 
     return cfg;

@@ -1,3 +1,4 @@
+{% load manifest %}
 {% load static %}
 {% load templateBase %}
 <!DOCTYPE html>
@@ -43,7 +44,7 @@
 
         {% csrf_token %}
         {% block scripts %}
-            <script type="text/javascript" src="{% static 'external-packages.js' %}"></script>
+            {% manifest_match 'external-packages*.js' '<script type="text/javascript" src="{match}"></script>' %}
             <script id="globalData">
                 window.globalData = {% initBaseVariables %}
             </script>
