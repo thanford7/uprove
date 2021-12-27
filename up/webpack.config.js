@@ -13,13 +13,11 @@ const postCSSPlugins = [require("postcss-import"), require("postcss-mixins"), re
 
 
 module.exports = function (env, argv) {
-    const task = env.npm_lifecycle_event;
-    const isFullBuild = ['build', 'buildWatch'].includes(task);
-    if (isFullBuild) {
+    if (env.WEBPACK_BUILD) {
         postCSSPlugins.push(require('cssnano'));
     }
     const cfg = {
-        mode: (env.production) ? 'production' : 'development',
+        mode: (env.prod) ? 'production' : 'development',
         context: __dirname,
         devtool: 'source-map',
         entry: [path.resolve(__dirname, 'up/frontend/js/main.js')],
@@ -122,8 +120,8 @@ module.exports = function (env, argv) {
         },
         optimization: {
             splitChunks: {
-                // chunks: 'all',
-                // maxSize: 600000,
+                chunks: 'all',
+                maxSize: 600000,
                 cacheGroups: {
                     commons: {
                         test: /[\\/]node_modules[\\/]/,
@@ -135,7 +133,7 @@ module.exports = function (env, argv) {
         },
     }
 
-    if (env.production) {
+    if (env.prod) {
         cfg.module.rules.push({
             test: /\.(js|vue)$/,
             enforce: 'pre',

@@ -10,6 +10,7 @@
     "serve": "webpack serve",
     "buildWatch": "webpack watch",
     "build": "webpack",
+    "prod": "webpack --env prod",
     "createWebpackProfile": "webpack-cli --profile --json > compilation-stats.json",
     "bundle-report": "webpack-bundle-analyzer --port 4200 compilation-stats.json",
     "test": "echo \"Error: no test specified\" && exit 1"
