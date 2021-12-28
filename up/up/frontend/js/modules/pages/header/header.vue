@@ -1,5 +1,5 @@
 <template>
-    <div class="container-fluid">
+    <div class="container-fluid" id="header-container">
         <a class="navbar-brand" href="/">
             <img class="logo" :src="globalData.STATIC_URL + 'img/logo.png'" alt="Uprove">
         </a>
@@ -78,28 +78,19 @@ export default {
         }
     },
     components: {SignInModal},
-    methods: {
-        hookEvents() {
-            // Open dropdown menu when clicked
-            this.dropdowns = $('.dropdown-toggle').dropdown();
-            this.dropdowns.on('click', (e) => {
-                e.preventDefault();
-                $(e.currentTarget).dropdown('toggle');
-            });
-
-            // Close dropdown menu when clicked outside menu
-            $(':not(.dropdown):not(.dropdown-toggle)').on('click', (e) => {
-                if ($('.dropdown-menu.show').length > 0 && !$(e.target).parents('.dropdown').length) {
-                    $('.dropdown-toggle').dropdown('toggle')
-                }
-            });
-        }
-    },
     mounted() {
-        this.hookEvents();
-    },
-    updated() {
-        this.hookEvents();
+        // Open dropdown menu when clicked
+        $('#header-container').on('click', '.dropdown-toggle', (e) => {
+            e.preventDefault();
+            $(e.currentTarget).dropdown('toggle');
+        });
+
+        // Close dropdown menu when clicked outside menu
+        $('body').on('click', ':not(.dropdown):not(.dropdown-toggle)', (e) => {
+            if ($('.dropdown-menu.show').length > 0 && !$(e.target).parents('.dropdown').length) {
+                $('.dropdown-toggle').dropdown('toggle')
+            }
+        });
     }
 }
 </script>

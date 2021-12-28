@@ -182,8 +182,10 @@ export default {
         setFormFields() {
             this.$refs.jobProjects.elSel.setValue(this.formData.allowedProjects.map((ap) => ap.projectId));
             this.formData.allowedProjects.forEach((ap) => {
+                // Format data for ajax request
                 ap.skillIds = ap.skills.map((s) => s.id);
-            })
+            });
+
         },
         setEmptyFormData() {
             this.formData = {
@@ -240,6 +242,13 @@ export default {
                 }
             });
         }
+    },
+    updated() {
+        this.formData.allowedProjects.forEach((ap) => {
+            // Set selectize elements
+            this.$refs[`modalJobCustomProject-skillBits-${ap.id}`].elSel.setValue(ap.skillLevelBit);
+            this.$refs[`modalJobCustomProject-skills-${ap.id}`].elSel.setValue(ap.skillIds);
+        });
     }
 }
 </script>

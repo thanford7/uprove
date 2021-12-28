@@ -6,7 +6,7 @@
                     <li><span class="-text-bold">{{section.header}}</span></li>
                     <li v-for="(item, iIdx) in section.items" :key="iIdx">
                         <i v-if="item.icon" class="fab" :class="item.icon"></i>&nbsp;
-                        <a :href="item.link">
+                        <a :href="item.link" :target="(item.isNewTab) ? '_blank' : ''">
                             {{item.title}}
                         </a>
                     </li>
@@ -51,12 +51,14 @@ export default {
                         {
                             icon: 'fa-twitter-square',
                             title: 'Follow us on Twitter',
-                            link: 'https://twitter.com/uprove_co'
+                            link: 'https://twitter.com/uprove_co',
+                            isNewTab: true
                         },
                         {
                             icon: 'fa-linkedin',
                             title: 'Connect on LinkedIn',
-                            link: 'https://linkedin.com/company/uprove-co'
+                            link: 'https://linkedin.com/company/uprove-co',
+                            isNewTab: true
                         }
                     ]
                 }

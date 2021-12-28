@@ -175,7 +175,7 @@ const ajaxRequestMixin = {
             return this.submitAjaxRequest(ajaxData, {method: (formData.id) ? 'PUT' : 'POST'})
         },
         saveChange(e, allowDefault = false) {
-            if (allowDefault) {
+            if (!allowDefault) {
                 e.preventDefault();
             }
             this.isAjaxModal = Boolean($(e.currentTarget).parents('.modal').length);

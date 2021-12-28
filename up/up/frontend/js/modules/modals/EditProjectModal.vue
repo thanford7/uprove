@@ -284,7 +284,7 @@ export default {
                 {
                     filesMetaData: Object.values(formData.newFiles).map((file) => {
                         return Object.assign(
-                            dataUtil.omit(file, 'file'),
+                            dataUtil.omit(file, ['file']),
                             {fileKey: dataUtil.isString(file.file) ? null : file.file.name}
                         )
                     }),
