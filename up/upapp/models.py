@@ -11,7 +11,7 @@ __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
     'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectFile', 'Employer',
-    'CustomProject', 'EmployerJob', 'UserJobApplication', 'UserProject'
+    'CustomProject', 'EmployerJob', 'UserJobApplication', 'UserProject', 'BlogPost', 'BlogTag'
 )
 
 
@@ -333,3 +333,16 @@ class UserProject(AuditFields):
     files = models.ManyToManyField(UserFile)
     videos = models.ManyToManyField(UserVideo)
     images = models.ManyToManyField(UserImage)
+
+
+class BlogPost(AuditFields):
+    author = models.ForeignKey(User, on_delete=models.PROTECT)
+    title = models.CharField(max_length=250)
+    picture = models.ImageField(upload_to=getUploadLocation('uploads-blog'), null=True)
+    post = models.TextField()
+    publishDate = models.DateField(null=True)
+    blogTags = models.ManyToManyField('BlogTag')
+
+
+class BlogTag(models.Model):
+    name = models.CharField(max_length=75, unique=True)

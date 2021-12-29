@@ -241,9 +241,9 @@ export default {
             this.$refs['projectEmployer'].elSel.addOption((rawData.employers || []).map((e) => ({value: e.id, text: e.companyName})))
             this.$refs['projectEmployer'].elSel.refreshOptions(false);
 
-            this.requiredFields.functionId = this.$refs['projectFunction'].targetEl;
-            this.requiredFields.skillIds = this.$refs['projectSkills'].targetEl;
-            this.requiredFields.skillLevelBits = this.$refs['projectSkillLevels'].targetEl;
+            this.requiredFields.functionId = this.$refs.projectFunction.targetEl;
+            this.requiredFields.skillIds = this.$refs.projectSkills.targetEl;
+            this.requiredFields.skillLevelBits = this.$refs.projectSkillLevels.targetEl;
 
             const formData = rawData.formData;
             if (!formData || dataUtil.isEmpty(formData)) {

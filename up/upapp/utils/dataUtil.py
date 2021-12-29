@@ -27,3 +27,8 @@ def setObjectAttributes(obj, data: dict, keyFuncDict: dict):
 
     if isChanged and hasattr(obj, 'modifiedDateTime'):
         obj.modifiedDateTime = datetime.utcnow()
+
+
+def capitalizeAllWords(str):
+    words = str.split(' ')
+    return ' '. join([w.capitalize() for w in words])

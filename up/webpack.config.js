@@ -39,7 +39,6 @@ module.exports = function (env, argv) {
                 __VUE_PROD_DEVTOOLS__: false
             }),
             new VueLoaderPlugin(),
-            new CleanWebpackPlugin(),
             new CompressionPlugin({
                 filename: "[path][base].br",
                 algorithm: "brotliCompress",
@@ -147,22 +146,25 @@ module.exports = function (env, argv) {
                 }
             }]
         });
+        cfg.plugins.push(new CleanWebpackPlugin());
     } else {
-        // Add dev server
-        cfg.entry.unshift('webpack-plugin-serve/client');
-        cfg.plugins.push(new Serve({
+        cfg.devServer = {
             host: '0.0.0.0',
-            port: 3000,
-            historyFallback: {
+            historyApiFallback: {
                 index: '/404/'
             },
-            log: {level: 'debug'},
-            static: path.join(__dirname, 'up/frontend/dist'),
-            middleware: (app, builtins) => {
-                app.use(builtins.proxy('!/static', {target: 'http://localhost:8000'}));
+            watchFiles: ['up/frontend/js/*.js', 'up/frontend/js/*.vue', 'up/frontend/js/**/*.js', 'up/frontend/js/**/*.vue'],
+            hot: true,
+            port: 3000,
+            proxy: {
+                '!/static': {
+                    target: 'http://localhost:8000'
+                }
+            },
+            static: {
+                directory: path.join(__dirname, 'up/frontend/dist')
             }
-        }));
-        cfg.watch = true;
+        }
     }
 
     return cfg;

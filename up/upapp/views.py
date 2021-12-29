@@ -1,10 +1,12 @@
 from http import HTTPStatus
 from json import dumps
 
+from django.db.models import F
 from django.shortcuts import render
 
 from upapp import security
 from upapp.modelSerializers import *
+from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import UserView, UserProfileView
@@ -44,6 +46,31 @@ def admin(request):
         'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
         'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
     })})
+
+
+def blog(request, blogId=None):
+    isAdmin = security.isPermittedAdmin(request)
+    data = {'blogTags': [getSerializedBlogTag(bt) for bt in BlogPostView.getBlogTags()]}
+    if blogId:
+        data['blog'] = getSerializedBlog(BlogPostView.getBlogPost(blogId))
+        if not isAdmin and not data['blog']['isPublished']:
+            return _getUnauthorizedPage(request)
+    else:
+        data['blogs'] = [getSerializedBlog(bp) for bp in BlogPostView.getBlogPosts(isPublishedOnly=not isAdmin)]
+    if isAdmin:
+        adminUsers = User.objects\
+            .annotate(is_admin=F('userTypeBits').bitand(User.USER_TYPE_ADMIN))\
+            .filter(djangoUser__is_active=True, is_admin__gt=0)
+        data['authors'] = [{
+            'id': user.id,
+            'firstName': user.firstName,
+            'lastName': user.lastName
+        } for user in adminUsers]
+
+    if blogId:
+        return render(request, 'blogSingle.html', {'data': dumps(data)})
+
+    return render(request, 'blog.html', {'data': dumps(data)})
 
 
 def contact(request):

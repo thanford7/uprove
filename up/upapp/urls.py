@@ -4,6 +4,7 @@ from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
+from upapp.apis import blog
 from upapp.apis import employer
 from upapp.apis import project
 from upapp.apis import sendEmail
@@ -18,8 +19,9 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('admin/', views.admin, name='admin'),
     path('account-settings/<int:userId>/', views.accountSettings, name='accountSettings'),
+    re_path('^blog/(?P<blogId>[0-9]+)?/?$', views.blog, name='blog'),
     path('contact/', views.contact, name='contact'),
-    re_path('employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
+    re_path('^employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
     path('errors/', views.errors, name='errors'),
     path('job-posting/<int:jobId>/', views.jobPosting, name='jobPosting'),
     path('privacy/', views.privacy, name='privacy'),
@@ -32,6 +34,7 @@ urlpatterns = [
     # APIs
     re_path(apiPath + 'account-employer/(?P<employerId>[0-9]+)?/?$', employer.EmployerView.as_view()),
     re_path(apiPath + 'account-user/(?P<userId>[0-9]+)?/?$', user.UserView.as_view()),
+    re_path(apiPath + 'blog/(?P<blogId>[0-9]+)?/?$', blog.BlogPostView.as_view()),
     re_path(apiPath + 'job-posting/(?P<jobId>[0-9]+)?/?$', employer.JobPostingView.as_view()),
     re_path(apiPath + 'job-project-link/(?P<projectId>[0-9]+)?/?$', employer.JobProjectLinkView.as_view()),
     re_path(apiPath + 'project/(?P<projectId>[0-9]+)?/?$', project.ProjectView.as_view()),

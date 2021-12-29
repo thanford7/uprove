@@ -58,3 +58,25 @@ body {
         visibility: visible;
     }
 }
+
+.image-wrap {
+    img {
+        float: left;
+        margin: 5px;
+    }
+    :not(img) {
+        text-align: justify;
+    }
+}
+
+.blog-post {
+    .blog-img {
+        max-height: 300px;
+        max-width: 100%;
+        border: 1px solid colors.$color-lightgrey;
+        border-radius: 10px;
+        margin-right: 15px;
+        margin-bottom: 5px;
+        object-fit: contain;
+    }
+}

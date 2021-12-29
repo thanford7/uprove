@@ -1,3 +1,4 @@
+from datetime import date
 from operator import itemgetter
 
 from upapp.models import *
@@ -180,7 +181,7 @@ def getSerializedOrganization(organization: Organization):
         'id': organization.id,
         'name': organization.name,
         'orgType': organization.orgType,
-        'logo': organization.logo
+        'logo': organization.logo.url if organization.logo else None
     }
 
 
@@ -316,4 +317,29 @@ def getSerializedUserProject(userProject: UserProject):
         'files': [getSerializedUserFile(f) for f in userProject.files.all()],
         'videos': [getSerializedUserVideo(v) for v in userProject.videos.all()],
         'images': [getSerializedUserImage(i) for i in userProject.images.all()]
+    }
+
+
+def getSerializedBlog(blogPost: BlogPost):
+    return {
+        'id': blogPost.id,
+        'author': {
+            'id': blogPost.author.id,
+            'firstName': blogPost.author.firstName,
+            'lastName': blogPost.author.lastName,
+        },
+        'title': blogPost.title,
+        'picture': blogPost.picture.url if blogPost.picture else None,
+        'post': blogPost.post,
+        'publishDate': getDateTimeFormatOrNone(blogPost.publishDate),
+        'isPublished': blogPost.publishDate and blogPost.publishDate <= date.today(),
+        'blogTags': [getSerializedBlogTag(bt) for bt in blogPost.blogTags.all()],
+        **serializeAuditFields(blogPost)
+    }
+
+
+def getSerializedBlogTag(blogTag: BlogTag):
+    return {
+        'id': blogTag.id,
+        'name': blogTag.name
     }

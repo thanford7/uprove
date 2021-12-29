@@ -12,26 +12,26 @@
             <input type="text" class="form-control" placeholder="Required" id="employerCompanyName" v-model="formData.companyName">
         </div>
         <div class="mb-3">
-            <label for="employerLogo" class="form-label">Company logo</label>
-            <div v-if="formData.logo && !isLogoUpload" class="mb-1">
-                <img :src="formData.logo" style="height: 40px;"><br>
-                <a href="#" @click="toggleLogoUpload(true)">Change logo</a>
-            </div>
-            <InputMedia elId="employerLogo" :mediaTypes="['image']" @selected="formData.logo = $event"/>
-            <a v-if="formData.logo && isLogoUpload" href="#" @click="toggleLogoUpload(false)">Use existing logo</a>
+            <InputOrViewMedia
+                inputId="employerLogo"
+                :mediaTypes="['image']"
+                itemLabel="company logo"
+                :currentItem="formData.logo"
+                @selected="formData.logo = $event"
+            />
         </div>
     </BaseModal>
 </template>
 
 <script>
 import BaseModal from "./BaseModal";
-import InputMedia from "../inputs/InputMedia";
+import InputOrViewMedia from "../inputs/InputOrViewMedia";
 
 export default {
     name: "EditEmployerModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InputMedia},
+    components: {BaseModal, InputOrViewMedia},
     data() {
         return {
             modalName: 'editEmployerModal',
@@ -39,7 +39,7 @@ export default {
             isUpdateData: true,
             initDataKey: 'employers',
             requiredFields: {
-                companyName: 'employerCompanyName',
+                companyName: '#employerCompanyName',
             },
             mediaFields: ['logo'],
             isLogoUpload: true

@@ -143,7 +143,9 @@ class UserView(APIView):
 
         user = self.getUser(userId)
         self.updateUser(user, request.data)
-        setUproveUser(request, user.djangoUser)
+        currentUproveUser = security.getSessionUser(request)
+        if security.isSelf(request, userId) or not currentUproveUser:
+            setUproveUser(request, user.djangoUser)
         return Response(getSerializedUser(user), status=status.HTTP_200_OK)
 
     @atomic
@@ -229,8 +231,6 @@ class UserView(APIView):
             'userTypeBits': None,
             'employer_id': {'formName': 'employerId'}
         })
-
-        user.modifiedDateTime = datetime.utcnow()
         user.save()
 
     @staticmethod

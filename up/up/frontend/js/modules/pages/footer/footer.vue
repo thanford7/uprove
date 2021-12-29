@@ -38,11 +38,11 @@ export default {
                         {
                             title: 'Contact',
                             link: '/contact'
+                        },
+                        {
+                            title: 'Blog',
+                            link: '/blog'
                         }
-                        // {
-                        //     title: 'Blog',
-                        //     link: ''
-                        // }
                     ]
                 },
                 {

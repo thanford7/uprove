@@ -107,7 +107,7 @@ class DataUtil {
     removeItemFromList(targetList, itemFindFn) {
         const listIdx = targetList.findIndex(itemFindFn);
         if (listIdx !== -1) {
-            delete targetList[listIdx];
+            targetList.splice(listIdx, 1);
         }
     }
 
