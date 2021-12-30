@@ -57,6 +57,10 @@ class DataUtil {
         return fileName;
     }
 
+    getQueryParams() {
+        return new URLSearchParams(window.location.search);
+    }
+
     getFileType(fileName) {
         if (!fileName) {
             return null;

@@ -43,7 +43,7 @@
             </div>
         </div>
     </div>
-    <EditBlogModal v-if="isSuperUser"/>
+    <EditBlogModal v-if="isSuperUser" newInitDataKey="blogs"/>
 </template>
 
 <script>

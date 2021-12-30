@@ -2,6 +2,7 @@ from http import HTTPStatus
 from json import dumps
 
 from django.db.models import F
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from upapp import security
@@ -9,7 +10,7 @@ from upapp.modelSerializers import *
 from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.project import ProjectView
-from upapp.apis.user import UserView, UserProfileView
+from upapp.apis.user import UserView, UserProfileView, UserProjectView
 from upapp.models import ProjectFunction, ProjectSkill
 
 
@@ -73,6 +74,24 @@ def blog(request, blogId=None):
     return render(request, 'blog.html', {'data': dumps(data)})
 
 
+def candidateDashboard(request, userId=None):
+    user = security.getSessionUser(request)
+    if not user:
+        return _getUnauthorizedPage(request)
+
+    userId = userId or user['id']
+    if not userId:
+        return _getErrorPage(request, HTTPStatus.BAD_REQUEST, 'A user ID is required')
+
+    if not security.isSelf(request, userId):
+        return _getUnauthorizedPage(request)
+
+    return render(request, 'candidateDashboard.html', context={'data': dumps({
+        'user': getSerializedUser(UserView.getUser(userId), isIncludeAssets=True),
+        'userProjects': [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId)]
+    })})
+
+
 def contact(request):
     return render(request, 'contact.html', context={})
 
@@ -110,6 +129,10 @@ def jobPosting(request, jobId):
         'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
         'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
     })})
+
+
+def login(request):
+    return render(request, 'login.html')
 
 
 def privacy(request):
@@ -160,7 +183,7 @@ def _getUnauthorizedPage(request):
     if security.getSessionUser(request):
         return _getErrorPage(request, HTTPStatus.UNAUTHORIZED, 'You do not have permission to view this account')
     else:
-        return render(request, 'login.html')
+        return HttpResponseRedirect(f'/login-page/?next={request.path}')
 
 
 def _getErrorPage(request, errorStatus, errorMessage):

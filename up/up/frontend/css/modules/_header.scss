@@ -18,6 +18,10 @@
         width: 118px;
         background-color: rgb(0, 0, 0, 0);
     }
+
+    .current-page {
+        border-bottom: 2px solid colors.$color-darkblue;
+    }
 }
 
 @include media-breakpoint-down(md) {

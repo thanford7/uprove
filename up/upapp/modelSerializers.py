@@ -35,6 +35,7 @@ def serializeGenericItem(item):
 
 
 def getSerializedUser(user: User, isIncludeAssets: bool=False):
+    profileImage = next((i.image.url for i in user.image.all() if i.isDefault), None)
     serializedUser = {
         'id': user.id,
         'firstName': user.firstName,
@@ -42,6 +43,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'lastName': user.lastName,
         'birthDate': user.birthDate.isoformat(),
         'email': user.email,
+        'profileImage': profileImage,
         'employerId': user.employer_id,
         'userTypeBits': user.userTypeBits,
         'isStaff': user.djangoUser.is_staff,

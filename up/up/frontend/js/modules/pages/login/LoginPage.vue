@@ -12,7 +12,7 @@
                         <label for="loginPassword" class="form-label">Password</label>
                         <input type="password" class="form-control" id="loginPassword" placeholder="Required" v-model="formData.password">
                     </div>
-                    <button type="submit" class="btn btn-primary" @click="saveChange($event, true)">Login</button>
+                    <button type="submit" class="btn btn-primary" @click="saveChange">Login</button>
                 </form>
             </div>
         </div>
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import dataUtil from "../../../utils/data";
 import InputEmail from "../../inputs/InputEmail";
 
 export default {
@@ -37,6 +38,10 @@ export default {
     methods: {
         getAjaxCfgOverride() {
             return {method: 'POST'}
+        },
+        processFormData() {
+            // Add redirect to next page if exists
+            return Object.assign(this.readForm(), {next: dataUtil.getQueryParams().get('next')})
         }
     }
 }

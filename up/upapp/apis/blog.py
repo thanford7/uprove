@@ -70,7 +70,7 @@ class BlogPostView(APIView):
         return Response(status=status.HTTP_200_OK, data=getSerializedBlog(self.getBlogPost(blogPost.id)))
 
     @atomic
-    def delete(self, request, blogId):
+    def delete(self, request, blogId=None):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 

@@ -62,12 +62,12 @@ export default {
     extends: BaseModal,
     inheritAttrs: false,
     components: {BaseModal, InfoToolTip, InputOrViewMedia, InputSelectize, InputWsiwyg},
+    props: ['newInitDataKey', 'newDeleteRedirectUrl'],
     data() {
         return {
             modalName: 'editBlogModal',
             crudUrl: 'blog/',
             isUpdateData: true,
-            initDataKey: 'blogs',
             requiredFields: {
                 title: '#blogTitle',
                 post: '#blogPost',
@@ -101,6 +101,10 @@ export default {
             this.$refs.blogAuthor.elSel.setValue(this.formData.author.id);
             this.$refs.blogTags.elSel.setValue(this.formData.blogTags.map((t) => t.name));
         },
+    },
+    mounted() {
+        this.initDataKey = this.newInitDataKey;
+        this.deleteRedirectUrl = this.newDeleteRedirectUrl;
     }
 }
 </script>

@@ -43,7 +43,9 @@ def getLoginRedirectUrl(request):
     if uproveUser['isSuperUser']:
         pageRedirect = '/admin/'
     elif uproveUser['userTypeBits'] & User.USER_TYPE_CANDIDATE:
-        pageRedirect = '/profiles/'
+        pageRedirect = '/candidateDashboard/'
+    elif uproveUser['userTypeBits'] & User.USER_TYPE_EMPLOYER:
+        pageRedirect = '/employerDashboard/'
 
     return pageRedirect
 
@@ -74,7 +76,7 @@ class LoginView(APIView):
             if errorMsg := setUproveUser(request, user):
                 return Response(status=HTTPStatus.UNAUTHORIZED, data=errorMsg)
 
-            return Response(status=HTTPStatus.OK, data={'pageRedirect': getLoginRedirectUrl(request)})
+            return Response(status=HTTPStatus.OK, data={'pageRedirect': request.data.get('next') or getLoginRedirectUrl(request)})
         else:
             msg = 'Invalid username or password.'
             messages.error(request, msg)

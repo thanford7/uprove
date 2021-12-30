@@ -1,17 +1,20 @@
 <template>
     <div class="container-fluid" id="header-container">
-        <a class="navbar-brand" href="/">
+        <a class="navbar-brand" :href="getHomepageUrl()">
             <img class="logo" :src="globalData.STATIC_URL + 'img/logo.png'" alt="Uprove">
         </a>
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
-                <li class="nav-item">
-                    <a class="nav-link" href="/projects">Projects</a>
+                <li v-if="isSuperUser || isCandidate" :class="(isCurrentUrl('candidateDashboard')) ? 'current-page' : ''">
+                    <a class="nav-link" href="/candidateDashboard">Home</a>
                 </li>
-                <li v-if="isSuperUser || isEmployer">
+                <li v-if="isSuperUser || isEmployer" :class="(isCurrentUrl('employerDashboard')) ? 'current-page' : ''">
                     <a class="nav-link" href="/employerDashboard">Employer Dashboard</a>
                 </li>
-                <li v-if="isSuperUser" class="nav-item">
+                <li class="nav-item" :class="(isCurrentUrl('projects')) ? 'current-page' : ''">
+                    <a class="nav-link" href="/projects">Projects</a>
+                </li>
+                <li v-if="isSuperUser" class="nav-item" :class="(isCurrentUrl('admin')) ? 'current-page' : ''">
                     <a class="nav-link" href="/admin">Admin</a>
                 </li>
                 <li v-if="!isMobile" class="nav-item" :class="(isMobile) ? '' : 'dropdown'">
@@ -78,6 +81,23 @@ export default {
         }
     },
     components: {SignInModal},
+    methods: {
+        getHomepageUrl() {
+            if (this.isCandidate) {
+                return '/candidateDashboard/';
+            }
+            if (this.isEmployer) {
+                return '/employerDashboard/';
+            }
+            return '/';
+        },
+        isCurrentUrl(url) {
+            if (!window.location) {
+                return false;
+            }
+            return window.location.pathname.toLowerCase().includes(url.toLowerCase())
+        }
+    },
     mounted() {
         // Open dropdown menu when clicked
         $('#header-container').on('click', '.dropdown-toggle', (e) => {

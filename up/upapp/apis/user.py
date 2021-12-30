@@ -11,12 +11,12 @@ from rest_framework.response import Response
 
 from upapp import security
 from upapp.models import *
-from upapp.modelSerializers import getSerializedUser
+from upapp.modelSerializers import getSerializedUser, getSerializedUserProject
 from upapp.utils import dataUtil, dateUtil
 
 __all__ = [
     'OrganizationView', 'UserVideoView', 'UserFileView', 'UserImageView', 'UserEducationItemView',
-    'UserExperienceItemView', 'UserContentItemView', 'UserView', 'UserProfileView'
+    'UserExperienceItemView', 'UserContentItemView', 'UserView', 'UserProfileView', 'UserProjectView'
 ]
 
 
@@ -189,7 +189,23 @@ class UserView(APIView):
     @staticmethod
     def getUser(userId):
         try:
-            return User.objects.select_related('djangoUser').prefetch_related('image').get(id=userId)
+            return User.objects\
+                .select_related('djangoUser')\
+                .prefetch_related(
+                    'profile',
+                    'profile__section',
+                    'profile__section__sectionItem',
+                    'profile__section__sectionItem__contentObject',
+                    'education',
+                    'experience',
+                    'contentItem',
+                    'contentItem__section',
+                    'video',
+                    'file',
+                    'image',
+                    'tag'
+                )\
+                .get(id=userId)
         except User.DoesNotExist as e:
             raise e
 
@@ -296,6 +312,57 @@ class UserProfileView(APIView):
                 .get(id=profileId)
         except UserProfile.DoesNotExist as e:
             raise e
+
+
+class UserProjectView(APIView):
+
+    def get(self, request, userId=None, userProjectId=None):
+        userId = userId or request.data.get('userId')
+        userProjectId = userProjectId or request.data.get('userProjectId')
+        if not (userId or userProjectId):
+            return Response('User ID or user project ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        if userId:
+            return Response([getSerializedUserProject(up) for up in self.getUserProjects(userId)], status=status.HTTP_200_OK)
+
+        return Response(getSerializedUserProject(self.getUserProject(userId)), status=status.HTTP_200_OK)
+
+    @staticmethod
+    def getUserProject(userProjectId):
+        try:
+            return UserProject.objects\
+                .select_related(
+                    'customProject',
+                    'customProject__project',
+                    'customProject__project__function',
+                    'user'
+                )\
+                .prefetch_related(
+                    'customProject__skills',
+                    'files',
+                    'images',
+                    'videos'
+                )\
+                .get(id=userProjectId)
+        except UserProject.DoesNotExist as e:
+            raise e
+
+    @staticmethod
+    def getUserProjects(userId):
+        return UserProject.objects\
+            .select_related(
+                'customProject',
+                'customProject__project',
+                'customProject__project__function',
+                'user'
+            )\
+            .prefetch_related(
+                'customProject__skills',
+                'files',
+                'images',
+                'videos'
+            )\
+            .filter(user_id=userId)
 
 
 def generatePassword():

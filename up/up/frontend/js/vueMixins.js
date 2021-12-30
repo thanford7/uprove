@@ -64,7 +64,8 @@ const ajaxRequestMixin = {
             isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
-            isAjaxModal: false
+            isAjaxModal: false,
+            deleteRedirectUrl: null  // (Optional) URL to redirect to if an entity is deleted
         }
     },
     methods: {
@@ -106,15 +107,30 @@ const ajaxRequestMixin = {
             return (this.initDataKey) ? dataUtil.get(this.initData, this.initDataKey) : this.initData;
         },
         updateInitDataPost(newData) {
-            const updateList = this.getUpdateObject();
-            updateList.push(newData);
+            const updateObject = this.getUpdateObject();
+            if (Array.isArray(updateObject)) {
+                updateObject.push(newData);
+            } else if (this.initDataKey) {
+                this.initData[this.initDataKey] = newData;
+            } else {
+                this.initData = newData;
+            }
         },
         updateInitDataPut(newData) {
-            const updateList = this.getUpdateObject();
-            const item = updateList.find((item) => item.id === newData.id);
-            Object.assign(item, newData);
+            const updateObject = this.getUpdateObject();
+            if (Array.isArray(updateObject)) {
+                const item = updateObject.find((item) => item.id === newData.id);
+                Object.assign(item, newData);
+            } else if (this.initDataKey) {
+                this.initData[this.initDataKey] = newData;
+            } else {
+                this.initData = newData;
+            }
         },
         updateInitDataDelete(deleteId) {
+            if (this.deleteRedirectUrl) {
+                window.location.replace(this.deleteRedirectUrl);
+            }
             if (!deleteId) {
                 return;
             }

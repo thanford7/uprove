@@ -22,7 +22,7 @@
             </div>
         </div>
     </div>
-    <EditBlogModal v-if="isSuperUser"/>
+    <EditBlogModal v-if="isSuperUser" newInitDataKey="blog" newDeleteRedirectUrl="/blog/"/>
 </template>
 
 <script>
