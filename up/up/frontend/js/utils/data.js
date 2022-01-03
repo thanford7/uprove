@@ -1,6 +1,8 @@
 import dayjs from "dayjs/esm";
+import relativeTime from 'dayjs/plugin/relativeTime';
 
-const NULL_DATE_STRING = '0000-00-00';  // Wordpress API returns this value if a date is null
+dayjs.extend(relativeTime);
+
 const escapeChars = {lt: '<', gt: '>', quot: '"', apos: "'", amp: '&'};
 
 class DataUtil {
@@ -49,7 +51,7 @@ class DataUtil {
             }
             return (isConvertNull) ? dayjs() : null;
         }
-        return ((this.isNil(dateVal) || dateVal === NULL_DATE_STRING) && !isConvertNull) ? null : dayjs(dateVal);
+        return (this.isNil(dateVal) && !isConvertNull) ? null : dayjs(dateVal);
     }
 
     getFileNameFromUrl(fileUrl) {
@@ -58,7 +60,49 @@ class DataUtil {
     }
 
     getQueryParams() {
-        return new URLSearchParams(window.location.search);
+        const searchParams = new URLSearchParams(window.location.search);
+        const paramDict = {};
+        for (const [key, val] of searchParams.entries()) {
+            if (key in paramDict) {
+                const currentVal = paramDict[key];
+                if (Array.isArray(currentVal)) {
+                    currentVal.push(val);
+                } else {
+                    paramDict[key] = [currentVal, val];
+                }
+            } else {
+                paramDict[key] = val;
+            }
+        }
+        return paramDict;
+    }
+
+    /**
+     * We can't add meta data directly onto file objects and order is not guaranteed when pairing files with
+     * their respective meta data. To handle this, file objects and file meta data are processed into a dictionary
+     * where the lookup value is based on the file object's name. This is the only "unique" key that the file object
+     * possesses. It is possible for a file object to have the same name as another, so duplicate file names should
+     * be guarded against when testing for good form data
+     * @param files {Object|Array} Values are objects which contain meta data and a file
+     * @param metaDataKey {string} The dictionary key which all meta data is assigned to
+     * @param dataKey {string} The dictionary key which all file objects are assigned
+     * @param fileKey {string} The dictionary key to get the file from each respective file object
+     * @returns {Object}
+     */
+    getFileFormatForAjaxRequest(files, metaDataKey, dataKey, fileKey) {
+        if (!Array.isArray(files)) {
+            files = Object.values(files);
+        }
+        files = files.filter((file) => !this.isNil(file[fileKey]));
+        return {
+            [metaDataKey]: files.map((file) => {
+                return Object.assign(
+                    this.omit(file, [fileKey]),
+                    {fileKey: this.isString(file[fileKey]) ? null : file[fileKey].name}
+                )
+            }),
+            [dataKey]: files.map((file) => file[fileKey])
+        };
     }
 
     getFileType(fileName) {
@@ -67,6 +111,20 @@ class DataUtil {
         }
         const [fileType] = fileName.split('.').slice(-1);
         return fileType;
+    }
+
+    getApplicationStatus(jobApplication) {
+        if (jobApplication.approveDateTime) {
+            return `Approved ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
+        } else if (jobApplication.declineDateTime) {
+            return `Declined ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
+        } else if (jobApplication.submissionDateTime) {
+            return `Submitted ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
+        } else if (jobApplication.withdrawDateTime) {
+            return `Withdrawn ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
+        } else {
+            return 'Not submitted';
+        }
     }
 
     getSkillLevelNumbersFromBits(skillLevelBits, allSkillLevels) {
@@ -80,6 +138,24 @@ class DataUtil {
             }
             return levels;
         }, []);
+    }
+
+    /**
+     * Sets skill levels from bits
+     * @param objList {Array}: A list of objects, each of which must have a "skillLevelBits" property
+     * @param globalData {Object}
+     * @param isSingle {Boolean}: If true, the singular version of skillLevelBits will be used
+     */
+    setSkillLevels(objList, globalData, isSingle = false) {
+        const skillLevelBitKey = (isSingle) ? 'skillLevelBit' : 'skillLevelBits';
+        objList.forEach((obj) => {
+            obj.skillLevels = Object.entries(globalData.SKILL_LEVEL).reduce((skillLevels, [skillLevelBit, skillLevel]) => {
+                if (skillLevelBit & obj[skillLevelBitKey]) {
+                    skillLevels.push(skillLevel);
+                }
+                return skillLevels;
+            }, []);
+        });
     }
 
     capitalize(string) {
@@ -121,6 +197,15 @@ class DataUtil {
             delete objCopy[omission];
         })
         return objCopy;
+    }
+
+    pick(object, keys) {
+        return keys.reduce((obj, key) => {
+            if (object && object.hasOwnProperty(key)) {
+                obj[key] = object[key];
+            }
+            return obj;
+        }, {});
     }
 
     sortBy(targetArray, sortKey) {

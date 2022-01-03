@@ -41,7 +41,7 @@ export default {
         },
         processFormData() {
             // Add redirect to next page if exists
-            return Object.assign(this.readForm(), {next: dataUtil.getQueryParams().get('next')})
+            return Object.assign(this.readForm(), {next: dataUtil.getQueryParams().next})
         }
     }
 }

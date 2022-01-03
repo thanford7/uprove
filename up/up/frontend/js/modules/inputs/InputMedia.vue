@@ -1,5 +1,6 @@
 <template>
-    <div class="input-image" :id="elId">
+    <div class="input-image d-flex align-items-center" :id="elId">
+        <InfoToolTip :content="`Supported file types are ${supportedFormatsString}`" :elId="getNewElUid()"/>&nbsp;
         <input 
             ref="fileInput"
             type="file"
@@ -7,18 +8,21 @@
             :accept="acceptFormatsString"
             :multiple="isMultiUpload"
             @change="$emit('selected', getFileData())"
+            style="display: inline-block; flex-grow: 1"
         >
-        <span class="-sub-text">Supported file types are {{supportedFormatsString}}</span>
     </div>
 </template>
 <script>
+import InfoToolTip from "../components/InfoToolTip";
+
 export default {
+    components: {InfoToolTip},
     data() {
         return {
             supportedFormats: {
                 image: ['png', 'jpeg', 'jpg', 'gif'],
                 video: ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg'],
-                file: ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet']
+                file: ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet', 'py']
             }
         }
     },

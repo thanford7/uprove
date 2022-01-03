@@ -1,6 +1,5 @@
 import '../css/base.scss';
 import 'bootstrap';
-import dayjs from "dayjs/esm";
 import footer from './modules/pages/footer/footer.vue';
 import header from './modules/pages/header/header.vue';
 import initSelectize from "./customSelectize";

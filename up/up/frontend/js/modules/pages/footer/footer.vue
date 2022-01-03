@@ -1,6 +1,6 @@
 <template>
     <div class="pt-4 pb-2 ps-4 pe-4 container-lg">
-        <div class="row align-items-center mb-2">
+        <div class="row align-items-start mb-2">
             <div v-for="(section, idx) in sections" :key="idx" class="col-md-3 col-12 mb-2">
                 <ul class="list-table">
                     <li><span class="-text-bold">{{section.header}}</span></li>

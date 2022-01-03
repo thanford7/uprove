@@ -8,8 +8,17 @@
         @deleteObject="deleteObject($event)"
     >
         <div class="mb-3">
-            <label for="skillName" class="form-label">Skill name</label>
+            <label for="skillName" class="form-label">Skill Name</label>
             <input type="text" class="form-control" placeholder="Required" id="skillName" v-model="formData.skillName">
+        </div>
+        <div class="mb-3">
+            <label for="skillInstruction" class="form-label">Skill Instruction</label>
+            <textarea
+                rows="3" class="form-control"
+                placeholder="Optional"
+                id="skillInstruction"
+                v-model="formData.instruction"
+            />
         </div>
     </BaseModal>
 </template>

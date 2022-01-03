@@ -3,15 +3,16 @@ from datetime import datetime
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
 from django.db import IntegrityError
+from django.db.models import Q, ProtectedError
 from django.db.transaction import atomic
 from django.utils import crypto
-from rest_framework import status
+from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from upapp import security
 from upapp.models import *
-from upapp.modelSerializers import getSerializedUser, getSerializedUserProject
+from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject
 from upapp.utils import dataUtil, dateUtil
 
 __all__ = [
@@ -315,41 +316,163 @@ class UserProfileView(APIView):
 
 
 class UserProjectView(APIView):
+    authentication_classes = (authentication.SessionAuthentication,)
 
     def get(self, request, userId=None, userProjectId=None):
         userId = userId or request.data.get('userId')
         userProjectId = userProjectId or request.data.get('userProjectId')
-        if not (userId or userProjectId):
+        if not any([userId, userProjectId]):
             return Response('User ID or user project ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         if userId:
+            if not security.isSelf(request, userId):
+                return Response('You are not authorized to view this project', status=status.HTTP_401_UNAUTHORIZED)
             return Response([getSerializedUserProject(up) for up in self.getUserProjects(userId)], status=status.HTTP_200_OK)
 
-        return Response(getSerializedUserProject(self.getUserProject(userId)), status=status.HTTP_200_OK)
+        project = self.getUserProjects(userProjectId=userProjectId)
+        if not security.isSelf(request, project.user_id):
+            return Response('You are not authorized to view this project', status=status.HTTP_401_UNAUTHORIZED)
+        return Response(getSerializedUserProject(project), status=status.HTTP_200_OK)
 
-    @staticmethod
-    def getUserProject(userProjectId):
+    @atomic
+    def post(self, request):
+        project = self.createUserProject(request, request.data)
+        # Return error response if something went wrong
+        if isinstance(project, Response):
+            return project
+
+        return Response(status=status.HTTP_200_OK, data=getSerializedUserProject(self.getUserProjects(userProjectId=project.id)))
+
+    @atomic
+    def put(self, request, userProjectId=None):
+        data = request.data
+        userProjectId = userProjectId or data['id']
+        if not userProjectId:
+            return Response('A user project ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        project = self.getUserProjects(userProjectId=userProjectId)
+        if not security.isSelf(request, project.user_id):
+            return Response('You are not authorized to edit this project', status=status.HTTP_401_UNAUTHORIZED)
+
+        isChanged = any([
+            dataUtil.setObjectAttributes(project, data, {
+                'projectNotes': None,
+            }),
+            self.addFiles(project, data, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
+            self.addFiles(project, data, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
+            self.addFiles(project, data, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
+        ])
+
+        if isChanged:
+            project.modifiedDateTime = datetime.utcnow()
+            project.save()
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data=getSerializedUserProject(self.getUserProjects(userProjectId=project.id))
+        )
+
+    def delete(self, request, userProjectId=None):
+        userProjectId = userProjectId or request.data['id']
+        if not userProjectId:
+            return Response('A user project ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        project = self.getUserProjects(userProjectId=userProjectId)
+        if not security.isSelf(request, project.user_id):
+            return Response('You are not authorized to delete this project', status=status.HTTP_401_UNAUTHORIZED)
+
         try:
-            return UserProject.objects\
-                .select_related(
-                    'customProject',
-                    'customProject__project',
-                    'customProject__project__function',
-                    'user'
-                )\
-                .prefetch_related(
-                    'customProject__skills',
-                    'files',
-                    'images',
-                    'videos'
-                )\
-                .get(id=userProjectId)
-        except UserProject.DoesNotExist as e:
-            raise e
+            project.delete()
+        except ProtectedError:
+            return Response(
+                ('You cannot delete this project because it is used in one or more job applications. If you wish to '
+                'delete the project, remove it from any job applications or withdraw your job applications.'),
+                status=status.HTTP_409_CONFLICT
+            )
+        return Response(status=status.HTTP_200_OK, data=userProjectId)
 
     @staticmethod
-    def getUserProjects(userId):
-        return UserProject.objects\
+    def getCreateFileFn(objClass, fileAttr):
+        def createFileFn(userId, fileData, fileMetaData):
+            file = objClass(
+                user_id=userId,
+                title=fileMetaData['title'],
+                createdDateTime=datetime.utcnow(),
+                modifiedDateTime=datetime.utcnow()
+            )
+            setattr(file, fileAttr, fileData)
+            file.save()
+            return file
+
+        return createFileFn
+
+    @staticmethod
+    def addFiles(project, data, fileDataKey, fileMetaDataKey, createObjFn):
+        isChanged = False
+        filesDict = {f.name: f for f in data.getlist(fileDataKey, [])}
+        usedFileIds = []
+        existingFiles = getattr(project, fileDataKey)
+        existingFilesDict = {f.id: f for f in existingFiles.all()}
+        for fileMetaData in data.get(fileMetaDataKey, []):
+            # Add new files
+            if fileData := filesDict[fileMetaData['fileKey']] if fileMetaData['fileKey'] else None:
+                file = createObjFn(project.user_id, fileData, fileMetaData)
+                existingFiles.add(file)
+                usedFileIds.append(file.id)
+                isChanged = True
+            else: # Update existing files
+                fileId = fileMetaData['id']
+                if not (file := existingFilesDict.get(fileId)):
+                    return Response(f'No current file exists with ID={fileId}', status=status.HTTP_400_BAD_REQUEST)
+                isChanged = isChanged or dataUtil.setObjectAttributes(file, fileMetaData, {
+                    'title': None,
+                })
+                file.save()
+                usedFileIds.append(file.id)
+
+        # Remove files that are no longer included
+        for file in existingFilesDict.values():
+            if file.id not in usedFileIds:
+                project.files.remove(file)
+                isChanged = True
+
+        return isChanged
+
+    @staticmethod
+    def createUserProject(request, data):
+        if not security.isSelf(request, data['userId']):
+            return Response('You are not authorized to post this project', status=status.HTTP_401_UNAUTHORIZED)
+
+        existingProjects = {(up.user_id, up.customProject_id): up for up in UserProjectView.getUserProjects(userId=data['userId'])}
+        if project := existingProjects.get((data['userId'], data['customProjectId'])):
+            return Response(f'User project for {project.project.title} already exists', status=status.HTTP_409_CONFLICT)
+
+        project = UserProject(
+            user_id=data['userId'],
+            customProject_id=data['customProjectId'],
+            projectNotes=data.get('projectNotes'),
+            modifiedDateTime=datetime.utcnow(),
+            createdDateTime=datetime.utcnow()
+        )
+        project.save()
+
+        UserProjectView.addFiles(project, data, 'files', 'filesMetaData', UserProjectView.getCreateFileFn(UserFile, 'file'))
+        UserProjectView.addFiles(project, data, 'videos', 'videosMetaData', UserProjectView.getCreateFileFn(UserVideo, 'video'))
+        UserProjectView.addFiles(project, data, 'images', 'imagesMetaData', UserProjectView.getCreateFileFn(UserImage, 'image'))
+
+        return project
+
+    @staticmethod
+    def getUserProjects(userProjectId=None, userId=None):
+        if not any([userProjectId, userId]):
+            return Response('An ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        projectFilter = Q()
+        if userProjectId:
+            projectFilter &= Q(id=userProjectId)
+        if userId:
+            projectFilter &= Q(user_id=userId)
+        projects = UserProject.objects\
             .select_related(
                 'customProject',
                 'customProject__project',
@@ -362,7 +485,151 @@ class UserProjectView(APIView):
                 'images',
                 'videos'
             )\
-            .filter(user_id=userId)
+            .filter(projectFilter)
+
+        if userProjectId:
+            if not projects:
+                raise UserProject.DoesNotExist
+            return projects[0]
+
+        return projects
+
+
+class UserJobApplicationView(APIView):
+    authentication_classes = (authentication.SessionAuthentication,)
+
+    def get(self, request, userJobApplicationId=None):
+        userJobApplicationId = userJobApplicationId or request.data.get('id')
+        if not userJobApplicationId:
+            return Response('A job application ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        jobApplication = self.getUserJobApplications(userJobApplicationId=userJobApplicationId)
+
+        if not any([
+            security.isSelf(request, jobApplication.userProject.user_id),
+            security.isPermittedEmployer(request, jobApplication.employerProject.employer_id)
+        ]):
+            return Response('You do not have permission to view this job application', status=status.HTTP_401_UNAUTHORIZED)
+
+        return Response(getSerializedJobApplication(jobApplication), status=status.HTTP_200_OK)
+
+    @atomic
+    def post(self, request):
+        data = request.data
+
+        if userProjectId := data.get('userProjectId'):
+            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
+            if not security.isSelf(request, userProject.user_id):
+                return Response('You do not have permission to post this job application', status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            userProject = UserProjectView.createUserProject(request, data)
+            # Return error response if something went wrong
+            if isinstance(userProject, Response):
+                return userProject
+
+        jobApplication = UserJobApplication(
+            userProject_id=userProject.id,
+            employerJob_id=data['employerJobId']
+        )
+
+        jobApplication.save()
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data=getSerializedJobApplication(self.getUserJobApplications(userJobApplicationId=jobApplication.id))
+        )
+
+    @atomic
+    def put(self, request, userJobApplicationId=None):
+        data = request.data
+        userJobApplicationId = userJobApplicationId or data.get('id')
+        if not userJobApplicationId:
+            return Response('A job application ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        jobApplication = self.getUserJobApplications(userJobApplicationId=userJobApplicationId)
+        isSelf = security.isSelf(request, jobApplication.userProject.user_id)
+        isEmployer = security.isPermittedEmployer(request, jobApplication.employerJob.employer_id)
+        if not any([isSelf, isEmployer]):
+            return Response('You do not have permission to update this job application', status=status.HTTP_401_UNAUTHORIZED)
+
+
+        dtGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATETIME, allowNone=True)
+        if isSelf and data.get('userProjectId'):
+            dataUtil.setObjectAttributes(jobApplication, data, {
+                'userProject_id': {'formName': 'userProjectId', 'isProtectExisting': True},
+                'submissionDateTime': {'propFunc': dtGetter},
+                'withdrawDateTime': {'propFunc': dtGetter}
+            })
+
+        if isEmployer:
+            dataUtil.setObjectAttributes(jobApplication, data, {
+                'approveDateTime': {'propFunc': dtGetter},
+                'declineDateTime': {'propFunc': dtGetter},
+            })
+
+        jobApplication.save()
+        return Response(
+            status=status.HTTP_200_OK,
+            data=getSerializedJobApplication(jobApplication)
+        )
+
+    @atomic
+    def delete(self, request, userJobApplicationId=None):
+        userJobApplicationId = userJobApplicationId or request.data.get('id')
+        if not userJobApplicationId:
+            return Response('A job application ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        jobApplication = self.getUserJobApplications(userJobApplicationId=userJobApplicationId)
+        if not security.isSelf(request, jobApplication.userProject.user_id):
+            return Response('You do not have permission to delete this job application', status=status.HTTP_401_UNAUTHORIZED)
+
+        jobApplication.delete()
+        return Response(status=status.HTTP_200_OK, data=userJobApplicationId)
+
+    @staticmethod
+    def getUserJobApplications(userJobApplicationId=None, userId=None, userProjectId=None, employerJobId=None, employerId=None):
+        if not any([userJobApplicationId, userId, userProjectId, employerJobId]):
+            return Response('An ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        applicationFilter = Q()
+        if userJobApplicationId:
+            applicationFilter &= Q(id=userJobApplicationId)
+        if userId:
+            applicationFilter &= Q(userProject__user_id=userId)
+        if userProjectId:
+            applicationFilter &= Q(userProject_id=userProjectId)
+        if employerJobId:
+            applicationFilter &= Q(employerJob_id=employerJobId)
+        if employerId:
+            applicationFilter &= Q(employerJob__employer_id=employerId)
+
+        userJobApplications = UserJobApplication.objects\
+            .select_related(
+                'userProject',
+                'userProject__user',
+                'userProject__customProject',
+                'userProject__customProject__project',
+                'userProject__customProject__project__function',
+                'employerJob'
+            )\
+            .prefetch_related(
+                'userProject__files',
+                'userProject__images',
+                'userProject__videos',
+                'userProject__customProject__skills',
+                'employerJob__allowedProjects',
+                'employerJob__allowedProjects__project',
+                'employerJob__allowedProjects__project__function',
+                'employerJob__allowedProjects__skills',
+            )\
+            .filter(applicationFilter)
+
+        if userJobApplicationId:
+            if not userJobApplications:
+                raise UserJobApplication.DoesNotExist
+            return userJobApplications[0]
+
+        return userJobApplications
 
 
 def generatePassword():

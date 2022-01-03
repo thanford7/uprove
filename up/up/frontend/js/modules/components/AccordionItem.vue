@@ -8,7 +8,7 @@
             </button>
         </h1>
         <div :id="bodyElId" class="accordion-collapse collapse" :class="(isOpen) ? 'show' : ''"
-             :aria-labelledby="headerElId" :data-bs-parent="`#${accordionElId}`">
+             :aria-labelledby="headerElId" :data-bs-parent="(isAllowMultipleOpen) ? null : `#${accordionElId}`">
             <div class="accordion-body">
                 <slot name="body"></slot>
             </div>
@@ -19,7 +19,7 @@
 <script>
 export default {
     name: "AccordionItem.vue",
-    props: ['accordionElId', 'elId', 'isOpen'],
+    props: ['accordionElId', 'elId', 'isOpen', 'isAllowMultipleOpen'],
     computed: {
         headerElId() {
             return `heading-${this.elId}`;

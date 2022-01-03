@@ -10,7 +10,7 @@ from upapp.modelSerializers import *
 from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.project import ProjectView
-from upapp.apis.user import UserView, UserProfileView, UserProjectView
+from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import ProjectFunction, ProjectSkill
 
 
@@ -88,7 +88,8 @@ def candidateDashboard(request, userId=None):
 
     return render(request, 'candidateDashboard.html', context={'data': dumps({
         'user': getSerializedUser(UserView.getUser(userId), isIncludeAssets=True),
-        'userProjects': [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId)]
+        'userProjects': [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId=userId)],
+        'jobApplications': [getSerializedJobApplication(ja, includeJob=True) for ja in UserJobApplicationView.getUserJobApplications(userId=userId)]
     })})
 
 
@@ -119,7 +120,7 @@ def errors(request):
 
 
 def jobPosting(request, jobId):
-    job = JobPostingView.getEmployerJob(jobId)
+    job = JobPostingView.getEmployerJobs(jobId=jobId)
     projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=[p.project_id for p in job.allowedProjects.all()])
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
     return render(request, 'jobPosting.html', context={'data': dumps({
@@ -161,7 +162,10 @@ def project(request, projectId):
     extraData = {}
     user = security.getSessionUser(request)
     if user and (employerId := user['employerId']):
-        extraData['jobs'] = [getSerializedEmployerJob(j, isEmployer=False) for j in JobPostingView.getEmployerJobs(employerId)]
+        extraData['jobs'] = [getSerializedEmployerJob(j, isEmployer=False) for j in JobPostingView.getEmployerJobs(employerId=employerId)]
+
+    if user and (user['userTypeBits'] & User.USER_TYPE_CANDIDATE):
+        extraData['userProjects'] = [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId=user['id'])]
 
     return render(request, 'project.html', context={'data': dumps({**baseData, **extraData})})
 

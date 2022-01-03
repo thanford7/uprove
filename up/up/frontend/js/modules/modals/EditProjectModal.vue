@@ -281,16 +281,8 @@ export default {
             const formData = this.readForm();
             return Object.assign({},
                 dataUtil.omit(formData, ['files', 'newFiles', 'instructions', 'newInstructions']),
-                {
-                    filesMetaData: Object.values(formData.newFiles).map((file) => {
-                        return Object.assign(
-                            dataUtil.omit(file, ['file']),
-                            {fileKey: dataUtil.isString(file.file) ? null : file.file.name}
-                        )
-                    }),
-                    files: Object.values(formData.newFiles).map((file) => file.file),
-                    instructions: Object.values(formData.newInstructions)
-                }
+                {instructions: Object.values(formData.newInstructions)},
+                dataUtil.getFileFormatForAjaxRequest(formData.newFiles, 'filesMetaData', 'files', 'file')
             );
         },
         isGoodFormFields(formData) {

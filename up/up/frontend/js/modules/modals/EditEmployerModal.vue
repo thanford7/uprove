@@ -4,6 +4,7 @@
         :modalTitle="(formData.id) ? `Edit employer: ${formData.companyName} (${formData.id})`: 'Create new employer'"
         :primaryButtonText="(formData.id) ? 'Save changes' : 'Create employer'"
         :isAllowDelete="Boolean(formData.id)"
+        :isLargeDisplay="true"
         @saveChange="saveChange($event)"
         @deleteObject="deleteObject($event)"
     >
@@ -20,18 +21,23 @@
                 @selected="formData.logo = $event"
             />
         </div>
+        <div class="mb-3">
+            <label for="employerDescription" class="form-label">Company description</label>
+            <InputWsiwyg v-model="formData.description" elId="employerDescription" placeholder="Add description..."/>
+        </div>
     </BaseModal>
 </template>
 
 <script>
 import BaseModal from "./BaseModal";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
+import InputWsiwyg from "../inputs/InputWsiwyg";
 
 export default {
     name: "EditEmployerModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InputOrViewMedia},
+    components: {BaseModal, InputOrViewMedia, InputWsiwyg},
     data() {
         return {
             modalName: 'editEmployerModal',

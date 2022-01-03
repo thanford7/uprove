@@ -52,6 +52,13 @@
     }
 }
 
+.-hover-highlight-border {
+    &:hover {
+        border-left: 2px solid colors.$color-moderategrey;
+        padding-left: 4px;
+    }
+}
+
 .-absolute-top {
     position: absolute;
     left: 50%;
@@ -95,4 +102,8 @@
     &-center {
         vertical-align: center;
     }
+}
+
+.-pull-left {
+    margin-right: auto;
 }

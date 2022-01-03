@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.db.models import Q
 from django.db.transaction import atomic
 from psycopg2 import IntegrityError
 from rest_framework import authentication, status
@@ -34,6 +35,7 @@ class EmployerView(APIView):
             employer = Employer(
                 companyName=data['companyName'],
                 logo=data.get('logo'),
+                description=data.get('description'),
                 modifiedDateTime=datetime.utcnow(),
                 createdDateTime=datetime.utcnow()
             )
@@ -56,7 +58,8 @@ class EmployerView(APIView):
         try:
             dataUtil.setObjectAttributes(employer, request.data, {
                 'companyName': None,
-                'logo': None
+                'logo': None,
+                'description': None
             })
             employer.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, isEmployer=True))
@@ -89,7 +92,7 @@ class EmployerView(APIView):
                 'employerJob__jobApplication__userProject__customProject__project__function',
                 'employerJob__jobApplication__userProject__customProject__skills',
                 'employerJob__jobApplication__userProject__files',
-                'employerJob__jobApplication__userProject_videos',
+                'employerJob__jobApplication__userProject__videos',
                 'employerJob__jobApplication__userProject__images',
             ).get(id=employerId)
         except Employer.DoesNotExist as e:
@@ -124,7 +127,7 @@ class JobPostingView(APIView):
 
         self.setCustomProjects(employerJob, data['allowedProjects'])
 
-        return Response(status=status.HTTP_200_OK, data=getSerializedEmployerJob(self.getEmployerJob(employerJob.id), isEmployer=True))
+        return Response(status=status.HTTP_200_OK, data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
 
     @atomic
     def put(self, request, jobId=None):
@@ -136,7 +139,7 @@ class JobPostingView(APIView):
         if not jobId:
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
 
-        employerJob = self.getEmployerJob(jobId)
+        employerJob = self.getEmployerJobs(jobId=jobId)
         dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
         dataUtil.setObjectAttributes(employerJob, data, {
             'jobTitle': None,
@@ -151,7 +154,7 @@ class JobPostingView(APIView):
         employerJob.save()
 
         self.setCustomProjects(employerJob, data['allowedProjects'])
-        return Response(status=status.HTTP_200_OK, data=getSerializedEmployerJob(self.getEmployerJob(employerJob.id), isEmployer=True))
+        return Response(status=status.HTTP_200_OK, data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
 
     @atomic
     def delete(self, request, jobId=None):
@@ -161,7 +164,7 @@ class JobPostingView(APIView):
         if not jobId:
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
 
-        job = self.getEmployerJob(jobId)
+        job = self.getEmployerJobs(jobId=jobId)
 
         if not security.isPermittedEmployer(request, job.employer_id):
             return Response('You do not have permission to delete for this employer', status=status.HTTP_401_UNAUTHORIZED)
@@ -170,28 +173,14 @@ class JobPostingView(APIView):
         return Response(status=status.HTTP_200_OK, data=jobId)
 
     @staticmethod
-    def getEmployerJob(jobId):
-        try:
-            return EmployerJob.objects.prefetch_related(
-                'allowedProjects',
-                'allowedProjects__skills',
-                'jobApplication',
-                'jobApplication__userProject',
-                'jobApplication__userProject__user',
-                'jobApplication__userProject__customProject',
-                'jobApplication__userProject__customProject__project',
-                'jobApplication__userProject__customProject__project__function',
-                'jobApplication__userProject__customProject__skills',
-                'jobApplication__userProject__files',
-                'jobApplication__userProject_videos',
-                'jobApplication__userProject__images',
-            ).get(id=jobId)
-        except EmployerJob.DoesNotExist as e:
-            raise e
+    def getEmployerJobs(jobId=None, employerId=None):
+        jobFilter = Q()
+        if jobId:
+            jobFilter &= Q(id=jobId)
+        if employerId:
+            jobFilter &= Q(employer_id=employerId)
 
-    @staticmethod
-    def getEmployerJobs(employerId):
-        return EmployerJob.objects.prefetch_related(
+        jobs = EmployerJob.objects.prefetch_related(
             'allowedProjects',
             'allowedProjects__skills',
             'jobApplication',
@@ -202,9 +191,16 @@ class JobPostingView(APIView):
             'jobApplication__userProject__customProject__project__function',
             'jobApplication__userProject__customProject__skills',
             'jobApplication__userProject__files',
-            'jobApplication__userProject_videos',
+            'jobApplication__userProject__videos',
             'jobApplication__userProject__images',
-        ).filter(employer_id=employerId)
+        ).filter(jobFilter)
+
+        if jobId:
+            if not jobs:
+                raise EmployerJob.DoesNotExist
+            return jobs[0]
+
+        return jobs
 
     @staticmethod
     def getCustomProjects(asDict=True):
@@ -266,4 +262,22 @@ class JobProjectLinkView(APIView):
 
         user = security.getSessionUser(request)
         return Response(status=status.HTTP_200_OK,
-                        data=[getSerializedEmployerJob(job, isEmployer=False) for job in JobPostingView.getEmployerJobs(user['employerId'])])
+                        data=[getSerializedEmployerJob(job, isEmployer=False) for job in JobPostingView.getEmployerJobs(employerId=user['employerId'])])
+
+    @atomic
+    def delete(self, request, projectId):
+        data = request.data
+        if not (jobId := data.get('jobId')):
+            return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        job = JobPostingView.getEmployerJobs(jobId=jobId)
+        customProjects = CustomProject.objects.prefetch_related('skills').filter(project_id=projectId, skillLevelBit=data['skillLevelBit'])
+        customProjectsBySkills = {tuple(s.id for s in sorted(cp.skills.all(), key=lambda x: x.id)): cp for cp in customProjects}
+        if skillIds := data.getlist('skillIds'):
+            customProject = customProjectsBySkills.get(tuple(sorted(skillIds)))
+        else:
+            customProject = customProjects[0]
+
+        job.allowedProjects.remove(customProject)
+
+        return Response(status=status.HTTP_200_OK, data=customProject.id)

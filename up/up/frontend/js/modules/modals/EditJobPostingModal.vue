@@ -45,7 +45,7 @@
         <div class="mb-3 pt-1 border-top" v-for="customProject in formData.allowedProjects">
             <label :for="`modalJobCustomProject-skillBits-${customProject.id}`" class="form-label">
                 Customize {{getProject(customProject.projectId).title}} Project
-                <a href="#" @click="openCustomProject(customProject)"><i class="fas fa-external-link-alt"></i> View customized project</a>
+                <a href="#" @click="openCustomProject(customProject, $event)"><i class="fas fa-external-link-alt"></i> View customized project</a>
             </label>
             <InputSelectize
                 :ref="`modalJobCustomProject-skillBits-${customProject.id}`"
@@ -168,7 +168,8 @@ export default {
                 options: dataUtil.sortBy(project.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
             };
         },
-        openCustomProject(customProject) {
+        openCustomProject(customProject, e) {
+            e.preventDefault();
             const skillHref = (customProject.skillIds || []).reduce((skillHref, sId) => {
                 skillHref += `&skill=${sId}`;
                 return skillHref;
@@ -244,11 +245,13 @@ export default {
         }
     },
     updated() {
-        this.formData.allowedProjects.forEach((ap) => {
-            // Set selectize elements
-            this.$refs[`modalJobCustomProject-skillBits-${ap.id}`].elSel.setValue(ap.skillLevelBit);
-            this.$refs[`modalJobCustomProject-skills-${ap.id}`].elSel.setValue(ap.skillIds);
-        });
+        if (this.formData.allowedProjects) {
+            this.formData.allowedProjects.forEach((ap) => {
+                // Set selectize elements
+                this.$refs[`modalJobCustomProject-skillBits-${ap.id}`].elSel.setValue(ap.skillLevelBit);
+                this.$refs[`modalJobCustomProject-skills-${ap.id}`].elSel.setValue(ap.skillIds);
+            });
+        }
     }
 }
 </script>

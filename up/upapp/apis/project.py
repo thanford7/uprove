@@ -242,7 +242,10 @@ class SkillView(APIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            projectSkill = ProjectSkill(skillName=request.data['skillName'])
+            projectSkill = ProjectSkill(
+                skillName=request.data['skillName'],
+                instruction=request.data.get('instruction')
+            )
             projectSkill.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedProjectSkill(projectSkill))
         except IntegrityError as e:
@@ -258,7 +261,10 @@ class SkillView(APIView):
 
         projectSkill = self.getProjectSkill(skillId)
         try:
-            projectSkill.skillName = request.data['skillName']
+            dataUtil.setObjectAttributes(projectSkill, request.data, {
+                'skillName': None,
+                'instruction': None
+            })
             projectSkill.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedProjectSkill(projectSkill))
         except IntegrityError as e:

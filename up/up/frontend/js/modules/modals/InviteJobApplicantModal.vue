@@ -45,7 +45,7 @@ export default {
     },
     computed: {
         inviteUrl() {
-            return `www.uprove.co/job-posting/${this.formData.id}/`
+            return `${this.globalData.BASE_URL}/job-posting/${this.formData.id}/`
         }
     },
     methods: {

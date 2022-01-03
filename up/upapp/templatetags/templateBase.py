@@ -2,6 +2,7 @@ import json
 
 from django import template
 from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
 from django.utils.safestring import mark_safe
 
 register = template.Library()
@@ -22,6 +23,7 @@ def initBaseVariables(context):
 
     baseVariables = json.dumps({
         'uproveUser': uproveUser,
+        'BASE_URL': get_current_site(request).domain,
         'STATIC_URL': static,
         'MEDIA_URL': media
     })

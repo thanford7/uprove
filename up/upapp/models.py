@@ -252,6 +252,7 @@ class ProjectFunction(models.Model):
 
 class ProjectSkill(models.Model):
     skillName = models.CharField(max_length=100, unique=True)
+    instruction = models.TextField(null=True)
 
 
 class Project(AuditFields):
@@ -285,6 +286,7 @@ class ProjectFile(AuditFields):
 class Employer(AuditFields):
     companyName = models.CharField(max_length=150, unique=True)
     logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
+    description = models.TextField(null=True)
 
 
 class CustomProject(models.Model):
@@ -325,6 +327,7 @@ class UserJobApplication(models.Model):
     submissionDateTime = models.DateTimeField(null=True)
     approveDateTime = models.DateTimeField(null=True)
     declineDateTime = models.DateTimeField(null=True)
+    withdrawDateTime = models.DateTimeField(null=True)
 
 
 class UserProject(AuditFields):
@@ -333,6 +336,10 @@ class UserProject(AuditFields):
     files = models.ManyToManyField(UserFile)
     videos = models.ManyToManyField(UserVideo)
     images = models.ManyToManyField(UserImage)
+    projectNotes = models.TextField(null=True)
+
+    class Meta:
+        unique_together = ('user', 'customProject')
 
 
 class BlogPost(AuditFields):

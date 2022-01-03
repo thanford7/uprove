@@ -1,5 +1,6 @@
 <template>
     <div class="container-lg">
+
         <div class="row mt-3 mb-3">
             <div class="align-items-center" style="display: flex">
                 <img v-if="initData.employer.logo" :src="initData.employer.logo" alt="" class="employer-logo">
@@ -14,7 +15,7 @@
                         Company Profile
                     </template>
                     <template v-slot:body>
-                        Lorem ipsum
+                        <div v-html="initData.employer.description"></div>
                     </template>
                 </AccordionItem>
                 <AccordionItem :accordionElId="accordionElId" :elId="getNewElUid()">
@@ -35,8 +36,13 @@
                             <p v-html="getProject(ap).description" class="-border-bottom--light"></p>
                             <h5 class="-text-bold">Background</h5>
                             <p v-html="getProject(ap).background" class="-border-bottom--light"></p>
-                            <h5 class="-text-bold">Instructions</h5>
-                            <p v-html="getProjectInstructions(ap)" :class="(getProjectFiles(ap).length) ? '-border-bottom--light' : ''"></p>
+                            <div class="mb-3" :class="(getProjectFiles(ap).length) ? '-border-bottom--light' : ''">
+                                <h5 class="-text-bold">Instructions</h5>
+                                <p v-html="getProjectInstructions(ap)"></p>
+                                <ul v-if="getProjectSkillInstructions(ap)" class="pb-2">
+                                    <li v-for="i in getProjectSkillInstructions(ap)">{{i}}</li>
+                                </ul>
+                            </div>
                             <template v-if="getProjectFiles(ap).length">
                                 <h5 class="-text-bold">Files</h5>
                                 <FileDisplay v-for="file in getProjectFiles(ap)" :file="file"/>
@@ -48,7 +54,7 @@
             <div class="col-md-3 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
                 <h5 class="-text-bold">Applicant instructions</h5>
                 <ol class="-border-bottom--light mb-3 pb-3">
-                    <li v-if="!isLoggedIn">
+                    <li v-if="!isLoggedIn" id="loginInstruction">
                         <a href="#" @click="eventBus.emit('open:candidateRequestAccountModal')">Create an account</a>
                         or
                         <a href="#" @click="eventBus.emit('open:signInModal')">sign in</a>
@@ -68,11 +74,17 @@
                         Download project files
                     </li>
                     <li>
-                        <button @click="" type="button" class="btn btn-primary w-75">Save project to your profile</button>
+                        <button
+                            @click="saveChange" type="button" class="btn btn-primary w-75"
+                            :disabled="(isLoggedIn) ? null : true"
+                            :title="(isLoggedIn) ? null : 'Must be logged in to save project'"
+                        >
+                            Save project to your profile
+                        </button>
                     </li>
                     <li>
                         Upload your final project files and submit your final project to {{initData.employer.companyName}}
-                        from your profile page
+                        from your home page
                     </li>
                 </ol>
                 <div class="-sub-text">Need help or have questions about the project?</div>
@@ -85,16 +97,23 @@
 
 <script>
 import AccordionItem from "../../components/AccordionItem";
+import BannerAlert from "../../components/BannerAlert";
 import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
 import FileDisplay from "../../components/FileDisplay";
 import InputSelectize from "../../inputs/InputSelectize";
 
 export default {
     name: "JobPostingPage.vue",
-    components: {AccordionItem, CandidateRequestAccountModal, FileDisplay, InputSelectize},
+    components: {AccordionItem, BannerAlert, CandidateRequestAccountModal, FileDisplay, InputSelectize},
     data() {
         return {
-            accordionElId: `accordion-${this.getNewElUid()}`
+            accordionElId: `accordion-${this.getNewElUid()}`,
+            crudUrl: 'user-job-application/',
+            requiredFields: {
+                customProjectId: null,
+                userId: '#loginInstruction'
+            },
+            pageRedirect: 'candidateDashboard/'
         }
     },
     computed: {
@@ -119,12 +138,32 @@ export default {
             const project = this.getProject(customProject);
             return project.instructions.find((i) => i.skillLevelBit === customProject.skillLevelBit).instructions
         },
+        getProjectSkillInstructions(customProject) {
+            return customProject.skills.reduce((instructions, skill) => {
+                if (skill.instruction) {
+                    instructions.push(skill.instruction);
+                }
+                return instructions;
+            }, []);
+        },
         getProjectFiles(customProject) {
             const project = this.getProject(customProject);
             return project.files.filter((f) => f.skillLevelBits & customProject.skillLevelBit)
         },
+        processFormData() {
+            return Object.assign(this.readForm(), {
+                'userId': this.globalData.uproveUser.id,
+                'employerJobId': this.initData.job.id
+            })
+        },
+        getAjaxCfgOverride() {
+            return {method: 'POST'}
+        },
         selectAndSetProject(customProjectId) {
             this.formData.customProjectId = customProjectId;
+            if (!customProjectId) {
+                return;
+            }
             const accordionItem = this.$refs[`accordionItem-${customProjectId}`];
             $(`#${accordionItem.accordionElId}`).find('.accordion-header').each((idx, el) => {
                 const isShown = $(el).prop('id') === accordionItem.headerElId;
@@ -133,6 +172,13 @@ export default {
                     accordionButton.click();
                 }
             });
+        }
+    },
+    mounted() {
+        if (this.initData.job.allowedProjects.length > 1) {
+            this.requiredFields.customProjectId = this.$refs.allowedProjects.targetEl;
+        } else if (this.initData.job.allowedProjects.length) {
+            this.formData.customProjectId = this.initData.job.allowedProjects[0].id;
         }
     }
 }

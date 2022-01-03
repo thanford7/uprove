@@ -65,7 +65,8 @@ const ajaxRequestMixin = {
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
             isAjaxModal: false,
-            deleteRedirectUrl: null  // (Optional) URL to redirect to if an entity is deleted
+            deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
+            pageRedirect: null  // Page to redirect to after succesful ajax request
         }
     },
     methods: {
@@ -83,8 +84,10 @@ const ajaxRequestMixin = {
                 if (this.isAjaxModal) {
                     this.modal$.hide();
                 }
-                if (data.pageRedirect) {
-                    window.location.replace(data.pageRedirect);
+
+                const redirect = data.pageRedirect || this.pageRedirect;
+                if (redirect) {
+                    window.location.replace(redirect);
                 }
             }
         },
@@ -139,14 +142,15 @@ const ajaxRequestMixin = {
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
             store.commit('addAlert', {
-                message: this.getFailureMessage(errorThrown),
+                message: this.getFailureMessage(errorThrown, xhr),
                 alertType: severity.DANGER
             });
             eventBus.emit('ajaxFailure', {xhr, textStatus, errorThrown});
         },
-        getFailureMessage(errorThrown) {
+        getFailureMessage(errorThrown, xhr) {
             // subclass
-            return errorThrown;
+            const responseText = xhr.responseText;
+            return `${errorThrown}${(responseText) ? `: ${responseText}` : ''}`;
         },
         readForm() {
             return this.formData;
@@ -177,18 +181,24 @@ const ajaxRequestMixin = {
             if (!this.isGoodFormData(formData)) {
                 return false;
             }
+            return this.submitAjaxRequest(
+                this.getAjaxFormData(formData, this.mediaFields),
+                {method: (formData.id) ? 'PUT' : 'POST'}
+            )
+        },
+        getAjaxFormData(data, mediaFields) {
             const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(dataUtil.omit(formData, this.mediaFields || [])));
-            (this.mediaFields || []).forEach((field) => {
-                if (Array.isArray(formData[field])) {
-                    formData[field].forEach((file) => {
+            ajaxData.append('data', JSON.stringify(dataUtil.omit(data, mediaFields || [])));
+            (mediaFields || []).forEach((field) => {
+                if (Array.isArray(data[field])) {
+                    data[field].forEach((file) => {
                         ajaxData.append(field, file);
                     })
                 } else {
-                    ajaxData.append(field, formData[field]);
+                    ajaxData.append(field, data[field]);
                 }
-            })
-            return this.submitAjaxRequest(ajaxData, {method: (formData.id) ? 'PUT' : 'POST'})
+            });
+            return ajaxData;
         },
         saveChange(e, allowDefault = false) {
             if (!allowDefault) {
@@ -359,9 +369,11 @@ const popoverMixin = {
             el$.focus();
             popover.show();
             if (isOnce) {
-                el$.one('focusout', () => {
-                    popover.dispose();
-                })
+                setTimeout(() => {
+                    $(container).one('click', () => {
+                        popover.dispose();
+                    });
+                }, 1);
             }
         }
     }

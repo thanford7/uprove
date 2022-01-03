@@ -1,6 +1,6 @@
 @use 'colors';
 
-.svg-inline--fa {
+.fa {
     color: colors.$color-darkgrey;
 
     &:hover {
@@ -13,5 +13,19 @@
 
     &.fa-pencil-alt:hover {
         color: darken(colors.$color-green, 10%);
+    }
+}
+
+.fa-info-circle {
+    color: colors.$color-moderategrey;
+}
+
+button.btn {
+    &[disabled] {
+        color: colors.$color-white;
+        background-color: colors.$color-moderategrey;
+        border-color: colors.$color-darkgrey;
+        cursor: not-allowed;
+        pointer-events: all;
     }
 }

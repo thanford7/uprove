@@ -5,16 +5,16 @@
         </a>
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
-                <li v-if="isSuperUser || isCandidate" :class="(isCurrentUrl('candidateDashboard')) ? 'current-page' : ''">
+                <li v-if="isSuperUser || isCandidate" :class="getHighlightClass('candidateDashboard')">
                     <a class="nav-link" href="/candidateDashboard">Home</a>
                 </li>
-                <li v-if="isSuperUser || isEmployer" :class="(isCurrentUrl('employerDashboard')) ? 'current-page' : ''">
+                <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
                     <a class="nav-link" href="/employerDashboard">Employer Dashboard</a>
                 </li>
-                <li class="nav-item" :class="(isCurrentUrl('projects')) ? 'current-page' : ''">
+                <li class="nav-item" :class="getHighlightClass('projects')">
                     <a class="nav-link" href="/projects">Projects</a>
                 </li>
-                <li v-if="isSuperUser" class="nav-item" :class="(isCurrentUrl('admin')) ? 'current-page' : ''">
+                <li v-if="isSuperUser" class="nav-item" :class="getHighlightClass('admin')">
                     <a class="nav-link" href="/admin">Admin</a>
                 </li>
                 <li v-if="!isMobile" class="nav-item" :class="(isMobile) ? '' : 'dropdown'">
@@ -91,11 +91,18 @@ export default {
             }
             return '/';
         },
-        isCurrentUrl(url) {
+        getHighlightClass(url) {
             if (!window.location) {
-                return false;
+                return '';
             }
-            return window.location.pathname.toLowerCase().includes(url.toLowerCase())
+            const isCurrentUrl = window.location.pathname.toLowerCase().includes(url.toLowerCase());
+            if (isCurrentUrl) {
+                if (this.isMobile) {
+                    return '-text-bold';
+                }
+                return 'current-page -text-bold';
+            }
+            return '';
         }
     },
     mounted() {

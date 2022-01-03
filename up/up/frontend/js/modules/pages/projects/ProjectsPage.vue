@@ -92,14 +92,7 @@ export default {
         }
     },
     mounted() {
-        this.initData.projects.forEach((project) => {
-            project.skillLevels = Object.entries(this.globalData.SKILL_LEVEL).reduce((skillLevels, [skillLevelBit, skillLevel]) => {
-                if (skillLevelBit & project.skillLevelBits) {
-                    skillLevels.push(skillLevel);
-                }
-                return skillLevels;
-            }, []);
-        });
+        dataUtil.setSkillLevels(this.initData.projects, this.globalData);
     }
 }
 </script>
