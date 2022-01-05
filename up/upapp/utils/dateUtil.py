@@ -51,7 +51,7 @@ def serializeDatetime(val: Union[date, time, datetime, None], formatAs: Optional
 
 
 def deserializeDateTime(val: str, formatAs: FormatType, allowNone: Optional[bool] = False):
-    if val is None:
+    if not val:
         if allowNone:
             return None
         else:

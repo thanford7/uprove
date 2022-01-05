@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from upapp.apis import setSkills
-from upapp.models import CustomProject, Employer, EmployerJob
+from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, ProjectEvaluationCriterion
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
@@ -127,7 +127,8 @@ class JobPostingView(APIView):
 
         self.setCustomProjects(employerJob, data['allowedProjects'])
 
-        return Response(status=status.HTTP_200_OK, data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
+        return Response(status=status.HTTP_200_OK,
+                        data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
 
     @atomic
     def put(self, request, jobId=None):
@@ -154,7 +155,8 @@ class JobPostingView(APIView):
         employerJob.save()
 
         self.setCustomProjects(employerJob, data['allowedProjects'])
-        return Response(status=status.HTTP_200_OK, data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
+        return Response(status=status.HTTP_200_OK,
+                        data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
 
     @atomic
     def delete(self, request, jobId=None):
@@ -167,7 +169,8 @@ class JobPostingView(APIView):
         job = self.getEmployerJobs(jobId=jobId)
 
         if not security.isPermittedEmployer(request, job.employer_id):
-            return Response('You do not have permission to delete for this employer', status=status.HTTP_401_UNAUTHORIZED)
+            return Response('You do not have permission to delete for this employer',
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         job.delete()
         return Response(status=status.HTTP_200_OK, data=jobId)
@@ -234,7 +237,7 @@ class JobPostingView(APIView):
 
             if not (existingCustomProject := existingCustomProjects.get(
                     JobPostingView.generateUniqueCustomProjectKey(customProject, skillIds=customProjectData['skillIds'])
-                )
+            )
             ):
                 customProject.save()
                 setSkills(customProject, customProjectData['skillIds'])
@@ -254,7 +257,8 @@ class JobProjectLinkView(APIView):
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         jobs = EmployerJob.objects.filter(id__in=data['jobIds'])
-        customProjectData = {'projectId': int(projectId), 'skillLevelBit': data['skillLevelBit'], 'skillIds': data['skillIds']}
+        customProjectData = {'projectId': int(projectId), 'skillLevelBit': data['skillLevelBit'],
+                             'skillIds': data['skillIds']}
         for job in jobs:
             if not security.isPermittedEmployer(request, job.employer_id):
                 return Response('You do not have permission to alter this job', status=status.HTTP_401_UNAUTHORIZED)
@@ -262,7 +266,8 @@ class JobProjectLinkView(APIView):
 
         user = security.getSessionUser(request)
         return Response(status=status.HTTP_200_OK,
-                        data=[getSerializedEmployerJob(job, isEmployer=False) for job in JobPostingView.getEmployerJobs(employerId=user['employerId'])])
+                        data=[getSerializedEmployerJob(job, isEmployer=False) for job in
+                              JobPostingView.getEmployerJobs(employerId=user['employerId'])])
 
     @atomic
     def delete(self, request, projectId):
@@ -271,8 +276,10 @@ class JobProjectLinkView(APIView):
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         job = JobPostingView.getEmployerJobs(jobId=jobId)
-        customProjects = CustomProject.objects.prefetch_related('skills').filter(project_id=projectId, skillLevelBit=data['skillLevelBit'])
-        customProjectsBySkills = {tuple(s.id for s in sorted(cp.skills.all(), key=lambda x: x.id)): cp for cp in customProjects}
+        customProjects = CustomProject.objects.prefetch_related('skills').filter(project_id=projectId,
+                                                                                 skillLevelBit=data['skillLevelBit'])
+        customProjectsBySkills = {tuple(s.id for s in sorted(cp.skills.all(), key=lambda x: x.id)): cp for cp in
+                                  customProjects}
         if skillIds := data.getlist('skillIds'):
             customProject = customProjectsBySkills.get(tuple(sorted(skillIds)))
         else:
@@ -281,3 +288,73 @@ class JobProjectLinkView(APIView):
         job.allowedProjects.remove(customProject)
 
         return Response(status=status.HTTP_200_OK, data=customProject.id)
+
+
+class EmployerCustomProject(APIView):
+    authentication_classes = (authentication.SessionAuthentication,)
+
+    @atomic
+    def put(self, request, customProjectId=None):
+        data = request.data
+        customProjectId = customProjectId or data.get('id')
+        if not customProjectId:
+            return Response('A custom project ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        customProject = CustomProject.objects.get(id=customProjectId)
+
+        employerId = data.get('employerId')
+        if not employerId:
+            return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        if not security.isPermittedEmployer(request, employerId):
+            return Response('You are not permitted to make edits for this employer',
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # Add or remove jobs linked to custom project
+        # TODO: Optimize this query
+        linkedJobIds = [j.id for j in data.get('jobs', [])]
+        for job in EmployerJob.objects.prefetch_related('allowedProjects').filter(employer_id=employerId):
+            isLinked = customProject in job.allowedProjects.all()
+            if isLinked and job.id not in linkedJobIds:
+                job.allowedProjects.remove(customProject)
+            if not isLinked and job.id in linkedJobIds:
+                job.allowedProjects.add(customProject)
+
+        existingEmployerCriteria = {
+            c.evaluationCriterion_id: c for c in
+            EmployerCustomProjectCriterion.objects.filter(customProject_id=data['id'], employer_id=employerId)
+        }
+        projectCriteriaFilter = Q(employer_id=None) | Q(employer_id=employerId)
+        existingProjectCriteria = {
+            pc.id: pc for pc in
+            ProjectEvaluationCriterion.objects.filter(project_id=customProject.project_id).filter(projectCriteriaFilter)
+        }
+        for criterionData in data.get('evaluationCriteria', []):
+            if projectCriterion := existingProjectCriteria.get(criterionData['id']):
+                dataUtil.setObjectAttributes(projectCriterion, criterionData, {
+                    'criterion': None,
+                    'category': None,
+                    'skillLevelBits': None,
+                })
+                projectCriterion.save()
+            else:
+                projectCriterion = ProjectEvaluationCriterion(
+                    project_id=customProject.project_id,
+                    criterion=data['criterion'],
+                    category=data.get('category'),
+                    skillLevelBits=data.get('skillLevelBits'),
+                    employer_id=employerId
+                )
+                projectCriterion.save()
+
+            employerCriterion = existingEmployerCriteria.get(projectCriterion.id)
+            if criterionData['isUsed'] and not employerCriterion:
+                EmployerCustomProjectCriterion(
+                    employer_id=employerId,
+                    customProject_id=customProjectId,
+                    evaluationCriterion_id=projectCriterion.id
+                )
+            if not criterionData['isUsed'] and employerCriterion:
+                employerCriterion.delete()
+
+        # TODO: Add response

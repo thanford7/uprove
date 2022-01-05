@@ -319,7 +319,7 @@ export default {
 
             const formData = rawData.formData;
             if (!formData || dataUtil.isEmpty(formData)) {
-                return {newFiles: {}, newInstructions: {}};
+                return {newFiles: {}, newInstructions: {}, evaluationCriteria: []};
             }
 
             const newFiles = formData.files.reduce((newFiles, file) => {

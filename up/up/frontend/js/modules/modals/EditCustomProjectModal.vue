@@ -25,11 +25,19 @@
             />
         </div>
         <div class="mb-3">
-            <label class="form-label">Evaluation criteria</label>
-            <div v-if="evaluationCriteria.length" class="-sub-text">Check all that should be included</div>
-            <template v-for="criterion in evaluationCriteria">
-                <input type="checkbox" class="custom-control-input" :id="`criterion-${criterion.id}`" @click="criterion.isChecked = !criterion.isChecked">
-            </template>
+            <label class="form-label">Evaluation criteria <InfoToolTip :elId="getNewElUid()" :content="infoEvalCriteria"/></label>
+            <div v-for="criterion in evaluationCriteria" class="form-check">
+                <InputCheckBox
+                    :elId="`criterion-${criterion.id}`"
+                    :isChecked="criterion.isUsed"
+                    :label="criterion.criterion"
+                    :isEditable="isEditableCriterion(criterion)"
+                    :isEditableTextArea="true"
+                    editablePlaceHolder="Add criterion..."
+                    @click="criterion.isChecked = !criterion.isChecked"
+                    @change="criterion.criterion = $event"
+                />
+            </div>
             <div class="border-top pt-1">
                 <a href="#" @click="addCriterionInput"><i class="fas fa-plus -color-green-text"></i> Add new criterion</a>
             </div>
@@ -41,6 +49,8 @@
 import BadgesSkillLevels from "../components/BadgesSkillLevels";
 import BadgesSkills from "../components/BadgesSkills";
 import BaseModal from "./BaseModal";
+import InfoToolTip from "../components/InfoToolTip";
+import InputCheckBox from "../inputs/InputCheckBox";
 import InputSelectize from "../inputs/InputSelectize";
 import dataUtil from "../../utils/data";
 
@@ -48,7 +58,7 @@ export default {
     name: "EditCustomProjectModal",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BadgesSkillLevels, BadgesSkills, BaseModal, InputSelectize},
+    components: {BadgesSkillLevels, BadgesSkills, BaseModal, InfoToolTip, InputCheckBox, InputSelectize},
     computed: {
         jobsCfg() {
             const jobs = dataUtil.sortBy(this.initData.employer.jobs.map((job) => ({value: job.id, text: job.jobTitle})), 'text');
@@ -63,11 +73,12 @@ export default {
                 return [];
             }
             const project = this.initData.projects.find((p) => p.id === this.formData.projectId);
-            const evalCriteria = (project.evaluationCriteria || []).filter((ec) => !ec.skillLevelBits || ec.skillLevelBits & this.formData.skillLevelBit);
+            let evalCriteria = (project.evaluationCriteria || []).filter((ec) => !ec.skillLevelBits || ec.skillLevelBits & this.formData.skillLevelBit);
             evalCriteria.forEach((ec) => {
                 const existingCriterion = this.initData.customProjectEvaluationCriteria.find((pec) => pec.evaluationCriterionId === ec.id);
                 ec.isUsed = Boolean(existingCriterion);
             });
+            evalCriteria = [...evalCriteria, ...this.formData.newCriterion]
             return dataUtil.sortBy(evalCriteria, ['category', 'isUsed']);
         }
     },
@@ -81,24 +92,37 @@ export default {
                 jobTitle: '#modalJobTitle',
                 jobDescription: '#modalJobDescription',
             },
-            newCriterionCount: 0
+            newCriterionCount: 0,
+            infoEvalCriteria: `Check all criteria that evaluators should use when assessing the quality of a candidate's application.`
         }
     },
     methods: {
+        isEditableCriterion(criterion) {
+            return isNaN(criterion.id) || criterion.employerId;
+        },
         processRawData(customProject) {
             this.$refs.linkedJobs.elSel.setValue(customProject.jobs.map((j) => j.id));
-            this.formData.newCriterion = [];
+            customProject.newCriterion = [];
             return customProject;
+        },
+        processFormData() {
+            const formData = this.readForm();
+            formData.employerId = this.initData.employer.id;
+            formData.evaluationCriteria = this.evaluationCriteria
+            return formData;
         },
         addCriterionInput(e) {
             e.preventDefault();
             this.formData.newCriterion.push({
-                id: this.newCriterionCount,
+                id: `new-${this.newCriterionCount}`,
                 criterion: null,
-                category: null
+                category: null,
+                isUsed: true,
+                skillLevelBits: this.formData.skillLevelBit,
+                employerId: this.initData.employer.id
             });
             this.newCriterionCount++;
-        }
+        },
     }
 }
 </script>

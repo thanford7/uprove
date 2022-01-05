@@ -45,26 +45,30 @@
                 placeholder="Optional" :cfg="userEmployerCfg" @selected="formData.employerId = $event"
             />
         </div>
-        <template v-if="isSuperUser">
-            <div class="mb-3">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="userIsStaff" v-model="formData.isStaff">
-                    &nbsp;<label class="custom-control-label" for="userIsStaff">Is Staff</label>
-                </div>
-            </div>
-            <div class="mb-3">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="userIsSuperUser"
-                           v-model="formData.isSuperUser">
-                    &nbsp;<label class="custom-control-label" for="userIsSuperUser">Is Super User</label>
-                </div>
-            </div>
-        </template>
-        <div v-if="formData.id" class="mb-3">
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" id="userIsActive" v-model="formData.isActive">
-                &nbsp;<label class="custom-control-label" for="userIsActive">Is Active</label>
-            </div>
+        <div class="form-check">
+            <InputCheckBox
+                v-if="isSuperUser"
+                elId="userIsStaff"
+                label="Is Staff"
+                :isChecked="formData.isStaff"
+                :isActiveLabel="true"
+                @click="formData.isStaff = $event"
+            />
+            <InputCheckBox
+                v-if="isSuperUser"
+                elId="userIsSuperUser"
+                label="Is Super User"
+                :isChecked="formData.isSuperUser"
+                :isActiveLabel="true"
+                @click="formData.isSuperUser = $event"
+            />
+            <InputCheckBox
+                elId="userIsActive"
+                label="Is Active"
+                :isChecked="formData.isActive"
+                :isActiveLabel="true"
+                @click="formData.isActive = $event"
+            />
         </div>
     </BaseModal>
 </template>
@@ -72,6 +76,7 @@
 <script>
 import {USER_BITS} from '../../globalData';
 import BaseModal from "./BaseModal";
+import InputCheckBox from "../inputs/InputCheckBox";
 import InputEmail from "../inputs/InputEmail";
 import InputSelectize from "../inputs/InputSelectize";
 import {severity} from "../../vueMixins";
@@ -81,7 +86,7 @@ export default {
     name: "EditUserModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InputEmail, InputSelectize},
+    components: {BaseModal, InputCheckBox, InputEmail, InputSelectize},
     data() {
         return {
             modalName: 'editUserModal',

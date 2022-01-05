@@ -16,10 +16,15 @@ def setObjectAttributes(obj, data: dict, keyFuncDict: dict):
         formName = None
         propFunc = None
         isProtectExisting = False
+        isIgnoreExcluded = False
         if propHelpers:
             formName = propHelpers.get('formName')
             propFunc = propHelpers.get('propFunc')
             isProtectExisting = propHelpers.get('isProtectExisting')
+            isIgnoreExcluded = propHelpers.get('isIgnoreExcluded')
+
+        if isIgnoreExcluded and (formName or key) not in data:
+            continue
 
         val = data.get(formName or key)
         if propFunc:

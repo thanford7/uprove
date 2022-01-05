@@ -250,6 +250,13 @@ class UserView(APIView):
         })
         user.save()
 
+        dataUtil.setObjectAttributes(user.djangoUser, data, {
+            'is_staff': {'formName': 'isStaff', 'isIgnoreExcluded': True},
+            'is_active': {'formName': 'isActive', 'isIgnoreExcluded': True},
+            'is_superuser': {'formName': 'isSuperUser', 'isIgnoreExcluded': True}
+        })
+        user.djangoUser.save()
+
     @staticmethod
     def createUser(data):
         password = data.get('password', None)

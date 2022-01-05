@@ -105,6 +105,10 @@ $accordion-button-active-color: colors.$color-white;
     margin-bottom: 10px;
 }
 
+.form-label {
+    font-weight: bold;
+}
+
 .dropdown-toggle.no-caret::after {
     display: none;
 }
