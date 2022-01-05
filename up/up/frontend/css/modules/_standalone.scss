@@ -59,12 +59,27 @@
     }
 }
 
+.-hover-bold {
+    &:hover {
+        font-weight: bold;
+    }
+}
+
 .-absolute-top {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 10px;
-    width: 100%;
+    &-left {
+        z-index: 1;
+        position: absolute;
+        left: 0;
+        transform: translateX(-50%);
+        top: 0;
+    }
+
+    &-right {
+        z-index: 1;
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
 }
 
 .-absolute-bottom {

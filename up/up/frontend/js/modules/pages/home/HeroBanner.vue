@@ -6,7 +6,7 @@
         </div>
         <div class="col-md-6 -color-teal position pt-3 -bg-clip-border">
             <div class="position__center-vertical p-md-5 p-2">
-                <h1 class="text-center"><strong>Skills based exercises and video presentations to assess candidates' true talent</strong></h1>
+                <h1 class="text-center"><strong>Skills based exercises and video presentations to assess a candidate's true talent</strong></h1>
                 <div id="hero-benefits-rotation" class="text-center"></div>
                 <div class="text-center mt-4">
                     <button type="button" class="btn btn-lg btn-primary -color-darkblue" @click="eventBus.emit('open:employerRequestInfoModal')">

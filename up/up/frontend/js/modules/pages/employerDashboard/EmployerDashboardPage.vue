@@ -100,6 +100,42 @@
                     </tbody>
                 </table>
             </div>
+            <div class="col-md-9 card-custom table-responsive-md">
+                <h3>Saved projects</h3>
+                <table class="table mt-3">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Project</th>
+                            <th>Career level</th>
+                            <th>Skills</th>
+                            <th>Linked jobs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="customProject in customProjects" class="hover-menu">
+                            <td>
+                                <HamburgerDropdown :elId="getNewElUid()">
+                                    <li @click="eventBus.emit('open:editCustomProjectModal', customProject)">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-pencil-alt"></i> Edit project</a>
+                                    </li>
+                                </HamburgerDropdown>
+                            </td>
+                            <td>{{customProject.projectTitle}}</td>
+                            <td><BadgesSkillLevels :skillLevels="customProject.skillLevel"/></td>
+                            <td><BadgesSkills :skills="customProject.skills"/></td>
+                            <td>
+                                <ul>
+                                    <li v-for="job in customProject.jobs">{{job.jobTitle}}</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr v-if="!Object.keys(customProjects).length">
+                            <td colspan="5"><a href="/projects/">Find a project to get started</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <div class="col-md-9 card-custom">
                 <h3>Settings</h3>
                 <div>
@@ -109,6 +145,7 @@
                 </div>
             </div>
         </div>
+        <EditCustomProjectModal/>
         <EditEmployerModal/>
         <EditJobPostingModal/>
         <InviteJobApplicantModal/>
@@ -118,7 +155,10 @@
 <script>
 import {dateSerializer} from "../../../utils/dateUtil";
 import dayjs from "dayjs/esm";
+import BadgesSkillLevels from "../../components/BadgesSkillLevels";
+import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
+import EditCustomProjectModal from "../../modals/EditCustomProjectModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
@@ -128,7 +168,10 @@ import dataUtil from "../../../utils/data";
 
 export default {
     name: "EmployerDashboardPage.vue",
-    components: {BannerAlert, EditEmployerModal, EditJobPostingModal, HamburgerDropdown, InfoToolTip, InviteJobApplicantModal},
+    components: {
+        BannerAlert, BadgesSkillLevels, BadgesSkills, EditCustomProjectModal, EditEmployerModal, EditJobPostingModal,
+        HamburgerDropdown, InfoToolTip, InviteJobApplicantModal
+    },
     computed: {
         applications() {
             return this.initData.employer.jobs.reduce((applications, job) => {
@@ -140,6 +183,20 @@ export default {
                     return app;
                 })];
             }, []);
+        },
+        customProjects() {
+            return this.initData.employer.jobs.reduce((customProjects, job) => {
+                job.allowedProjects.forEach((ap) => {
+                    if (ap.id in customProjects) {
+                        customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
+                    } else {
+                        ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
+                        ap.skillLevel = dataUtil.getSkillLevelsFromBits(ap.skillLevelBit, this.globalData.SKILL_LEVEL);
+                        customProjects[ap.id] = ap;
+                    }
+                });
+                return customProjects;
+            }, {});
         }
     },
     methods: {

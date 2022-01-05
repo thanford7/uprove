@@ -24,7 +24,7 @@ export default {
         if(!this.elSel) {
             const el$ = $(`#${this.elId || this._uid}`);
             if (this.items) {
-                this.cfg.items = this.items;
+                this.cfg.items = Array.isArray(this.items) ? this.items : [this.items];
             }
             this.elSel = el$.selectize(this.cfg)[0].selectize;
             this.targetEl = el$.next('.selectize-control')[0];

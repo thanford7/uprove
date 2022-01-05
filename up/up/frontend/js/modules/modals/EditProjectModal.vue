@@ -5,6 +5,7 @@
         :primaryButtonText="(formData.id) ? 'Save changes' : 'Create project'"
         :isAllowDelete="Boolean(formData.id)"
         :isLargeDisplay="true"
+        :isScrollable="true"
         @saveChange="saveChange($event)"
         @deleteObject="deleteObject($event)"
     >
@@ -87,7 +88,42 @@
                 v-model="instruction.instructions"
             />
         </div>
-        <div class="mb-3 pt-1 border-top" v-for="(file, fileId, idx) in formData.newFiles">
+        <div class="mb-3">
+            <label class="form-label">Evaluation criteria</label>
+            <div v-for="criterion in formData.evaluationCriteria" class="mb-3 pt-1 -hover-highlight-border position-relative">
+                <InputSelectize
+                    class="mt-3"
+                    :ref="`projectCriterion-skillBits-${criterion.id}`"
+                    :elId="`projectCriterion-skillBits-${criterion.id}`"
+                    :isParseAsBits="true"
+                    :items="getSkillLevelNumbersFromBits(criterion.skillLevelBits)"
+                    placeholder="Skill levels (leave blank for all)" :cfg="projectSkillLevelsCfg" @selected="criterion.skillLevelBits = $event"
+                />
+                <InputSelectize
+                    :ref="`projectCriterion-category-${criterion.id}`"
+                    :elId="`projectCriterion-category-${criterion.id}`"
+                    :items="criterion.category"
+                    placeholder="Category (optional)" :cfg="projectEvaluationCriteriaCategoryCfg" @selected="setEvaluationCategoryAndUpdateOptions(criterion, $event)"
+                />
+                <textarea
+                    rows="2" class="form-control"
+                    placeholder="Criterion..."
+                    :id="`projectCriterion-criterion-${criterion.id}`"
+                    v-model="criterion.criterion"
+                />
+                <div class="-absolute-top-right">
+                    <i
+                        class="far fa-times-circle -color-red-text -hover-bold"
+                        title="Remove"
+                        @click="removeCriterionInput(criterion)">
+                    </i>
+                </div>
+            </div>
+            <div class="pt-1">
+                <a href="#" @click="addCriterionInput"><i class="fas fa-plus -color-green-text"></i> Add evaluation criterion</a>
+            </div>
+        </div>
+        <div class="mb-3 pt-1 border-top -hover-highlight-border position-relative" v-for="(file, fileId, idx) in formData.newFiles">
             <label :for="`projectFile-file-${fileId}`" class="form-label">File {{ idx + 1 }}</label>
             <div v-if="!file.isShowUpload">
                 <FileDisplay :file="file" :isUseFileName="true"/>
@@ -112,15 +148,20 @@
                 :items="getSkillLevelNumbersFromBits(file.skillLevelBits)"
                 placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="file.skillLevelBits = $event"
             />
-            <a href="#" @click="removeFileInput(fileId)"><i class="fas fa-trash -color-red-fa"></i> Remove file</a>
-            &nbsp;&nbsp;
             <a v-if="file.oldFile || file.id" href="#" @click="changeFile(fileId)">
                 <i class="fas fa-exchange-alt"></i>
                 &nbsp;{{(file.isShowUpload) ? 'Use existing file' : 'Change file'}}
             </a>
+            <div class="-absolute-top-right">
+                <i
+                    class="far fa-times-circle -color-red-text -hover-bold"
+                    title="Remove"
+                    @click="removeFileInput(fileId)">
+                </i>
+            </div>
         </div>
         <div class="border-top pt-1">
-            <a href="#" @click="addFileInput"><i class="fas fa-plus -color-green-fa"></i> Add new file</a>
+            <a href="#" @click="addFileInput"><i class="fas fa-plus -color-green-text"></i> Add new file</a>
         </div>
     </BaseModal>
 </template>
@@ -158,7 +199,8 @@ export default {
                 skillLevelBits: null
             },
             mediaFields: ['image', 'files'],
-            newFileUniqueIdx: 0
+            newFileUniqueIdx: 0,
+            newCriterionUniqueIdx: 0
         }
     },
     computed: {
@@ -167,6 +209,14 @@ export default {
         },
         isImageUpload() {
             return !this.formData.image || !dataUtil.isString(this.formData.image);
+        },
+        projectEvaluationCriteriaCategoryCfg() {
+            const uniqueCategories = dataUtil.uniqBy(this.formData.evaluationCriteria, 'category');
+            return {
+                maxItems: 1,
+                create: (text) => ({value: text, text}),
+                options: dataUtil.sortBy(uniqueCategories.map((c) => ({value: c.category, text: c.category})), 'text')
+            };
         },
         projectFunctionsCfg() {
             return {
@@ -190,6 +240,18 @@ export default {
         }
     },
     methods: {
+        addCriterionInput() {
+            this.formData.evaluationCriteria.push({
+                id: `new-${this.newCriterionUniqueIdx}`,
+                skillLevelBits: null,
+                category: null,
+                criterion: null
+            });
+            this.newCriterionUniqueIdx++;
+        },
+        removeCriterionInput(criterion) {
+            this.formData.evaluationCriteria = this.formData.evaluationCriteria.filter((ec) => ec.id !== criterion.id);
+        },
         addFileInput() {
             const formId = `new-${this.newFileUniqueIdx}`
             this.formData.newFiles[formId] = {
@@ -199,7 +261,7 @@ export default {
                 isShowUpload: true,
                 formId
             };
-            this.newFileUniqueIdx += 1;
+            this.newFileUniqueIdx++;
         },
         changeFile(fileId) {
             const file = this.formData.newFiles[fileId];
@@ -229,6 +291,16 @@ export default {
             // Add new instruction fields for skill levels that are new
             skillLevelNumbers.forEach((bit) => {
                 formData.newInstructions[bit] = {skillLevelBit: bit};
+            });
+        },
+        setEvaluationCategoryAndUpdateOptions(criterion, category) {
+            criterion.category = category;
+            Object.entries(this.$refs).forEach(([key, ref]) => {
+                if (!key.includes('projectCriterion-category')) {
+                    return;
+                }
+                ref.elSel.addOption({value: category, text: category});
+                ref.elSel.refreshOptions();
             });
         },
         toggleImageUpload() {
@@ -349,6 +421,17 @@ export default {
                 );
                 return false;
             }
+
+             for (let i=0; i<formData.evaluationCriteria.length; i++) {
+                 const criterion = formData.evaluationCriteria[i];
+                 if (!criterion.criterion) {
+                     this.addPopover($(`#projectCriterion-criterion-${criterion.id}`),
+                {severity: severity.WARN, content: 'Criterion is required', isOnce: true}
+                    );
+                    return false;
+                 }
+             }
+
             return true;
         }
     }

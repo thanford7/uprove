@@ -37,6 +37,9 @@ const store = createStore({
         addAlert(state, alert) {
             state.alertCount++;
             state.alerts.push({...alert, id: state.alertCount});
+            setTimeout(() => {
+                this.commit('clearSuccessAlerts');
+            }, 5000);
         },
         clearAlert(state, alertId) {
             state.alerts = state.alerts.filter((alert) => alert.id !== alertId);

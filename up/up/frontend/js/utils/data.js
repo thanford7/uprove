@@ -210,7 +210,11 @@ class DataUtil {
 
     sortBy(targetArray, sortKey) {
         const newArray = [...targetArray];
-        newArray.sort((a, b) => (a[sortKey] > b[sortKey]) ? 1 : ((b[sortKey] > a[sortKey]) ? -1 : 0));
+        const sortKeys = Array.isArray(sortKey) ? sortKey : [sortKey];
+        sortKeys.reverse();  // Reverse the order so the first item will be sorted last (making it primary)
+        sortKeys.forEach((sortKey) => {
+            newArray.sort((a, b) => (a[sortKey] > b[sortKey]) ? 1 : ((b[sortKey] > a[sortKey]) ? -1 : 0));
+        });
         return newArray;
     }
 
@@ -219,6 +223,13 @@ class DataUtil {
             return vals;
         }
         return vals.reduce((total, val) => {
+            if (isNaN(val)) {
+                if (val.includes('.')) {
+                    val = Number.parseFloat(val);
+                } else {
+                    val = Number.parseInt(val);
+                }
+            }
             total += val;
             return total;
         }, 0)

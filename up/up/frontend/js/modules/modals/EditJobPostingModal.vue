@@ -4,6 +4,7 @@
         :modalTitle="(formData.id) ? `Edit posting: ${formData.jobTitle}`: 'Create new posting'"
         :primaryButtonText="(formData.id) ? 'Save changes' : 'Create posting'"
         :isLargeDisplay="true"
+        :isScrollable="true"
         :isAllowDelete="Boolean(formData.id)"
         @saveChange="saveChange($event)"
         @deleteObject="deleteObject($event)"

@@ -10,8 +10,9 @@ from django.db import models
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
-    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectFile', 'Employer',
-    'CustomProject', 'EmployerJob', 'UserJobApplication', 'UserProject', 'BlogPost', 'BlogTag'
+    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
+    'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'UserJobApplication',
+    'UserProject', 'BlogPost', 'BlogTag'
 )
 
 
@@ -275,6 +276,14 @@ class ProjectInstructions(AuditFields):
         unique_together = ('project', 'skillLevelBit')
 
 
+class ProjectEvaluationCriterion(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='evaluationCriteria')
+    criterion = models.CharField(max_length=500)
+    category = models.CharField(max_length=100, null=True)
+    skillLevelBits = models.SmallIntegerField(null=True)  # Null value indicates all skill levels
+    employer = models.ForeignKey('Employer', on_delete=models.CASCADE, null=True)
+
+
 class ProjectFile(AuditFields):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='projectFile')
     title = models.CharField(max_length=100)
@@ -305,6 +314,12 @@ class CustomProject(models.Model):
             and self.project == otherProject.project
             and self.skillLevelBit == otherProject.skillLevelBit
         )
+
+
+class EmployerCustomProjectCriterion(models.Model):
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
+    customProject = models.ForeignKey(CustomProject, on_delete=models.CASCADE)
+    evaluationCriterion = models.ForeignKey(ProjectEvaluationCriterion, on_delete=models.CASCADE)
 
 
 class EmployerJob(AuditFields):

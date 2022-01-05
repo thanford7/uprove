@@ -14,13 +14,7 @@ export default {
     name: "BannerAlert.vue",
     computed: mapState(['alerts']),
     methods: {
-        ...mapMutations(['clearAlert', 'clearSuccessAlerts'])
+        ...mapMutations(['clearAlert'])
     },
-    updated() {
-        // Close success alerts after 5 seconds
-        setTimeout(() => {
-            this.clearSuccessAlerts();
-        }, 5000);
-    }
 }
 </script>

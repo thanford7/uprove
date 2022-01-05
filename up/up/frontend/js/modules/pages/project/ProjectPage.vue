@@ -2,23 +2,27 @@
     <div class="container-lg">
         <BannerAlert/>
         <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
-            <div class="col-md-9">
+            <div class="col-md-8 card-custom">
                 <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.function}}</span></h1>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
                 <h3>Project brief</h3>
                 <div v-html="initData.project.background" class="-border-bottom--light mb-2"></div>
-                <template v-if="isLoggedIn">
+                <div v-if="isLoggedIn" class="-border-bottom--light mb-2">
                     <h3>Instructions</h3>
-                    <template v-if="formData.skillLevelBit">
-                        <div class="-border-bottom--light mb-2">
-                            <div v-html="projectInstructions"></div>
-                            <ul v-if="projectSkillInstructions.length" class="pb-2">
-                                <li v-for="i in projectSkillInstructions">{{i}}</li>
-                            </ul>
-                        </div>
-                    </template>
-                    <div v-else class="-sub-text -border-bottom--light mb-2">Select career level to view instructions</div>
-                </template>
+                    <div v-if="formData.skillLevelBit" class="pb-2">
+                        <div v-html="projectInstructions"></div>
+                        <ul v-if="projectSkillInstructions.length" class="pb-2">
+                            <li v-for="i in projectSkillInstructions">{{i}}</li>
+                        </ul>
+                    </div>
+                    <div v-else class="-sub-text pb-2">Select career level to view instructions</div>
+                </div>
+                <div v-if="isLoggedIn && isEmployer && evaluationCriteria" class="-border-bottom--light mb-2">
+                    <h3>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h3>
+                    <ul>
+                        <li v-for="criterion in evaluationCriteria">{{criterion.criterion}}</li>
+                    </ul>
+                </div>
                 <div v-if="projectFiles.length">
                     <h3>Files</h3>
                     <div v-for="file in projectFiles">
@@ -79,7 +83,7 @@
                         :accordionElId="accordionElId" :elId="getNewElUid()" :isOpen="!isMobile" :isAllowMultipleOpen="true"
                     >
                         <template v-slot:header>
-                            Current projects
+                            Linked job positions
                         </template>
                         <template v-slot:body>
                             <div v-for="(proj, projId, idx) in existingProjects" class="mb-2 -hover-highlight-border" :class="(!isLastItem(idx, existingProjects)) ? '-border-bottom--light' : ''">
@@ -121,13 +125,14 @@ import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountMo
 import dataUtil from "../../../utils/data";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import FileDisplay from "../../components/FileDisplay";
+import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 
 export default {
     name: "ProjectPage.vue",
     components: {
         AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CandidateRequestAccountModal,
-        EmployerRequestInfoModal, FileDisplay, InputSelectize
+        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize
     },
     data() {
         return {
@@ -155,6 +160,11 @@ export default {
                 });
                 return uniqueProjects;
             }, {});
+        },
+        evaluationCriteria() {
+            return this.initData.project.evaluationCriteria.filter((ec) => {
+                return !ec.skillLevelBits || !this.formData.skillLevelBit || ec.skillLevelBits & this.formData.skillLevelBit;
+            });
         },
         employerJobsCfg() {
             return {

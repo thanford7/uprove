@@ -187,7 +187,7 @@ def getSerializedOrganization(organization: Organization):
     }
 
 
-def getSerializedProject(project: Project, isIncludeDetails:bool=False):
+def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=False, evaluationEmployerId=None):
     return {
         'id': project.id,
         'title': project.title,
@@ -199,6 +199,11 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False):
         'description': project.description,
         'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
         'instructions': [getSerializedProjectInstructions(pi) for pi in project.projectInstructions.all()],
+        'evaluationCriteria': [
+            getSerializedProjectEvaluationCriterion(ec)
+            for ec in project.evaluationCriteria.all()
+            if ec.employer_id is None or ec.employer_id == evaluationEmployerId
+        ] if (evaluationEmployerId or isAdmin) else None,
         'employer': {
             'id': project.employer.id,
             'companyName': project.employer.companyName
@@ -214,6 +219,16 @@ def getSerializedProjectInstructions(projectInstructions: ProjectInstructions):
         'instructions': projectInstructions.instructions,
         'skillLevelBit': projectInstructions.skillLevelBit,
         **serializeAuditFields(projectInstructions)
+    }
+
+
+def getSerializedProjectEvaluationCriterion(evaluationCriterion: ProjectEvaluationCriterion):
+    return {
+        'id': evaluationCriterion.id,
+        'criterion': evaluationCriterion.criterion,
+        'category': evaluationCriterion.category,
+        'skillLevelBits': evaluationCriterion.skillLevelBits,
+        'employerId': evaluationCriterion.employer_id
     }
 
 
@@ -262,6 +277,15 @@ def getSerializedCustomProject(customProject: CustomProject):
         'skills': [getSerializedProjectSkill(s) for s in customProject.skills.all()],
         'projectId': customProject.project_id,
         'projectTitle': customProject.project.title
+    }
+
+
+def getSerializedEmployerCustomProjectCriterion(criterion: EmployerCustomProjectCriterion):
+    return {
+        'id': criterion.id,
+        'employerId': criterion.employer_id,
+        'customProjectId': criterion.customProject_id,
+        'evaluationCriterionId': criterion.evaluationCriterion_id
     }
 
 

@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from upapp import security
 from upapp.apis import setSkills
 from upapp.modelSerializers import getSerializedProject, getSerializedProjectFunction, getSerializedProjectSkill
-from upapp.models import Project, ProjectFunction, ProjectSkill, ProjectFile, ProjectInstructions
+from upapp.models import Project, ProjectFunction, ProjectSkill, ProjectFile, ProjectInstructions, ProjectEvaluationCriterion
 from upapp.utils import dataUtil
 
 
@@ -24,11 +24,13 @@ class ProjectView(APIView):
     def get(self, request, projectId=None):
         projectId = projectId or request.data['id']
         isPermittedSessionUser = security.isPermittedSessionUser(request)
+        user = security.getSessionUser(request)
+        employerId = user['employerId'] if user else None
         if projectId:
-            return Response(getSerializedProject(self.getProject(projectId), isIncludeDetails=isPermittedSessionUser), status=status.HTTP_200_OK)
+            return Response(getSerializedProject(self.getProject(projectId), isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId), status=status.HTTP_200_OK)
 
         employerId = request.data.get('employerId')
-        return Response([getSerializedProject(p, isIncludeDetails=isPermittedSessionUser) for p in self.getProjects(employerId=employerId)])
+        return Response([getSerializedProject(p, isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId) for p in self.getProjects(employerId=employerId)])
 
     @atomic
     def post(self, request):
@@ -51,9 +53,10 @@ class ProjectView(APIView):
 
         setSkills(project, data.get('skillIds'))
         self.setInstructions(project, data.get('instructions'))
+        self.setEvaluationCriteria(project, data.get('evaluationCriteria'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
 
-        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), security.isPermittedSessionUser(request)))
+        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
 
     @atomic
     def put(self, request, projectId=None):
@@ -76,12 +79,19 @@ class ProjectView(APIView):
         })
         if image := data.get('image'):
             project.image = image
-        project.save()
 
-        setSkills(project, data.get('skillIds'))
-        self.setInstructions(project, data.get('instructions'))
-        self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
-        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), security.isPermittedSessionUser(request)))
+        isChanged = any([
+            setSkills(project, data.get('skillIds')),
+            self.setInstructions(project, data.get('instructions')),
+            self.setEvaluationCriteria(project, data.get('evaluationCriteria')),
+            self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
+        ])
+
+        if isChanged:
+            project.modifiedDateTime = datetime.utcnow()
+
+        project.save()
+        return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
 
     def delete(self, request, projectId=None):
         if not security.isPermittedAdmin(request):
@@ -100,7 +110,7 @@ class ProjectView(APIView):
         try:
             return Project.objects \
                 .select_related('employer', 'function') \
-                .prefetch_related('projectFile', 'projectInstructions', 'skills') \
+                .prefetch_related('evaluationCriteria', 'projectFile', 'projectInstructions', 'skills') \
                 .get(id=projectId)
         except Project.DoesNotExist as e:
             raise e
@@ -117,11 +127,12 @@ class ProjectView(APIView):
             q &= Q(id__in=projectIds)
         return Project.objects\
             .select_related('employer', 'function')\
-            .prefetch_related('projectFile', 'projectInstructions', 'skills')\
+            .prefetch_related('evaluationCriteria', 'projectFile', 'projectInstructions', 'skills')\
             .filter(q)
 
     @staticmethod
     def setFiles(project, files, filesMetaData, request):
+        isChanged = False
         existingProjectFiles = {pf.id: pf for pf in ProjectFile.objects.filter(project_id=project.id)}
         filesDict = {f.name: f for f in files}
         usedProjectFileIds = []
@@ -140,6 +151,7 @@ class ProjectView(APIView):
                     createdDateTime=datetime.utcnow()
                 )
                 projectFile.save()
+                isChanged = True
             else:
                 existingProjectFile = existingProjectFiles.get(projectFileId)
                 if not existingProjectFile:
@@ -149,7 +161,7 @@ class ProjectView(APIView):
                     continue
 
                 usedProjectFileIds.append(projectFileId)
-                dataUtil.setObjectAttributes(existingProjectFile, metaData, {
+                isChanged = isChanged or dataUtil.setObjectAttributes(existingProjectFile, metaData, {
                     'title': None,
                     'description': None,
                     'skillLevelBits': None
@@ -161,15 +173,19 @@ class ProjectView(APIView):
 
         deleteProjectFileIds = [id for id in existingProjectFiles.keys() if id not in usedProjectFileIds]
         if deleteProjectFileIds:
+            isChanged = True
             ProjectFile.objects.filter(id__in=deleteProjectFileIds).delete()
+
+        return isChanged
 
     @staticmethod
     def setInstructions(project, instructions):
         usedInstructionIds = []
         existingInstructions = {pi.id: pi for pi in ProjectInstructions.objects.filter(project=project)}
+        isChanged = False
         for instruction in instructions:
             if existingInstruction := existingInstructions.get(instruction.get('id')):
-                dataUtil.setObjectAttributes(existingInstruction, instruction, {
+                isChanged = isChanged or dataUtil.setObjectAttributes(existingInstruction, instruction, {
                     'instructions': None,
                     'skillLevelBit': None
                 })
@@ -184,9 +200,45 @@ class ProjectView(APIView):
                     createdDateTime=datetime.utcnow()
                 )
                 newInstruction.save()
+                isChanged = True
         deleteInstructionIds = [id for id in existingInstructions.keys() if id not in usedInstructionIds]
         if deleteInstructionIds:
+            isChanged = True
             ProjectInstructions.objects.filter(id__in=deleteInstructionIds).delete()
+
+        return isChanged
+
+    @staticmethod
+    def setEvaluationCriteria(project, evaluationCriteria):
+        usedCriteriaIds = []
+        existingCriteria = {ec.id: ec for ec in ProjectEvaluationCriterion.objects.filter(project_id=project.id)}
+        isChanged = False
+        for criterion in (evaluationCriteria or []):
+            if existingCriterion := existingCriteria.get(criterion.get('id')):
+                isChanged = isChanged or dataUtil.setObjectAttributes(existingCriterion, criterion, {
+                    'criterion': None,
+                    'category': None,
+                    'skillLevelBits': None,
+                    'employer_id': {'formName': 'employerId'}
+                })
+                usedCriteriaIds.append(existingCriterion.id)
+            else:
+                newCriterion = ProjectEvaluationCriterion(
+                    project_id=project.id,
+                    criterion=criterion['criterion'],
+                    category=criterion.get('category'),
+                    skillLevelBits=criterion.get('skillLevelBits'),
+                    employer_id=criterion.get('employerId')
+                )
+                newCriterion.save()
+                isChanged = True
+
+        deleteCriteriaIds = [id for id in existingCriteria.keys() if id not in usedCriteriaIds]
+        if deleteCriteriaIds:
+            isChanged = True
+            ProjectEvaluationCriterion.objects.filter(id__in=deleteCriteriaIds).delete()
+
+        return isChanged
 
 
 class FunctionView(APIView):

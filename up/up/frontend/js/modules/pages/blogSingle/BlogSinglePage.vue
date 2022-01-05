@@ -2,7 +2,7 @@
     <div class="container-lg blog-post">
         <div class="row mt-3 mb-3">
             <a href="/blog/">Back to blog posts</a>
-            <div class="col image-wrap">
+            <div class="col card-custom" :class="(isMobile) ? '' : 'image-wrap'">
                 <img v-if="initData.blog.picture" :src="initData.blog.picture" class="blog-img">
                 <h2>
                     {{initData.blog.title}}
