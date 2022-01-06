@@ -36,7 +36,7 @@
                 <h5 class="-text-bold m-0" style="display: inline-block;">Videos</h5>&nbsp;
                 <span v-if="formData.videos" class="badge rounded-pill bg-secondary">{{formData.videos.length}}</span>
             </div>
-            <div v-for="video in formData.videos" class="-hover-highlight-border mb-2">
+            <div v-for="video in formData.videos" class="-hover-highlight-border mb-2 position-relative">
                 <input :id="`video-title-${video.id}`" type="text" class="form-control mb-2" placeholder="Video name" v-model="video.title">
                 <div v-if="!isNew(video.id)">
                     <a :href="video.video" download>
@@ -48,7 +48,7 @@
                     :elId="`video-input-${video.id}`"
                     @selected="video.video = $event"
                 />
-                <a href="#" @click="removeVideo(video.id)" class="-color-red-text"><i class="fas fa-trash"></i> Remove video</a>
+                <RemoveIcon @click="removeVideo(video.id)"/>
             </div>
             <div class="mb-1">
                 <a href="#" @click="addNewVideo" class="-color-green-text"><i class="fas fa-plus-circle"></i> Add new video</a>
@@ -59,7 +59,7 @@
                 <h5 class="-text-bold m-0" style="display: inline-block;">Images</h5>&nbsp;
                 <span v-if="formData.images" class="badge rounded-pill bg-secondary">{{formData.images.length}}</span>
             </div>
-            <div v-for="image in formData.images" class="-hover-highlight-border mb-2">
+            <div v-for="image in formData.images" class="-hover-highlight-border mb-2 position-relative">
                 <input :id="`image-title-${image.id}`" type="text" class="form-control mb-2" placeholder="Image name" v-model="image.title">
                 <div v-if="!isNew(image.id)">
                     <a :href="image.image" download>
@@ -72,7 +72,7 @@
                     :elId="`image-input-${image.id}`"
                     @selected="image.image = $event"
                 />
-                <a href="#" @click="removeImage(image.id)" class="-color-red-text"><i class="fas fa-trash"></i> Remove image</a>
+                <RemoveIcon @click="removeImage(image.id)"/>
             </div>
             <div class="mb-1">
                 <a href="#" @click="addNewImage" class="-color-green-text"><i class="fas fa-plus-circle"></i> Add new image</a>
