@@ -11,9 +11,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div v-if="headerSubtext" class="modal-body-banner modal-body-banner--top">{{headerSubtext}}</div>
-                    <BannerAlert/>
-                    <slot/>
+                    <div class="container-fluid">
+                        <div v-if="headerSubtext" class="modal-body-banner modal-body-banner--top">{{headerSubtext}}</div>
+                        <BannerAlert/>
+                        <slot/>
+                    </div>
                 </div>
                 <div v-if="!isFooterHidden" class="modal-footer">
                     <slot name="footer">

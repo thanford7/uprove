@@ -26,6 +26,9 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Evaluation criteria <InfoToolTip :elId="getNewElUid()" :content="infoEvalCriteria"/></label>
+            <div>
+                <a href="#" @click="toggleAll($event, true)">Select all</a>&nbsp;&nbsp;<a href="#" @click="toggleAll($event, false)">Unselect all</a>
+            </div>
             <div v-for="criterion in evaluationCriteria" class="form-check">
                 <InputCheckBox
                     :elId="`criterion-${criterion.id}`"
@@ -34,11 +37,11 @@
                     :isEditable="isEditableCriterion(criterion)"
                     :isEditableTextArea="true"
                     editablePlaceHolder="Add criterion..."
-                    @click="criterion.isChecked = !criterion.isChecked"
+                    @click="criterion.isUsed = !criterion.isUsed"
                     @change="criterion.criterion = $event"
                 />
             </div>
-            <div class="border-top pt-1">
+            <div class="pt-1">
                 <a href="#" @click="addCriterionInput"><i class="fas fa-plus -color-green-text"></i> Add new criterion</a>
             </div>
         </div>
@@ -78,7 +81,7 @@ export default {
             let evalCriteria = (project.evaluationCriteria || []).filter((ec) => !ec.skillLevelBits || ec.skillLevelBits & this.formData.skillLevelBit);
             evalCriteria.forEach((ec) => {
                 const existingCriterion = this.initData.customProjectEvaluationCriteria.find((pec) => pec.evaluationCriterionId === ec.id);
-                ec.isUsed = Boolean(existingCriterion);
+                ec.isUsed = dataUtil.isNil(ec.isUsed) ? Boolean(existingCriterion) : ec.isUsed;
             });
             evalCriteria = [...evalCriteria, ...this.formData.newCriterion]
             return dataUtil.sortBy(evalCriteria, ['category', 'isUsed']);
@@ -133,6 +136,11 @@ export default {
             });
             this.newCriterionCount++;
         },
+        toggleAll(e, isUsed) {
+            e.preventDefault();
+            this.evaluationCriteria.forEach((ec) => { ec.isUsed = isUsed; });
+            console.log(this.evaluationCriteria);
+        }
     }
 }
 </script>

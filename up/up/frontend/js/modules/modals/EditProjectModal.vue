@@ -289,7 +289,7 @@ export default {
                     return;
                 }
                 ref.elSel.addOption({value: category, text: category});
-                ref.elSel.refreshOptions();
+                ref.elSel.refreshOptions(false);
             });
         },
         toggleImageUpload() {

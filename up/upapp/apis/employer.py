@@ -355,7 +355,7 @@ class EmployerCustomProject(APIView):
                     employer_id=employerId,
                     customProject_id=customProjectId,
                     evaluationCriterion_id=projectCriterion.id
-                )
+                ).save()
             if not criterionData['isUsed'] and employerCriterion:
                 employerCriterion.delete()
 
