@@ -8,8 +8,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from upapp.apis import setSkills
+from upapp.apis.project import ProjectView
 from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, ProjectEvaluationCriterion
-from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob
+from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
+    getSerializedEmployerCustomProjectCriterion, getSerializedProject
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -312,7 +314,7 @@ class EmployerCustomProject(APIView):
 
         # Add or remove jobs linked to custom project
         # TODO: Optimize this query
-        linkedJobIds = [j.id for j in data.get('jobs', [])]
+        linkedJobIds = [j['id'] for j in data.get('jobs', [])]
         for job in EmployerJob.objects.prefetch_related('allowedProjects').filter(employer_id=employerId):
             isLinked = customProject in job.allowedProjects.all()
             if isLinked and job.id not in linkedJobIds:
@@ -340,9 +342,9 @@ class EmployerCustomProject(APIView):
             else:
                 projectCriterion = ProjectEvaluationCriterion(
                     project_id=customProject.project_id,
-                    criterion=data['criterion'],
-                    category=data.get('category'),
-                    skillLevelBits=data.get('skillLevelBits'),
+                    criterion=criterionData['criterion'],
+                    category=criterionData.get('category'),
+                    skillLevelBits=criterionData.get('skillLevelBits'),
                     employer_id=employerId
                 )
                 projectCriterion.save()
@@ -357,4 +359,11 @@ class EmployerCustomProject(APIView):
             if not criterionData['isUsed'] and employerCriterion:
                 employerCriterion.delete()
 
-        # TODO: Add response
+        return Response(status=status.HTTP_200_OK, data={
+            'projects': [getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in
+                         ProjectView.getProjects(employerId=employerId)],
+            'customProjectEvaluationCriteria': [
+                getSerializedEmployerCustomProjectCriterion(ec)
+                for ec in EmployerCustomProjectCriterion.objects.filter(employer_id=employerId)
+            ]
+        })

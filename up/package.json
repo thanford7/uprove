@@ -39,6 +39,7 @@
     "bootstrap-ie11": "^5.1.3",
     "dayjs": "^1.10.7",
     "jquery": "^3.6.0",
+    "just-clone": "^5.0.1",
     "mitt": "^3.0.0",
     "npm": "^7.24.1",
     "pluralize": "^8.0.0",

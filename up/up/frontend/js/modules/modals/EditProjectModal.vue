@@ -111,13 +111,7 @@
                     :id="`projectCriterion-criterion-${criterion.id}`"
                     v-model="criterion.criterion"
                 />
-                <div class="-absolute-top-right">
-                    <i
-                        class="far fa-times-circle -color-red-text -hover-bold"
-                        title="Remove"
-                        @click="removeCriterionInput(criterion)">
-                    </i>
-                </div>
+                <RemoveIcon @click="removeCriterionInput(criterion)"/>
             </div>
             <div class="pt-1">
                 <a href="#" @click="addCriterionInput"><i class="fas fa-plus -color-green-text"></i> Add evaluation criterion</a>
@@ -152,13 +146,7 @@
                 <i class="fas fa-exchange-alt"></i>
                 &nbsp;{{(file.isShowUpload) ? 'Use existing file' : 'Change file'}}
             </a>
-            <div class="-absolute-top-right">
-                <i
-                    class="far fa-times-circle -color-red-text -hover-bold"
-                    title="Remove"
-                    @click="removeFileInput(fileId)">
-                </i>
-            </div>
+            <RemoveIcon @click="removeFileInput(fileId)"/>
         </div>
         <div class="border-top pt-1">
             <a href="#" @click="addFileInput"><i class="fas fa-plus -color-green-text"></i> Add new file</a>
@@ -175,6 +163,7 @@ import FormChecker from '../../utils/form';
 import InputMedia from "../inputs/InputMedia";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
+import RemoveIcon from "../components/RemoveIcon";
 import form from "../../utils/form";
 import $ from "jquery";
 
@@ -182,7 +171,7 @@ export default {
     name: "EditProjectModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, FileDisplay, InputMedia, InputSelectize, InputWsiwyg},
+    components: {BaseModal, FileDisplay, InputMedia, InputSelectize, InputWsiwyg, RemoveIcon},
     data() {
         return {
             modalName: 'editProjectModal',

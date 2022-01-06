@@ -1,9 +1,17 @@
+import clone from 'just-clone';
 import dayjs from "dayjs/esm";
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
 
 const escapeChars = {lt: '<', gt: '>', quot: '"', apos: "'", amp: '&'};
+const APPLICATION_STATUS = {
+    NOT_SUBMITTED: 'Not submitted',
+    SUBMITTED: 'Submitted',
+    APPROVED: 'Approved',
+    DECLINED: 'Declined',
+    WITHDRAWN: 'Withdrawn'
+}
 
 class DataUtil {
     dateFormat = 'MM/DD/YYYY';
@@ -115,15 +123,15 @@ class DataUtil {
 
     getApplicationStatus(jobApplication) {
         if (jobApplication.approveDateTime) {
-            return `Approved ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
+            return `${APPLICATION_STATUS.APPROVED} ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
         } else if (jobApplication.declineDateTime) {
-            return `Declined ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
+            return `${APPLICATION_STATUS.DECLINED} ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
         } else if (jobApplication.submissionDateTime) {
-            return `Submitted ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
+            return `${APPLICATION_STATUS.SUBMITTED} ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
         } else if (jobApplication.withdrawDateTime) {
-            return `Withdrawn ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
+            return `${APPLICATION_STATUS.WITHDRAWN} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
         } else {
-            return 'Not submitted';
+            return APPLICATION_STATUS.NOT_SUBMITTED;
         }
     }
 
@@ -162,6 +170,10 @@ class DataUtil {
         return (string) ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : '';
     }
 
+    deepCopy(val) {
+        return clone(val);
+    }
+
     get(obj, path, defaultValue = undefined) {
         const travel = regexp =>
             String.prototype.split
@@ -174,6 +186,14 @@ class DataUtil {
 
     isEmpty(obj) {
         return [Object, Array].includes((obj || {}).constructor) && !Object.entries((obj || {})).length;
+    }
+
+    isObject(val) {
+        return (
+            typeof val === 'object' &&
+            !Array.isArray(val) &&
+            val !== null
+        )
     }
 
     isNil(val) {
@@ -246,4 +266,4 @@ class DataUtil {
 
 const dataUtil = new DataUtil();
 
-export default dataUtil;
+export {dataUtil as default, APPLICATION_STATUS};

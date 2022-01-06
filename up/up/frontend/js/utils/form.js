@@ -18,4 +18,6 @@ class FormChecker {
     }
 }
 
-export default new FormChecker();
+const formChecker = new FormChecker();
+
+export default formChecker;

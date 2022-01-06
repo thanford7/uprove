@@ -2,7 +2,7 @@
     <i class="far" :class="`fa-${fileIcon}`"></i>&nbsp;
     <a v-if="file.file" :href="file.file" download style="overflow-wrap: break-word;">
         <i class="fas fa-download"></i>&nbsp;
-        {{(isUseFileName) ? file.fileName : file.title}}
+        {{(isUseFileName || !file.title) ? file.fileName : file.title}}
     </a>
     <span v-else>{{file.title}}</span>&nbsp;<BadgesSkillLevels v-if="isIncludeSkillLevels" :skillLevels="getSkillLevelsFromBits(file.skillLevelBits)"/>
     <p v-if="isIncludeDescription" class="-sub-text">{{file.description}}</p>

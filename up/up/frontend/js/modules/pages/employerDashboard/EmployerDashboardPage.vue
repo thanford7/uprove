@@ -77,6 +77,14 @@
                                     <li>
                                         <a class="dropdown-item" href="#"><i class="far fa-envelope"></i> Message</a>
                                     </li>
+                                    <li
+                                        v-if="getApplicationStatus(application) !== APPLICATION_STATUS.NOT_SUBMITTED"
+                                        @click="eventBus.emit('open:viewCandidateApplicationModal', application.userProject)"
+                                    >
+                                        <a class="dropdown-item" href="#">
+                                            <i class="far fa-eye"></i> Quick view application
+                                        </a>
+                                    </li>
                                     <li @click="approveApplication(application)">
                                         <a class="dropdown-item" href="#">
                                             <i class="far fa-thumbs-up"></i> Approve <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
@@ -101,7 +109,7 @@
                 </table>
             </div>
             <div class="col-md-9 card-custom table-responsive-md">
-                <h3>Saved projects</h3>
+                <h3>Linked projects</h3>
                 <table class="table mt-3">
                     <thead>
                         <tr>
@@ -149,11 +157,13 @@
         <EditEmployerModal/>
         <EditJobPostingModal/>
         <InviteJobApplicantModal/>
+        <ViewCandidateApplicationModal/>
     </div>
 </template>
 
 <script>
 import {dateSerializer} from "../../../utils/dateUtil";
+import dataUtil, {APPLICATION_STATUS} from "../../../utils/data";
 import dayjs from "dayjs/esm";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
@@ -164,13 +174,18 @@ import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
-import dataUtil from "../../../utils/data";
+import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
         BannerAlert, BadgesSkillLevels, BadgesSkills, EditCustomProjectModal, EditEmployerModal, EditJobPostingModal,
-        HamburgerDropdown, InfoToolTip, InviteJobApplicantModal
+        HamburgerDropdown, InfoToolTip, InviteJobApplicantModal, ViewCandidateApplicationModal
+    },
+    data() {
+        return {
+            APPLICATION_STATUS
+        }
     },
     computed: {
         applications() {

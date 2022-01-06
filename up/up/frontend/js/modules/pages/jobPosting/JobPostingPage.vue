@@ -113,7 +113,7 @@ export default {
                 customProjectId: null,
                 userId: '#loginInstruction'
             },
-            pageRedirect: 'candidateDashboard/'
+            pageRedirect: '/candidateDashboard/'
         }
     },
     computed: {

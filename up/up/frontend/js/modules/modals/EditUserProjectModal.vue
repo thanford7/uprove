@@ -13,7 +13,7 @@
                 <h5 class="-text-bold m-0" style="display: inline-block;">Files</h5>&nbsp;
                 <span v-if="formData.files" class="badge rounded-pill bg-secondary">{{formData.files.length}}</span>
             </div>
-            <div v-for="file in formData.files" class="-hover-highlight-border mb-2">
+            <div v-for="file in formData.files" class="-hover-highlight-border mb-2 position-relative">
                 <input :id="`file-title-${file.id}`" type="text" class="form-control mb-2" placeholder="File name" v-model="file.title">
                 <div v-if="!isNew(file.id)">
                     <a :href="file.file" download>
@@ -25,7 +25,7 @@
                     :elId="`file-input-${file.id}`"
                     @selected="file.file = $event"
                 />
-                <a href="#" @click="removeFile(file.id)" class="-color-red-text"><i class="fas fa-trash"></i> Remove file</a>
+                <RemoveIcon @click="removeFile(file.id)"/>
             </div>
             <div class="mb-1">
                 <a href="#" @click="addNewFile" class="-color-green-text"><i class="fas fa-plus-circle"></i> Add new file</a>
@@ -86,19 +86,20 @@
 </template>
 
 <script>
+import {severity} from "../../vueMixins";
 import BaseModal from "./BaseModal";
+import dataUtil from "../../utils/data";
 import InfoToolTip from "../components/InfoToolTip";
 import InputMedia from "../inputs/InputMedia";
 import InputWsiwyg from "../inputs/InputWsiwyg";
-import dataUtil from "../../utils/data";
+import RemoveIcon from "../components/RemoveIcon";
 import $ from "jquery";
-import {severity} from "../../vueMixins";
 
 export default {
     name: "EditUserProjectModal",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InfoToolTip, InputMedia, InputWsiwyg},
+    components: {BaseModal, InfoToolTip, InputMedia, InputWsiwyg, RemoveIcon},
     data() {
         return {
             modalName: 'editUserProjectModal',

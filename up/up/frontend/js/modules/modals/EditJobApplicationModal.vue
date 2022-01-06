@@ -54,7 +54,11 @@ export default {
     },
     computed: {
         isProjectAllowed() {
-            return !this.formData.userProjectId || this.allowedProjectIds.includes(this.formData.userProjectId);
+            if (!this.formData.userProjectId) {
+                return false;
+            }
+            const userProject = this.initData.userProjects.find((up) => up.id === this.formData.userProjectId);
+            return this.allowedProjectIds.includes(userProject.customProject.id);
         },
         isShowWithdraw() {
             return !this.formData.withdrawDateTime && this.formData.submissionDateTime;

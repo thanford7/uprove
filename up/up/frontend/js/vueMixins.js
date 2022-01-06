@@ -81,7 +81,11 @@ const ajaxRequestMixin = {
                     alertType: severity.SUCCESS
                 });
                 if (this.isUpdateData) {
-                    this.updateInitData(method, data);
+                    if (method === 'DELETE') {
+                        this.updateInitDataDelete(data)
+                    } else {
+                        this.updateInitData(data, method === 'PUT');
+                    }
                 }
                 this.formData = {};
                 if (this.isAjaxModal) {
@@ -98,40 +102,29 @@ const ajaxRequestMixin = {
             // subclass
             return 'Success';
         },
-        updateInitData(method, newData) {
-            if (method === 'POST') {
-                this.updateInitDataPost(newData);
-            }
-            if (method === 'PUT') {
-                this.updateInitDataPut(newData);
-            }
-            if (method === 'DELETE') {
-                this.updateInitDataDelete(newData)
-            }
+        getUpdateObject(dataKey) {
+            return (dataKey) ? dataUtil.get(this.initData, dataKey) : this.initData;
         },
-        getUpdateObject() {
-            return (this.initDataKey) ? dataUtil.get(this.initData, this.initDataKey) : this.initData;
-        },
-        updateInitDataPost(newData) {
-            const updateObject = this.getUpdateObject();
-            if (Array.isArray(updateObject)) {
-                updateObject.push(newData);
-            } else if (this.initDataKey) {
-                this.initData[this.initDataKey] = newData;
-            } else {
-                this.initData = newData;
+        updateInitData(newData, isPut) {
+            if (!Array.isArray(this.initDataKey)) {
+                this.initDataKey = [this.initDataKey]
             }
-        },
-        updateInitDataPut(newData) {
-            const updateObject = this.getUpdateObject();
-            if (Array.isArray(updateObject)) {
-                const item = updateObject.find((item) => item.id === newData.id);
-                Object.assign(item, newData);
-            } else if (this.initDataKey) {
-                this.initData[this.initDataKey] = newData;
-            } else {
-                this.initData = newData;
-            }
+            this.initDataKey.forEach((dataKey) => {
+                const updateObject = this.getUpdateObject(dataKey);  // Object in memory to be updated
+                // Response data contains more than one data object to be mapped to in memory data
+                if (dataUtil.isObject(newData) && dataKey in newData) {
+                    this.initData[dataKey] = newData[dataKey];
+                } else if (Array.isArray(updateObject)) {
+                    if (isPut) {
+                        const item = updateObject.find((item) => item.id === newData.id);
+                        Object.assign(item, newData);
+                    } else {
+                        updateObject.push(newData);
+                    }
+                } else {
+                    this.initData = newData;
+                }
+            });
         },
         updateInitDataDelete(deleteId) {
             if (this.deleteRedirectUrl) {
@@ -339,11 +332,12 @@ const modalsMixin = {
             if (!this.modal$) {
                 this.modal$ = new Modal($(`#${this.modalName}`), {backdrop: 'static'});
             }
+            const rawDataCopy = (rawData) ? dataUtil.deepCopy(rawData) : rawData;  // Copy data so we don't mutate original
             this.setEmptyFormData();
             this.clearSelectizeElements();
             this.modal$.show();
-            if (rawData) {
-                this.formData = this.processRawData(rawData);
+            if (rawDataCopy) {
+                this.formData = this.processRawData(rawDataCopy);
                 this.setFormFields();
             }
         });

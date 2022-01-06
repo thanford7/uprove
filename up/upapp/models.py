@@ -278,7 +278,7 @@ class ProjectInstructions(AuditFields):
 
 class ProjectEvaluationCriterion(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='evaluationCriteria')
-    criterion = models.CharField(max_length=500)
+    criterion = models.TextField()
     category = models.CharField(max_length=100, null=True)
     skillLevelBits = models.SmallIntegerField(null=True)  # Null value indicates all skill levels
     employer = models.ForeignKey('Employer', on_delete=models.CASCADE, null=True)

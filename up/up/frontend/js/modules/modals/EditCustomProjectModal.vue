@@ -53,6 +53,8 @@ import InfoToolTip from "../components/InfoToolTip";
 import InputCheckBox from "../inputs/InputCheckBox";
 import InputSelectize from "../inputs/InputSelectize";
 import dataUtil from "../../utils/data";
+import $ from "jquery";
+import {severity} from "../../vueMixins";
 
 export default {
     name: "EditCustomProjectModal",
@@ -87,11 +89,7 @@ export default {
             modalName: 'editCustomProjectModal',
             crudUrl: 'employer-custom-project/',
             isUpdateData: true,
-            initDataKey: 'employer.jobs',
-            requiredFields: {
-                jobTitle: '#modalJobTitle',
-                jobDescription: '#modalJobDescription',
-            },
+            initDataKey: ['projects', 'customProjectEvaluationCriteria'],
             newCriterionCount: 0,
             infoEvalCriteria: `Check all criteria that evaluators should use when assessing the quality of a candidate's application.`
         }
@@ -110,6 +108,18 @@ export default {
             formData.employerId = this.initData.employer.id;
             formData.evaluationCriteria = this.evaluationCriteria
             return formData;
+        },
+        isGoodFormFields(formData) {
+            for(let i=0; i<formData.evaluationCriteria.length; i++) {
+                const criterion = formData.evaluationCriteria[i];
+                if (!criterion.criterion || !criterion.criterion.length) {
+                    this.addPopover($(`#criterion-${criterion.id}`).next('textarea'),
+                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    );
+                    return false;
+                }
+            }
+            return true;
         },
         addCriterionInput(e) {
             e.preventDefault();
