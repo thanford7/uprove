@@ -50,13 +50,13 @@ export default {
                     items: [
                         {
                             icon: 'fa-twitter-square',
-                            title: 'Follow us on Twitter',
+                            title: 'Follow us',
                             link: 'https://twitter.com/uprove_co',
                             isNewTab: true
                         },
                         {
                             icon: 'fa-linkedin',
-                            title: 'Connect on LinkedIn',
+                            title: 'Connect',
                             link: 'https://linkedin.com/company/uprove-co',
                             isNewTab: true
                         }

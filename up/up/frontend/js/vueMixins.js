@@ -11,8 +11,9 @@ import pluralize from 'pluralize';
 const severity = {
     SUCCESS: 'success',
     WARN: 'warn',
-    DANGER: 'danger'
-}
+    DANGER: 'danger',
+    INFO: 'primary'
+};
 let newElUid = 0;
 const eventBus = mitt();
 
@@ -69,7 +70,8 @@ const ajaxRequestMixin = {
             requiredFields: {}, // <formData field name>: <form DOM id>
             isAjaxModal: false,
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
-            pageRedirect: null  // Page to redirect to after succesful ajax request
+            pageRedirect: null,  // Page to redirect to after succesful ajax request
+            successAlertType: severity.SUCCESS
         }
     },
     methods: {
@@ -77,8 +79,8 @@ const ajaxRequestMixin = {
             return (data, textStatus, xhr) => {
                 eventBus.emit('ajaxSuccess', data);
                 store.commit('addAlert', {
-                    message: this.getSuccessMessage(data),
-                    alertType: severity.SUCCESS
+                    message: this.getSuccessMessage(data, method),
+                    alertType: this.successAlertType
                 });
                 if (this.isUpdateData) {
                     if (method === 'DELETE') {
@@ -98,7 +100,7 @@ const ajaxRequestMixin = {
                 }
             }
         },
-        getSuccessMessage(data) {
+        getSuccessMessage(data, method) {
             // subclass
             return 'Success';
         },
@@ -107,7 +109,7 @@ const ajaxRequestMixin = {
         },
         updateInitData(newData, isPut) {
             if (!Array.isArray(this.initDataKey)) {
-                this.initDataKey = [this.initDataKey]
+                this.initDataKey = [this.initDataKey];
             }
             this.initDataKey.forEach((dataKey) => {
                 const updateObject = this.getUpdateObject(dataKey);  // Object in memory to be updated
@@ -133,7 +135,11 @@ const ajaxRequestMixin = {
             if (!deleteId) {
                 return;
             }
-            const updateList = this.getUpdateObject();
+            if (!Array.isArray(this.initDataKey)) {
+                this.initDataKey = [this.initDataKey]
+            }
+
+            const updateList = this.getUpdateObject(this.initDataKey[0]);
             dataUtil.removeItemFromList(updateList, (item) => item.id === deleteId);
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
@@ -266,6 +272,9 @@ const globalVarsMixin = {
             newElUid++;
             return newElUid.toString();
         },
+        redirectUrl(url) {
+            window.location.replace(url);
+        },
         pluralize(word, count) {
             return pluralize(word, count, true);
         }
@@ -296,6 +305,12 @@ const globalVarsMixin = {
                 return false;
             }
             return Boolean(globalData.uproveUser.userTypeBits & USER_BITS.CANDIDATE);
+        },
+        isAdmin() {
+            if (!globalData.uproveUser) {
+                return false;
+            }
+            return Boolean(globalData.uproveUser.userTypeBits & USER_BITS.ADMIN);
         }
     }
 }

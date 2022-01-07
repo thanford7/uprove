@@ -31,6 +31,7 @@ urlpatterns = [
     path('profiles/<int:userId>/', views.profiles, name='profiles'),
     path('project/<int:projectId>/', views.project, name='project'),
     path('projects/', views.projects, name='projects'),
+    path('sign-up/', views.signUp, name='signUp'),
     path('terms-of-service/', views.termsOfService, name='termsOfService'),
 
     # APIs

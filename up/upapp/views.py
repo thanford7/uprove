@@ -185,6 +185,10 @@ def projects(request):
     })})
 
 
+def signUp(request):
+    return render(request, 'signUp.html')
+
+
 def termsOfService(request):
     return render(request, 'termsOfService.html', context={})
 

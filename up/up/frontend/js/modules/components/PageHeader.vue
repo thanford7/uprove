@@ -1,0 +1,15 @@
+<template>
+    <div class="row mt-3 mb-3">
+        <div class="align-items-center" style="display: flex">
+            <img v-if="image" :src="image" alt="" class="employer-logo">
+            <h2 style="display: inline-block; margin-bottom: 0">{{title}}</h2>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    name: "PageHeader",
+    props: ['title', 'image']
+}
+</script>

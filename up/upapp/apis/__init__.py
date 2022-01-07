@@ -9,9 +9,9 @@ class UproveAPIView(APIView):
     def initial(self, request, *args, **kwargs):
         self.data = request.data
         self.user = security.getSessionUser(request)
-        self.isEmployer = bool(self.user['employerId'])
-        self.isCandidate = self.user['userTypeBits'] & User.USER_TYPE_CANDIDATE
-        self.isAdmin = self.user['userTypeBits'] & User.USER_TYPE_ADMIN
+        self.isEmployer = bool(self.user['employerId']) if self.user else False
+        self.isCandidate = self.user['userTypeBits'] & User.USER_TYPE_CANDIDATE if self.user else False
+        self.isAdmin = self.user['userTypeBits'] & User.USER_TYPE_ADMIN if self.user else False
         super().initial(request, *args, **kwargs)
 
 

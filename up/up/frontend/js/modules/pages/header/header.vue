@@ -36,6 +36,9 @@
                         </div>
                     </template>
                 </li>
+                <li v-if="!isLoggedIn" class="nav-item">
+                    <button @click="redirectUrl('/sign-up/')" type="button" class="btn btn-primary">Sign up</button>
+                </li>
             </ul>
         </div>
         <div class="justify-content-end align-items-center" style="margin-left: auto;">

@@ -1,8 +1,8 @@
 <template>
-    <BannerAlert/>
     <div class="container-lg">
-        <div class="row mt-3 mb-3">
-            <h2>Password Reset</h2>
+        <BannerAlert/>
+        <PageHeader title="Password Reset"/>
+        <div class="row mb-3">
             <div class="col-md-4">
                 <form>
                     <div class="mb-3">
@@ -24,7 +24,7 @@
                         <input type="password" class="form-control" id="passwordConfirm" placeholder="Required" v-model="formData.passwordConfirm">
                         <div v-if="hasPasswordConfirmMatch" class="mt-3">Passwords match&nbsp;<i class="fas fa-check -color-green-text"></i></div>
                     </div>
-                    <button type="submit" class="btn btn-primary" @click="saveChange($event, true)">Save password</button>
+                    <button type="submit" class="btn btn-primary" @click="saveChange">Save password</button>
                 </form>
             </div>
         </div>
@@ -33,10 +33,12 @@
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
+import PageHeader from "../../components/PageHeader";
 import $ from "jquery";
+
 export default {
     name: "PasswordResetPage.vue",
-    components: {BannerAlert},
+    components: {BannerAlert, PageHeader},
     data() {
         return {
             crudUrl: 'setPassword/',
@@ -85,20 +87,6 @@ export default {
         processFormData() {
             return Object.assign({}, this.readForm(), {uproveUserId: (this.globalData.uproveUser) ? this.globalData.uproveUser.id : null})
         },
-        warnUnsuccessfulPasswordReset() {
-            if (djangoData.title === 'Password reset unsuccessful') {
-                this.alerts.push({
-                    message: djangoData.title,
-                    alertType: 'danger'
-                });
-            }
-        }
-    },
-    mounted() {
-        this.warnUnsuccessfulPasswordReset();
-    },
-    updated() {
-        this.warnUnsuccessfulPasswordReset();
     }
 }
 </script>

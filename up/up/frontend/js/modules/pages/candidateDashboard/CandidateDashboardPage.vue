@@ -1,12 +1,7 @@
 <template>
     <div class="container-lg">
         <BannerAlert/>
-        <div class="row mt-3 mb-3">
-            <div class="align-items-center" style="display: flex">
-                <img v-if="initData.user.profileImage" :src="initData.user.profileImage" alt="" class="employer-logo">
-                <h2 style="display: inline-block; margin-bottom: 0">Dashboard</h2>
-            </div>
-        </div>
+        <PageHeader title="Dashboard" :image="initData.user.profileImage"/>
         <div class="row mb-3 justify-content-center">
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3 style="display: inline-block">Projects</h3>
@@ -94,15 +89,16 @@
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
+import dataUtil from "../../../utils/data";
 import EditJobApplicationModal from "../../modals/EditJobApplicationModal";
 import EditUserProjectModal from "../../modals/EditUserProjectModal";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
-import dataUtil from "../../../utils/data";
+import PageHeader from "../../components/PageHeader";
 
 export default {
     name: "CandidateDashboardPage",
-    components: {BannerAlert, EditJobApplicationModal, EditUserProjectModal, HamburgerDropdown, InfoToolTip},
+    components: {BannerAlert, EditJobApplicationModal, EditUserProjectModal, HamburgerDropdown, InfoToolTip, PageHeader},
     methods: {
         getApplicationStatus: dataUtil.getApplicationStatus,
         getStartedApplications(project) {

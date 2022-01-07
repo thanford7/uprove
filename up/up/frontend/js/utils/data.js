@@ -175,13 +175,15 @@ class DataUtil {
     }
 
     get(obj, path, defaultValue = undefined) {
-        const travel = regexp =>
-            String.prototype.split
-                .call(path, regexp)
-                .filter(Boolean)
-                .reduce((res, key) => (res !== null && res !== undefined ? res[key] : res), obj);
-        const result = travel(/[,[\]]+?/) || travel(/[,[\].]+?/);
-        return result === undefined || result === obj ? defaultValue : result;
+        const keyPath = path.split('.');
+        let currentTarget = obj;
+        for (let i=0; i<keyPath.length; i++) {
+            currentTarget = currentTarget[keyPath[i]];
+            if (!currentTarget) {
+                return defaultValue;
+            }
+        }
+        return currentTarget;
     }
 
     groupByKey(targetArray, key) {

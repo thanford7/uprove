@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from upapp import security
+from upapp.apis import UproveAPIView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject
 from upapp.utils import dataUtil, dateUtil
@@ -127,7 +128,7 @@ class UserContentItemView(APIView):
             raise e
 
 
-class UserView(APIView):
+class UserView(UproveAPIView):
 
     def get(self, request, userId=None):
         return Response(getSerializedUser(self.getUser(userId)), status=status.HTTP_200_OK)
@@ -151,10 +152,13 @@ class UserView(APIView):
 
     @atomic
     def post(self, request):
-        if not security.isPermittedAdmin(request):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        user, hasPassword = self.createUser(request.data)
+        try:
+            user, hasPassword = self.createUser(request.data, security.isPermittedAdmin(request))
+        except IntegrityError:
+            return Response((
+                f'User with email={self.data["email"]} already exists. If you forgot your password, ' +
+                'please use the \'reset password\' link in the sign in menu.'
+            ), status=status.HTTP_409_CONFLICT)
         if not hasPassword:
             reset_form = PasswordResetForm({'email': user.email})
             assert reset_form.is_valid()
@@ -168,7 +172,7 @@ class UserView(APIView):
                 }
             )
 
-        return Response(status=status.HTTP_200_OK, data={'user': getSerializedUser(user), 'hasPassword': hasPassword})
+        return Response(status=status.HTTP_200_OK, data=getSerializedUser(user))
 
     @atomic
     def delete(self, request):
@@ -258,7 +262,7 @@ class UserView(APIView):
         user.djangoUser.save()
 
     @staticmethod
-    def createUser(data):
+    def createUser(data, isAdmin=False):
         password = data.get('password', None)
         djangoUserKwargs = dict(
             email=data['email'],
@@ -266,17 +270,11 @@ class UserView(APIView):
             last_name=data['lastName'],
             password=password or generatePassword()
         )
-        try:
-            if data.get('isSuperUser'):
-                djangoUser = DjangoUser.objects.create_superuser(data['email'], **djangoUserKwargs)
-            else:
-                djangoUserKwargs['is_staff'] = data.get('isStaff', False)
-                djangoUser = DjangoUser.objects.create_user(data['email'], **djangoUserKwargs)
-        except IntegrityError:
-            return Response(f'''
-            User with email={data["email"]} already exists. If you forgot your password, please use the "reset password"
-            link in the sign in menu.
-            ''', status=status.HTTP_409_CONFLICT)
+        if isAdmin and data.get('isSuperUser'):
+            djangoUser = DjangoUser.objects.create_superuser(data['email'], **djangoUserKwargs)
+        else:
+            djangoUserKwargs['is_staff'] = data.get('isStaff', False) if isAdmin else False
+            djangoUser = DjangoUser.objects.create_user(data['email'], **djangoUserKwargs)
 
         user = User(
             djangoUser=djangoUser,

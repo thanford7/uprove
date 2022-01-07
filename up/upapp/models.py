@@ -229,7 +229,7 @@ class EmployerInterest(AuditFields):
     lastName = models.CharField(max_length=30)
     email = models.EmailField(unique=True)
     companyName = models.CharField(max_length=100)
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=50, null=True)
     companyEmployeeCount = models.CharField(max_length=10, null=True)
     hiringFunctions = models.ManyToManyField('ProjectFunction')
     hiringSkills = models.ManyToManyField('ProjectSkill')

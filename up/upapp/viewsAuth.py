@@ -71,17 +71,21 @@ class LoginView(APIView):
             return Response(status=HTTPStatus.BAD_REQUEST)
 
         user = authenticate(username=email, password=password)
+        return self.loginUser(request, user)
+
+    @staticmethod
+    def loginUser(request, user):
         if user is not None:
             login(request, user)
             if errorMsg := setUproveUser(request, user):
                 return Response(status=HTTPStatus.UNAUTHORIZED, data=errorMsg)
 
-            return Response(status=HTTPStatus.OK, data={'pageRedirect': request.data.get('next') or getLoginRedirectUrl(request)})
+            return Response(status=HTTPStatus.OK,
+                            data={'pageRedirect': request.data.get('next') or getLoginRedirectUrl(request)})
         else:
             msg = 'Invalid username or password.'
             messages.error(request, msg)
             return Response(status=HTTPStatus.UNAUTHORIZED, data=msg)
-
 
 class LogoutView(APIView):
 
@@ -100,20 +104,20 @@ class PasswordResetView(PasswordResetConfirmView):
 class SetPasswordView(APIView):
 
     def post(self, request):
-        logoutUser(request)
+        request.session['uproveUser'] = None
         uproveUserId = request.data['uproveUserId']
         newPassword = request.data['password']
 
         if not uproveUserId:
-            return Response('You do not have access to change this password', status=HTTPStatus.UNAUTHORIZED)
+            return Response('The reset link you used may have expired. Use the \'reset password\' link from the Sign in form to get a new link.', status=HTTPStatus.UNAUTHORIZED)
         if not newPassword:
             return Response('Please provide a valid password', status=HTTPStatus.BAD_REQUEST)
 
-        uproveUser = UserView.getUser(uproveUserId)
-        uproveUser.djangoUser.set_password(newPassword)
-        uproveUser.djangoUser.save()
+        djangoUser = UserView.getUser(uproveUserId).djangoUser
+        djangoUser.set_password(newPassword)
+        djangoUser.save()
 
-        return Response(status=HTTPStatus.OK, data={'pageRedirect': '/login/'})
+        return LoginView.loginUser(request, djangoUser)
 
 
 class EmailAuthentication(ModelBackend):

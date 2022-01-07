@@ -45,7 +45,12 @@ export default {
             return true;
         },
         processFormData(rawData) {
-            return Object.assign({}, this.readForm(), {redirect: window.location.pathname});
+            const data = this.readForm();
+            const redirect = window.location.pathname;
+            if (!redirect.includes('sign-up')) {
+                data.redirect =redirect;
+            }
+            return data;
         }
     }
 }

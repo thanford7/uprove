@@ -127,11 +127,11 @@ def _saveEmployerInterest(data: dict):
         employerInterest.save()
     except EmployerInterest.DoesNotExist:
         employerInterest = EmployerInterest(
-            firstName=data['firstName'],
-            lastName=data['lastName'],
+            firstName=data.get('firstName'),
+            lastName=data.get('lastName'),
             email=data['fromEmail'],
-            title=data['title'],
-            companyName=data['companyName'],
+            title=data.get('title'),
+            companyName=data.get('companyName'),
             companyEmployeeCount=data.get('size'),
             note=data.get('note'),
             createdDateTime=datetime.now(tz=pytz.UTC),

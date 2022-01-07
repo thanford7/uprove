@@ -41,7 +41,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'firstName': user.firstName,
         'middleName': user.middleName,
         'lastName': user.lastName,
-        'birthDate': user.birthDate.isoformat(),
+        'birthDate': getDateTimeFormatOrNone(user.birthDate),
         'email': user.email,
         'profileImage': profileImage,
         'employerId': user.employer_id,
