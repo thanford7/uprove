@@ -12,7 +12,7 @@ __all__ = (
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
     'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'UserJobApplication',
-    'UserProject', 'BlogPost', 'BlogTag'
+    'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag'
 )
 
 
@@ -343,6 +343,20 @@ class UserJobApplication(models.Model):
     approveDateTime = models.DateTimeField(null=True)
     declineDateTime = models.DateTimeField(null=True)
     withdrawDateTime = models.DateTimeField(null=True)
+
+    class Meta:
+        unique_together = ('userProject', 'employerJob')
+
+
+class UserProjectEvaluationCriterion(AuditFields):
+    userProject = models.ForeignKey('UserProject', on_delete=models.CASCADE, related_name='userProjectEvaluationCriterion')
+    employer = models.ForeignKey('Employer', on_delete=models.CASCADE)
+    evaluator = models.ForeignKey('User', on_delete=models.CASCADE)
+    evaluationCriterion = models.ForeignKey(ProjectEvaluationCriterion, on_delete=models.CASCADE)
+    value = models.SmallIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('userProject', 'evaluator', 'evaluationCriterion')
 
 
 class UserProject(AuditFields):

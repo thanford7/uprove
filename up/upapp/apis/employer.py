@@ -7,9 +7,10 @@ from rest_framework import authentication, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from upapp.apis import setSkills
+from upapp.apis import setSkills, UproveAPIView
 from upapp.apis.project import ProjectView
-from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, ProjectEvaluationCriterion
+from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, \
+    ProjectEvaluationCriterion, UserProjectEvaluationCriterion
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
     getSerializedEmployerCustomProjectCriterion, getSerializedProject
 import upapp.security as security
@@ -366,4 +367,40 @@ class EmployerCustomProject(APIView):
                 getSerializedEmployerCustomProjectCriterion(ec)
                 for ec in EmployerCustomProjectCriterion.objects.filter(employer_id=employerId)
             ]
+        })
+
+
+class UserProjectEvaluationView(UproveAPIView):
+    authentication_classes = (authentication.SessionAuthentication,)
+
+    @atomic
+    def put(self, request):
+        employerId = self.data['employerId']
+        if not any([self.isAdmin, security.isPermittedEmployer(request, employerId)]):
+            return Response('You are not permitted to evaluate this project', status=status.HTTP_401_UNAUTHORIZED)
+
+        if not (userProjectId := self.data.get('userProjectId')):
+            return Response('A user project ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        existingEvaluationCriteria = {upec.id: upec for upec in UserProjectEvaluationCriterion.objects.filter(userProject_id=userProjectId)}
+        for evaluationCriterionData in self.data.get('evaluationCriteria'):
+            if evaluationCriterion := existingEvaluationCriteria.get(evaluationCriterionData['id']):
+                isChanged = dataUtil.setObjectAttributes(evaluationCriterion, evaluationCriterionData, {
+                    'value': None
+                })
+                if isChanged:
+                    evaluationCriterion.save()
+            else:
+                UserProjectEvaluationCriterion(
+                    userProject_id=userProjectId,
+                    employer_id=employerId,
+                    evaluator_id=self.data['evaluatorId'],
+                    evaluationCriterion_id=evaluationCriterionData['id'],
+                    value=evaluationCriterionData.get('value', 0),
+                    createdDateTime=datetime.utcnow(),
+                    modifiedDateTime=datetime.utcnow()
+                ).save()
+
+        return Response(status=status.HTTP_200_OK, data={
+            'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), isEmployer=True)
         })

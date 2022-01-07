@@ -1,6 +1,10 @@
 <template>
     <div>
-        <input class="form-check-input" type="checkbox" :checked="(isChecked) ? true : null" :id="elId" @click="$emit('click', $event.target.checked)">
+        <input class="form-check-input" type="checkbox"
+               :checked="(isChecked) ? true : null"
+               :id="elId" @click="$emit('click', $event.target.checked)"
+               :disabled="(isDisabled) ? true : null"
+        >
         <template v-if="isEditable">
             <textarea v-if="isEditableTextArea"
                 rows="2" class="form-control"
@@ -21,7 +25,7 @@
 <script>
 export default {
     name: "InputCheckBox",
-    props: ['label', 'isChecked', 'elId', 'isActiveLabel', 'isEditable', 'isEditableTextArea', 'editablePlaceHolder'],
+    props: ['label', 'isChecked', 'elId', 'isActiveLabel', 'isEditable', 'isEditableTextArea', 'editablePlaceHolder', 'isDisabled'],
     emits: ['click', 'change']
 }
 </script>

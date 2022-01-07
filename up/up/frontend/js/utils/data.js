@@ -184,6 +184,14 @@ class DataUtil {
         return result === undefined || result === obj ? defaultValue : result;
     }
 
+    groupByKey(targetArray, key) {
+        return targetArray.reduce((r, v, i, a, k = this.get(v, key)) => ((r[k] || (r[k] = [])).push(v), r), {})
+    }
+
+    groupByFn(targetArray, fn) {
+        return targetArray.reduce((r, v, i, a, k = fn(v)) => ((r[k] || (r[k] = [])).push(v), r), {})
+    }
+
     isEmpty(obj) {
         return [Object, Array].includes((obj || {}).constructor) && !Object.entries((obj || {})).length;
     }
@@ -212,7 +220,7 @@ class DataUtil {
     }
 
     omit(targetObject, omitList) {
-        const objCopy = {...targetObject};
+        const objCopy = this.deepCopy(targetObject);
         omitList.forEach((omission) => {
             delete objCopy[omission];
         })
@@ -228,12 +236,12 @@ class DataUtil {
         }, {});
     }
 
-    sortBy(targetArray, sortKey) {
-        const newArray = [...targetArray];
+    sortBy(targetArray, sortKey, isInPlace=false) {
+        const newArray = (isInPlace) ? targetArray : [...targetArray];
         const sortKeys = Array.isArray(sortKey) ? sortKey : [sortKey];
         sortKeys.reverse();  // Reverse the order so the first item will be sorted last (making it primary)
         sortKeys.forEach((sortKey) => {
-            newArray.sort((a, b) => (a[sortKey] > b[sortKey]) ? 1 : ((b[sortKey] > a[sortKey]) ? -1 : 0));
+            newArray.sort((a, b) => (this.get(a, sortKey) > this.get(b, sortKey)) ? 1 : ((this.get(b, sortKey) > this.get(a, sortKey)) ? -1 : 0));
         });
         return newArray;
     }

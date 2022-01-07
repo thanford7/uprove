@@ -488,6 +488,9 @@ class UserProjectView(APIView):
             )\
             .prefetch_related(
                 'customProject__skills',
+                'userProjectEvaluationCriterion',
+                'userProjectEvaluationCriterion__employer',
+                'userProjectEvaluationCriterion__evaluator',
                 'files',
                 'images',
                 'videos'

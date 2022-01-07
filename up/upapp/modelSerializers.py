@@ -303,17 +303,17 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
         'closeDate': employerJob.closeDate.isoformat() if employerJob.closeDate else None,
     }
     employerFields = {
-        'applications': [getSerializedJobApplication(app) for app in employerJob.jobApplication.all()],
+        'applications': [getSerializedJobApplication(app, isEmployer=True) for app in employerJob.jobApplication.all()],
         **serializeAuditFields(employerJob)
     }
 
     return baseFields if not isEmployer else {**baseFields, **employerFields}
 
 
-def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):
+def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False, isEmployer=False):
     val = {
         'id': jobApplication.id,
-        'userProject': getSerializedUserProject(jobApplication.userProject),
+        'userProject': getSerializedUserProject(jobApplication.userProject, isEmployer=isEmployer),
         'inviteDateTime': getDateTimeFormatOrNone(jobApplication.inviteDateTime),
         'submissionDateTime': getDateTimeFormatOrNone(jobApplication.submissionDateTime),
         'approveDateTime': getDateTimeFormatOrNone(jobApplication.approveDateTime),
@@ -333,8 +333,28 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
     return val
 
 
-def getSerializedUserProject(userProject: UserProject):
+def getSerializedUserProjectEvaluationCriterion(criterion: UserProjectEvaluationCriterion):
     return {
+        'id': criterion.id,
+        'userProjectId': criterion.userProject_id,
+        'employer': {
+            'id': criterion.employer_id,
+            'companyName': criterion.employer.companyName
+        },
+        'evaluator': {
+            'id': criterion.evaluator_id,
+            'firstName': criterion.evaluator.firstName,
+            'lastName': criterion.evaluator.lastName,
+            'isFromEmployer': criterion.evaluator.employer_id == criterion.employer_id if criterion.evaluator.employer_id else False
+        },
+        'evaluationCriterionId': criterion.evaluationCriterion_id,
+        'value': criterion.value,
+        **serializeAuditFields(criterion)
+    }
+
+
+def getSerializedUserProject(userProject: UserProject, isEmployer=False):
+    baseData = {
         'id': userProject.id,
         'user': {
             'id': userProject.user.id,
@@ -356,6 +376,11 @@ def getSerializedUserProject(userProject: UserProject):
         'videos': [getSerializedUserVideo(v) for v in userProject.videos.all()],
         'images': [getSerializedUserImage(i) for i in userProject.images.all()]
     }
+
+    if isEmployer:
+        baseData['evaluationCriteria'] = [getSerializedUserProjectEvaluationCriterion(upec) for upec in userProject.userProjectEvaluationCriterion.all()]
+
+    return baseData
 
 
 def getSerializedBlog(blogPost: BlogPost):

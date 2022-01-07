@@ -79,7 +79,7 @@
                                     </li>
                                     <li
                                         v-if="getApplicationStatus(application) !== APPLICATION_STATUS.NOT_SUBMITTED"
-                                        @click="eventBus.emit('open:viewCandidateApplicationModal', application.userProject)"
+                                        @click="eventBus.emit('open:viewCandidateApplicationModal', application)"
                                     >
                                         <a class="dropdown-item" href="#">
                                             <i class="far fa-eye"></i> Quick view application
@@ -87,12 +87,12 @@
                                     </li>
                                     <li @click="approveApplication(application)">
                                         <a class="dropdown-item" href="#">
-                                            <i class="far fa-thumbs-up"></i> Approve <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
+                                            <i class="far fa-thumbs-up -color-green-text"></i> Approve <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
                                         </a>
                                     </li>
                                     <li @click="declineApplication(application)">
                                         <a class="dropdown-item" href="#">
-                                            <i class="far fa-thumbs-down"></i> Decline <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerDecline"/>
+                                            <i class="far fa-thumbs-down -color-red-text"></i> Decline <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerDecline"/>
                                         </a>
                                     </li>
                                 </HamburgerDropdown>
@@ -157,7 +157,10 @@
         <EditEmployerModal/>
         <EditJobPostingModal/>
         <InviteJobApplicantModal/>
-        <ViewCandidateApplicationModal/>
+        <ViewCandidateApplicationModal
+            @approve="approveApplication($event)"
+            @decline="declineApplication($event)"
+        />
     </div>
 </template>
 
@@ -236,8 +239,9 @@ export default {
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',
                 success: (data) => {
-                    application.approveDateTime = data.approveDateTime;
-                    application.declineDateTime = null;
+                    const updateApp = this.applications.find((app) => app.id === application.id);
+                    updateApp.approveDateTime = data.approveDateTime;
+                    updateApp.declineDateTime = null;
                 }
             });
         },
@@ -249,8 +253,9 @@ export default {
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',
                 success: (data) => {
-                    application.approveDateTime = null;
-                    application.declineDateTime = data.declineDateTime;
+                    const updateApp = this.applications.find((app) => app.id === application.id);
+                    updateApp.approveDateTime = null;
+                    updateApp.declineDateTime = data.declineDateTime;
                 }
             });
         }

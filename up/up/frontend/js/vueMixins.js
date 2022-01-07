@@ -146,7 +146,7 @@ const ajaxRequestMixin = {
         getFailureMessage(errorThrown, xhr) {
             // subclass
             const responseText = xhr.responseText;
-            return `${errorThrown}${(responseText) ? `: ${responseText}` : ''}`;
+            return `${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
         },
         readForm() {
             return this.formData;
@@ -230,7 +230,7 @@ const ajaxRequestMixin = {
             return 'Are you sure you want to delete this item?';
         },
         submitAjaxRequest(requestData, requestCfg = {}) {
-            const overrides = Object.assign(this.getAjaxCfgOverride(), requestCfg);
+            const overrides = Object.assign(requestCfg, this.getAjaxCfgOverride());
             const method = overrides.method || 'PUT';
             if (method === 'DELETE' && this.getDeleteConfirmationMessage()) {
                 if (!window.confirm(this.getDeleteConfirmationMessage())) {
