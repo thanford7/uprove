@@ -135,19 +135,6 @@ class DataUtil {
         }
     }
 
-    getSkillLevelNumbersFromBits(skillLevelBits, allSkillLevels) {
-        return Object.keys(allSkillLevels).filter((level) => parseInt(level) & skillLevelBits);
-    }
-
-    getSkillLevelsFromBits(skillLevelBits, allSkillLevels) {
-        return Object.entries(allSkillLevels).reduce((levels, [level, levelName]) => {
-            if (parseInt(level) & skillLevelBits) {
-                levels.push(levelName);
-            }
-            return levels;
-        }, []);
-    }
-
     /**
      * Sets skill levels from bits
      * @param objList {Array}: A list of objects, each of which must have a "skillLevelBits" property

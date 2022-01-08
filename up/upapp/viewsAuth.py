@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from upapp.apis import UproveAPIView
 from upapp.apis.user import UserView
 from upapp.models import User
 from upapp.modelSerializers import getSerializedUser
@@ -92,6 +93,19 @@ class LogoutView(APIView):
     def post(self, request):
         logoutUser(request)
         return Response(status=HTTPStatus.OK, data={'pageRedirect': '/'})
+
+
+class PasswordResetGenerateView(UproveAPIView):
+    def post(self, request):
+        UserView.sendPasswordResetEmail(request, self.data['email'], {
+            'subject_template_name': 'email/resetPasswordEmailSubject.txt',
+            'email_template_name': 'email/resetPasswordBody.html',
+            'html_email_template_name': 'email/resetPassword.html',
+            'extra_email_context': {
+                'supportEmail': 'community@uprove.co'
+            }
+        })
+        return Response(status=HTTPStatus.OK, data=self.data['email'])
 
 
 class PasswordResetView(PasswordResetConfirmView):

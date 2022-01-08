@@ -71,8 +71,10 @@
         </div>
     </div>
     <SignInModal/>
+    <ResetPasswordModal/>
 </template>
 <script>
+import ResetPasswordModal from "../../modals/ResetPasswordModal";
 import SignInModal from "../../modals/SignInModal";
 
 export default {
@@ -83,7 +85,7 @@ export default {
             dropdowns: null
         }
     },
-    components: {SignInModal},
+    components: {ResetPasswordModal, SignInModal},
     methods: {
         getHomepageUrl() {
             if (this.isCandidate) {

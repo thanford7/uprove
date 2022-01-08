@@ -80,7 +80,7 @@
         </div>
         <div class="mb-3 pt-1" v-for="(instruction, skillLevelBit) in formData.newInstructions">
             <label :for="`projectInstruction-${skillLevelBit}`" class="form-label">
-                Instructions for {{globalData.SKILL_LEVEL[skillLevelBit]}} Level
+                Instructions for {{globalData.SKILL_LEVEL[skillLevelBit].title}} Level
             </label>
             <InputWsiwyg
                 :elId="`projectInstruction-${skillLevelBit}`"
@@ -224,7 +224,7 @@ export default {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: Object.entries(this.globalData.SKILL_LEVEL).map(([key, txt]) => ({value: key, text: txt}))
+                options: Object.entries(this.globalData.SKILL_LEVEL).map(([key, level]) => ({value: key, text: level.title}))
             }
         }
     },
@@ -325,9 +325,6 @@ export default {
             }, {});
             this.updateSkillLevelInstructions(formData, formData.skillLevelBits);
             return Object.assign(formData, {newFiles});
-        },
-        getSkillLevelNumbersFromBits(skillLevelBits) {
-            return dataUtil.getSkillLevelNumbersFromBits(skillLevelBits, this.globalData.SKILL_LEVEL);
         },
         setFormFields() {
             const {skillLevelBits, functionId, skills, employer} = this.formData;

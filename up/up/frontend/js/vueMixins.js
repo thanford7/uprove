@@ -12,7 +12,7 @@ const severity = {
     SUCCESS: 'success',
     WARN: 'warn',
     DANGER: 'danger',
-    INFO: 'primary'
+    INFO: 'info'
 };
 let newElUid = 0;
 const eventBus = mitt();
@@ -272,6 +272,17 @@ const globalVarsMixin = {
             newElUid++;
             return newElUid.toString();
         },
+        getSkillLevelNumbersFromBits(skillLevelBits) {
+            return Object.keys(this.globalData.SKILL_LEVEL).filter((level) => parseInt(level) & skillLevelBits);
+        },
+        getSkillLevelsFromBits(skillLevelBits) {
+            return Object.entries(this.globalData.SKILL_LEVEL).reduce((levels, [levelBit, level]) => {
+                if (parseInt(levelBit) & skillLevelBits) {
+                    levels.push(level);
+                }
+                return levels;
+            }, []);
+        },
         redirectUrl(url) {
             window.location.replace(url);
         },
@@ -344,9 +355,7 @@ const modalsMixin = {
     },
     mounted() {
         eventBus.on(`open:${this.modalName}`, (rawData) => {
-            if (!this.modal$) {
-                this.modal$ = new Modal($(`#${this.modalName}`), {backdrop: 'static'});
-            }
+            this.modal$ = Modal.getOrCreateInstance($(`#${this.modalName}`), {backdrop: 'static'});
             const rawDataCopy = (rawData) ? dataUtil.deepCopy(rawData) : rawData;  // Copy data so we don't mutate original
             this.setEmptyFormData();
             this.clearSelectizeElements();

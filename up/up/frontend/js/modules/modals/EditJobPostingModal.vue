@@ -117,8 +117,8 @@ export default {
                             skillsHtml += `<div class="badge -color-lightblue -color-black-text me-1">${escape(skill.skillName)}</div>`
                         });
                         let skillLevelsHtml = '';
-                        dataUtil.getSkillLevelsFromBits(data.skillLevelBits, this.globalData.SKILL_LEVEL).forEach((skillLevel) => {
-                            skillLevelsHtml += `<div class="badge -color-lightgrey -color-black-text me-1">${escape(skillLevel)}</div>`
+                        this.getSkillLevelsFromBits(data.skillLevelBits).forEach((skillLevel) => {
+                            skillLevelsHtml += `<div class="badge -color-lightgrey -color-black-text me-1">${escape(skillLevel.title)}</div>`
                         });
                         const getProjectUrl = (projectId) => `/project/${projectId}/`;
                         return `
@@ -144,9 +144,6 @@ export default {
             customProject.skillLevelBit = customProject.skillLevelBit || (skillLevels && skillLevels.length === 1) ? skillLevels : null;
             return customProject.skillLevelBit;
         },
-        getSkillLevelNumbersFromBits(skillLevelBits) {
-            return dataUtil.getSkillLevelNumbersFromBits(skillLevelBits, this.globalData.SKILL_LEVEL);
-        },
         getProject(projectId) {
             return this.initData.projects.find((project) => project.id === projectId);
         },
@@ -157,8 +154,8 @@ export default {
                 maxItems: 1,
                 options: Object
                     .entries(this.globalData.SKILL_LEVEL)
-                    .filter(([key, txt]) => skillLevels.includes(key))
-                    .map(([key, txt]) => ({value: key, text: txt}))
+                    .filter(([key, level]) => skillLevels.includes(key))
+                    .map(([key, level]) => ({value: key, text: level.title}))
             }
         },
         getProjectSkillsCfg(customProject) {

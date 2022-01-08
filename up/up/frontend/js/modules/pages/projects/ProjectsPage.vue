@@ -87,7 +87,7 @@ export default {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: Object.entries(this.globalData.SKILL_LEVEL).map(([key, txt]) => ({value: key, text: txt}))
+                options: Object.entries(this.globalData.SKILL_LEVEL).map(([key, level]) => ({value: key, text: level.title}))
             }
         }
     },

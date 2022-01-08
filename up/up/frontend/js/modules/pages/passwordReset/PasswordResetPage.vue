@@ -20,7 +20,7 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="passwordConfirm" class="form-label">Password</label>
+                        <label for="passwordConfirm" class="form-label">Password Confirmation</label>
                         <input type="password" class="form-control" id="passwordConfirm" placeholder="Required" v-model="formData.passwordConfirm">
                         <div v-if="hasPasswordConfirmMatch" class="mt-3">Passwords match&nbsp;<i class="fas fa-check -color-green-text"></i></div>
                     </div>

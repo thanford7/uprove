@@ -209,7 +209,7 @@ export default {
                         customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
                     } else {
                         ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
-                        ap.skillLevel = dataUtil.getSkillLevelsFromBits(ap.skillLevelBit, this.globalData.SKILL_LEVEL);
+                        ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
                         customProjects[ap.id] = ap;
                     }
                 });

@@ -12,6 +12,9 @@
             <label for="signInPassword" class="form-label">Password</label>
             <input type="password" class="form-control" placeholder="Required" id="signInPassword" v-model="formData.password">
         </div>
+        <div>
+            <a href="#" @click="eventBus.emit('open:resetPasswordModal')" data-bs-dismiss="modal">Forgot password?</a>
+        </div>
     </BaseModal>
 </template>
 

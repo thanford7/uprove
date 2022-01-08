@@ -181,10 +181,10 @@ export default {
             };
         },
         projectSkillLevelCfg() {
-            const options = dataUtil.getSkillLevelNumbersFromBits(this.initData.project.skillLevelBits, this.globalData.SKILL_LEVEL).map((sBit) => {
+            const options = this.getSkillLevelNumbersFromBits(this.initData.project.skillLevelBits).map((sBit) => {
                 return {
                     value: sBit,
-                    text: this.globalData.SKILL_LEVEL[sBit]
+                    text: this.globalData.SKILL_LEVEL[sBit].title
                 };
             });
             return {

@@ -39,10 +39,22 @@ const globalData = Object.assign({
         'school'
     ],
     SKILL_LEVEL: {
-        1: 'Entry',
-        2: 'Intermediate',
-        4: 'Advanced',
-        8: 'Expert'
+        1: {
+            title: 'Entry',
+            description: 'Comparable with 0-2 years experience'
+        },
+        2: {
+            title: 'Intermediate',
+            description: 'Comparable with 3-5 years experience'
+        },
+        4: {
+            title: 'Advanced',
+            description: 'Comparable with 6-8 years experience'
+        },
+        8: {
+            title: 'Expert',
+            description: 'Comparable with 9+ years experience'
+        }
     },
     TAG_TYPE: [
         'interest',

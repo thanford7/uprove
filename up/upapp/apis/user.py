@@ -1,10 +1,15 @@
+import os
 from datetime import datetime
+from email.mime.image import MIMEImage
 
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
+from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
 from django.db.models import Q, ProtectedError
 from django.db.transaction import atomic
+from django.template import loader
+from django.templatetags.static import static
 from django.utils import crypto
 from rest_framework import status, authentication
 from rest_framework.views import APIView
@@ -160,17 +165,14 @@ class UserView(UproveAPIView):
                 'please use the \'reset password\' link in the sign in menu.'
             ), status=status.HTTP_409_CONFLICT)
         if not hasPassword:
-            reset_form = PasswordResetForm({'email': user.email})
-            assert reset_form.is_valid()
-            reset_form.save(
-                request=request,
-                subject_template_name='email/newUserPasswordEmailSubject.txt',
-                email_template_name='email/newUserPasswordBody.html',
-                html_email_template_name='email/newUserPassword.html',
-                extra_email_context={
+            self.sendPasswordResetEmail(request, user.email, {
+                'subject_template_name': 'email/newUserPasswordEmailSubject.txt',
+                'email_template_name': 'email/newUserPasswordBody.html',
+                'html_email_template_name': 'email/newUserPassword.html',
+                'extra_email_context': {
                     'supportEmail': 'community@uprove.co'
                 }
-            )
+            })
 
         return Response(status=status.HTTP_200_OK, data=getSerializedUser(user))
 
@@ -190,6 +192,15 @@ class UserView(UproveAPIView):
         user.djangoUser.delete()
         user.delete()
         return Response(status=status.HTTP_200_OK, data=userId)
+
+    @staticmethod
+    def sendPasswordResetEmail(request, email, emailCfg):
+        reset_form = UprovePasswordResetForm({'email': email})
+        assert reset_form.is_valid()
+        reset_form.save(
+            request=request,
+            **emailCfg
+        )
 
     @staticmethod
     def getUser(userId):
@@ -638,6 +649,33 @@ class UserJobApplicationView(APIView):
             return userJobApplications[0]
 
         return userJobApplications
+
+
+class UprovePasswordResetForm(PasswordResetForm):
+
+    def send_mail(self, subject_template_name, email_template_name,
+                  context, from_email, to_email, html_email_template_name=None):
+        """
+        Send a django.core.mail.EmailMultiAlternatives to `to_email`.
+        """
+        subject = loader.render_to_string(subject_template_name, context)
+        # Email subject *must not* contain newlines
+        subject = ''.join(subject.splitlines())
+        body = loader.render_to_string(email_template_name, context)
+
+        email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+        if html_email_template_name is not None:
+            html_email = loader.render_to_string(html_email_template_name, context)
+            email_message.attach_alternative(html_email, 'text/html')
+
+        # Add Uprove logo
+        # imageName = 'logo.png'
+        # with open(static(f'img/{imageName}'), 'r') as logoFile:
+        #     logo = MIMEImage(logoFile.read())
+        #     logo.add_header('Content-ID', imageName)
+        #     logo.add_header('Content-Disposition', 'inline', filename=imageName)
+
+        email_message.send()
 
 
 def generatePassword():

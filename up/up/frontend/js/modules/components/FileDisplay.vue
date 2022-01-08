@@ -43,10 +43,5 @@ export default {
             return 'file';
         }
     },
-    methods: {
-        getSkillLevelsFromBits(skillLevelBits) {
-            return dataUtil.getSkillLevelsFromBits(skillLevelBits, this.globalData.SKILL_LEVEL);
-        }
-    }
 }
 </script>
