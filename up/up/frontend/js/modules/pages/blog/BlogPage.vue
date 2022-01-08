@@ -4,7 +4,7 @@
             <h2>Blog</h2>
         </div>
         <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
-            <div class="col-md-8 pe-md-4 card-custom" :class="(isMobile) ? 'mobile-side-margin' : 'image-wrap'">
+            <div class="col-md-8 pe-md-4 card-custom" :class="(isMobile) ? '' : 'image-wrap'">
                 <template v-if="latestPost">
                     <img v-if="latestPost.picture" :src="latestPost.picture" class="blog-img">
                     <h3>

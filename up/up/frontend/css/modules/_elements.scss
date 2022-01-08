@@ -1,4 +1,5 @@
 @use 'colors';
+@import "bootstrap/scss/bootstrap-grid";
 
 *,
 *::before,
@@ -139,21 +140,27 @@ div {
     }
 }
 
-.sidebar {
+@mixin card {
     background-color: colors.$color-white;
     border: colors.$color-lightgrey 1px solid;
     border-radius: 10px;
     padding: 10px;
     height: fit-content;
+
+    @include media-breakpoint-down(md) {
+        width: calc(100% - calc(var(--bs-gutter-x) * 1)) !important;
+        margin-left: calc(var(--bs-gutter-x) * 0.5);
+        margin-right: calc(var(--bs-gutter-x) * 0.5);
+    }
+}
+
+.sidebar {
+    @include card;
 }
 
 .card-custom {
-    background-color: colors.$color-white;
-    border: colors.$color-lightgrey 1px solid;
-    border-radius: 10px;
-    padding: 10px;
+    @include card;
     margin: 20px;
-    height: fit-content;
 }
 
 .chevron-hz {

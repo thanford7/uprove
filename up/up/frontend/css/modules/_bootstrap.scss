@@ -189,3 +189,18 @@ tr {
         }
     }
 }
+
+.tab-content {
+    padding: 10px 7px;
+    background-color: colors.$color-white;
+    border-bottom: 1px solid colors.$color-lightgrey;
+    border-left: 1px solid colors.$color-lightgrey;
+    border-right: 1px solid colors.$color-lightgrey;
+    border-radius: 0 0 10px 10px;
+}
+
+.nav-link-tight {
+    @include media-breakpoint-down(md) {
+        padding: 0;
+    }
+}

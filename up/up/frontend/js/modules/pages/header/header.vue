@@ -6,40 +6,58 @@
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
                 <li v-if="isSuperUser || isCandidate" :class="getHighlightClass('candidateDashboard')">
-                    <a class="nav-link" href="/candidateDashboard">Home</a>
+                    <a class="nav-link nav-link-tight" href="/candidateDashboard">Home</a>
                 </li>
                 <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
-                    <a class="nav-link" href="/employerDashboard">Employer Dashboard</a>
+                    <a class="nav-link nav-link-tight" href="/employerDashboard">Employer Dashboard</a>
                 </li>
                 <li class="nav-item" :class="getHighlightClass('projects')">
-                    <a class="nav-link" href="/projects">Projects</a>
+                    <a class="nav-link nav-link-tight" href="/projects">Projects</a>
                 </li>
                 <li v-if="isSuperUser" class="nav-item" :class="getHighlightClass('admin')">
-                    <a class="nav-link" href="/admin">Admin</a>
+                    <a class="nav-link nav-link-tight" href="/admin">Admin</a>
                 </li>
-                <li v-if="!isMobile" class="nav-item" :class="(isMobile) ? '' : 'dropdown'">
-                    <a v-if="!isLoggedIn" class="nav-link" href="#"
+                <li v-if="!isMobile" class="nav-item nav-link-tight" :class="(isMobile) ? '' : 'dropdown'">
+                    <a v-if="!isLoggedIn" class="nav-link nav-link-tight" href="#"
                        @click="eventBus.emit('open:signInModal')">
                         <i class="fas fa-user-circle"></i>
                         Sign in</a>
                     <template v-else>
-                        <a class="nav-link dropdown-toggle no-caret" data-toggle="dropdown" href="#"
+                        <a class="nav-link nav-link-tight dropdown-toggle no-caret" data-toggle="dropdown" href="#"
                            role="button" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-user-circle fa-lg"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
-                                settings</a>
+                            <a
+                                class="dropdown-item"
+                               :href="`/account-settings/${globalData.uproveUser.id}/`"
+                            >
+                                Account settings
+                            </a>
                             <a class="dropdown-item" href="#"
                                @click="submitAjaxRequest(null, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
                                 out</a>
                         </div>
                     </template>
                 </li>
-                <li v-if="!isLoggedIn" class="nav-item">
-                    <button @click="redirectUrl('/sign-up/')" type="button" class="btn btn-primary">Sign up</button>
-                </li>
+                <template v-else>
+                    <li v-if="!isLoggedIn" class="nav-item">
+                        <a class="nav-link nav-link-tight" href="#" @click="eventBus.emit('open:signInModal')">Sign in</a>
+                    </li>
+                    <template v-else>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
+                                settings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Log out</a>
+                        </li>
+                    </template>
+                </template>
             </ul>
+            <li v-if="!isLoggedIn" class="d-flex">
+                <button @click="redirectUrl('/sign-up/')" type="button" class="btn btn-primary">Sign up</button>
+            </li>
         </div>
         <div class="justify-content-end align-items-center" style="margin-left: auto;">
             <button class="navbar-toggler ms-2 mb-1 mt-1" type="button" data-bs-toggle="collapse"
@@ -50,24 +68,6 @@
                     <span class="bar"></span>
                 </div>
             </button>
-            <div class="dropdown show" style="display: inline-block" v-if="isMobile">
-                <a class="dropdown-toggle no-caret" href="#" role="button" id="accountDropdownMenu"
-                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-user-circle fa-lg ms-1 mb-2"></i>
-                </a>
-
-                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdownMenu">
-                    <a v-if="!isLoggedIn" class="dropdown-item" href="#"
-                       @click="eventBus.emit('open:signInModal')">Sign in</a>
-                    <template v-else>
-                        <a class="dropdown-item" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
-                            settings</a>
-                        <a class="dropdown-item" href="#"
-                           @click="submitAjaxRequest({}, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
-                            out</a>
-                    </template>
-                </div>
-            </div>
         </div>
     </div>
     <SignInModal/>
