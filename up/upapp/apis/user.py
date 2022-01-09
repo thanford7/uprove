@@ -674,7 +674,10 @@ class UprovePasswordResetForm(PasswordResetForm):
 
         # Add Uprove logo
         imageName = 'logo.png'
-        with open('up' + static(f'img/{imageName}'), 'rb') as logoFile:
+        imageUrl = static(f'img/{imageName}')
+        if settings.DEBUG:
+            imageUrl = f'up{imageUrl}'
+        with open(imageUrl, 'rb') as logoFile:
             logo = MIMEImage(logoFile.read())
             logo.add_header('Content-ID', f'<logo>')
             logo.add_header('X-Attachment-Id', 'logo')
