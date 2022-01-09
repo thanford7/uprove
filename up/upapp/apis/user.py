@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from email.mime.image import MIMEImage
 
+from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
 from django.core.mail import EmailMultiAlternatives
@@ -668,12 +669,17 @@ class UprovePasswordResetForm(PasswordResetForm):
             html_email = loader.render_to_string(html_email_template_name, context)
             email_message.attach_alternative(html_email, 'text/html')
 
+        email_message.content_subtype = 'html'
+        email_message.mixed_subtype = 'related'
+
         # Add Uprove logo
-        # imageName = 'logo.png'
-        # with open(static(f'img/{imageName}'), 'r') as logoFile:
-        #     logo = MIMEImage(logoFile.read())
-        #     logo.add_header('Content-ID', imageName)
-        #     logo.add_header('Content-Disposition', 'inline', filename=imageName)
+        imageName = 'logo.png'
+        with open('up' + static(f'img/{imageName}'), 'rb') as logoFile:
+            logo = MIMEImage(logoFile.read())
+            logo.add_header('Content-ID', f'<logo>')
+            logo.add_header('X-Attachment-Id', 'logo')
+            logo.add_header('Content-Disposition', 'inline', filename=imageName)
+            email_message.attach(logo)
 
         email_message.send()
 
