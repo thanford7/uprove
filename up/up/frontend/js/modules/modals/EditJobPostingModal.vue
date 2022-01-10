@@ -35,7 +35,9 @@
             <input type="date" class="form-control" id="closeDate" v-model="formData.closeDate">
         </div>
         <div class="mb-3">
-            <label for="modalJobProjects" class="form-label">Applicant Project(s)</label>
+            <label for="modalJobProjects" class="form-label">
+                Applicant Project(s) <InfoToolTip :content="infoApplicantProject" :elId="getNewElUid()"/>
+            </label>
             <InputSelectize
                 ref="jobProjects"
                 elId="modalJobProjects"
@@ -93,7 +95,12 @@ export default {
                 jobTitle: '#modalJobTitle',
                 jobDescription: '#modalJobDescription',
             },
-            newProjectCount: 0
+            newProjectCount: 0,
+            infoApplicantProject: (
+                'Select one or more projects which applicants to this job position will need to complete. ' +
+                'If more than one project is selected, each applicant will only need to complete one project, but ' +
+                'will be able to select which project to complete.'
+            )
         }
     },
     computed: {

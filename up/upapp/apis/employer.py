@@ -39,7 +39,7 @@ class EmployerView(APIView):
                 companyName=data['companyName'],
                 logo=data.get('logo'),
                 description=data.get('description'),
-                isDemo=data.get('isDemo'),
+                isDemo=data.get('isDemo') or False,
                 modifiedDateTime=datetime.utcnow(),
                 createdDateTime=datetime.utcnow()
             )
@@ -64,7 +64,7 @@ class EmployerView(APIView):
                 'companyName': None,
                 'logo': None,
                 'description': None,
-                'isDemo': None
+                'isDemo': {'isProtectExisting': True}
             })
             employer.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, isEmployer=True))

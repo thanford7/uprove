@@ -265,7 +265,7 @@ class UserView(UproveAPIView):
             'email': None,
             'userTypeBits': None,
             'employer_id': {'formName': 'employerId'},
-            'isDemo': None
+            'isDemo': {'isProtectExisting': True}
         })
         user.save()
 
@@ -299,7 +299,7 @@ class UserView(UproveAPIView):
             birthDate=dateUtil.deserializeDateTime(data.get('birthDate'), dateUtil.FormatType.DATE, allowNone=True),
             email=data['email'],
             employer_id=data.get('employerId'),
-            isDemo=data.get('isDemo'),
+            isDemo=data.get('isDemo') or False,
             modifiedDateTime=datetime.utcnow(),
             createdDateTime=datetime.utcnow()
         )

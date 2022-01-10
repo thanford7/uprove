@@ -1,6 +1,6 @@
 import {Popover} from "bootstrap";
 import {TOOLTIPS} from "./definitions";
-import {createStore, mapGetters, mapState} from "vuex";
+import {createStore, mapState} from "vuex";
 import dataUtil from './utils/data'
 import globalData, {USER_BITS} from './globalData';
 import mitt from "mitt";  // https://github.com/developit/mitt
