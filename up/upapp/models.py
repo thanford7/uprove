@@ -56,6 +56,7 @@ class User(AuditFields):
     email = models.EmailField(unique=True)
     userTypeBits = models.SmallIntegerField(default=USER_TYPE_CANDIDATE)
     employer = models.ForeignKey('Employer', on_delete=models.PROTECT, null=True)
+    isDemo = models.BooleanField(default=False)
 
 
 class UserProfile(AuditFields):
@@ -296,6 +297,7 @@ class Employer(AuditFields):
     companyName = models.CharField(max_length=150, unique=True)
     logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
     description = models.TextField(null=True)
+    isDemo = models.BooleanField(default=False)
 
 
 class CustomProject(models.Model):

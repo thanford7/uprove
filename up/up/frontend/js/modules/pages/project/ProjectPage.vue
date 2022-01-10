@@ -5,11 +5,14 @@
             <div class="col-md-8 card-custom">
                 <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.function}}</span></h1>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
-                <CollapseDiv :elId="getNewElUid()" class="-border-bottom--light mb-2">
+                <CollapseDiv :elId="getNewElUid()" :class="(initData.project.isLimited) ? '' : '-border-bottom--light mb-2'">
                     <template v-slot:header>
                         <h3>Project brief</h3>
                     </template>
                     <div v-html="initData.project.background"></div>
+                    <div v-if="initData.project.isLimited">
+                        <a href="/sign-up/">Get started to see the full project brief</a>
+                    </div>
                 </CollapseDiv>
                 <CollapseDiv v-if="isLoggedIn" :elId="getNewElUid()" class="-border-bottom--light mb-2">
                     <template v-slot:header>
@@ -50,8 +53,8 @@
                 </div>
                 <div>
                     <span class="text-label text-label-sm">Job seekers</span>
-                    <button type="button" class="btn btn-sm btn-primary w-100" @click="eventBus.emit('open:candidateRequestAccountModal')">
-                        Request account
+                    <button type="button" class="btn btn-sm btn-primary w-100" @click="eventBus.emit('open:editUserModal')">
+                        Create profile
                     </button>
                 </div>
             </div>
@@ -118,8 +121,8 @@
                 </div>
             </template>
         </div>
+        <EditUserModal/>
         <EmployerRequestInfoModal/>
-        <CandidateRequestAccountModal/>
     </div>
 </template>
 
@@ -129,9 +132,9 @@ import AccordionItem from "../../components/AccordionItem";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
-import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
 import CollapseDiv from "../../components/CollapseDiv";
 import dataUtil from "../../../utils/data";
+import EditUserModal from "../../modals/EditUserModal";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import FileDisplay from "../../components/FileDisplay";
 import InfoToolTip from "../../components/InfoToolTip";
@@ -140,7 +143,7 @@ import InputSelectize from "../../inputs/InputSelectize";
 export default {
     name: "ProjectPage.vue",
     components: {
-        AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CandidateRequestAccountModal, CollapseDiv,
+        AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CollapseDiv, EditUserModal,
         EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize
     },
     data() {
