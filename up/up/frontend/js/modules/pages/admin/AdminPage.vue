@@ -78,7 +78,7 @@
     <EditFunctionModal/>
     <EditProjectModal/>
     <EditSkillModal/>
-    <EditUserModal/>
+    <EditUserModal :isShowAdminFields="true"/>
 </template>
 
 <script>

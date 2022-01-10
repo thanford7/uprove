@@ -49,6 +49,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'isStaff': user.djangoUser.is_staff,
         'isActive': user.djangoUser.is_active,
         'isSuperUser': user.djangoUser.is_superuser,
+        'isDemo': user.isDemo,
         **serializeAuditFields(user)
     }
 
@@ -262,6 +263,7 @@ def getSerializedEmployer(employer: Employer, isEmployer=False):
         'companyName': employer.companyName,
         'logo': employer.logo.url if employer.logo else None,
         'description': employer.description,
+        'isDemo': employer.isDemo,
         'jobs': [getSerializedEmployerJob(ej, isEmployer=isEmployer) for ej in employer.employerJob.all()],
     }
     employerFields = {

@@ -24,7 +24,7 @@
             <label for="userEmail" class="form-label">Email</label>
             <InputEmail elId="userEmail" placeholder="Required" v-model="formData.email"/>
         </div>
-        <template v-if="isAdmin" >
+        <template v-if="isAdmin && isShowAdminFields" >
             <div class="mb-3">
                 <label for="userTypes" class="form-label">User Types</label>
                 <InputSelectize
@@ -67,6 +67,13 @@
                     :isActiveLabel="true"
                     @click="formData.isActive = $event"
                 />
+                <InputCheckBox
+                    elId="userIsDemo"
+                    label="Is Demo"
+                    :isChecked="formData.isDemo"
+                    :isActiveLabel="true"
+                    @click="formData.isDemo = $event"
+                />
             </div>
         </template>
     </BaseModal>
@@ -86,7 +93,7 @@ export default {
     name: "EditUserModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    props: ['isContentOnly'],
+    props: ['isContentOnly', 'isShowAdminFields'],
     components: {BaseModal, InfoToolTip, InputCheckBox, InputEmail, InputSelectize},
     data() {
         return {

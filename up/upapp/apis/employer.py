@@ -39,6 +39,7 @@ class EmployerView(APIView):
                 companyName=data['companyName'],
                 logo=data.get('logo'),
                 description=data.get('description'),
+                isDemo=data.get('isDemo'),
                 modifiedDateTime=datetime.utcnow(),
                 createdDateTime=datetime.utcnow()
             )
@@ -62,7 +63,8 @@ class EmployerView(APIView):
             dataUtil.setObjectAttributes(employer, request.data, {
                 'companyName': None,
                 'logo': None,
-                'description': None
+                'description': None,
+                'isDemo': None
             })
             employer.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, isEmployer=True))

@@ -264,7 +264,8 @@ class UserView(UproveAPIView):
             'birthDate': {'propFunc': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)},
             'email': None,
             'userTypeBits': None,
-            'employer_id': {'formName': 'employerId'}
+            'employer_id': {'formName': 'employerId'},
+            'isDemo': None
         })
         user.save()
 
@@ -297,6 +298,8 @@ class UserView(UproveAPIView):
             lastName=data['lastName'],
             birthDate=dateUtil.deserializeDateTime(data.get('birthDate'), dateUtil.FormatType.DATE, allowNone=True),
             email=data['email'],
+            employer_id=data.get('employerId'),
+            isDemo=data.get('isDemo'),
             modifiedDateTime=datetime.utcnow(),
             createdDateTime=datetime.utcnow()
         )

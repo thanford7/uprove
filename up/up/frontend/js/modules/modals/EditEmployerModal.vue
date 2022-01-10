@@ -25,11 +25,21 @@
             <label for="employerDescription" class="form-label">Company description</label>
             <InputWsiwyg v-model="formData.description" elId="employerDescription" placeholder="Add description..."/>
         </div>
+        <div class="form-check">
+            <InputCheckBox
+                elId="employerIsDemo"
+                label="Is Demo"
+                :isChecked="formData.isDemo"
+                :isActiveLabel="true"
+                @click="formData.isDemo = $event"
+            />
+        </div>
     </BaseModal>
 </template>
 
 <script>
 import BaseModal from "./BaseModal";
+import InputCheckBox from "../inputs/InputCheckBox";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 
@@ -37,7 +47,7 @@ export default {
     name: "EditEmployerModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InputOrViewMedia, InputWsiwyg},
+    components: {BaseModal, InputCheckBox, InputOrViewMedia, InputWsiwyg},
     data() {
         return {
             modalName: 'editEmployerModal',
