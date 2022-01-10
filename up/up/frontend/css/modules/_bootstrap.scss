@@ -205,3 +205,16 @@ tr {
         padding: 0;
     }
 }
+
+
+[data-bs-toggle="collapse"] {
+    &.collapsed .fa-angle-up {
+        transform: rotate(180deg) scaleX(-1);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    &:not(.collapsed) .fa-angle-up {
+        transform: rotate(0);
+        transition: transform 0.2s ease-in-out;
+    }
+}

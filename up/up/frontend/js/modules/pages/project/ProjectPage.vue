@@ -5,10 +5,16 @@
             <div class="col-md-8 card-custom">
                 <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.function}}</span></h1>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
-                <h3>Project brief</h3>
-                <div v-html="initData.project.background" class="-border-bottom--light mb-2"></div>
-                <div v-if="isLoggedIn" class="-border-bottom--light mb-2">
-                    <h3>Instructions</h3>
+                <CollapseDiv :elId="getNewElUid()" class="-border-bottom--light mb-2">
+                    <template v-slot:header>
+                        <h3>Project brief</h3>
+                    </template>
+                    <div v-html="initData.project.background"></div>
+                </CollapseDiv>
+                <CollapseDiv v-if="isLoggedIn" :elId="getNewElUid()" class="-border-bottom--light mb-2">
+                    <template v-slot:header>
+                        <h3>Instructions</h3>
+                    </template>
                     <div v-if="formData.skillLevelBit" class="pb-2">
                         <div v-html="projectInstructions"></div>
                         <ul v-if="projectSkillInstructions.length" class="pb-2">
@@ -16,13 +22,15 @@
                         </ul>
                     </div>
                     <div v-else class="-sub-text pb-2">Select career level to view instructions</div>
-                </div>
-                <div v-if="isLoggedIn && isEmployer && evaluationCriteria" class="-border-bottom--light mb-2">
-                    <h3>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h3>
+                </CollapseDiv>
+                <CollapseDiv v-if="isLoggedIn && isEmployer && evaluationCriteria" :elId="getNewElUid()" class="-border-bottom--light mb-2">
+                    <template v-slot:header>
+                        <h3>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h3>
+                    </template>
                     <ul>
                         <li v-for="criterion in evaluationCriteria">{{criterion.criterion}}</li>
                     </ul>
-                </div>
+                </CollapseDiv>
                 <div v-if="projectFiles.length">
                     <h3>Files</h3>
                     <div v-for="file in projectFiles">
@@ -122,6 +130,7 @@ import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
+import CollapseDiv from "../../components/CollapseDiv";
 import dataUtil from "../../../utils/data";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import FileDisplay from "../../components/FileDisplay";
@@ -131,7 +140,7 @@ import InputSelectize from "../../inputs/InputSelectize";
 export default {
     name: "ProjectPage.vue",
     components: {
-        AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CandidateRequestAccountModal,
+        AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CandidateRequestAccountModal, CollapseDiv,
         EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize
     },
     data() {

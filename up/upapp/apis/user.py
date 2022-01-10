@@ -1,10 +1,12 @@
 import os
+import urllib.request
 from datetime import datetime
 from email.mime.image import MIMEImage
 
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
 from django.db.models import Q, ProtectedError
@@ -675,9 +677,11 @@ class UprovePasswordResetForm(PasswordResetForm):
         # Add Uprove logo
         imageName = 'logo.png'
         imageUrl = static(f'img/{imageName}')
+        fileOpenner = lambda url: urllib.request.urlopen(url)
         if settings.DEBUG:
             imageUrl = f'up{imageUrl}'
-        with open(imageUrl, 'rb') as logoFile:
+            fileOpenner = lambda url: open(url, 'rb')
+        with fileOpenner(imageUrl) as logoFile:
             logo = MIMEImage(logoFile.read())
             logo.add_header('Content-ID', f'<logo>')
             logo.add_header('X-Attachment-Id', 'logo')
