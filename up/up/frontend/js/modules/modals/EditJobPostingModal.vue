@@ -16,10 +16,24 @@
         <div class="mb-3">
             <label for="modalJobDescription" class="form-label">Job Description</label>
             <InputWsiwyg
+                ref="jobDescription"
                 elId="modalJobDescription"
                 placeholder="Add a description..."
                 v-model="formData.jobDescription"
             />
+            <div class="row align-items-center">
+                <div class="col-5 pe-0">
+                    <InputSelectize
+                        ref="jobTemplate"
+                        elId="modalJobTemplate"
+                        :isParseAsInt="true"
+                        placeholder="Start from template" :cfg="templateCfg" @selected="updateJobDescription"
+                    />
+                </div>
+                <div class="col-1 ps-1">
+                    <InfoToolTip :elId="getNewElUid()" :content="infoJobTemplate"/>
+                </div>
+            </div>
         </div>
         <div class="mb-3">
             <label for="openDate" class="form-label">Open Date <InfoToolTip :content="TOOLTIPS.jobStartDate" :elId="getNewElUid()"/></label>
@@ -100,10 +114,22 @@ export default {
                 'Select one or more projects which applicants to this job position will need to complete. ' +
                 'If more than one project is selected, each applicant will only need to complete one project, but ' +
                 'will be able to select which project to complete.'
+            ),
+            infoJobTemplate: (
+                'Selecting a job template will add suggested language for a job description to the job description ' +
+                'section above. If a description already exists, it will NOT be erased. The suggested language will ' +
+                'be added to the end of the text.'
             )
         }
     },
     computed: {
+        templateCfg() {
+            return {
+                maxItems: 1,
+                sortField: 'text',
+                options: this.initData.jobTemplates.map((e) => ({value: e.id, text: e.title}))
+            }
+        },
         projectsCfg() {
             return {
                 plugins: ['uprove', 'remove_button'],
@@ -247,6 +273,13 @@ export default {
                     this.newProjectCount++;
                 }
             });
+        },
+        updateJobDescription(templateId) {
+            if (!templateId) {
+                return;
+            }
+            const template = this.initData.jobTemplates.find((jt) => jt.id === templateId);
+            this.$refs.jobDescription.addContent(template.description);
         }
     },
     updated() {

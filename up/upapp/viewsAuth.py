@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout, views as viewsDjangoAuth
 from django.contrib.auth.backends import ModelBackend, UserModel
 from django.contrib.auth.views import PasswordResetConfirmView
+from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from rest_framework.response import Response
@@ -36,9 +37,10 @@ def setUproveUser(request, user):
 
 
 def getLoginRedirectUrl(request):
-    pageRedirect = request.data.get('redirect')
-    if pageRedirect and not re.match('^/[#]?$', pageRedirect):
-        return pageRedirect
+    if not isinstance(request, WSGIRequest):
+        pageRedirect = request.data.get('redirect')
+        if pageRedirect and not re.match('^/[#]?$', pageRedirect):
+            return pageRedirect
     pageRedirect = '/projects/'
     uproveUser = request.session['uproveUser']
     if uproveUser['isSuperUser']:

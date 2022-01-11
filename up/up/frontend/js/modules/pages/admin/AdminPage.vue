@@ -19,6 +19,9 @@
             <div class="col-md-3 me-2 mb-2">
                 <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editSkillModal')">Skill</button>
             </div>
+            <div class="col-md-3 me-2 mb-2">
+                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editJobTemplateModal')">Job template</button>
+            </div>
         </div>
         <div class="row mt-3 mb-3">
             <h3>Edit</h3>
@@ -72,10 +75,21 @@
                     @selected="openEditSkillModal.bind(this)($event)"
                 />
             </div>
+            <div class="col-md-3 me-2">
+                <InputSelectize
+                    ref="editJobTemplate"
+                    elId="editJobTemplate"
+                    placeholder="Select job template"
+                    :cfg="templateCfg"
+                    :isParseAsInt="true"
+                    @selected="openEditJobTemplateModal.bind(this)($event)"
+                />
+            </div>
         </div>
     </div>
     <EditEmployerModal/>
     <EditFunctionModal/>
+    <EditJobTemplateModal/>
     <EditProjectModal/>
     <EditSkillModal/>
     <EditUserModal :isShowAdminFields="true"/>
@@ -85,6 +99,7 @@
 import BannerAlert from "../../components/BannerAlert";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditFunctionModal from "../../modals/EditFunctionModal";
+import EditJobTemplateModal from "../../modals/EditJobTemplateModal";
 import EditProjectModal from "../../modals/EditProjectModal";
 import EditSkillModal from "../../modals/EditSkillModal";
 import EditUserModal from "../../modals/EditUserModal";
@@ -92,7 +107,10 @@ import InputSelectize from "../../inputs/InputSelectize";
 
 export default {
     name: "AdminPage.vue",
-    components: {BannerAlert, EditEmployerModal, EditFunctionModal, EditProjectModal, EditSkillModal, EditUserModal, InputSelectize},
+    components: {
+        BannerAlert, EditEmployerModal, EditFunctionModal, EditProjectModal, EditJobTemplateModal,
+        EditSkillModal, EditUserModal, InputSelectize
+    },
     watch: {
         initData: {
             deep: true,
@@ -100,6 +118,7 @@ export default {
                 [
                     ['editEmployer', this.getEmployerOptions],
                     ['editFunction', this.getProjectFunctionOptions],
+                    ['editJobTemplate', this.getJobTemplateOptions],
                     ['editProject', this.getProjectOptions],
                     ['editSkill', this.getProjectSkillOptions],
                     ['editUser', this.getUserOptions]
@@ -125,6 +144,13 @@ export default {
                 maxItems: 1,
                 sortField: 'text',
                 options: this.getProjectFunctionOptions()
+            }
+        },
+        templateCfg() {
+            return {
+                maxItems: 1,
+                sortField: 'text',
+                options: this.getJobTemplateOptions()
             }
         },
         projectCfg() {
@@ -156,6 +182,12 @@ export default {
         },
         getEmployerOptions() {
             return this.initData.employers.map((e) => ({value: e.id, text: e.companyName}));
+        },
+        getJobTemplate(templateId) {
+            return Object.assign({}, this.initData.jobTemplates.find((jt) => jt.id === templateId));
+        },
+        getJobTemplateOptions() {
+            return this.initData.jobTemplates.map((e) => ({value: e.id, text: e.title}));
         },
         getProject(projectId) {
             return Object.assign({}, this.initData.projects.find((p) => p.id === projectId));
@@ -195,6 +227,14 @@ export default {
             }
             this.eventBus.emit('open:editFunctionModal', this.getProjectFunction(functionId));
             const sel = this.$refs['editFunction'];
+            sel.elSel.clear(true);
+        },
+        openEditJobTemplateModal(templateId) {
+            if (!templateId) {
+                return;
+            }
+            this.eventBus.emit('open:editJobTemplateModal', this.getJobTemplate(templateId));
+            const sel = this.$refs['editJobTemplate'];
             sel.elSel.clear(true);
         },
         openEditProjectModal(projectId, isEdit) {

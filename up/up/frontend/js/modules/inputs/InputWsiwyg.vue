@@ -197,6 +197,13 @@ export default {
         },
     },
     methods: {
+        addContent(content) {
+            this.editor.commands.insertContent(content);
+            this.emitValue();
+        },
+        emitValue() {
+            this.$emit('update:modelValue', this.$sanitize(this.editor.getHTML()));
+        },
         saveLink() {
             this.setTextSelection();
             const fullUrl = (this.url.match(/^http(s)?:\/\//)) ? this.url : `https://${this.url}`;
@@ -259,11 +266,7 @@ export default {
             // autofocus: true,
             content: this.modelValue,
             onBlur: () => {
-                // HTML
-                this.$emit('update:modelValue', this.$sanitize(this.editor.getHTML()));
-
-                // JSON
-                // this.$emit('input', this.editor.getJSON())
+                this.emitValue();
             },
         });
     },

@@ -11,7 +11,7 @@ class FormChecker {
     }
 
     isEmptyWysiwyg(rawVal) {
-        if (rawVal === '<p></p>') {
+        if (rawVal === '<p></p>' || rawVal === '' || !rawVal) {
             return true;
         }
         return false;

@@ -11,8 +11,8 @@ __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
     'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
-    'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'UserJobApplication',
-    'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag'
+    'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
+    'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag'
 )
 
 
@@ -335,6 +335,11 @@ class EmployerJob(AuditFields):
     salaryFloor = models.FloatField(null=True)
     salaryCeiling = models.FloatField(null=True)
     salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
+
+
+class JobTemplate(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
 
 
 class UserJobApplication(models.Model):

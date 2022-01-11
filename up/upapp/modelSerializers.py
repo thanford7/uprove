@@ -312,6 +312,14 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
     return baseFields if not isEmployer else {**baseFields, **employerFields}
 
 
+def getSerializedJobTemplate(template: JobTemplate):
+    return {
+        'id': template.id,
+        'title': template.title,
+        'description': template.description
+    }
+
+
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False, isEmployer=False):
     val = {
         'id': jobApplication.id,

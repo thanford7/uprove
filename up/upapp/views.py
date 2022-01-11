@@ -3,19 +3,22 @@ from json import dumps
 
 from django.db.models import F
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from upapp import security
 from upapp.modelSerializers import *
 from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
+from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import EmployerCustomProjectCriterion, ProjectFunction, ProjectSkill
+from upapp.viewsAuth import getLoginRedirectUrl
 
 
-# Create your views here.
 def homepage(request):
+    if security.getSessionUser(request):
+        return redirect(getLoginRedirectUrl(request))
     return render(request, 'home.html', {'data': dumps({
         'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
         'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
@@ -45,7 +48,8 @@ def admin(request):
         'employers': [getSerializedEmployer(e, isEmployer=True) for e in EmployerView.getEmployers()],
         'users': [getSerializedUser(u) for u in UserView.getUsers()],
         'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
-        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()],
+        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()]
     })})
 
 
@@ -115,7 +119,8 @@ def employerDashboard(request, employerId=None):
         'customProjectEvaluationCriteria': [
             getSerializedEmployerCustomProjectCriterion(ec)
             for ec in EmployerCustomProjectCriterion.objects.filter(employer_id=employerId)
-        ]
+        ],
+        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()]
     })})
 
 

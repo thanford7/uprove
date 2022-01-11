@@ -6,6 +6,7 @@ from upapp import views
 from upapp import viewsAuth
 from upapp.apis import blog
 from upapp.apis import employer
+from upapp.apis import job
 from upapp.apis import project
 from upapp.apis import sendEmail
 from upapp.apis import storage
@@ -41,6 +42,7 @@ urlpatterns = [
     re_path(apiPath + 'employer-custom-project/(?P<customProjectId>[0-9]+)?/?$', employer.EmployerCustomProject.as_view()),
     re_path(apiPath + 'job-posting/(?P<jobId>[0-9]+)?/?$', employer.JobPostingView.as_view()),
     re_path(apiPath + 'job-project-link/(?P<projectId>[0-9]+)?/?$', employer.JobProjectLinkView.as_view()),
+    re_path(apiPath + 'job-template/(?P<templateId>[0-9]+)?/?$', job.JobTemplateView.as_view()),
     re_path(apiPath + 'project/(?P<projectId>[0-9]+)?/?$', project.ProjectView.as_view()),
     re_path(apiPath + 'project-function/(?P<functionId>[0-9]+)?/?$', project.FunctionView.as_view()),
     re_path(apiPath + 'project-skill/(?P<skillId>[0-9]+)?/?$', project.SkillView.as_view()),
