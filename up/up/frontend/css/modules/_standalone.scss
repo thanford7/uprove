@@ -122,3 +122,10 @@
 .-pull-left {
     margin-right: auto;
 }
+
+.-anchor {
+    background-color: transparent;
+    color: colors.$color-link;
+    text-decoration: underline;
+    cursor: pointer;
+}

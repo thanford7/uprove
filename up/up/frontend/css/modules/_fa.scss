@@ -29,3 +29,17 @@ button.btn {
         pointer-events: all;
     }
 }
+
+.fa-layers {
+    position: relative;
+    .fa-custom-counter {
+        position: absolute;
+        font-size: 7px;
+        font-weight: bold;
+        border: 1px solid colors.$color-lightgrey;
+        border-radius: 100px;
+        padding: 0 4px;
+        left: 90%;
+        top: 0
+    }
+}

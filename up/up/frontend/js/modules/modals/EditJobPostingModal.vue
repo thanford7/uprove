@@ -226,7 +226,7 @@ export default {
         },
         isGoodFormFields(formData) {
             if (form.isEmptyWysiwyg(formData.jobDescription)) {
-                this.addPopover($('#modal-jobDescription'),
+                this.addPopover($('#modalJobDescription'),
                 {severity: severity.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;

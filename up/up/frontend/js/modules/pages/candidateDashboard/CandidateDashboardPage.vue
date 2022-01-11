@@ -5,22 +5,23 @@
         <div class="row mb-3 justify-content-center">
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3 style="display: inline-block">Projects</h3>
-                <table class="table mt-3">
-                    <thead>
-                        <tr>
-                            <th colspan="2"></th>
-                            <th colspan="4" class="text-center border-start">Employers</th>
-                        </tr>
-                        <tr>
-                            <th></th>
-                            <th>Project</th>
-                            <th class="text-center border-start">Started <InfoToolTip :content="TOOLTIPS.candidateStarted" :elId="getNewElUid()"/></th>
-                            <th class="text-center">Applied <InfoToolTip :content="TOOLTIPS.candidateApplied" :elId="getNewElUid()"/></th>
-                            <th class="text-center">Selected <InfoToolTip :content="TOOLTIPS.candidateSelected" :elId="getNewElUid()"/></th>
-                            <th class="text-center">Declined <InfoToolTip :content="TOOLTIPS.candidateDeclined" :elId="getNewElUid()"/></th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table
+                    class="mt-3"
+                    :data="initData.userProjects"
+                    :headers="[
+                        [{colspan: 2}, {value: 'Employers', colspan: 4, classes: 'text-center border-start'}],
+                        [
+                            {},
+                            {value: 'Project', sortFn: 'customProject.projectTitle'},
+                            {value: 'Started', toolTip: TOOLTIPS.candidateStarted, classes: 'text-center border-start'},
+                            {value: 'Applied', toolTip: TOOLTIPS.candidateApplied, classes: 'text-center'},
+                            {value: 'Selected', toolTip: TOOLTIPS.candidateSelected, classes: 'text-center'},
+                            {value: 'Declined', toolTip: TOOLTIPS.candidateDeclined, classes: 'text-center'}
+                        ]
+                    ]"
+                    emptyDataMessage="<a href='/projects/'>Find a project to get started</a>"
+                >
+                    <template v-slot:body>
                         <tr v-for="userProject in initData.userProjects" class="hover-menu">
                             <td>
                                 <HamburgerDropdown :elId="getNewElUid()">
@@ -39,25 +40,26 @@
                             <td class="text-center">{{getSelectedApplications(userProject).length}}</td>
                             <td class="text-center">{{getDeclinedApplications(userProject).length}}</td>
                         </tr>
-                        <tr v-if="!initData.userProjects.length">
-                            <td colspan="6"><a href="/projects/">Find a project to get started</a></td>
-                        </tr>
-                    </tbody>
-                </table>
+                    </template>
+                </Table>
             </div>
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3>Applications</h3>
-                <table class="table mt-3">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Employer</th>
-                            <th>Job Title</th>
-                            <th>Project</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table
+                    class="mt-3"
+                    :data="initData.jobApplications"
+                    :headers="[
+                        [
+                            {},
+                            {value: 'Employer', sortFn: 'job.employer'},
+                            {value: 'Job title', sortFn: 'job.jobTitle'},
+                            {value: 'Project', sortFn: 'userProject.customProject.projectTitle'},
+                            {value: 'Status', sortFn: getApplicationStatus},
+                        ]
+                    ]"
+                    emptyDataMessage="No job applications"
+                >
+                    <template v-slot:body>
                         <tr v-for="jobApplication in initData.jobApplications" class="hover-menu">
                             <td>
                                 <HamburgerDropdown :elId="getNewElUid()">
@@ -75,11 +77,8 @@
                             </td>
                             <td>{{getApplicationStatus(jobApplication)}}</td>
                         </tr>
-                        <tr v-if="!initData.userProjects.length">
-                            <td colspan="5">No job applications</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    </template>
+                </Table>
             </div>
         </div>
     </div>
@@ -95,10 +94,14 @@ import EditUserProjectModal from "../../modals/EditUserProjectModal";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
+import Table from "../../components/Table";
 
 export default {
     name: "CandidateDashboardPage",
-    components: {BannerAlert, EditJobApplicationModal, EditUserProjectModal, HamburgerDropdown, InfoToolTip, PageHeader},
+    components: {
+        BannerAlert, EditJobApplicationModal, EditUserProjectModal, HamburgerDropdown, InfoToolTip,
+        PageHeader, Table
+    },
     methods: {
         getApplicationStatus: dataUtil.getApplicationStatus,
         getStartedApplications(project) {

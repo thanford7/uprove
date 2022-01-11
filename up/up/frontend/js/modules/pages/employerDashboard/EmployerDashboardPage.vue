@@ -13,23 +13,24 @@
                 <button type="button" class="btn btn-primary float-end" @click="eventBus.emit('open:editJobPostingModal')">
                     Create job posting
                 </button>
-                <table class="table mt-3">
-                    <thead>
-                        <tr>
-                            <th colspan="3"></th>
-                            <th colspan="4" class="text-center border-start">Applicants</th>
-                        </tr>
-                        <tr>
-                            <th></th>
-                            <th>Job title</th>
-                            <th>Status</th>
-                            <th class="text-center border-start">Invited</th>
-                            <th class="text-center">Applied</th>
-                            <th class="text-center">Selected</th>
-                            <th class="text-center">Declined</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table
+                    class="mt-3"
+                    :data="initData.employer.jobs"
+                    :headers="[
+                        [{colspan: 3}, {value: 'Applicants', colspan: 4, classes: 'text-center border-start'}],
+                        [
+                            {},
+                            {value: 'Job title', sortFn: 'jobTitle'},
+                            {value: 'Status', sortFn: getJobStatus},
+                            {value: 'Invited', classes: 'text-center border-start'},
+                            {value: 'Applied', classes: 'text-center'},
+                            {value: 'Selected', classes: 'text-center'},
+                            {value: 'Declined', classes: 'text-center'}
+                        ]
+                    ]"
+                    emptyDataMessage="Post your first job"
+                >
+                    <template v-slot:body>
                         <tr v-for="job in initData.employer.jobs" class="hover-menu">
                             <td>
                                 <HamburgerDropdown :elId="getNewElUid()">
@@ -45,32 +46,34 @@
                                     </li>
                                 </HamburgerDropdown>
                             </td>
-                            <td><a :href="`/job-posting/${job.id}/`">{{job.jobTitle}}</a></td>
+                            <td title="View job posting"><a :href="`/job-posting/${job.id}/`">{{job.jobTitle}}</a></td>
                             <td>{{getJobStatus(job)}}</td>
                             <td class="text-center border-start">{{job.applications.filter((a) => !Boolean(a.submissionDateTime)).length}}</td>
                             <td class="text-center">{{job.applications.filter((a) => Boolean(a.submissionDateTime)).length}}</td>
                             <td class="text-center">{{job.applications.filter((a) => Boolean(a.approveDateTime)).length}}</td>
                             <td class="text-center">{{job.applications.filter((a) => Boolean(a.declineDateTime)).length}}</td>
                         </tr>
-                        <tr v-if="!initData.employer.jobs.length">
-                            <td colspan="7">Post your first job</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    </template>
+                </Table>
             </div>
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3>Applications</h3>
-                <table class="table mt-3">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Job Title</th>
-                            <th>Project</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table
+                    class="mt-3"
+                    :data="applications"
+                    :headers="[
+                        [
+                            {},
+                            {value: 'First name', sortFn: 'userProject.user.firstName'},
+                            {value: 'Last name', sortFn: 'userProject.user.lastName'},
+                            {value: 'Status', sortFn: getApplicationStatus},
+                            {value: 'Job title', sortFn: 'job.jobTitle'},
+                            {value: 'Project', sortFn: 'userProject.customProject.projectTitle'},
+                        ]
+                    ]"
+                    emptyDataMessage="No job applications"
+                >
+                    <template v-slot:body>
                         <tr v-for="application in applications" class="hover-menu">
                             <td>
                                 <HamburgerDropdown :elId="getNewElUid()">
@@ -97,30 +100,32 @@
                                     </li>
                                 </HamburgerDropdown>
                             </td>
-                            <td>{{application.userProject.user.firstName}} {{application.userProject.user.lastName}}</td>
+                            <td>{{application.userProject.user.firstName}}</td>
+                            <td>{{application.userProject.user.lastName}}</td>
                             <td>{{getApplicationStatus(application)}}</td>
                             <td>{{application.job.jobTitle}}</td>
                             <td>{{application.userProject.customProject.projectTitle}}</td>
                         </tr>
-                        <tr v-if="!applications.length">
-                            <td colspan="5">No job applications</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    </template>
+                </Table>
             </div>
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3>Linked projects</h3>
-                <table class="table mt-3">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Project</th>
-                            <th>Career level</th>
-                            <th>Skills</th>
-                            <th>Linked jobs</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table
+                    class="mt-3"
+                    :data="customProjects"
+                    :headers="[
+                        [
+                            {},
+                            {value: 'Project', sortFn: 'projectTitle'},
+                            {value: 'Career level', sortFn: 'skillLevelBit'},
+                            {value: 'Skills'},
+                            {value: 'Linked jobs'},
+                        ]
+                    ]"
+                    emptyDataMessage="<a href='/projects/'>Find a project to get started</a>"
+                >
+                    <template v-slot:body>
                         <tr v-for="customProject in customProjects" class="hover-menu">
                             <td>
                                 <HamburgerDropdown :elId="getNewElUid()">
@@ -138,11 +143,8 @@
                                 </ul>
                             </td>
                         </tr>
-                        <tr v-if="!Object.keys(customProjects).length">
-                            <td colspan="5"><a href="/projects/">Find a project to get started</a></td>
-                        </tr>
-                    </tbody>
-                </table>
+                    </template>
+                </Table>
             </div>
             <div class="col-md-9 card-custom">
                 <h3>Settings</h3>
@@ -177,44 +179,21 @@ import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
+import Table from "../../components/Table";
 import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
         BannerAlert, BadgesSkillLevels, BadgesSkills, EditCustomProjectModal, EditEmployerModal, EditJobPostingModal,
-        HamburgerDropdown, InfoToolTip, InviteJobApplicantModal, ViewCandidateApplicationModal
+        HamburgerDropdown, InfoToolTip, InviteJobApplicantModal, Table, ViewCandidateApplicationModal
     },
     data() {
         return {
-            APPLICATION_STATUS
-        }
-    },
-    computed: {
-        applications() {
-            return this.initData.employer.jobs.reduce((applications, job) => {
-                return [...applications, ...job.applications.map((app) => {
-                    app.job = {
-                        id: job.id,
-                        jobTitle: job.jobTitle
-                    };
-                    return app;
-                })];
-            }, []);
-        },
-        customProjects() {
-            return this.initData.employer.jobs.reduce((customProjects, job) => {
-                job.allowedProjects.forEach((ap) => {
-                    if (ap.id in customProjects) {
-                        customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
-                    } else {
-                        ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
-                        ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
-                        customProjects[ap.id] = ap;
-                    }
-                });
-                return customProjects;
-            }, {});
+            APPLICATION_STATUS,
+            applications: null,
+            customProjects: null,
+            sortKeysJobPostingTable: []
         }
     },
     methods: {
@@ -259,6 +238,31 @@ export default {
                 }
             });
         }
+    },
+    mounted() {
+        this.applications = this.initData.employer.jobs.reduce((applications, job) => {
+            return [...applications, ...job.applications.map((app) => {
+                app.job = {
+                    id: job.id,
+                    jobTitle: job.jobTitle
+                };
+                return app;
+            })];
+        }, []);
+
+        this.customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
+            job.allowedProjects.forEach((ap) => {
+                if (ap.id in customProjects) {
+                    customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
+                } else {
+                    ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
+                    ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
+                    customProjects[ap.id] = ap;
+                }
+            });
+            return customProjects;
+        }, {});
+        this.customProjects = Object.values(this.customProjects);
     }
 }
 </script>

@@ -230,7 +230,25 @@ class DataUtil {
         const sortKeys = Array.isArray(sortKey) ? sortKey : [sortKey];
         sortKeys.reverse();  // Reverse the order so the first item will be sorted last (making it primary)
         sortKeys.forEach((sortKey) => {
-            newArray.sort((a, b) => (this.get(a, sortKey) > this.get(b, sortKey)) ? 1 : ((this.get(b, sortKey) > this.get(a, sortKey)) ? -1 : 0));
+            // Deconstruct object if sort direction has been provided
+            let direction = 1;
+            if (this.isObject(sortKey)) {
+                direction = sortKey.direction;
+                sortKey = sortKey.key;
+            }
+            let valGetter = (val) => this.get(val, sortKey);
+            if (!this.isString(sortKey)) {
+                valGetter = (val) => sortKey(val);
+            }
+            newArray.sort((a, b) => {
+                if (valGetter(a) > valGetter(b)) {
+                    return direction;
+                }
+                if (valGetter(b) > valGetter(a)) {
+                    return -direction;
+                }
+                return 0;
+            });
         });
         return newArray;
     }

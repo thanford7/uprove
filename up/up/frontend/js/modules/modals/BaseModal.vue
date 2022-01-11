@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="modal fade" :id="modalId" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" :id="modalId" tabindex="-1" aria-hidden="true" @keydown="handleKeyPress">
             <div
                 class="modal-dialog modal-dialog-centered"
                 :class="modalClasses"
@@ -57,5 +57,19 @@ export default {
             return classes.join(' ');
         }
     },
+    methods: {
+        handleKeyPress(e) {
+            if (e.keyCode !== 13) {
+                return;
+            }
+            const target$ = $(e.target);
+            const isIgnoreEnter = target$.hasClass('ProseMirror') || target$.is('textarea') || target$.parent('.selectize-input').length;
+            // Save on enter
+            if (!isIgnoreEnter  && $(`#${this.modalId} .btn-primary`).length) {
+                e.preventDefault();
+                this.$emit('saveChange', e);
+            }
+        }
+    }
 }
 </script>
