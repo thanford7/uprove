@@ -1,4 +1,3 @@
-import os
 import urllib.request
 from datetime import datetime
 from email.mime.image import MIMEImage
@@ -6,7 +5,6 @@ from email.mime.image import MIMEImage
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
-from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
 from django.db.models import Q, ProtectedError
@@ -18,9 +16,9 @@ from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from apis.employer import JobPostingView
 from upapp import security
 from upapp.apis import UproveAPIView, setSkills
+from upapp.apis.employer import JobPostingView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject
 from upapp.utils import dataUtil, dateUtil
