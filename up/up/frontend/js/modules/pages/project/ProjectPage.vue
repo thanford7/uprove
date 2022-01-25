@@ -34,27 +34,22 @@
                         <li v-for="criterion in evaluationCriteria">{{criterion.criterion}}</li>
                     </ul>
                 </CollapseDiv>
-                <div v-if="projectFiles.length">
-                    <h3>Files</h3>
+                <CollapseDiv v-if="projectFiles.length">
+                    <template v-slot:header>
+                        <h3>Files</h3>
+                    </template>
                     <div v-for="file in projectFiles">
                         <FileDisplay :file="file" :isIncludeDescription="true" :isIncludeSkillLevels="true"/>
                     </div>
-                </div>
+                </CollapseDiv>
             </div>
             <div v-if="this.initData.project.isLimited" class="col-md-3 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
                 <div class="-text-center">
                     Want to view the full project brief and files?
                 </div>
                 <div>
-                    <span class="text-label text-label-sm">Employers</span>
-                    <button type="button" class="btn btn-sm btn-primary w-100" @click="eventBus.emit('open:employerRequestInfoModal')">
-                        Request demo
-                    </button>
-                </div>
-                <div>
-                    <span class="text-label text-label-sm">Job seekers</span>
-                    <button type="button" class="btn btn-sm btn-primary w-100" @click="eventBus.emit('open:editUserModal')">
-                        Create profile
+                    <button type="button" class="btn btn-sm btn-primary w-100" @click="redirectUrl('/sign-up/')">
+                        Get started
                     </button>
                 </div>
             </div>
@@ -87,6 +82,9 @@
                             <template v-if="isEmployer">
                                 <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Link project to {{pluralize('job position', (formData.jobIds || []).length)}}</button>
                             </template>
+                            <template v-else>
+                                <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Save project to profile</button>
+                            </template>
                         </template>
                     </AccordionItem>
                     <AccordionItem
@@ -94,10 +92,16 @@
                         :accordionElId="accordionElId" :elId="getNewElUid()" :isOpen="!isMobile" :isAllowMultipleOpen="true"
                     >
                         <template v-slot:header>
-                            Linked job positions
+                            <template v-if="isEmployer">
+                                <span>Linked job positions&nbsp;</span><InfoToolTip :elId="getNewElUid()" content="These are projects that have already been linked to one or more job positions"/>
+                            </template>
+                            <template v-else>
+                                <span>Linked projects&nbsp;</span><InfoToolTip :elId="getNewElUid()" content="These are projects that you have already added to your profile"/>
+                            </template>
                         </template>
                         <template v-slot:body>
                             <div v-for="(proj, projId, idx) in existingProjects" class="mb-2 -hover-highlight-border" :class="(!isLastItem(idx, existingProjects)) ? '-border-bottom--light' : ''">
+                                <p><b>Project #{{idx + 1}}</b></p>
                                 <div class="mb-1 pb-1">
                                     <div class="text-label text-label-sm">CAREER LEVEL</div>
                                     <BadgesSkillLevels :skillLevels="proj.customProject.skillLevels"/>
@@ -106,15 +110,17 @@
                                     <div class="text-label text-label-sm">SKILLS</div>
                                     <BadgesSkills :skills="proj.customProject.skills"/>
                                 </div>
-                                <div class="text-label text-label-sm">JOB POSITIONS</div>
-                                <table>
-                                    <tbody>
-                                        <tr v-for="job in proj.jobs">
-                                            <td><i class="fas fa-trash -color-red-text" title="Unlink job" @click="unlinkJob(proj.customProject, job)"></i>&nbsp;</td>
-                                            <td>{{job.jobTitle}}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <template v-if="isEmployer">
+                                    <div class="text-label text-label-sm">JOB POSITIONS</div>
+                                    <table>
+                                        <tbody>
+                                            <tr v-for="job in proj.jobs">
+                                                <td><i class="fas fa-trash -color-red-text" title="Unlink job" @click="unlinkJob(proj.customProject, job)"></i>&nbsp;</td>
+                                                <td>{{job.jobTitle}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </template>
                             </div>
                         </template>
                     </AccordionItem>
@@ -150,7 +156,7 @@ export default {
         return {
             crudUrl: null,  // Set on mounted
             isUpdateData: true,
-            initDataKey: 'jobs',
+            initDataKey: null,
             requiredFields: {
                 skillLevelBit: null,
             },
@@ -159,6 +165,12 @@ export default {
     },
     computed: {
         existingProjects() {
+            if (!this.isEmployer) {
+                return this.initData.userProjects.reduce((projects, p) => {
+                    projects[p.id] = p;
+                    return projects;
+                }, {});
+            }
             return this.initData.jobs.reduce((uniqueProjects, j) => {
                 j.allowedProjects.forEach((p) => {
                     if (p.projectId !== this.initData.project.id) {
@@ -226,13 +238,13 @@ export default {
     },
     methods: {
         getSuccessMessage() {
-            return 'Successfully linked project to jobs'
+            return (!this.isEmployer) ? 'Added project to profile' : 'Successfully linked project to jobs';
         },
         getFailureMessage(errorThrown) {
-            return `Failed to link project to jobs: ${errorThrown}`
+            return (!this.isEmployer) ? `Failed to add project: ${errorThrown}` : `Failed to link project to jobs: ${errorThrown}`;
         },
         isGoodFormFields(formData) {
-            if(!formData.jobIds || !formData.jobIds.length) {
+            if(this.isEmployer && (!formData.jobIds || !formData.jobIds.length)) {
                 this.addPopover($(this.$refs['employerJobs'].targetEl), {content: 'At least one job is required', severity: severity.WARN, isOnce: true});
                 return false;
             }
@@ -241,6 +253,12 @@ export default {
                 return false;
             }
             return true;
+        },
+        processFormData() {
+            const formData = this.readForm();
+            formData.userId = this.globalData.uproveUser.id;
+            formData.projectId = this.initData.project.id;
+            return formData;
         },
         isLastItem(idx, targetObject) {
             return idx === Object.values(targetObject).length - 1;
@@ -264,12 +282,18 @@ export default {
             ` already started the project will still be able to submit their project, but no new applicants will be` +
             ` able to use it.`
         },
-        updateInitDataPost(jobs) {
-            this.setJobSkillLevels(jobs);
-            this.initData.jobs = jobs;
+        afterUpdateInitData() {
+            if (this.isEmployer) {
+                this.setJobSkillLevels(this.initData.jobs);
+            } else {
+                this.setUserProjectSkillLevels(this.initData.userProjects);
+            }
         },
         setJobSkillLevels(jobs) {
             jobs.forEach((j) => { dataUtil.setSkillLevels(j.allowedProjects, this.globalData, true); });
+        },
+        setUserProjectSkillLevels(userProjects) {
+            userProjects.forEach((up) => { dataUtil.setSkillLevels([up.customProject], this.globalData, true); });
         }
     },
     mounted() {
@@ -277,15 +301,20 @@ export default {
             this.requiredFields.skillLevelBit = this.$refs['projectSkillLevel'].targetEl;
         }
 
+        this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';
+
         // Set skill levels from bits
         if (this.initData.jobs) {
             this.setJobSkillLevels(this.initData.jobs);
         }
         if (this.initData.userProjects) {
+            this.setUserProjectSkillLevels(this.initData.userProjects);
+        }
+        if (this.initData.userProjects) {
             dataUtil.setSkillLevels(this.initData.userProjects, this.globalData, true);
         }
 
-        this.crudUrl = `job-project-link/${this.initData.project.id}/`;
+        this.crudUrl = (this.isEmployer) ? `job-project-link/${this.initData.project.id}/` : 'user-project/';
         this.eventBus.on('ajaxSuccess', () => {
             this.clearSelectizeElements()
         });

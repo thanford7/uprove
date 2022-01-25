@@ -305,11 +305,6 @@ class CustomProject(models.Model):
     skillLevelBit = models.SmallIntegerField()
     skills = models.ManyToManyField(ProjectSkill)
 
-    class Meta:
-        # Skills should be unique as well, but many-to-many can't be enforced at DB level
-        # Instead this will be enforced in CRUD operations
-        unique_together = ('project', 'skillLevelBit')
-
     def isSame(self, otherProject):
         return (
             {s.id for s in self.skills.all()} == {s.id for s in otherProject.skills.all()}

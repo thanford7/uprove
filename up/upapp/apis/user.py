@@ -18,8 +18,9 @@ from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from apis.employer import JobPostingView
 from upapp import security
-from upapp.apis import UproveAPIView
+from upapp.apis import UproveAPIView, setSkills
 from upapp.models import *
 from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject
 from upapp.utils import dataUtil, dateUtil
@@ -465,13 +466,32 @@ class UserProjectView(APIView):
         if not security.isSelf(request, data['userId']):
             return Response('You are not authorized to post this project', status=status.HTTP_401_UNAUTHORIZED)
 
-        existingProjects = {(up.user_id, up.customProject_id): up for up in UserProjectView.getUserProjects(userId=data['userId'])}
-        if project := existingProjects.get((data['userId'], data['customProjectId'])):
+        if not (customProjectId := data.get('customProjectId')):
+            existingCustomProjects = JobPostingView.getCustomProjects()
+            customProject = CustomProject(
+                project_id=data['projectId'],
+                skillLevelBit=data['skillLevelBit']
+            )
+
+            if not (existingCustomProject := existingCustomProjects.get(
+                    JobPostingView.generateUniqueCustomProjectKey(customProject, skillIds=data['skillIds'])
+            )
+            ):
+                customProject.save()
+                setSkills(customProject, data['skillIds'])
+
+            customProjectId = existingCustomProject.id if existingCustomProject else customProject.id
+
+        existingProjects = {
+            (up.user_id, up.customProject_id): up
+            for up in UserProjectView.getUserProjects(userId=data['userId'])
+        }
+        if project := existingProjects.get((data['userId'], customProjectId)):
             return Response(f'User project for {project.project.title} already exists', status=status.HTTP_409_CONFLICT)
 
         project = UserProject(
             user_id=data['userId'],
-            customProject_id=data['customProjectId'],
+            customProject_id=customProjectId,
             projectNotes=data.get('projectNotes'),
             modifiedDateTime=datetime.utcnow(),
             createdDateTime=datetime.utcnow()

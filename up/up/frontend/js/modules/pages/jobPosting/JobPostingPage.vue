@@ -1,6 +1,6 @@
 <template>
     <div class="container-lg">
-
+        <BannerAlert/>
         <div class="row mt-3 mb-3">
             <div class="align-items-center" style="display: flex">
                 <img v-if="initData.employer.logo" :src="initData.employer.logo" alt="" class="employer-logo">
@@ -88,10 +88,11 @@
                     </li>
                 </ol>
                 <div class="-sub-text">Need help or have questions about the project?</div>
-                <div class="-sub-text"><a href="#">Submit question</a></div>
+                <div class="-sub-text"><a href="#" @click="eventBus.emit('open:submitHelpModal')">Submit question</a></div>
             </div>
         </div>
         <CandidateRequestAccountModal/>
+        <SubmitHelpModal/>
     </div>
 </template>
 
@@ -101,10 +102,11 @@ import BannerAlert from "../../components/BannerAlert";
 import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
 import FileDisplay from "../../components/FileDisplay";
 import InputSelectize from "../../inputs/InputSelectize";
+import SubmitHelpModal from "../../modals/SubmitHelpModal";
 
 export default {
     name: "JobPostingPage.vue",
-    components: {AccordionItem, BannerAlert, CandidateRequestAccountModal, FileDisplay, InputSelectize},
+    components: {AccordionItem, BannerAlert, CandidateRequestAccountModal, FileDisplay, InputSelectize, SubmitHelpModal},
     data() {
         return {
             accordionElId: `accordion-${this.getNewElUid()}`,

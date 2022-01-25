@@ -9,30 +9,8 @@
                 <component :is="(isMobile) ? 'h6' : 'h2'">Connect with one of our project experts to see how we can help.</component>
             </div>
             <div class="col-md-6">
-                <form>
-                    <div class="mb-3">
-                        <label for="contactEmail" class="form-label">Email address</label>
-                        <InputEmail elId="contactEmail" placeholder="Required" v-model="formData.fromEmail"/>
-                    </div>
-                    <div class="mb-3">
-                        <label for="contactName" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="contactName" placeholder="Required" v-model="formData.name">
-                    </div>
-                    <div class="mb-3">
-                        <label for="contactCompany" class="form-label">Company</label>
-                        <input type="text" class="form-control" id="contactCompany" placeholder="Leave blank if you are not an employer" v-model="formData.company">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="contactMessage">Message</label>
-                        <textarea
-                            rows="3" class="form-control"
-                            placeholder="Tell us how we can help..."
-                            id="contactMessage"
-                            v-model="formData.message"
-                        />
-                    </div>
-                    <button type="submit" class="btn btn-primary" @click="saveChange">Send message</button>
-                </form>
+                <SubmitHelpModal ref="submitHelp" :isContentOnly="true"/>
+                <button type="submit" class="btn btn-primary" @click="$refs['submitHelp'].saveChange($event)">Send message</button>
             </div>
         </div>
     </div>
@@ -40,49 +18,13 @@
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
-import FormChecker from "../../../utils/form";
-import InputEmail from "../../inputs/InputEmail";
+import SubmitHelpModal from "../../modals/SubmitHelpModal";
 
 export default {
     name: 'ContactPage.vue',
     components: {
         BannerAlert,
-        InputEmail
+        SubmitHelpModal
     },
-    data() {
-        return {
-            crudUrl: 'email/',
-            requiredFields: {
-                fromEmail: 'contactEmail',
-                name: 'contactName',
-                message: 'contactMessage'
-            }
-        }
-    },
-    methods: {
-        readForm() {
-            return {
-                ...this.formData,
-                type: this.globalData.EMAIL_CONTACT,
-                subject: 'Email from contact page'
-            };
-        },
-        isGoodFormFields(formData) {
-            if (!FormChecker.isGoodEmail(formData.fromEmail)) {
-                this.addPopover($('#contactEmail'), {content: 'Please add valid email', isOnce: true});
-                return false;
-            }
-            return true;
-        },
-        getAjaxCfgOverride() {
-            return {method: 'POST'};
-        },
-        getSuccessMessage(data) {
-            return 'Email sent successfully';
-        },
-        getFailureMessage(errorThrown) {
-            return `Email failed: ${errorThrown}`;
-        }
-    }
 }
 </script>

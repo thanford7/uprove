@@ -127,6 +127,10 @@ const ajaxRequestMixin = {
                     this.initData = newData;
                 }
             });
+            this.afterUpdateInitData();
+        },
+        afterUpdateInitData() {
+            // subclass
         },
         updateInitDataDelete(deleteId) {
             if (this.deleteRedirectUrl) {
