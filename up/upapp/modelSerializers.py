@@ -50,6 +50,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'isActive': user.djangoUser.is_active,
         'isSuperUser': user.djangoUser.is_superuser,
         'isDemo': user.isDemo,
+        'isAuthenticated': user.djangoUser.is_authenticated,
         **serializeAuditFields(user)
     }
 

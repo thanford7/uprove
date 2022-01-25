@@ -1,7 +1,7 @@
 <template>
     <div class="container-lg">
         <BannerAlert/>
-        <PageHeader title="Password Reset"/>
+        <PageHeader :title="(initData.isNew) ? 'Set Password' : 'Password Reset'"/>
         <div class="row mb-3">
             <div class="col-md-4">
                 <form>

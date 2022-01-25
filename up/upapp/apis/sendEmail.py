@@ -36,27 +36,40 @@ class EmailView(APIView):
 
     TYPE_CONTACT = 'CONTACT'
     TYPE_EMPLOYER_INTEREST = 'EMPLOYER_INTEREST'
-    TYPE_CANDIDATE_INTEREST = 'CANDIDATE_INTEREST'
+    TYPE_CANDIDATE_SIGNUP = 'CANDIDATE_SIGNUP'
 
     SEND_EMAIL_ADDRESS = 'no_reply@uprove.co'  # Email address where all emails originate from
 
     EMAIL_ROUTES = {
         TYPE_CONTACT: 'info@uprove.co',
         TYPE_EMPLOYER_INTEREST: 'sales@uprove.co',
-        TYPE_CANDIDATE_INTEREST: 'community@uprove.co'
+        TYPE_CANDIDATE_SIGNUP: 'community@uprove.co'
     }
 
-    def post(self, request):
-        contactType = request.data['type']
-        if contactType == self.TYPE_CONTACT:
+    def post(self, request, contactType=None):
+        response = self.sendFormattedEmail(request, contactType=contactType)
+        if isinstance(response, Response):
+            return response
+        elif response:
+            logging.log(logging.INFO, response)
+            return Response(status=HTTPStatus.OK)
+        else:
+            raise Exception('An error occurred while sending the email')
+
+    @staticmethod
+    def sendFormattedEmail(request, contactType=None):
+        contactType = contactType or request.data['type']
+        if contactType == EmailView.TYPE_CONTACT:
+            subject = 'New question or request for help'
             content = _generateEmailBody(request.data, (
                 ('Name', 'name'),
                 ('Email', 'fromEmail'),
                 ('Company', 'company'),
                 ('Message', 'message')
             ))
-        elif contactType == self.TYPE_EMPLOYER_INTEREST:
+        elif contactType == EmailView.TYPE_EMPLOYER_INTEREST:
             _saveEmployerInterest(request.data)
+            subject = 'New employer interest!'
             content = _generateEmailBody(request.data, (
                 ('First name', 'firstName'),
                 ('Last name', 'lastName'),
@@ -68,32 +81,23 @@ class EmailView(APIView):
                 ('Hiring for skills', 'roleSkills'),
                 ('Note', 'note')
             ))
-        elif contactType == self.TYPE_CANDIDATE_INTEREST:
-            _saveCandidateInterest(request.data)
+        elif contactType == EmailView.TYPE_CANDIDATE_SIGNUP:
+            subject = 'New user signup!'
             content = _generateEmailBody(request.data, (
                 ('First name', 'firstName'),
                 ('Last name', 'lastName'),
-                ('Email', 'fromEmail'),
-                ('LinkedIn link', 'linkedInLink'),
-                ('Interested in roles', 'roleFunctions'),
-                ('Current skills', 'roleSkills'),
-                ('Referrer', 'referrer'),
-                ('Note', 'note')
+                ('Email', 'email')
             ))
         else:
             logging.log(logging.ERROR, f'Unknown contact type of {contactType}')
             return Response(status=HTTPStatus.BAD_REQUEST)
         message = Mail(
-            from_email=self.SEND_EMAIL_ADDRESS,
-            to_emails=self.EMAIL_ROUTES[contactType] if not settings.DEBUG else TEST_EMAIL_ADDRESS,
-            subject=request.data.get('subject', 'Unknown subject'),
+            from_email=EmailView.SEND_EMAIL_ADDRESS,
+            to_emails=EmailView.EMAIL_ROUTES[contactType] if not settings.DEBUG else TEST_EMAIL_ADDRESS,
+            subject=subject,
             html_content=content)
-        if response := sendEmail(message):
-            logging.log(logging.INFO, response)
-            return Response(status=HTTPStatus.OK)
-        else:
-            return Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+        return sendEmail(message)
 
 def _generateEmailBody(data: dict, emailRows: tuple):
     return '<table>' + ''.join((_generateEmailTableRow(data, *row) for row in emailRows)) + '</table>'
@@ -140,35 +144,6 @@ def _saveEmployerInterest(data: dict):
         employerInterest.save()
 
     _saveProjectTags(data, employerInterest, 'hiringFunctions', 'hiringSkills')
-
-
-@atomic
-def _saveCandidateInterest(data: dict):
-    try:
-        candidateInterest = CandidateInterest.objects.get(email=data['fromEmail'])
-        candidateInterest.firstName = data['firstName']
-        candidateInterest.lastName = data['lastName']
-        candidateInterest.linkedInProfile = data['linkedInLink']
-        candidateInterest.referrer = data.get('referrer')
-        candidateInterest.note = data.get('note')
-        candidateInterest.modifiedDateTime = datetime.now(tz=pytz.UTC)
-        candidateInterest.interestedFunctions.clear()
-        candidateInterest.currentSkills.clear()
-        candidateInterest.save()
-    except CandidateInterest.DoesNotExist:
-        candidateInterest = CandidateInterest(
-            firstName=data['firstName'],
-            lastName=data['lastName'],
-            email=data['fromEmail'],
-            linkedInProfile=data['linkedInLink'],
-            referrer=data.get('referrer'),
-            note=data.get('note'),
-            createdDateTime=datetime.now(tz=pytz.UTC),
-            modifiedDateTime=datetime.now(tz=pytz.UTC)
-        )
-        candidateInterest.save()
-
-    _saveProjectTags(data, candidateInterest, 'interestedFunctions', 'currentSkills')
 
 
 def _saveProjectTags(data: dict, modelInstance: models.Model, roleFunctionAttr: str, roleSkillAttr: str):

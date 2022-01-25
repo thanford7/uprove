@@ -188,13 +188,12 @@
     </div>
 </template>
 <script>
-import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import OrderedList from '../../components/OrderedList.vue';
 
 export default {
     components: {
-        CandidateRequestAccountModal, EmployerRequestInfoModal, OrderedList
+        EmployerRequestInfoModal, OrderedList
     },
     methods: {
         openProjectsPage() {

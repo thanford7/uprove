@@ -99,14 +99,13 @@
 <script>
 import AccordionItem from "../../components/AccordionItem";
 import BannerAlert from "../../components/BannerAlert";
-import CandidateRequestAccountModal from "../../modals/CandidateRequestAccountModal";
 import FileDisplay from "../../components/FileDisplay";
 import InputSelectize from "../../inputs/InputSelectize";
 import SubmitHelpModal from "../../modals/SubmitHelpModal";
 
 export default {
     name: "JobPostingPage.vue",
-    components: {AccordionItem, BannerAlert, CandidateRequestAccountModal, FileDisplay, InputSelectize, SubmitHelpModal},
+    components: {AccordionItem, BannerAlert, FileDisplay, InputSelectize, SubmitHelpModal},
     data() {
         return {
             accordionElId: `accordion-${this.getNewElUid()}`,

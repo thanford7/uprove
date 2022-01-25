@@ -362,7 +362,7 @@ class UserProjectEvaluationCriterion(AuditFields):
 
 
 class UserProject(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     customProject = models.ForeignKey(CustomProject, on_delete=models.PROTECT)
     files = models.ManyToManyField(UserFile)
     videos = models.ManyToManyField(UserVideo)

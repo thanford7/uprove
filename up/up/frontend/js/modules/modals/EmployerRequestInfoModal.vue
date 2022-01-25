@@ -65,7 +65,6 @@ export default {
             return {
                 ...this.formData,
                 type: this.globalData.EMAIL_EMPLOYER_INTEREST,
-                subject: 'Employer interest'
             };
         },
         isGoodFormFields(formData) {

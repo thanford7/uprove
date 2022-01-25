@@ -1,6 +1,7 @@
 import logging
 import re
 from http import HTTPStatus
+from json import dumps
 
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout, views as viewsDjangoAuth
@@ -104,20 +105,31 @@ class PasswordResetGenerateView(UproveAPIView):
             'email_template_name': 'email/resetPasswordBody.html',
             'html_email_template_name': 'email/resetPassword.html',
             'extra_email_context': {
-                'supportEmail': 'community@uprove.co'
+                'supportEmail': 'community@uprove.co',
+                'isNew': False
             }
         })
         return Response(status=HTTPStatus.OK, data=self.data['email'])
 
 
 class PasswordResetView(PasswordResetConfirmView):
+    """Render the page for the user to set password
+    """
     def get_user(self, uidb64):
+        logoutUser(self.request)  # Logout the user if they were logged in when they made the request to reset
         user = super().get_user(uidb64)
         setUproveUser(self.request, user)
         return user
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['data'] = dumps({'isNew': self.kwargs.get('isnew') == 'True'})
+        return context
+
 
 class SetPasswordView(APIView):
+    """API to set password once user has submitted the form
+    """
 
     def post(self, request):
         request.session['uproveUser'] = None

@@ -155,7 +155,7 @@ export default {
                         });
                         const getProjectUrl = (projectId) => `/project/${projectId}/`;
                         return `
-                            <div class="option" data-selectable data-value="${data.id}">
+                            <div class="option" data-selectable data-value="${data.id}" style="cursor: pointer;">
                                 <div class="mb-1">
                                     ${escape(data.title)}
                                     <a href="${getProjectUrl(data.id)}" title="Open full project description"><i class="fas fa-external-link-alt"></i></a>

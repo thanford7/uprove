@@ -57,7 +57,7 @@ urlpatterns = [
     path(apiPath + 'login/', viewsAuth.LoginView.as_view()),
     path(apiPath + 'logout/', viewsAuth.LogoutView.as_view()),
     path(apiPath + 'setPassword/', viewsAuth.SetPasswordView.as_view()),
-    re_path('password-reset-email/(?P<uidb64>[\S]+)?/(?P<token>[\S]+)?/', viewsAuth.PasswordResetView.as_view(template_name='passwordReset.html'), name='passwordReset'),
+    re_path('password-reset-email/(?P<uidb64>[\S]+)?/(?P<token>[\S]+)?/(?P<isnew>[\S]+)?/', viewsAuth.PasswordResetView.as_view(template_name='passwordReset.html'), name='passwordReset'),
     path(apiPath + 'password-reset-generate/', viewsAuth.PasswordResetGenerateView.as_view(), name='passwordResetSend'),
     path('password-reset-complete/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='password-reset-complete'),
     path('login/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='login'),

@@ -301,7 +301,7 @@ const globalVarsMixin = {
             TOOLTIPS: 'TOOLTIPS'
         }),
         isLoggedIn() {
-            return Boolean(globalData.uproveUser);
+            return Boolean(globalData.uproveUser && globalData.uproveUser.isAuthenticated);
         },
         isSuperUser() {
             if (!globalData.uproveUser) {

@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from upapp import security
 from upapp.apis import UproveAPIView, setSkills
 from upapp.apis.employer import JobPostingView
+from upapp.apis.sendEmail import EmailView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject
 from upapp.utils import dataUtil, dateUtil
@@ -172,9 +173,12 @@ class UserView(UproveAPIView):
                 'email_template_name': 'email/newUserPasswordBody.html',
                 'html_email_template_name': 'email/newUserPassword.html',
                 'extra_email_context': {
-                    'supportEmail': 'community@uprove.co'
+                    'supportEmail': 'community@uprove.co',
+                    'isNew': True
                 }
             })
+
+        EmailView.sendFormattedEmail(request, contactType=EmailView.TYPE_CANDIDATE_SIGNUP)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedUser(user))
 
