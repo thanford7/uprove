@@ -492,7 +492,7 @@ class UserProjectView(APIView):
             for up in UserProjectView.getUserProjects(userId=data['userId'])
         }
         if project := existingProjects.get((data['userId'], customProjectId)):
-            return Response(f'User project for {project.project.title} already exists', status=status.HTTP_409_CONFLICT)
+            return Response(f'User project for {project.customProject.project.title} already exists', status=status.HTTP_409_CONFLICT)
 
         project = UserProject(
             user_id=data['userId'],

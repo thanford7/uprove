@@ -167,7 +167,10 @@ export default {
         existingProjects() {
             if (!this.isEmployer) {
                 return this.initData.userProjects.reduce((projects, p) => {
-                    projects[p.id] = p;
+                    // Only display user projects related to the current project
+                    if (this.initData.project.id === p.customProject.projectId) {
+                        projects[p.id] = p;
+                    }
                     return projects;
                 }, {});
             }
@@ -240,8 +243,8 @@ export default {
         getSuccessMessage() {
             return (!this.isEmployer) ? 'Added project to profile' : 'Successfully linked project to jobs';
         },
-        getFailureMessage(errorThrown) {
-            return (!this.isEmployer) ? `Failed to add project: ${errorThrown}` : `Failed to link project to jobs: ${errorThrown}`;
+        getFailureMessagePrepend() {
+            return (!this.isEmployer) ? 'Failed to add project: ' : 'Failed to link project to jobs: ';
         },
         isGoodFormFields(formData) {
             if(this.isEmployer && (!formData.jobIds || !formData.jobIds.length)) {

@@ -156,7 +156,11 @@ const ajaxRequestMixin = {
         getFailureMessage(errorThrown, xhr) {
             // subclass
             const responseText = xhr.responseText;
-            return `${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
+            return `${this.getFailureMessagePrepend()}${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
+        },
+        getFailureMessagePrepend() {
+            // subclass
+            return '';
         },
         readForm() {
             return this.formData;
