@@ -45,6 +45,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'email': user.email,
         'profileImage': profileImage,
         'employerId': user.employer_id,
+        'inviteEmployerId': user.inviteEmployer_id,
         'userTypeBits': user.userTypeBits,
         'isStaff': user.djangoUser.is_staff,
         'isActive': user.djangoUser.is_active,

@@ -96,7 +96,7 @@ const ajaxRequestMixin = {
 
                 const redirect = data.pageRedirect || this.pageRedirect;
                 if (redirect) {
-                    window.location.replace(redirect);
+                    window.location.href = redirect;
                 }
             }
         },

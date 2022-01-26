@@ -85,7 +85,12 @@ export default {
             return true;
         },
         processFormData() {
-            return Object.assign({}, this.readForm(), {uproveUserId: (this.globalData.uproveUser) ? this.globalData.uproveUser.id : null})
+            return Object.assign({}, this.readForm(),
+                {
+                    uproveUserId: (this.globalData.uproveUser) ? this.globalData.uproveUser.id : null,
+                    next: this.initData.next
+                }
+            )
         },
     }
 }

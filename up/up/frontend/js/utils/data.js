@@ -86,6 +86,37 @@ class DataUtil {
     }
 
     /**
+     * Update query params and optionally redirect to a new page
+     * @param params {Array}: Array of dicts with key: val pairs. The key represents the name of the query param and
+     * val represents the value. Val can be a single value or a list of values
+     * @param path {null|string}: Optional path if directing to a new page
+     */
+    setQueryParams(params, path=null) {
+        if ('URLSearchParams' in window) {
+            const searchParams = new URLSearchParams(window.location.search);
+            params.forEach(({key, val}) => {
+                searchParams.delete(key);  // Remove existing
+                const vals = (Array.isArray(val)) ? val : [val];
+                vals.forEach((v) => { searchParams.append(key, v); });  // Add new values
+            });
+            const targetPath = path || window.location.pathname;
+            const newRelativePathQuery = targetPath + '?' + searchParams.toString();
+            if (path) {
+                window.location.href = newRelativePathQuery;  // Redirect to new page
+            } else {
+                history.pushState(null, '', newRelativePathQuery); // Add to view state
+            }
+        }
+    }
+
+    signUpWithContext(initData) {
+        this.setQueryParams([
+            {key: 'next', val: window.location.pathname},
+            {key: 'inviteEmployerId', val: (initData) ? this.get(initData, 'employer.id') : null}
+        ], '/sign-up/');
+    }
+
+    /**
      * We can't add meta data directly onto file objects and order is not guaranteed when pairing files with
      * their respective meta data. To handle this, file objects and file meta data are processed into a dictionary
      * where the lookup value is based on the file object's name. This is the only "unique" key that the file object

@@ -150,7 +150,12 @@ export default {
         },
         processFormData() {
             const formData = this.readForm();
-            return Object.assign({}, formData, {userTypeBits: dataUtil.sum(formData.userTypes)});
+            const {next, inviteEmployerId} = dataUtil.getQueryParams();
+            return Object.assign(
+                {next, inviteEmployerId},
+                formData,
+                {userTypeBits: dataUtil.sum(formData.userTypes)}
+            );
         },
         isGoodFormFields(formData) {
             if (this.$refs['userTypes'] && formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {

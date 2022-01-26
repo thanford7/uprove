@@ -1,13 +1,11 @@
 <template>
     <div class="container-lg">
         <BannerAlert/>
-        <div class="row mt-3 mb-3">
-            <div class="align-items-center" style="display: flex">
-                <img v-if="initData.employer.logo" :src="initData.employer.logo" alt="" class="employer-logo">
-                <h2 v-else style="display: inline-block; margin-bottom: 0">{{initData.employer.companyName}}</h2>
-                <h2 style="display: inline-block; margin-bottom: 0">{{initData.job.jobTitle}} position</h2>
-            </div>
-        </div>
+        <PageHeader
+            :title="`${initData.job.jobTitle} position`"
+            :image="initData.employer.logo"
+            :imageAlt="initData.employer.companyName"
+        />
         <div class="row mb-3 justify-content-center" :class="(isMobile) ? 'mobile-top' : ''">
             <div :id="accordionElId" class="col-md-9 accordion">
                 <AccordionItem :accordionElId="accordionElId" :elId="getNewElUid()">
@@ -55,7 +53,7 @@
                 <h5 class="-text-bold">Applicant instructions</h5>
                 <ol class="-border-bottom--light mb-3 pb-3">
                     <li v-if="!isLoggedIn" id="loginInstruction">
-                        <a href="#" @click="eventBus.emit('open:candidateRequestAccountModal')">Create an account</a>
+                        <a href="#" @click="signUpWithContext">Create an account</a>
                         or
                         <a href="#" @click="eventBus.emit('open:signInModal')">sign in</a>
                     </li>
@@ -91,7 +89,6 @@
                 <div class="-sub-text"><a href="#" @click="eventBus.emit('open:submitHelpModal')">Submit question</a></div>
             </div>
         </div>
-        <CandidateRequestAccountModal/>
         <SubmitHelpModal/>
     </div>
 </template>
@@ -101,11 +98,13 @@ import AccordionItem from "../../components/AccordionItem";
 import BannerAlert from "../../components/BannerAlert";
 import FileDisplay from "../../components/FileDisplay";
 import InputSelectize from "../../inputs/InputSelectize";
+import PageHeader from "../../components/PageHeader";
 import SubmitHelpModal from "../../modals/SubmitHelpModal";
+import dataUtil from "../../../utils/data";
 
 export default {
     name: "JobPostingPage.vue",
-    components: {AccordionItem, BannerAlert, FileDisplay, InputSelectize, SubmitHelpModal},
+    components: {AccordionItem, BannerAlert, FileDisplay, InputSelectize, PageHeader, SubmitHelpModal},
     data() {
         return {
             accordionElId: `accordion-${this.getNewElUid()}`,
@@ -173,6 +172,9 @@ export default {
                     accordionButton.click();
                 }
             });
+        },
+        signUpWithContext() {
+            dataUtil.signUpWithContext(this.initData);
         }
     },
     mounted() {

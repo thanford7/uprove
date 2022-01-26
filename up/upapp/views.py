@@ -97,6 +97,23 @@ def candidateDashboard(request, userId=None):
     })})
 
 
+def candidateOnboard(request):
+    user = security.getSessionUser(request)
+    if not user:
+        return _getUnauthorizedPage(request)
+
+    if not user['id']:
+        return _getErrorPage(request, HTTPStatus.BAD_REQUEST, 'A user ID is required')
+
+    if not security.isSelf(request, user['id']):
+        return _getUnauthorizedPage(request)
+
+    return render(request, 'candidateOnboard.html', context={'data': dumps({
+        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
+        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+    })})
+
+
 def contact(request):
     return render(request, 'contact.html', context={})
 

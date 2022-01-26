@@ -17,7 +17,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from upapp import security
-from upapp.apis import UproveAPIView, setSkills
+from upapp.apis import UproveAPIView, setSkills, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView
 from upapp.apis.sendEmail import EmailView
 from upapp.models import *
@@ -174,7 +174,8 @@ class UserView(UproveAPIView):
                 'html_email_template_name': 'email/newUserPassword.html',
                 'extra_email_context': {
                     'supportEmail': 'community@uprove.co',
-                    'isNew': True
+                    'isNew': True,
+                    'next': request.data.get('next')
                 }
             })
 
@@ -302,11 +303,13 @@ class UserView(UproveAPIView):
             birthDate=dateUtil.deserializeDateTime(data.get('birthDate'), dateUtil.FormatType.DATE, allowNone=True),
             email=data['email'],
             employer_id=data.get('employerId'),
+            inviteEmployer_id=data.get('inviteEmployerId'),
             isDemo=data.get('isDemo') or False,
             modifiedDateTime=datetime.utcnow(),
             createdDateTime=datetime.utcnow()
         )
         user.save()
+        saveActivity(ActivityKey.CREATE_ACCOUNT, user.id)
 
         return user, bool(password)
 

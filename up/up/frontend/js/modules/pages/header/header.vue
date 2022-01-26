@@ -56,7 +56,7 @@
                 </template>
             </ul>
             <li v-if="!isLoggedIn" class="d-flex">
-                <button @click="redirectUrl('/sign-up/')" type="button" class="btn btn-primary">Sign up</button>
+                <button @click="signUpWithContext" type="button" class="btn btn-primary">Sign up</button>
             </li>
         </div>
         <div class="justify-content-end align-items-center" style="margin-left: auto;">
@@ -74,6 +74,7 @@
     <ResetPasswordModal/>
 </template>
 <script>
+import dataUtil from "../../../utils/data";
 import ResetPasswordModal from "../../modals/ResetPasswordModal";
 import SignInModal from "../../modals/SignInModal";
 
@@ -108,6 +109,9 @@ export default {
                 return 'current-page -text-bold';
             }
             return '';
+        },
+        signUpWithContext() {
+            dataUtil.signUpWithContext(this.initData);
         }
     },
     mounted() {

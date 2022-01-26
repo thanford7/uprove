@@ -13,7 +13,7 @@ from django.http import HttpResponseRedirect
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from upapp.apis import UproveAPIView
+from upapp.apis import UproveAPIView, ActivityKey, saveActivity, hasCompletedActivity
 from upapp.apis.user import UserView
 from upapp.models import User
 from upapp.modelSerializers import getSerializedUser
@@ -44,7 +44,12 @@ def getLoginRedirectUrl(request):
             return pageRedirect
     pageRedirect = '/projects/'
     uproveUser = request.session['uproveUser']
-    if uproveUser['isSuperUser']:
+
+    # Send user to the onboarding page if they are new
+    if not hasCompletedActivity(ActivityKey.VIEW_PROJECT_SELECTION, uproveUser['id']):
+        pageRedirect = '/candidateOnboard/'
+        saveActivity(ActivityKey.VIEW_PROJECT_SELECTION, uproveUser['id'])
+    elif uproveUser['isSuperUser']:
         pageRedirect = '/admin/'
     elif uproveUser['userTypeBits'] & User.USER_TYPE_CANDIDATE:
         pageRedirect = '/candidateDashboard/'
@@ -91,6 +96,7 @@ class LoginView(APIView):
             messages.error(request, msg)
             return Response(status=HTTPStatus.UNAUTHORIZED, data=msg)
 
+
 class LogoutView(APIView):
 
     def post(self, request):
@@ -106,7 +112,8 @@ class PasswordResetGenerateView(UproveAPIView):
             'html_email_template_name': 'email/resetPassword.html',
             'extra_email_context': {
                 'supportEmail': 'community@uprove.co',
-                'isNew': False
+                'isNew': False,
+                'next': None
             }
         })
         return Response(status=HTTPStatus.OK, data=self.data['email'])
@@ -123,7 +130,14 @@ class PasswordResetView(PasswordResetConfirmView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['data'] = dumps({'isNew': self.kwargs.get('isnew') == 'True'})
+        params = self.request.GET
+        isNewUser = params.get('isnew') == 'True'
+        context['data'] = dumps({'isNew': isNewUser, 'next': params.get('next')})
+        if isNewUser:
+            saveActivity(
+                ActivityKey.CREATE_ACCOUNT,
+                User.objects.select_related('djangoUser').get(djangoUser=self.user).id
+            )
         return context
 
 

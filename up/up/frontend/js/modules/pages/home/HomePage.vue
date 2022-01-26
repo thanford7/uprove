@@ -184,7 +184,6 @@
             </div>
         </div>
         <EmployerRequestInfoModal/>
-        <CandidateRequestAccountModal/>
     </div>
 </template>
 <script>

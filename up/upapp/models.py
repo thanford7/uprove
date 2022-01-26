@@ -55,7 +55,8 @@ class User(AuditFields):
     birthDate = models.DateField(null=True)
     email = models.EmailField(unique=True)
     userTypeBits = models.SmallIntegerField(default=USER_TYPE_CANDIDATE)
-    employer = models.ForeignKey('Employer', on_delete=models.PROTECT, null=True)
+    employer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True)
+    inviteEmployer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True, related_name='inviteEmployer')
     isDemo = models.BooleanField(default=False)
 
 
@@ -384,3 +385,15 @@ class BlogPost(AuditFields):
 
 class BlogTag(models.Model):
     name = models.CharField(max_length=75, unique=True)
+
+
+class Activity(models.Model):
+    key = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=100, unique=True)
+    notes = models.TextField(null=True)
+
+
+class UserActivity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField()

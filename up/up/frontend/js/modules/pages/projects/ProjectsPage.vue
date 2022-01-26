@@ -9,7 +9,7 @@
                     ref="projectFunction"
                     elId="projectFunction"
                     :isParseAsInt="true"
-                    placeholder="Roles: All" :cfg="projectFunctionsCfg" @selected="filter.roles = $event"
+                    placeholder="Roles: All" :cfg="projectFunctionsCfg" @selected="setRoles($event)"
                 />
             </div>
             <div class="col-md-3">
@@ -17,7 +17,7 @@
                     ref="projectSkills"
                     elId="projectSkills"
                     :isParseAsInt="true"
-                    placeholder="Skills: All" :cfg="projectSkillsCfg" @selected="filter.skills = $event"
+                    placeholder="Skills: All" :cfg="projectSkillsCfg" @selected="setSkills($event)"
                 />
             </div>
             <div class="col-md-3">
@@ -25,7 +25,7 @@
                     ref="projectSkillLevels"
                     elId="projectSkillLevels"
                     :isParseAsInt="true"
-                    placeholder="Experience Levels: All" :cfg="projectSkillLevelsCfg" @selected="filter.skillLevels = $event"
+                    placeholder="Experience Levels: All" :cfg="projectSkillLevelsCfg" @selected="setSkillLevels($event)"
                 />
             </div>
         </div>
@@ -46,8 +46,10 @@ import dataUtil from "../../../utils/data";
 export default {
     name: "ProjectsPage.vue",
     components: {InputSelectize, ProjectCard},
-    data: {
-        filter: {}
+    data() {
+        return {
+            filter: {}
+        }
     },
     computed: {
         filteredProjects() {
@@ -91,8 +93,26 @@ export default {
             }
         }
     },
+    methods: {
+        setRoles(roles) {
+            this.filter.roles = roles;
+            dataUtil.setQueryParams([{key: 'role', val: roles}]);
+        },
+        setSkills(skills) {
+            this.filter.skills = skills;
+            dataUtil.setQueryParams([{key: 'skill', val: skills}]);
+        },
+        setSkillLevels(levels) {
+            this.filter.skillLevels = levels;
+            dataUtil.setQueryParams([{key: 'level', val: levels}]);
+        }
+    },
     mounted() {
         dataUtil.setSkillLevels(this.initData.projects, this.globalData);
+        const queryParams = dataUtil.getQueryParams();
+        this.$refs.projectFunction.elSel.setValue(queryParams.role);
+        this.$refs.projectSkills.elSel.setValue(queryParams.skill);
+        this.$refs.projectSkillLevels.elSel.setValue(queryParams.level);
     }
 }
 </script>
