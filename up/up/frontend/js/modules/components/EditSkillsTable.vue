@@ -15,18 +15,20 @@
                     <tr>
                         <td class="border-bottom-0">
                             <InputSelectize
+                                v-if="!skill.id"
                                 :cfg="getSkillSelectizeCfg()"
                                 :elId="getNewElUid()"
                                 :items="skill.id"
                                 :isParseAsInt="true"
                                 @selected="setSkillName(skill, $event)"
                             />
+                            <span v-else>{{skill.name}}</span>
                         </td>
                         <td class="border-bottom-0">
                             <InputSelectize
                                 :cfg="getSkillLevelsCfg()"
                                 :elId="getNewElUid()"
-                                :items="getSkillLevelsFromBits(skill.skillLevelBits)"
+                                :items="getSkillLevelNumbersFromBits(skill.skillLevelBits)"
                                 :isParseAsBits="true"
                                 @selected="setProjectSkillLevels(skill, $event)"
                             />

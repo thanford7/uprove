@@ -245,11 +245,11 @@ class JobPostingView(APIView):
             )
             ):
                 customProject.save()
-                SkillView.setSkillIds(customProject, customProjectData['skillIds'])
-            projectToAdd = existingCustomProject or customProject
-            if projectToAdd.id in [ap.id for ap in employerJob.allowedProjects.all()]:
+            customProject = existingCustomProject or customProject
+            SkillView.setSkillIds(customProject, customProjectData['skillIds'])
+            if customProject.id in [ap.id for ap in employerJob.allowedProjects.all()]:
                 continue
-            employerJob.allowedProjects.add(projectToAdd)
+            employerJob.allowedProjects.add(customProject)
 
 
 class JobProjectLinkView(APIView):

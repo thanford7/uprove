@@ -6,7 +6,7 @@ class SkillSelectize {
         skillLevels.setSkillLevels(skills);
         const options = dataUtil.sortBy(
             skills
-                .filter((s) => projectId === s.projectId)
+                .filter((s) => projectId === s.projectId && !s.isRequired)  // Filter out required skills. Those are automatically saved
                 .map((s) => ({value: s.id, text: s.name, skillLevels: s.skillLevels})),
             'text'
         );
@@ -34,7 +34,7 @@ class SkillSelectize {
 
     getDefaultSkills(skills) {
         return skills.reduce((skillIds, skill) => {
-                if (skill.isRequired || skill.isRecommended) {
+                if (skill.isRecommended) {
                     skillIds.push(skill.id);
                 }
                 return skillIds;

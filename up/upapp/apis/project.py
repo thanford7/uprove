@@ -400,17 +400,20 @@ class SkillView(APIView):
             return isChanged
 
     @staticmethod
-    def setSkillIds(obj, skillIds):
+    def setSkillIds(customProject, skillIds):
         isChanged = False
-        if obj.id:
-            oldSkillIds = {s.id for s in obj.skills.all()}
+
+        if customProject.id:
+            oldSkillIds = {s.id for s in customProject.skills.all()}
             diff = oldSkillIds.symmetric_difference(set(skillIds))
             isChanged = bool(len(diff))
-            obj.skills.clear()
+            customProject.skills.clear()
 
-        existingSkills = {s.id: s for s in Skill.objects.all()}
+        existingSkills = {s.id: s for s in Skill.objects.filter(skillProject_id=customProject.project_id)}
+        requiredSkillIds = {s.id for s in existingSkills.values() if s.isRequired}
+        skillIds = set(skillIds).union(requiredSkillIds)
         for skillId in skillIds:
             skill = existingSkills.get(skillId)
-            obj.skills.add(skill)
+            customProject.skills.add(skill)
 
         return isChanged
