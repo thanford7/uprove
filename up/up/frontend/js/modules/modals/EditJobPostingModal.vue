@@ -270,9 +270,11 @@ export default {
             const currentProjectIds = this.formData.allowedProjects.map((ap) => ap.projectId);
             projectIds.forEach((projectId) => {
                 if (!currentProjectIds.includes(projectId)) {
+                    const proj = this.getProject(projectId);
                     this.formData.allowedProjects.push({
                         id: `new-${this.newProjectCount}`,
-                        projectId
+                        projectId,
+                        skillIds: skillSelectize.getDefaultSkills(proj.skills)
                     })
                     this.newProjectCount++;
                 }

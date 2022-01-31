@@ -3,6 +3,7 @@ import skillLevels from "./skillLevels";
 
 class SkillSelectize {
     getSkillCfg(skills, {isMulti = true, projectId = null, isIncludeDetails = false} = {}) {
+        skills = dataUtil.deepCopy(skills);  // Avoid recursive mutations
         skillLevels.setSkillLevels(skills);
         const options = dataUtil.sortBy(
             skills
