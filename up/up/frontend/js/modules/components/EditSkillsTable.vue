@@ -15,7 +15,7 @@
                     <tr>
                         <td class="border-bottom-0">
                             <InputSelectize
-                                v-if="!skill.id"
+                                v-if="!skill.projectId"
                                 :cfg="getSkillSelectizeCfg()"
                                 :elId="getNewElUid()"
                                 :items="skill.id"
