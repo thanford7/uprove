@@ -14,7 +14,7 @@ class SkillSelectize {
         if (isIncludeDetails) {
             cfg.render = {
                 option: (data, escape) => {
-                    const skillLevelTxt = (data.skillLevels.length) ? data.skillLevels.join(', ') : 'All skill levels';
+                    const skillLevelTxt = (data.skillLevels.length) ? data.skillLevels.map((sl) => sl.title).join(', ') : 'All skill levels';
                     return `
                         <div class="option" data-selectable data-value="${data.value}" style="cursor: pointer;">
                             ${escape(data.text)} (${skillLevelTxt})

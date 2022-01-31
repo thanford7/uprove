@@ -201,7 +201,7 @@ export default {
         },
         getDefaultSkills(customProject) {
             const project = this.getProject(customProject.projectId);
-            return customProject.skills.map((s) => s.id) || skillSelectize.getDefaultSkills(project.skills);
+            return (customProject.skills) ? customProject.skills.map((s) => s.id) : skillSelectize.getDefaultSkills(project.skills);
         },
         openCustomProject(customProject, e) {
             e.preventDefault();
