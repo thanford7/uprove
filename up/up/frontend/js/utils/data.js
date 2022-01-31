@@ -91,13 +91,15 @@ class DataUtil {
      * val represents the value. Val can be a single value or a list of values
      * @param path {null|string}: Optional path if directing to a new page
      */
-    setQueryParams(params, path=null) {
+    setQueryParams(params, path = null) {
         if ('URLSearchParams' in window) {
             const searchParams = new URLSearchParams(window.location.search);
             params.forEach(({key, val}) => {
                 searchParams.delete(key);  // Remove existing
                 const vals = (Array.isArray(val)) ? val : [val];
-                vals.forEach((v) => { searchParams.append(key, v); });  // Add new values
+                vals.forEach((v) => {
+                    searchParams.append(key, v);
+                });  // Add new values
             });
             const targetPath = path || window.location.pathname;
             const newRelativePathQuery = targetPath + '?' + searchParams.toString();
@@ -177,7 +179,7 @@ class DataUtil {
     get(obj, path, defaultValue = undefined) {
         const keyPath = path.split('.');
         let currentTarget = obj;
-        for (let i=0; i<keyPath.length; i++) {
+        for (let i = 0; i < keyPath.length; i++) {
             currentTarget = currentTarget[keyPath[i]];
             if (!currentTarget) {
                 return defaultValue;
@@ -192,6 +194,24 @@ class DataUtil {
 
     groupByFn(targetArray, fn) {
         return targetArray.reduce((r, v, i, a, k = fn(v)) => ((r[k] || (r[k] = [])).push(v), r), {})
+    }
+
+    isArraysEqual(a, b) {
+        if (a === b) return true;
+        if (a === null || b === null) return false;
+        if (!Array.isArray(a) || !Array.isArray(b)) return false;
+        if (a.length !== b.length) return false;
+
+        // Copy before sorting so other elements aren't effected
+        a = [...a];
+        b = [...b];
+        a.sort();
+        a.sort();
+
+        for (let i = 0; i < a.length; ++i) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
     }
 
     isEmpty(obj) {
@@ -238,7 +258,7 @@ class DataUtil {
         }, {});
     }
 
-    sortBy(targetArray, sortKey, isInPlace=false) {
+    sortBy(targetArray, sortKey, isInPlace = false) {
         const newArray = (isInPlace) ? targetArray : [...targetArray];
         const sortKeys = Array.isArray(sortKey) ? sortKey : [sortKey];
         sortKeys.reverse();  // Reverse the order so the first item will be sorted last (making it primary)
