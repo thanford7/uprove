@@ -2,16 +2,8 @@ import dataUtil from "../../utils/data";
 import skillLevels from "./skillLevels";
 
 class SkillSelectize {
-    getSkillCfg(skills, {isMulti = true, projectId = null, isIncludeDetails = false} = {}) {
-        skills = dataUtil.deepCopy(skills);  // Avoid recursive mutations
-        skillLevels.setSkillLevels(skills);
-        const options = dataUtil.sortBy(
-            skills
-                .filter((s) => projectId === s.projectId && !s.isRequired)  // Filter out required skills. Those are automatically saved
-                .map((s) => ({value: s.id, text: s.name, skillLevels: s.skillLevels})),
-            'text'
-        );
-        const cfg = {options};
+    getSkillCfg(skills, {isMulti = true, projectId = null, isIncludeDetails = false, isShowRequired=false} = {}) {
+        const cfg = {options: this.getSkillOptions(skills, projectId, isShowRequired)};
         if (isIncludeDetails) {
             cfg.render = {
                 option: (data, escape) => {
@@ -31,6 +23,17 @@ class SkillSelectize {
             }, cfg);
         }
         return Object.assign({maxItems: 1}, cfg);
+    }
+
+    getSkillOptions(skills, projectId=null, isShowRequired=false) {
+        skills = dataUtil.deepCopy(skills);  // Avoid recursive mutations
+        skillLevels.setSkillLevels(skills);
+        return dataUtil.sortBy(
+            skills
+                .filter((s) => projectId === s.projectId && (!s.isRequired || isShowRequired))  // Filter out required skills. Those are automatically saved
+                .map((s) => ({value: s.id, text: s.name, skillLevels: s.skillLevels})),
+            'text'
+        );
     }
 
     getDefaultSkills(skills) {

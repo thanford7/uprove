@@ -104,6 +104,7 @@ import EditProjectModal from "../../modals/EditProjectModal";
 import EditSkillModal from "../../modals/EditSkillModal";
 import EditUserModal from "../../modals/EditUserModal";
 import InputSelectize from "../../inputs/InputSelectize";
+import skillSelectize from "../../selectizeCfgs/skill";
 
 export default {
     name: "AdminPage.vue",
@@ -161,11 +162,7 @@ export default {
             }
         },
         skillCfg() {
-            return {
-                maxItems: 1,
-                sortField: 'text',
-                options: this.getSkillOptions()
-            }
+            return skillSelectize.getSkillCfg(this.initData.skills, {isMulti: false, isShowRequired: true});
         },
         userCfg() {
             return {
@@ -205,7 +202,7 @@ export default {
             return Object.assign({}, this.initData.skills.find((s) => s.id === skillId));
         },
         getSkillOptions() {
-            return this.initData.skills.map((s) => ({value: s.id, text: s.name}));
+            return skillSelectize.getSkillOptions(this.initData.skills, null, true);
         },
         getUser(userId) {
             return Object.assign({}, this.initData.users.find((u) => u.id === userId));

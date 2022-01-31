@@ -20,7 +20,7 @@
                                 :elId="getNewElUid()"
                                 :items="skill.id"
                                 :isParseAsInt="true"
-                                @selected="setSkillName(skill, $event)"
+                                @selected="setSkill(skill, $event)"
                             />
                             <span v-else>{{skill.name}}</span>
                         </td>
@@ -35,6 +35,7 @@
                         </td>
                         <td class="border-bottom-0">
                             <InputSelectize
+                                ref="skillPriority"
                                 :cfg="getSkillPriorityCfg()"
                                 :elId="getNewElUid()"
                                 :items="getSkillPriorityLabel(skill)"
@@ -116,7 +117,7 @@ export default {
         },
         getSkillSelectizeCfg() {
             return Object.assign(
-                skillSelectize.getSkillCfg(this.initData.skills, {isMulti: false}),
+                skillSelectize.getSkillCfg(this.initData.skills, {isMulti: false, isShowRequired: true}),
                 {placeholder: 'Select a skill'}
             );
         },
@@ -124,10 +125,11 @@ export default {
             skill.skillLevelBits = skillLevelBits;
             skillLevelSelectize.setSkillLevels([skill]);
         },
-        setSkillName(skill, skillId) {
+        setSkill(skill, skillId) {
             const targetSkill = this.initData.skills.find((s) => s.id === skillId);
             skill.id = skillId;
-            skill.name = targetSkill.name;
+            Object.assign(skill, dataUtil.pick(targetSkill, ['name', 'instruction', 'isRequired', 'isRecommended']));
+            this.$refs.skillPriority.elSel.setValue(this.getSkillPriorityLabel(skill));
         },
         setSkillPriority(skill, priority) {
             Object.assign(skill, skillPrioritySelectize.getPriorityValues(priority));

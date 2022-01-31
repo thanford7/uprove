@@ -258,6 +258,16 @@ export default {
                         );
                     return false;
                 }
+
+                for (let x = 0; x < customProject.skills.length; x++) {
+                    const skill = customProject.skills[x];
+                    if (skill.skillLevelBits && !(skill.skillLevelBits & customProject.skillLevelBit)) {
+                        this.addPopover($(this.$refs[`modalJobCustomProject-skills-${customProject.id}`].targetEl),
+                        {severity: severity.WARN, content: `${skill.name} has a skill level that is not equal to the project skill level`, isOnce: true}
+                            );
+                        return false;
+                    }
+                }
             }
 
             return true;
