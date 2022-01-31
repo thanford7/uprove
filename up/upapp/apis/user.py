@@ -17,8 +17,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from upapp import security
-from upapp.apis import UproveAPIView, setSkills, saveActivity, ActivityKey
+from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView
+from upapp.apis.project import SkillView
 from upapp.apis.sendEmail import EmailView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject
@@ -483,7 +484,7 @@ class UserProjectView(APIView):
             )
             ):
                 customProject.save()
-                setSkills(customProject, data['skillIds'])
+                SkillView.setSkillIds(customProject, data['skillIds'])
 
             customProjectId = existingCustomProject.id if existingCustomProject else customProject.id
 
@@ -523,7 +524,7 @@ class UserProjectView(APIView):
             .select_related(
                 'customProject',
                 'customProject__project',
-                'customProject__project__function',
+                'customProject__project__role',
                 'user'
             )\
             .prefetch_related(
@@ -659,7 +660,7 @@ class UserJobApplicationView(APIView):
                 'userProject__user',
                 'userProject__customProject',
                 'userProject__customProject__project',
-                'userProject__customProject__project__function',
+                'userProject__customProject__project__role',
                 'employerJob'
             )\
             .prefetch_related(
@@ -669,7 +670,7 @@ class UserJobApplicationView(APIView):
                 'userProject__customProject__skills',
                 'employerJob__allowedProjects',
                 'employerJob__allowedProjects__project',
-                'employerJob__allowedProjects__project__function',
+                'employerJob__allowedProjects__project__role',
                 'employerJob__allowedProjects__skills',
             )\
             .filter(applicationFilter)

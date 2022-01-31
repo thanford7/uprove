@@ -166,24 +166,6 @@ class DataUtil {
         }
     }
 
-    /**
-     * Sets skill levels from bits
-     * @param objList {Array}: A list of objects, each of which must have a "skillLevelBits" property
-     * @param globalData {Object}
-     * @param isSingle {Boolean}: If true, the singular version of skillLevelBits will be used
-     */
-    setSkillLevels(objList, globalData, isSingle = false) {
-        const skillLevelBitKey = (isSingle) ? 'skillLevelBit' : 'skillLevelBits';
-        objList.forEach((obj) => {
-            obj.skillLevels = Object.entries(globalData.SKILL_LEVEL).reduce((skillLevels, [skillLevelBit, skillLevel]) => {
-                if (skillLevelBit & obj[skillLevelBitKey]) {
-                    skillLevels.push(skillLevel);
-                }
-                return skillLevels;
-            }, []);
-        });
-    }
-
     capitalize(string) {
         return (string) ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : '';
     }

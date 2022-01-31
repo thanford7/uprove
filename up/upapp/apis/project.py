@@ -10,9 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from upapp import security
-from upapp.apis import setSkills
-from upapp.modelSerializers import getSerializedProject, getSerializedProjectFunction, getSerializedProjectSkill
-from upapp.models import Project, ProjectFunction, ProjectSkill, ProjectFile, ProjectInstructions, ProjectEvaluationCriterion
+from upapp.modelSerializers import getSerializedProject, getSerializedRole, getSerializedSkill
+from upapp.models import Project, Role, Skill, ProjectFile, ProjectInstructions, ProjectEvaluationCriterion
 from upapp.utils import dataUtil
 
 
@@ -41,7 +40,7 @@ class ProjectView(APIView):
         project = Project(
             title=data['title'],
             image=data.get('image'),
-            function_id=data['functionId'],
+            role_id=data['roleId'],
             skillLevelBits=data['skillLevelBits'],
             description=data['description'],
             background=data['background'],
@@ -51,7 +50,10 @@ class ProjectView(APIView):
         )
         project.save()
 
-        setSkills(project, data.get('skillIds'))
+        try:
+            SkillView.setProjectSkills(project, data.get('skills'))
+        except ValueError as e:
+            return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
         self.setInstructions(project, data.get('instructions'))
         self.setEvaluationCriteria(project, data.get('evaluationCriteria'))
         self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
@@ -71,7 +73,7 @@ class ProjectView(APIView):
         project = self.getProject(projectId)
         dataUtil.setObjectAttributes(project, data, {
             'title': None,
-            'function_id': {'formName': 'functionId'},
+            'role_id': {'formName': 'roleId'},
             'skillLevelBits': None,
             'description': None,
             'background': None,
@@ -80,12 +82,15 @@ class ProjectView(APIView):
         if image := data.get('image'):
             project.image = image
 
-        isChanged = any([
-            setSkills(project, data.get('skillIds')),
-            self.setInstructions(project, data.get('instructions')),
-            self.setEvaluationCriteria(project, data.get('evaluationCriteria')),
-            self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
-        ])
+        try:
+            isChanged = any([
+                SkillView.setProjectSkills(project, data.get('skills')),
+                self.setInstructions(project, data.get('instructions')),
+                self.setEvaluationCriteria(project, data.get('evaluationCriteria')),
+                self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
+            ])
+        except ValueError as e:
+            return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
 
         if isChanged:
             project.modifiedDateTime = datetime.utcnow()
@@ -109,7 +114,7 @@ class ProjectView(APIView):
     def getProject(projectId):
         try:
             return Project.objects \
-                .select_related('employer', 'function') \
+                .select_related('employer', 'role') \
                 .prefetch_related('evaluationCriteria', 'projectFile', 'projectInstructions', 'skills') \
                 .get(id=projectId)
         except Project.DoesNotExist as e:
@@ -126,7 +131,7 @@ class ProjectView(APIView):
         if projectIds:
             q &= Q(id__in=projectIds)
         return Project.objects\
-            .select_related('employer', 'function')\
+            .select_related('employer', 'role')\
             .prefetch_related('evaluationCriteria', 'projectFile', 'projectInstructions', 'skills')\
             .filter(q)
 
@@ -241,68 +246,69 @@ class ProjectView(APIView):
         return isChanged
 
 
-class FunctionView(APIView):
+class RoleView(APIView):
 
     def post(self, request):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            projectFunction = ProjectFunction(functionName=request.data['functionName'])
-            projectFunction.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedProjectFunction(projectFunction))
+            role = Role(name=request.data['name'])
+            role.save()
+            return Response(status=status.HTTP_200_OK, data=getSerializedRole(role))
         except IntegrityError as e:
             raise e
 
-    def put(self, request, functionId=None):
+    def put(self, request, roleId=None):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        functionId = functionId or request.data.get('id')
-        if not functionId:
-            return Response('A project function ID is required', status=status.HTTP_400_BAD_REQUEST)
+        roleId = roleId or request.data.get('id')
+        if not roleId:
+            return Response('A project role ID is required', status=status.HTTP_400_BAD_REQUEST)
 
-        projectFunction = self.getProjectFunction(functionId)
+        role = self.getRole(roleId)
         try:
-            projectFunction.functionName = request.data['functionName']
-            projectFunction.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedProjectFunction(projectFunction))
+            role.name = request.data['name']
+            role.save()
+            return Response(status=status.HTTP_200_OK, data=getSerializedRole(role))
         except IntegrityError as e:
             raise e
 
-    def delete(self, request, functionId=None):
+    def delete(self, request, roleId=None):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        functionId = functionId or request.data.get('id')
-        projectFunction = self.getProjectFunction(functionId)
-        projectFunction.delete()
-        return Response(status=status.HTTP_200_OK, data=functionId)
+        roleId = roleId or request.data.get('id')
+        role = self.getRole(roleId)
+        role.delete()
+        return Response(status=status.HTTP_200_OK, data=roleId)
 
     @staticmethod
-    def getProjectFunction(functionId):
+    def getRole(roleId):
         try:
-            return ProjectFunction.objects.get(id=functionId)
-        except ProjectFunction.DoesNotExist as e:
+            return Role.objects.get(id=roleId)
+        except Role.DoesNotExist as e:
             raise e
 
 
 class SkillView(APIView):
 
+    @atomic
     def post(self, request):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            projectSkill = ProjectSkill(
-                skillName=request.data['skillName'],
-                instruction=request.data.get('instruction')
-            )
-            projectSkill.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedProjectSkill(projectSkill))
+            skill = Skill()
+            self.saveSkill(request.data, skill)
+            return Response(status=status.HTTP_200_OK, data=getSerializedSkill(skill))
         except IntegrityError as e:
             raise e
+        except ValueError as e:
+            return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
 
+    @atomic
     def put(self, request, skillId=None):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -311,29 +317,100 @@ class SkillView(APIView):
         if not skillId:
             return Response('A project skill ID is required', status=status.HTTP_400_BAD_REQUEST)
 
-        projectSkill = self.getProjectSkill(skillId)
+        skill = self.getSkill(skillId)
         try:
-            dataUtil.setObjectAttributes(projectSkill, request.data, {
-                'skillName': None,
-                'instruction': None
-            })
-            projectSkill.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedProjectSkill(projectSkill))
+            self.saveSkill(request.data, skill)
+            return Response(status=status.HTTP_200_OK, data=getSerializedSkill(skill))
         except IntegrityError as e:
             raise e
+        except ValueError as e:
+            return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
 
     def delete(self, request, skillId=None):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         skillId = skillId or request.data.get('id')
-        projectSkill = self.getProjectSkill(skillId)
-        projectSkill.delete()
+        skill = self.getSkill(skillId)
+        skill.delete()
         return Response(status=status.HTTP_200_OK, data=skillId)
 
     @staticmethod
-    def getProjectSkill(skillId):
+    def getSkill(skillId):
         try:
-            return ProjectSkill.objects.get(id=skillId)
-        except ProjectSkill.DoesNotExist as e:
+            return Skill.objects.get(id=skillId)
+        except Skill.DoesNotExist as e:
             raise e
+
+    @staticmethod
+    def saveSkill(skillData, skill):
+        """Update skill data and save it
+        :param skillData: Dict of form data
+        :param skill: Skill object
+        :return: boolean of whether the skill was updated
+        """
+        isUpdated = dataUtil.setObjectAttributes(skill, skillData, {
+            'name': None,
+            'instruction': None,
+            'isRequired': {'isProtectExisting': True},
+            'isRecommended': {'isProtectExisting': True},
+            'skillProject_id': {'formName': 'projectId'},
+            'skillLevelBits': None
+        })
+        similarSkills = Skill.objects.select_related('skillProject').filter(name=skill.name, skillProject_id=skill.skillProject_id)
+        for similarSkill in similarSkills:
+            if skill.id == similarSkill.id:
+                continue
+            if skill.isOverlap(similarSkill):
+                raise ValueError(f'Two skills with name of "{skill.name}" and project "{skill.skillProject.title}" have overlapping skill levels')
+        skill.save()
+        return isUpdated
+
+
+    @staticmethod
+    def updateOrCreateSkill(skillData, allSkillsDict):
+        """
+        :param skillData: Dict of form data
+        :param allSkillsDict: Dict of [skillId]: [skill] entries
+        """
+        skill = allSkillsDict.get(skillData['id'], Skill())
+        SkillView.saveSkill(skillData, skill)
+        return skill
+
+    @staticmethod
+    def setProjectSkills(project, skillsData):
+        """Create/update skills and then associate them with a foreign object
+        :param project: Project object
+        :param skillsData: A dict of form data
+        """
+        with atomic():
+            isChanged = False
+            if project.id:
+                oldSkillIds = {s.id for s in project.skills.all()}
+                diff = oldSkillIds.symmetric_difference(set([s['id'] for s in skillsData]))
+                isChanged = bool(len(diff))
+                project.skills.clear()
+
+            existingSkills = {s.id: s for s in Skill.objects.filter(skillProject_id=project.id)}
+            for skillData in skillsData:
+                skillData['projectId'] = project.id
+                skill = SkillView.updateOrCreateSkill(skillData, existingSkills)
+                project.skills.add(skill)
+
+            return isChanged
+
+    @staticmethod
+    def setSkillIds(obj, skillIds):
+        isChanged = False
+        if obj.id:
+            oldSkillIds = {s.id for s in obj.skills.all()}
+            diff = oldSkillIds.symmetric_difference(set(skillIds))
+            isChanged = bool(len(diff))
+            obj.skills.clear()
+
+        existingSkills = {s.id: s for s in Skill.objects.all()}
+        for skillId in skillIds:
+            skill = existingSkills.get(skillId)
+            obj.skills.add(skill)
+
+        return isChanged

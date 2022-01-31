@@ -3,7 +3,7 @@
         <BannerAlert/>
         <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-8 card-custom">
-                <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.function}}</span></h1>
+                <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.role}}</span></h1>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
                 <CollapseDiv :elId="getNewElUid()" :class="(initData.project.isLimited) ? '' : '-border-bottom--light mb-2'">
                     <template v-slot:header>
@@ -20,8 +20,8 @@
                     </template>
                     <div v-if="formData.skillLevelBit" class="pb-2">
                         <div v-html="projectInstructions"></div>
-                        <ul v-if="projectSkillInstructions.length" class="pb-2">
-                            <li v-for="i in projectSkillInstructions">{{i}}</li>
+                        <ul v-if="skillInstructions.length" class="pb-2">
+                            <li v-for="i in skillInstructions">{{i}}</li>
                         </ul>
                     </div>
                     <div v-else class="-sub-text pb-2">Select career level to view instructions</div>
@@ -74,10 +74,10 @@
                                 placeholder="Career level" :cfg="projectSkillLevelCfg" @selected="formData.skillLevelBit = $event"
                             />
                             <InputSelectize
-                                ref="projectSkills"
-                                elId="projectSkills"
+                                ref="skills"
+                                elId="skills"
                                 :isParseAsInt="true"
-                                placeholder="Project skills" :cfg="projectSkillsCfg" @selected="formData.skillIds = $event"
+                                placeholder="Skills" :cfg="skillsCfg" @selected="formData.skillIds = $event"
                             />
                             <template v-if="isEmployer">
                                 <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Link project to {{pluralize('job position', (formData.jobIds || []).length)}}</button>
@@ -145,6 +145,8 @@ import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import FileDisplay from "../../components/FileDisplay";
 import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
+import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
+import skillSelectize from "../../selectizeCfgs/skill";
 
 export default {
     name: "ProjectPage.vue",
@@ -200,12 +202,9 @@ export default {
                 options: dataUtil.sortBy(this.initData.jobs.map((j) => ({value: j.id, text: j.jobTitle})), 'text')
             };
         },
-        projectSkillsCfg() {
-            return {
-                plugins: ['remove_button'],
-                maxItems: null,
-                options: dataUtil.sortBy(this.initData.project.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
-            };
+        skillsCfg() {
+            const proj = this.initData.project;
+            return skillSelectize.getSkillCfg(proj.skills, {isMulti: true, projectId: proj.id});
         },
         projectSkillLevelCfg() {
             const options = this.getSkillLevelNumbersFromBits(this.initData.project.skillLevelBits).map((sBit) => {
@@ -226,7 +225,7 @@ export default {
             const instructions = this.initData.project.instructions.find((i) => i.skillLevelBit & this.formData.skillLevelBit)
             return (instructions) ? instructions.instructions : '';
         },
-        projectSkillInstructions() {
+        skillInstructions() {
             if (!this.formData.skillIds) {
                 return [];
             }
@@ -248,11 +247,11 @@ export default {
         },
         isGoodFormFields(formData) {
             if(this.isEmployer && (!formData.jobIds || !formData.jobIds.length)) {
-                this.addPopover($(this.$refs['employerJobs'].targetEl), {content: 'At least one job is required', severity: severity.WARN, isOnce: true});
+                this.addPopover($(this.$refs.employerJobs.targetEl), {content: 'At least one job is required', severity: severity.WARN, isOnce: true});
                 return false;
             }
             if(!formData.skillIds || !formData.skillIds.length) {
-                this.addPopover($(this.$refs['projectSkills'].targetEl), {content: 'At least one skill is required', severity: severity.WARN, isOnce: true});
+                this.addPopover($(this.$refs.skills.targetEl), {content: 'At least one skill is required', severity: severity.WARN, isOnce: true});
                 return false;
             }
             return true;
@@ -261,6 +260,7 @@ export default {
             const formData = this.readForm();
             formData.userId = this.globalData.uproveUser.id;
             formData.projectId = this.initData.project.id;
+
             return formData;
         },
         isLastItem(idx, targetObject) {
@@ -293,15 +293,15 @@ export default {
             }
         },
         setJobSkillLevels(jobs) {
-            jobs.forEach((j) => { dataUtil.setSkillLevels(j.allowedProjects, this.globalData, true); });
+            jobs.forEach((j) => { skillLevelSelectize.setSkillLevels(j.allowedProjects,  true); });
         },
         setUserProjectSkillLevels(userProjects) {
-            userProjects.forEach((up) => { dataUtil.setSkillLevels([up.customProject], this.globalData, true); });
+            userProjects.forEach((up) => { skillLevelSelectize.setSkillLevels([up.customProject], true); });
         }
     },
     mounted() {
         if (this.isEmployer) {
-            this.requiredFields.skillLevelBit = this.$refs['projectSkillLevel'].targetEl;
+            this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
         }
 
         this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';
@@ -314,7 +314,7 @@ export default {
             this.setUserProjectSkillLevels(this.initData.userProjects);
         }
         if (this.initData.userProjects) {
-            dataUtil.setSkillLevels(this.initData.userProjects, this.globalData, true);
+            skillLevelSelectize.setSkillLevels(this.initData.userProjects, true);
         }
 
         this.crudUrl = (this.isEmployer) ? `job-project-link/${this.initData.project.id}/` : 'user-project/';
@@ -324,8 +324,8 @@ export default {
 
         if (!initData.project.isLimited) {
             const {skillLevel, skill} = dataUtil.getQueryParams();
-            this.$refs['projectSkills'].elSel.setValue(skill);
-            this.$refs['projectSkillLevel'].elSel.setValue(skillLevel);
+            this.$refs.skills.elSel.setValue(skill || skillSelectize.getDefaultSkills(this.initData.project.skills));
+            this.$refs.projectSkillLevel.elSel.setValue(skillLevel);
         }
     }
 }

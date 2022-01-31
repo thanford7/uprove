@@ -195,9 +195,9 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=
         'id': project.id,
         'title': project.title,
         'image': project.image.url if project.image else None,
-        'function': project.function.functionName,
-        'functionId': project.function.id,
-        'skills': [getSerializedProjectSkill(s) for s in project.skills.all()],
+        'role': project.role.name,
+        'roleId': project.role.id,
+        'skills': [getSerializedSkill(s) for s in project.skills.all()],
         'skillLevelBits': project.skillLevelBits,
         'description': project.description,
         'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
@@ -247,15 +247,19 @@ def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails:bool=Fal
     }
 
 
-def getSerializedProjectFunction(projectFunction: ProjectFunction):
-    return {'id': projectFunction.id, 'functionName': projectFunction.functionName}
+def getSerializedRole(role: Role):
+    return {'id': role.id, 'name': role.name}
 
 
-def getSerializedProjectSkill(projectSkill: ProjectSkill):
+def getSerializedSkill(skill: Skill):
     return {
-        'id': projectSkill.id,
-        'skillName': projectSkill.skillName,
-        'instruction': projectSkill.instruction
+        'id': skill.id,
+        'name': skill.name,
+        'instruction': skill.instruction,
+        'isRequired': skill.isRequired,
+        'isRecommended': skill.isRecommended,
+        'projectId': skill.skillProject_id,
+        'skillLevelBits': skill.skillLevelBits
     }
 
 
@@ -278,7 +282,7 @@ def getSerializedCustomProject(customProject: CustomProject):
     return {
         'id': customProject.id,
         'skillLevelBit': customProject.skillLevelBit,
-        'skills': [getSerializedProjectSkill(s) for s in customProject.skills.all()],
+        'skills': [getSerializedSkill(s) for s in customProject.skills.all()],
         'projectId': customProject.project_id,
         'projectTitle': customProject.project.title
     }
@@ -378,10 +382,10 @@ def getSerializedUserProject(userProject: UserProject, isEmployer=False):
         'customProject': {
             'id': userProject.customProject.id,
             'skillLevelBit': userProject.customProject.skillLevelBit,
-            'skills': [getSerializedProjectSkill(s) for s in userProject.customProject.skills.all()],
+            'skills': [getSerializedSkill(s) for s in userProject.customProject.skills.all()],
             'projectId': userProject.customProject.project_id,
             'projectTitle': userProject.customProject.project.title,
-            'function': userProject.customProject.project.function.functionName,
+            'role': userProject.customProject.project.role.name,
         },
         'projectNotes': userProject.projectNotes,
         'files': [getSerializedUserFile(f) for f in userProject.files.all()],

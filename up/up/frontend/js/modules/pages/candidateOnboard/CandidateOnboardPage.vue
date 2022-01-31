@@ -17,13 +17,13 @@
                 </p>
             </div>
             <div class="row mb-3 ms-3 me-3 justify-content-center">
-                <div v-for="role in sortedFunctions" class="col-md-2 col-6 p-2">
+                <div v-for="role in sortedRoles" class="col-md-2 col-6 p-2">
                     <button
                         @click="toggleSelection($event, role.id)"
                         class="btn btn-secondary w-100 h-100"
                         style="min-height: 60px;"
                     >
-                        {{role.functionName}}
+                        {{role.name}}
                     </button>
                 </div>
                 <div class="mt-3">
@@ -55,8 +55,8 @@ export default {
         }
     },
     computed: {
-        sortedFunctions() {
-            return dataUtil.sortBy(this.initData.functions, 'functionName');
+        sortedRoles() {
+            return dataUtil.sortBy(this.initData.roles, 'name');
         }
     },
     methods: {

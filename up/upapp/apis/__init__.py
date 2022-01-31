@@ -3,7 +3,7 @@ from enum import Enum, auto
 
 from rest_framework.views import APIView
 
-from upapp.models import ProjectSkill, User, UserActivity, Activity
+from upapp.models import Skill, User, UserActivity, Activity
 import upapp.security as security
 
 
@@ -37,17 +37,3 @@ def hasCompletedActivity(activityKey: ActivityKey, userId: int):
     activity = Activity.objects.get(key=activityKey.name)
     userActivities = UserActivity.objects.filter(user_id=userId, activity=activity)
     return bool(len(userActivities))
-
-
-def setSkills(obj, skillIds):
-    isChanged = False
-    if obj.id:
-        oldSkillIds = {s.id for s in obj.skills.all()}
-        diff = oldSkillIds.symmetric_difference(set(skillIds))
-        isChanged = bool(len(diff))
-        obj.skills.clear()
-
-    for skill in ProjectSkill.objects.filter(id__in=skillIds):
-        obj.skills.add(skill)
-
-    return isChanged

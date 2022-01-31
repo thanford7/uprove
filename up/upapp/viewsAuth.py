@@ -46,7 +46,10 @@ def getLoginRedirectUrl(request):
     uproveUser = request.session['uproveUser']
 
     # Send user to the onboarding page if they are new
-    if not hasCompletedActivity(ActivityKey.VIEW_PROJECT_SELECTION, uproveUser['id']):
+    if (
+        uproveUser['userTypeBits'] & User.USER_TYPE_CANDIDATE
+        and not hasCompletedActivity(ActivityKey.VIEW_PROJECT_SELECTION, uproveUser['id'])
+    ):
         pageRedirect = '/candidateOnboard/'
         saveActivity(ActivityKey.VIEW_PROJECT_SELECTION, uproveUser['id'])
     elif uproveUser['isSuperUser']:

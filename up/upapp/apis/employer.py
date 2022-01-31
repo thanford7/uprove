@@ -7,8 +7,8 @@ from rest_framework import authentication, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from upapp.apis import setSkills, UproveAPIView
-from upapp.apis.project import ProjectView
+from upapp.apis import UproveAPIView
+from upapp.apis.project import ProjectView, SkillView
 from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, \
     ProjectEvaluationCriterion, UserProjectEvaluationCriterion
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
@@ -94,7 +94,7 @@ class EmployerView(APIView):
                 'employerJob__jobApplication__userProject__user',
                 'employerJob__jobApplication__userProject__customProject',
                 'employerJob__jobApplication__userProject__customProject__project',
-                'employerJob__jobApplication__userProject__customProject__project__function',
+                'employerJob__jobApplication__userProject__customProject__project__role',
                 'employerJob__jobApplication__userProject__customProject__skills',
                 'employerJob__jobApplication__userProject__files',
                 'employerJob__jobApplication__userProject__videos',
@@ -196,7 +196,7 @@ class JobPostingView(APIView):
             'jobApplication__userProject__user',
             'jobApplication__userProject__customProject',
             'jobApplication__userProject__customProject__project',
-            'jobApplication__userProject__customProject__project__function',
+            'jobApplication__userProject__customProject__project__role',
             'jobApplication__userProject__customProject__skills',
             'jobApplication__userProject__files',
             'jobApplication__userProject__videos',
@@ -245,7 +245,7 @@ class JobPostingView(APIView):
             )
             ):
                 customProject.save()
-                setSkills(customProject, customProjectData['skillIds'])
+                SkillView.setSkillIds(customProject, customProjectData['skillIds'])
             projectToAdd = existingCustomProject or customProject
             if projectToAdd.id in [ap.id for ap in employerJob.allowedProjects.all()]:
                 continue

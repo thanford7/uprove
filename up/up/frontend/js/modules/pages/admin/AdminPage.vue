@@ -14,7 +14,7 @@
                 <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editUserModal')">User</button>
             </div>
             <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editFunctionModal')">Function</button>
+                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editRoleModal')">Role</button>
             </div>
             <div class="col-md-3 me-2 mb-2">
                 <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editSkillModal')">Skill</button>
@@ -57,12 +57,12 @@
             </div>
             <div class="col-md-3 me-2">
                 <InputSelectize
-                    ref="editFunction"
-                    elId="editFunction"
-                    placeholder="Select function"
-                    :cfg="functionCfg"
+                    ref="editRole"
+                    elId="editRole"
+                    placeholder="Select role"
+                    :cfg="roleCfg"
                     :isParseAsInt="true"
-                    @selected="openEditFunctionModal.bind(this)($event)"
+                    @selected="openEditRoleModal.bind(this)($event)"
                 />
             </div>
             <div class="col-md-3 me-2">
@@ -88,7 +88,7 @@
         </div>
     </div>
     <EditEmployerModal/>
-    <EditFunctionModal/>
+    <EditRoleModal/>
     <EditJobTemplateModal/>
     <EditProjectModal/>
     <EditSkillModal/>
@@ -98,7 +98,7 @@
 <script>
 import BannerAlert from "../../components/BannerAlert";
 import EditEmployerModal from "../../modals/EditEmployerModal";
-import EditFunctionModal from "../../modals/EditFunctionModal";
+import EditRoleModal from "../../modals/EditRoleModal";
 import EditJobTemplateModal from "../../modals/EditJobTemplateModal";
 import EditProjectModal from "../../modals/EditProjectModal";
 import EditSkillModal from "../../modals/EditSkillModal";
@@ -108,7 +108,7 @@ import InputSelectize from "../../inputs/InputSelectize";
 export default {
     name: "AdminPage.vue",
     components: {
-        BannerAlert, EditEmployerModal, EditFunctionModal, EditProjectModal, EditJobTemplateModal,
+        BannerAlert, EditEmployerModal, EditRoleModal, EditProjectModal, EditJobTemplateModal,
         EditSkillModal, EditUserModal, InputSelectize
     },
     watch: {
@@ -117,10 +117,10 @@ export default {
             handler(initData) {
                 [
                     ['editEmployer', this.getEmployerOptions],
-                    ['editFunction', this.getProjectFunctionOptions],
+                    ['editRole', this.getRoleOptions],
                     ['editJobTemplate', this.getJobTemplateOptions],
                     ['editProject', this.getProjectOptions],
-                    ['editSkill', this.getProjectSkillOptions],
+                    ['editSkill', this.getSkillOptions],
                     ['editUser', this.getUserOptions]
                 ].forEach(([ref, optionFn]) => {
                     const sel = this.$refs[ref].elSel;
@@ -139,11 +139,11 @@ export default {
                 options: this.getEmployerOptions()
             }
         },
-        functionCfg() {
+        roleCfg() {
             return {
                 maxItems: 1,
                 sortField: 'text',
-                options: this.getProjectFunctionOptions()
+                options: this.getRoleOptions()
             }
         },
         templateCfg() {
@@ -164,7 +164,7 @@ export default {
             return {
                 maxItems: 1,
                 sortField: 'text',
-                options: this.getProjectSkillOptions()
+                options: this.getSkillOptions()
             }
         },
         userCfg() {
@@ -195,17 +195,17 @@ export default {
         getProjectOptions() {
             return this.initData.projects.map((p) => ({value: p.id, text: p.title}));
         },
-        getProjectFunction(functionId) {
-            return Object.assign({}, this.initData.functions.find((f) => f.id === functionId));
+        getRole(roleId) {
+            return Object.assign({}, this.initData.roles.find((r) => r.id === roleId));
         },
-        getProjectFunctionOptions() {
-            return this.initData.functions.map((f) => ({value: f.id, text: f.functionName}));
+        getRoleOptions() {
+            return this.initData.roles.map((r) => ({value: r.id, text: r.name}));
         },
-        getProjectSkill(skillId) {
+        getSkill(skillId) {
             return Object.assign({}, this.initData.skills.find((s) => s.id === skillId));
         },
-        getProjectSkillOptions() {
-            return this.initData.skills.map((s) => ({value: s.id, text: s.skillName}));
+        getSkillOptions() {
+            return this.initData.skills.map((s) => ({value: s.id, text: s.name}));
         },
         getUser(userId) {
             return Object.assign({}, this.initData.users.find((u) => u.id === userId));
@@ -221,12 +221,12 @@ export default {
             const sel = this.$refs['editEmployer'];
             sel.elSel.clear(true);
         },
-        openEditFunctionModal(functionId) {
-            if (!functionId) {
+        openEditRoleModal(roleId) {
+            if (!roleId) {
                 return;
             }
-            this.eventBus.emit('open:editFunctionModal', this.getProjectFunction(functionId));
-            const sel = this.$refs['editFunction'];
+            this.eventBus.emit('open:editRoleModal', this.getRole(roleId));
+            const sel = this.$refs.editRole;
             sel.elSel.clear(true);
         },
         openEditJobTemplateModal(templateId) {
@@ -252,7 +252,7 @@ export default {
             if (!skillId) {
                 return;
             }
-            this.eventBus.emit('open:editSkillModal', this.getProjectSkill(skillId));
+            this.eventBus.emit('open:editSkillModal', this.getSkill(skillId));
             const sel = this.$refs['editSkill'];
             sel.elSel.clear(true);
         },

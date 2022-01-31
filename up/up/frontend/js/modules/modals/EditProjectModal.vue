@@ -27,22 +27,17 @@
             <a v-if="allowImageToggle" href="#" @click="toggleImageUpload">{{(isImageUpload) ? 'Use existing image' : 'Change image' }}</a>
         </div>
         <div class="mb-3">
-            <label for="projectFunction" class="form-label">Role</label>
+            <label for="role" class="form-label">Role</label>
             <InputSelectize
-                ref="projectFunction"
-                elId="projectFunction"
+                ref="role"
+                elId="role"
                 :isParseAsInt="true"
-                placeholder="Required" :cfg="projectFunctionsCfg" @selected="formData.functionId = $event"
+                placeholder="Required" :cfg="rolesCfg" @selected="formData.roleId = $event"
             />
         </div>
         <div class="mb-3">
-            <label for="projectSkills" class="form-label">Skills</label>
-            <InputSelectize
-                ref="projectSkills"
-                elId="projectSkills"
-                :isParseAsInt="true"
-                placeholder="Required" :cfg="projectSkillsCfg" @selected="formData.skillIds = $event"
-            />
+            <label class="form-label">Skills</label>
+            <EditSkillsTable ref="skillsTable" :skills="formData.skills"/>
         </div>
         <div class="mb-3">
             <label for="projectSkillLevels" class="form-label">Skill levels</label>
@@ -158,12 +153,15 @@
 import {severity} from "../../vueMixins";
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
+import EditSkillsTable from "../components/EditSkillsTable";
 import FileDisplay from "../components/FileDisplay";
 import FormChecker from '../../utils/form';
 import InputMedia from "../inputs/InputMedia";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import RemoveIcon from "../components/RemoveIcon";
+import skillLevelSelectize from "../selectizeCfgs/skillLevels";
+import skillSelectize from "../selectizeCfgs/skill";
 import form from "../../utils/form";
 import $ from "jquery";
 
@@ -171,7 +169,7 @@ export default {
     name: "EditProjectModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, FileDisplay, InputMedia, InputSelectize, InputWsiwyg, RemoveIcon},
+    components: {BaseModal, EditSkillsTable, FileDisplay, InputMedia, InputSelectize, InputWsiwyg, RemoveIcon},
     data() {
         return {
             modalName: 'editProjectModal',
@@ -183,8 +181,7 @@ export default {
                 description: '#projectDescription',
                 background: '#projectBackground',
                 // Add on mounted
-                functionId: null,
-                skillIds: null,
+                roleId: null,
                 skillLevelBits: null
             },
             mediaFields: ['image', 'files'],
@@ -207,25 +204,14 @@ export default {
                 options: dataUtil.sortBy(uniqueCategories.map((c) => ({value: c.category, text: c.category})), 'text')
             };
         },
-        projectFunctionsCfg() {
+        rolesCfg() {
             return {
                 maxItems: 1,
-                options: dataUtil.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), 'text')
-            };
-        },
-        projectSkillsCfg() {
-            return {
-                plugins: ['remove_button'],
-                maxItems: null,
-                options: dataUtil.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
+                options: dataUtil.sortBy(this.initData.roles.map((r) => ({value: r.id, text: r.name})), 'text')
             };
         },
         projectSkillLevelsCfg() {
-            return {
-                plugins: ['remove_button'],
-                maxItems: null,
-                options: Object.entries(this.globalData.SKILL_LEVEL).map(([key, level]) => ({value: key, text: level.title}))
-            }
+            return skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL);
         }
     },
     methods: {
@@ -302,8 +288,7 @@ export default {
             this.$refs['projectEmployer'].elSel.addOption((rawData.employers || []).map((e) => ({value: e.id, text: e.companyName})))
             this.$refs['projectEmployer'].elSel.refreshOptions(false);
 
-            this.requiredFields.functionId = this.$refs.projectFunction.targetEl;
-            this.requiredFields.skillIds = this.$refs.projectSkills.targetEl;
+            this.requiredFields.roleId = this.$refs.role.targetEl;
             this.requiredFields.skillLevelBits = this.$refs.projectSkillLevels.targetEl;
 
             const formData = rawData.formData;
@@ -326,20 +311,24 @@ export default {
             this.updateSkillLevelInstructions(formData, formData.skillLevelBits);
             return Object.assign(formData, {newFiles});
         },
+        setEmptyFormData() {
+            this.formData = {};
+            this.$refs.skillsTable.clearData();
+        },
         setFormFields() {
-            const {skillLevelBits, functionId, skills, employer} = this.formData;
-            this.$refs['projectSkillLevels'].elSel.setValue(this.getSkillLevelNumbersFromBits(skillLevelBits));
+            const {skillLevelBits, roleId, skills, employer} = this.formData;
+            this.$refs.projectSkillLevels.elSel.setValue(this.getSkillLevelNumbersFromBits(skillLevelBits));
 
             // Set other selectize elements
-            this.$refs['projectFunction'].elSel.setValue(functionId);
-            this.$refs['projectSkills'].elSel.setValue((skills || []).map((s) => s.id));
-            this.$refs['projectEmployer'].elSel.setValue((employer) ? employer.id : null);
+            this.$refs.role.elSel.setValue(roleId);
+            this.$refs.projectEmployer.elSel.setValue((employer) ? employer.id : null);
         },
         processFormData() {
             const formData = this.readForm();
+            const skills = this.$refs.skillsTable.getSkills();
             return Object.assign({},
-                dataUtil.omit(formData, ['files', 'newFiles', 'instructions', 'newInstructions']),
-                {instructions: Object.values(formData.newInstructions)},
+                dataUtil.omit(formData, ['files', 'newFiles', 'instructions', 'newInstructions', 'skills']),
+                {instructions: Object.values(formData.newInstructions), skills},
                 dataUtil.getFileFormatForAjaxRequest(formData.newFiles, 'filesMetaData', 'files', 'file')
             );
         },

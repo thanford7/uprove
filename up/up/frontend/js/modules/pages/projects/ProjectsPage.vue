@@ -6,18 +6,18 @@
         <div class="row filter mb-3">
             <div class="col-md-3">
                 <InputSelectize
-                    ref="projectFunction"
-                    elId="projectFunction"
+                    ref="role"
+                    elId="role"
                     :isParseAsInt="true"
-                    placeholder="Roles: All" :cfg="projectFunctionsCfg" @selected="setRoles($event)"
+                    placeholder="Roles: All" :cfg="rolesCfg" @selected="setRoles($event)"
                 />
             </div>
             <div class="col-md-3">
                 <InputSelectize
-                    ref="projectSkills"
-                    elId="projectSkills"
+                    ref="skills"
+                    elId="skills"
                     :isParseAsInt="true"
-                    placeholder="Skills: All" :cfg="projectSkillsCfg" @selected="setSkills($event)"
+                    placeholder="Skills: All" :cfg="skillsCfg" @selected="setSkills($event)"
                 />
             </div>
             <div class="col-md-3">
@@ -39,9 +39,11 @@
 </template>
 
 <script>
+import dataUtil from "../../../utils/data";
 import InputSelectize from "../../inputs/InputSelectize";
 import ProjectCard from "../../components/ProjectCard";
-import dataUtil from "../../../utils/data";
+import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
+import skillSelectize from "../../selectizeCfgs/skill";
 
 export default {
     name: "ProjectsPage.vue",
@@ -54,11 +56,11 @@ export default {
     computed: {
         filteredProjects() {
             return this.initData.projects.reduce((filteredProjects, project) => {
-                if (this.filter.roles && this.filter.roles.length && !this.filter.roles.includes(project.functionId)) {
+                if (this.filter.roles && this.filter.roles.length && !this.filter.roles.includes(project.roleId)) {
                     return filteredProjects;
                 }
                 if (this.filter.skills && this.filter.skills.length
-                    && !project.skills.filter((skill) => this.filter.skills.includes(skill.id)).length
+                    && !project.skills.filter((skill) => this.filter.skills.includes(skill.name)).length
                 ) {
                     return filteredProjects;
                 }
@@ -71,26 +73,18 @@ export default {
                 return filteredProjects;
             }, [])
         },
-        projectFunctionsCfg() {
+        rolesCfg() {
             return {
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: dataUtil.sortBy(this.initData.functions.map((f) => ({value: f.id, text: f.functionName})), 'text')
+                options: dataUtil.sortBy(this.initData.roles.map((r) => ({value: r.id, text: r.name})), 'text')
             };
         },
-        projectSkillsCfg() {
-            return {
-                plugins: ['remove_button'],
-                maxItems: null,
-                options: dataUtil.sortBy(this.initData.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
-            };
+        skillsCfg() {
+            return skillSelectize.getSkillCfg(this.initData.skills);
         },
         projectSkillLevelsCfg() {
-            return {
-                plugins: ['remove_button'],
-                maxItems: null,
-                options: Object.entries(this.globalData.SKILL_LEVEL).map(([key, level]) => ({value: key, text: level.title}))
-            }
+            return skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL);
         }
     },
     methods: {
@@ -98,7 +92,13 @@ export default {
             this.filter.roles = roles;
             dataUtil.setQueryParams([{key: 'role', val: roles}]);
         },
-        setSkills(skills) {
+        setSkills(skillIds) {
+            const skills = this.initData.skills.reduce((skills, s) => {
+                if (skillIds.includes(s.id)) {
+                    skills.push(s.name);
+                }
+                return skills;
+            }, []);
             this.filter.skills = skills;
             dataUtil.setQueryParams([{key: 'skill', val: skills}]);
         },
@@ -108,10 +108,10 @@ export default {
         }
     },
     mounted() {
-        dataUtil.setSkillLevels(this.initData.projects, this.globalData);
+        skillLevelSelectize.setSkillLevels(this.initData.projects);
         const queryParams = dataUtil.getQueryParams();
-        this.$refs.projectFunction.elSel.setValue(queryParams.role);
-        this.$refs.projectSkills.elSel.setValue(queryParams.skill);
+        this.$refs.role.elSel.setValue(queryParams.role);
+        this.$refs.skills.elSel.setValue(queryParams.skill);
         this.$refs.projectSkillLevels.elSel.setValue(queryParams.level);
     }
 }

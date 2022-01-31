@@ -76,9 +76,9 @@
             <InputSelectize
                 :ref="`modalJobCustomProject-skills-${customProject.id}`"
                 :elId="`modalJobCustomProject-skills-${customProject.id}`"
-                :items="customProject.skillIds"
+                :items="customProject.skillIds || getDefaultSkills(customProject)"
                 :isParseAsInt="true"
-                placeholder="Skills (required)" :cfg="getProjectSkillsCfg(customProject)" @selected="customProject.skillIds = $event"
+                placeholder="Skills (required)" :cfg="getSkillsCfg(customProject)" @selected="customProject.skillIds = $event"
             />
         </div>
     </BaseModal>
@@ -88,10 +88,11 @@
 import {severity} from "../../vueMixins";
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
+import form from "../../utils/form";
 import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
-import form from "../../utils/form";
+import skillSelectize from "../selectizeCfgs/skill";
 import $ from "jquery";
 
 export default {
@@ -134,20 +135,20 @@ export default {
             return {
                 plugins: ['uprove', 'remove_button'],
                 maxItems: null,
-                optgroups: dataUtil.sortBy(dataUtil.uniqBy(this.initData.projects.map((p) => ({group: p.function})), 'group'), 'group'),
+                optgroups: dataUtil.sortBy(dataUtil.uniqBy(this.initData.projects.map((p) => ({group: p.role})), 'group'), 'group'),
                 optgroupValueField: 'group',
                 optgroupLabelField: 'group',
-                optgroupField: 'function',
+                optgroupField: 'role',
                 valueField: 'id',
                 labelField: 'title',
-                searchField: ['title', 'function'],
+                searchField: ['title', 'role'],
                 options: this.initData.projects,
                 closeAfterSelect: true,
                 render: {
                     option: (data, escape) => {
                         let skillsHtml = '';
                         data.skills.forEach((skill) => {
-                            skillsHtml += `<div class="badge -color-lightblue -color-black-text me-1">${escape(skill.skillName)}</div>`
+                            skillsHtml += `<div class="badge -color-lightblue -color-black-text me-1">${escape(skill.name)}</div>`
                         });
                         let skillLevelsHtml = '';
                         this.getSkillLevelsFromBits(data.skillLevelBits).forEach((skillLevel) => {
@@ -191,13 +192,16 @@ export default {
                     .map(([key, level]) => ({value: key, text: level.title}))
             }
         },
-        getProjectSkillsCfg(customProject) {
+        getSkillsCfg(customProject) {
             const project = this.getProject(customProject.projectId);
-            return {
-                plugins: ['remove_button'],
-                maxItems: null,
-                options: dataUtil.sortBy(project.skills.map((s) => ({value: s.id, text: s.skillName})), 'text')
-            };
+            return skillSelectize.getSkillCfg(
+                project.skills,
+                {isMulti: true, projectId: project.id, isIncludeDetails: true}
+            );
+        },
+        getDefaultSkills(customProject) {
+            const project = this.getProject(customProject.projectId);
+            return skillSelectize.getDefaultSkills(project.skills);
         },
         openCustomProject(customProject, e) {
             e.preventDefault();

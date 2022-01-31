@@ -1,5 +1,5 @@
 <template>
-    <select :id="elId || _uid" :placeholder="placeholder"></select>
+    <select :id="elId || getNewElUid()" :placeholder="placeholder"></select>
 </template>
 <script>
 import dataUtil from '../../utils/data';

@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-from upapp.models import CandidateInterest, EmployerInterest, ProjectFunction, ProjectSkill
+from upapp.models import EmployerInterest, Role, Skill
 
 
 TEST_EMAIL_ADDRESS = 'test@uprove.co'
@@ -74,11 +74,7 @@ class EmailView(APIView):
                 ('First name', 'firstName'),
                 ('Last name', 'lastName'),
                 ('Email', 'fromEmail'),
-                ('Job title', 'title'),
                 ('Company', 'companyName'),
-                ('Company employee count', 'size'),
-                ('Hiring for roles', 'roleFunctions'),
-                ('Hiring for skills', 'roleSkills'),
                 ('Note', 'note')
             ))
         elif contactType == EmailView.TYPE_CANDIDATE_SIGNUP:
@@ -121,42 +117,18 @@ def _saveEmployerInterest(data: dict):
         employerInterest = EmployerInterest.objects.get(email=data['fromEmail'])
         employerInterest.firstName = data['firstName']
         employerInterest.lastName = data['lastName']
-        employerInterest.title = data['title']
         employerInterest.companyName = data['companyName']
-        employerInterest.companyEmployeeCount = data.get('size')
         employerInterest.note = data.get('note')
         employerInterest.modifiedDateTime = datetime.now(tz=pytz.UTC)
-        employerInterest.hiringFunctions.clear()
-        employerInterest.hiringSkills.clear()
         employerInterest.save()
     except EmployerInterest.DoesNotExist:
         employerInterest = EmployerInterest(
             firstName=data.get('firstName'),
             lastName=data.get('lastName'),
             email=data['fromEmail'],
-            title=data.get('title'),
             companyName=data.get('companyName'),
-            companyEmployeeCount=data.get('size'),
             note=data.get('note'),
             createdDateTime=datetime.now(tz=pytz.UTC),
             modifiedDateTime=datetime.now(tz=pytz.UTC)
         )
         employerInterest.save()
-
-    _saveProjectTags(data, employerInterest, 'hiringFunctions', 'hiringSkills')
-
-
-def _saveProjectTags(data: dict, modelInstance: models.Model, roleFunctionAttr: str, roleSkillAttr: str):
-    existingRfs = {pf.functionName: pf for pf in ProjectFunction.objects.all()}
-    for roleFunction in data.get('roleFunctions', []):
-        if not (rf := existingRfs.get(roleFunction)):
-            rf = ProjectFunction(functionName=roleFunction)
-            rf.save()
-        getattr(modelInstance, roleFunctionAttr).add(rf)
-
-    existingRss = {ps.skillName: ps for ps in ProjectSkill.objects.all()}
-    for roleSkill in data.get('roleSkills', []):
-        if not (rs := existingRss.get(roleSkill)):
-            rs = ProjectSkill(skillName=roleSkill)
-            rs.save()
-        getattr(modelInstance, roleSkillAttr).add(rs)

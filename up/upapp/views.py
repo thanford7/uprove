@@ -12,7 +12,7 @@ from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
-from upapp.models import EmployerCustomProjectCriterion, ProjectFunction, ProjectSkill
+from upapp.models import EmployerCustomProjectCriterion, Role, Skill
 from upapp.viewsAuth import getLoginRedirectUrl
 
 
@@ -20,8 +20,8 @@ def homepage(request):
     if security.getSessionUser(request):
         return redirect(getLoginRedirectUrl(request))
     return render(request, 'home.html', {'data': dumps({
-        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
-        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 
 
@@ -47,8 +47,8 @@ def admin(request):
         # TODO: Lazy load employers and users since this will get long
         'employers': [getSerializedEmployer(e, isEmployer=True) for e in EmployerView.getEmployers()],
         'users': [getSerializedUser(u) for u in UserView.getUsers()],
-        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
-        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()],
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
         'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()]
     })})
 
@@ -109,8 +109,8 @@ def candidateOnboard(request):
         return _getUnauthorizedPage(request)
 
     return render(request, 'candidateOnboard.html', context={'data': dumps({
-        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
-        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 
 
@@ -154,8 +154,8 @@ def jobPosting(request, jobId):
         'job': getSerializedEmployerJob(job, isEmployer=isEmployer),
         'employer': getSerializedEmployer(EmployerView.getEmployer(job.employer_id), isEmployer=isEmployer),
         'projects': {p.id: getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in projects},
-        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
-        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 
 
@@ -184,8 +184,8 @@ def project(request, projectId):
     employerId = user['employerId'] if user else None
     baseData = {
         'project': getSerializedProject(ProjectView.getProject(projectId), isIncludeDetails=security.isPermittedSessionUser(request), evaluationEmployerId=employerId),
-        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
-        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     }
 
     extraData = {}
@@ -202,8 +202,8 @@ def project(request, projectId):
 def projects(request):
     return render(request, 'projects.html', context={'data': dumps({
         'projects': [getSerializedProject(p) for p in ProjectView.getProjects()],
-        'functions': [getSerializedProjectFunction(f) for f in ProjectFunction.objects.all()],
-        'skills': [getSerializedProjectSkill(s) for s in ProjectSkill.objects.all()]
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 
 

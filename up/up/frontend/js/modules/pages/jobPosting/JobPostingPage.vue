@@ -37,8 +37,8 @@
                             <div class="mb-3" :class="(getProjectFiles(ap).length) ? '-border-bottom--light' : ''">
                                 <h5 class="-text-bold">Instructions</h5>
                                 <p v-html="getProjectInstructions(ap)"></p>
-                                <ul v-if="getProjectSkillInstructions(ap)" class="pb-2">
-                                    <li v-for="i in getProjectSkillInstructions(ap)">{{i}}</li>
+                                <ul v-if="getSkillInstructions(ap)" class="pb-2">
+                                    <li v-for="i in getSkillInstructions(ap)">{{i}}</li>
                                 </ul>
                             </div>
                             <template v-if="getProjectFiles(ap).length">
@@ -138,7 +138,7 @@ export default {
             const project = this.getProject(customProject);
             return project.instructions.find((i) => i.skillLevelBit === customProject.skillLevelBit).instructions
         },
-        getProjectSkillInstructions(customProject) {
+        getSkillInstructions(customProject) {
             return customProject.skills.reduce((instructions, skill) => {
                 if (skill.instruction) {
                     instructions.push(skill.instruction);

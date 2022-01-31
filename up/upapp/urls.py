@@ -45,7 +45,7 @@ urlpatterns = [
     re_path(apiPath + 'job-project-link/(?P<projectId>[0-9]+)?/?$', employer.JobProjectLinkView.as_view()),
     re_path(apiPath + 'job-template/(?P<templateId>[0-9]+)?/?$', job.JobTemplateView.as_view()),
     re_path(apiPath + 'project/(?P<projectId>[0-9]+)?/?$', project.ProjectView.as_view()),
-    re_path(apiPath + 'project-function/(?P<functionId>[0-9]+)?/?$', project.FunctionView.as_view()),
+    re_path(apiPath + 'project-role/(?P<roleId>[0-9]+)?/?$', project.RoleView.as_view()),
     re_path(apiPath + 'project-skill/(?P<skillId>[0-9]+)?/?$', project.SkillView.as_view()),
     re_path(apiPath + 'user-job-application/(?P<userJobApplicationId>[0-9]+)?/?$', user.UserJobApplicationView.as_view()),
     re_path(apiPath + 'user-project/(?P<userProjectId>[0-9]+)?/?$', user.UserProjectView.as_view()),

@@ -19,10 +19,13 @@
         </thead>
         <tbody>
         <slot name="body"/>
-        <tr v-if="hasNoData">
+        <tr v-if="hasNoData && emptyDataMessage">
             <td :colspan="totalColspan"><span v-html="emptyDataMessage"></span></td>
         </tr>
         </tbody>
+        <tfoot>
+            <slot name="footer"/>
+        </tfoot>
     </table>
 </template>
 

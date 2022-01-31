@@ -10,7 +10,7 @@ from django.db import models
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
-    'EmployerInterest', 'ProjectFunction', 'ProjectSkill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
+    'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag'
 )
@@ -200,6 +200,7 @@ class UserTag(AuditFields):
         EXPERT = 0x8
 
     SKILL_LEVELS = [(int(i), int(i)) for i in SkillLevel]
+    ALL_SKILL_LEVEL_BITS = SkillLevel.ENTRY | SkillLevel.INTERMEDIATE | SkillLevel.ADVANCED | SkillLevel.EXPERT
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='tag')
     tagType = models.CharField(max_length=25, choices=TYPES_TAG)
@@ -231,37 +232,35 @@ class EmployerInterest(AuditFields):
     lastName = models.CharField(max_length=30)
     email = models.EmailField(unique=True)
     companyName = models.CharField(max_length=100)
-    title = models.CharField(max_length=50, null=True)
-    companyEmployeeCount = models.CharField(max_length=10, null=True)
-    hiringFunctions = models.ManyToManyField('ProjectFunction')
-    hiringSkills = models.ManyToManyField('ProjectSkill')
     note = models.TextField(null=True)
 
 
-class CandidateInterest(AuditFields):
-    firstName = models.CharField(max_length=20)
-    lastName = models.CharField(max_length=30)
-    email = models.EmailField(unique=True)
-    linkedInProfile = models.CharField(max_length=100)
-    referrer = models.CharField(max_length=50, null=True)
-    interestedFunctions = models.ManyToManyField('ProjectFunction')
-    currentSkills = models.ManyToManyField('ProjectSkill')
-    note = models.TextField(null=True)
+class Role(models.Model):
+    name = models.CharField(max_length=100, unique=True)
 
 
-class ProjectFunction(models.Model):
-    functionName = models.CharField(max_length=100, unique=True)
-
-
-class ProjectSkill(models.Model):
-    skillName = models.CharField(max_length=100, unique=True)
+class Skill(models.Model):
+    name = models.CharField(max_length=100)
     instruction = models.TextField(null=True)
+    isRequired = models.BooleanField(default=0)
+    isRecommended = models.BooleanField(default=1)
+    skillProject = models.ForeignKey('Project', on_delete=models.CASCADE, null=True)  # If not populated, it's the default skill
+    skillLevelBits = models.SmallIntegerField(null=True)
+
+    def isOverlap(self, otherSkill):
+        """Uniqueness can't be enforced at DB level. This method checks for overlap issues.
+        """
+        return all([
+            self.name == otherSkill.name,
+            self.skillProject_id == otherSkill.skillProject_id,
+            (self.skillLevelBits or UserTag.ALL_SKILL_LEVEL_BITS) & (otherSkill.skillLevelBits or UserTag.ALL_SKILL_LEVEL_BITS)
+        ])
 
 
 class Project(AuditFields):
     title = models.CharField(max_length=250)
-    function = models.ForeignKey(ProjectFunction, on_delete=models.PROTECT)
-    skills = models.ManyToManyField(ProjectSkill)
+    role = models.ForeignKey(Role, on_delete=models.PROTECT)
+    skills = models.ManyToManyField(Skill)
     skillLevelBits = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
     employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
@@ -304,7 +303,7 @@ class Employer(AuditFields):
 class CustomProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='customProject')
     skillLevelBit = models.SmallIntegerField()
-    skills = models.ManyToManyField(ProjectSkill)
+    skills = models.ManyToManyField(Skill)
 
     def isSame(self, otherProject):
         return (
