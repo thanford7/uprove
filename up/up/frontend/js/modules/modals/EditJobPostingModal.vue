@@ -76,7 +76,7 @@
             <InputSelectize
                 :ref="`modalJobCustomProject-skills-${customProject.id}`"
                 :elId="`modalJobCustomProject-skills-${customProject.id}`"
-                :items="customProject.skillIds || getDefaultSkills(customProject)"
+                :items="getDefaultSkills(customProject)"
                 :isParseAsInt="true"
                 placeholder="Skills (required)" :cfg="getSkillsCfg(customProject)" @selected="customProject.skillIds = $event"
             />
@@ -201,7 +201,7 @@ export default {
         },
         getDefaultSkills(customProject) {
             const project = this.getProject(customProject.projectId);
-            return skillSelectize.getDefaultSkills(project.skills);
+            return customProject.skills.map((s) => s.id) || skillSelectize.getDefaultSkills(project.skills);
         },
         openCustomProject(customProject, e) {
             e.preventDefault();
