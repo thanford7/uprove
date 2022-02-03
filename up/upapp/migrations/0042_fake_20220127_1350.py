@@ -23,9 +23,9 @@ class Migration(migrations.Migration):
                 ('skillProject', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='upapp.project')),
             ],
         ),
-        migrations.DeleteModel(
-            name='ProjectSkill',
-        ),
+        # migrations.DeleteModel(
+        #     name='ProjectSkill',
+        # ),
         migrations.AlterField(
             model_name='customproject',
             name='skills',

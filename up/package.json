@@ -7,8 +7,8 @@
   "license": "SEE LICENSE IN license.txt",
   "scripts": {
     "dev": "npm-run-all -p serve buildWatch",
-    "serve": "webpack serve",
-    "buildWatch": "webpack watch",
+    "serve": "webpack serve --env devkey=/Users/thanford/localHttps/localhost-key.pem --env devcert=/Users/thanford/localHttps/localhost.pem",
+    "buildWatch": "webpack watch --env devkey=/Users/thanford/localHttps/localhost-key.pem --env devcert=/Users/thanford/localHttps/localhost.pem",
     "build": "webpack",
     "prod": "webpack --env prod",
     "createWebpackProfile": "webpack-cli --profile --json > compilation-stats.json",
@@ -20,11 +20,14 @@
     "npm": "~7.x"
   },
   "dependencies": {
+    "@babel/runtime": "^7.16.7",
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@loomhq/loom-embed": "^1.2.12",
+    "@loomhq/loom-sdk": "^2.31.0",
     "@popperjs/core": "^2.10.2",
     "@tiptap/core": "^2.0.0-beta.117",
     "@tiptap/extension-highlight": "^2.0.0-beta.21",
@@ -51,6 +54,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
+    "@babel/plugin-transform-runtime": "^7.16.10",
     "@babel/preset-env": "^7.11.5",
     "@vue/compiler-sfc": "^3.2.19",
     "babel-loader": "^8.1.0",

@@ -4,6 +4,7 @@ const {VueLoaderPlugin} = require('vue-loader');
 const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
 const {WebpackPluginServe: Serve} = require('webpack-plugin-serve');
 const CompressionPlugin = require("compression-webpack-plugin");
+const fs = require('fs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const zlib = require("zlib");
@@ -87,7 +88,13 @@ module.exports = function (env, argv) {
                     use: {
                         loader: 'babel-loader',
                         options: {
-                            presets: ['@babel/preset-env']
+                            presets: ['@babel/preset-env'],
+                            plugins: [
+                                '@babel/plugin-proposal-optional-chaining',
+                                '@babel/plugin-transform-regenerator',
+                                '@babel/plugin-transform-runtime',
+                                '@babel/plugin-transform-async-to-generator'
+                            ]
                         }
                     }
                 },
@@ -150,6 +157,11 @@ module.exports = function (env, argv) {
     } else {
         cfg.devServer = {
             host: '0.0.0.0',
+            http2: true,
+            https: {
+                key: fs.readFileSync(env.devkey),
+                cert: fs.readFileSync(env.devcert)
+            },
             historyApiFallback: {
                 index: '/404/'
             },

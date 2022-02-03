@@ -28,7 +28,7 @@
                 <RemoveIcon @click="removeFile(file.id)"/>
             </div>
             <div class="mb-1">
-                <a href="#" @click="addNewFile" class="-color-green-text"><i class="fas fa-plus-circle"></i> Add new file</a>
+                <AddNewLink :clickFn="addNewFile" text="Add new file"/>
             </div>
         </div>
         <div class="mb-3 -border-bottom--light">
@@ -51,7 +51,7 @@
                 <RemoveIcon @click="removeVideo(video.id)"/>
             </div>
             <div class="mb-1">
-                <a href="#" @click="addNewVideo" class="-color-green-text"><i class="fas fa-plus-circle"></i> Add new video</a>
+                <AddNewLink :clickFn="addNewVideo" text="Add new video file"/>
             </div>
         </div>
         <div class="mb-3 -border-bottom--light">
@@ -75,7 +75,7 @@
                 <RemoveIcon @click="removeImage(image.id)"/>
             </div>
             <div class="mb-1">
-                <a href="#" @click="addNewImage" class="-color-green-text"><i class="fas fa-plus-circle"></i> Add new image</a>
+                <AddNewLink :clickFn="addNewImage" text="Add new image file"/>
             </div>
         </div>
         <div class="mb-3">
@@ -87,6 +87,7 @@
 
 <script>
 import {severity} from "../../vueMixins";
+import AddNewLink from "../components/AddNewLink";
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
 import InfoToolTip from "../components/InfoToolTip";
@@ -99,7 +100,7 @@ export default {
     name: "EditUserProjectModal",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InfoToolTip, InputMedia, InputWsiwyg, RemoveIcon},
+    components: {AddNewLink, BaseModal, InfoToolTip, InputMedia, InputWsiwyg, RemoveIcon},
     data() {
         return {
             modalName: 'editUserProjectModal',

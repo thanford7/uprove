@@ -62,6 +62,7 @@ class ProjectView(APIView):
 
     @atomic
     def put(self, request, projectId=None):
+        raise ValueError('Testing this out')
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 

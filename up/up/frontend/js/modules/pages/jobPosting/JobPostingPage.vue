@@ -57,7 +57,7 @@
                         or
                         <a href="#" @click="eventBus.emit('open:signInModal')">sign in</a>
                     </li>
-                    <li v-if="initData.job.allowedProjects.length > 1">
+                    <li v-if="initData.job.allowedProjects.length > 1 && !hasProjectSaved">
                         Select a project
                         <InputSelectize
                             ref="allowedProjects"
@@ -71,7 +71,7 @@
                     <li v-if="hasFiles">
                         Download project files
                     </li>
-                    <li>
+                    <li v-if="!hasProjectSaved">
                         <button
                             @click="saveChange" type="button" class="btn btn-primary w-75"
                             :disabled="(isLoggedIn) ? null : true"
@@ -128,6 +128,9 @@ export default {
             return customProjects.reduce((hasFiles, ap) => {
                 return hasFiles || this.getProjectFiles(ap).length;
             }, false);
+        },
+        hasProjectSaved() {
+            return initData.userProjects && initData.userProjects.length;
         }
     },
     methods: {

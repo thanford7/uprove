@@ -25,7 +25,7 @@
             <label for="employerDescription" class="form-label">Company description</label>
             <InputWsiwyg v-model="formData.description" elId="employerDescription" placeholder="Add description..."/>
         </div>
-        <div class="form-check">
+        <div v-if="isAdmin" class="form-check">
             <InputCheckBox
                 elId="employerIsDemo"
                 label="Is Demo"

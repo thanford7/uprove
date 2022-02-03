@@ -3,6 +3,7 @@ import {TOOLTIPS} from "./definitions";
 import {createStore, mapState} from "vuex";
 import dataUtil from './utils/data'
 import globalData, {USER_BITS} from './globalData';
+import layout from "./utils/layout";
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
 import pluralize from 'pluralize';
@@ -41,6 +42,14 @@ const store = createStore({
             setTimeout(() => {
                 this.commit('clearSuccessAlerts');
             }, 5000);
+
+            // If modal is open, scroll to the top, otherwise scroll to the top of the page
+            const modal$ = $('.modal.show .modal-content');
+            if (modal$.length) {
+                layout.scrollTo(modal$, true);
+            } else {
+                layout.scrollTo($('#vue-container'));
+            }
         },
         clearAlert(state, alertId) {
             state.alerts = state.alerts.filter((alert) => alert.id !== alertId);
@@ -365,6 +374,7 @@ const modalsMixin = {
         eventBus.on(`open:${this.modalName}`, (rawData) => {
             this.modal$ = Modal.getOrCreateInstance($(`#${this.modalName}`), {backdrop: 'static'});
             const rawDataCopy = (rawData) ? dataUtil.deepCopy(rawData) : rawData;  // Copy data so we don't mutate original
+            store.commit('clearAllAlerts');
             this.setEmptyFormData();
             this.clearSelectizeElements();
             this.modal$.show();
@@ -392,9 +402,7 @@ const popoverMixin = {
                 template,
                 placement: 'auto'
             });
-            $(container).animate({
-                scrollTop: el$.offset().top
-            }, 500);
+            layout.scrollTo(el$);
             el$.focus();
             popover.show();
             if (isOnce) {

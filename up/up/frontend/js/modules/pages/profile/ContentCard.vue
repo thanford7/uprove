@@ -1,13 +1,13 @@
 <template>
-    <div class="card col-md-3 col-12 mb-3" v-if="contentItem" :id="_uid" :data-content-id="contentId">
+    <div class="card col-md-3 col-12 mb-3" :data-content-id="contentItem.id">
         <div class="card-inner">
             <h5 class="card-header">
-                {{contentItem.post_title}}
-                <span v-if="$store.state.isOwner" class="float-end">
+                {{contentItem.title}}
+                <span v-if="initData.isOwner" class="float-end">
                     <i
                         title="Edit content card"
                         class="fas fa-pencil-alt"
-                        @click="eventBus.$emit(openEvent, contentId)"
+                        @click="eventBus.emit(openEvent, contentItem)"
                         :data-content-item="contentItem"
                     />
                     <i
@@ -73,9 +73,6 @@ export default {
         ViewMoreLink
     },
     computed: {
-        contentItem() {
-            return {...this.getContentItem(this.contentId)};
-        },
         openEvent() {
             let openType;
             if (['video', 'project'].includes(this.contentItem.post_type)) {
@@ -85,9 +82,6 @@ export default {
             }
             return `open:edit${openType}Modal`
         },
-        ...mapGetters({
-            getContentItem: 'getContentItem'
-        })
     },
     watch: {
         contentItem() {
@@ -95,8 +89,8 @@ export default {
         }
     },
     props: {
-        contentId: {
-            type: String
+        contentItem: {
+            type: Object
         },
         contentSection: {
             type: String

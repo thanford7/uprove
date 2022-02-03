@@ -40,6 +40,11 @@ export default {
                 this.$emit('selected', val);
             });
         }
+    },
+    updated() {
+        if (this.items) {
+            this.elSel.setValue(this.items);
+        }
     }
 }
 </script>

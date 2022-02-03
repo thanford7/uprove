@@ -149,14 +149,23 @@ def jobPosting(request, jobId):
     job = JobPostingView.getEmployerJobs(jobId=jobId)
     projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=[p.project_id for p in job.allowedProjects.all()])
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
-    employerId = security.getSessionUser(request)['employerId'] if isEmployer else None
-    return render(request, 'jobPosting.html', context={'data': dumps({
+    user = security.getSessionUser(request)
+    employerId = user['employerId'] if isEmployer else None
+    data = {
         'job': getSerializedEmployerJob(job, isEmployer=isEmployer),
         'employer': getSerializedEmployer(EmployerView.getEmployer(job.employer_id), isEmployer=isEmployer),
         'projects': {p.id: getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in projects},
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
-    })})
+    }
+    if user and user['userTypeBits'] & User.USER_TYPE_CANDIDATE:
+        allowedProjectIds = [ap.id for ap in job.allowedProjects.all()]
+        data['userProjects'] = [
+            getSerializedUserProject(up)
+            for up in UserProjectView.getUserProjects(userId=user['id'])
+            if up.customProject_id in allowedProjectIds
+        ]
+    return render(request, 'jobPosting.html', context={'data': dumps(data)})
 
 
 def login(request):
@@ -169,7 +178,9 @@ def privacy(request):
 
 def profile(request, profileId):
     profile = UserProfileView.getUserProfile(profileId)
-    return render(request, 'userProfile.html', context={'data': UserProfileView.serializeUserProfile(profile)})
+    data = getSerializedUserProfile(profile)
+    data['isOwner'] = security.isSelf(request, profile.user_id)
+    return render(request, 'userProfile.html', context={'data': dumps(data)})
 
 
 def profiles(request, userId):
