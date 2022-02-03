@@ -12,15 +12,20 @@
                 <InputSelectize ref="videoInput" :elId="getNewElUid()" :cfg="{maxItems: 1, valueField: 'deviceId', labelField: 'label'}"/>
             </div>
         </div>
-        <div>
+        <div class="row mb-3">
             <span>
                 <button class="btn btn-sm -color-orange" :id="recordBtnId"><i class="fas fa-video"></i> Record video</button>
                 &nbsp;<button class="btn btn-sm -color-red" :id="stopBtnId"><i class="fas fa-stop"></i> Stop video</button>
+                &nbsp;<button class="btn btn-sm btn-primary" :id="saveBtnId" hidden><i class="fas fa-save"></i> Save video</button>
             </span>
         </div>
         <div class="row">
-            <video id="live-video" width="320"></video>
-            <video id="recorded-video" width="320"></video>
+            <div class="col-md-5">
+                <video id="live-video" muted height="300"></video>
+            </div>
+            <div class="col-md-5">
+                <video id="live-screen" muted height="300"></video>
+            </div>
         </div>
     </template>
 </template>
@@ -35,13 +40,19 @@ export default {
         return {
             recordBtn$: null,
             stopBtn$: null,
-            recorder: null,
-            liveStream: null
+            saveBtn$: null,
+            avRecorder: null,
+            liveAvStream: null,
+            screenRecorder: null,
+            liveScreenStream: null
         }
     },
     computed: {
         recordBtnId() {
             return `record-${this.elId}`;
+        },
+        saveBtnId() {
+            return `save-${this.elId}`;
         },
         stopBtnId() {
             return `stop-${this.elId}`;
@@ -52,7 +63,8 @@ export default {
     },
     methods: {
         async startRecording() {
-            const chunks = [];
+            const avChunks = [];
+            const screenChunks = [];
             // get video & audio stream from user
             const avStream = await navigator.mediaDevices.getUserMedia({
                 audio: {deviceId: this.$refs.audioInput.elSel.getValue()},
@@ -61,51 +73,79 @@ export default {
                     facingMode: 'user'  // Prefer the front facing camera for mobile devices
                 }
             });
-            const screenStream = await  navigator.mediaDevices.getDisplayMedia({video: true, audio: false});
-            const combinedStream = new MediaStream([...avStream.getTracks(), ...screenStream.getTracks()]);
+            const screenStream = await  navigator.mediaDevices.getDisplayMedia({
+                video: {cursor: 'always'},
+                audio: false
+            });
 
-            this.liveStream = combinedStream;
-
-            const liveVideo$ = $('#live-video');
-            liveVideo$.prop('srcObject', combinedStream);
-            liveVideo$[0].play();
+            this.liveAvStream = avStream;
+            this.liveScreenStream = screenStream;
 
             this.recordBtn$.prop('disabled', false);
-            this.recorder = new MediaRecorder(this.liveStream);
-            this.recorder.ondataavailable = (e) => {
-                chunks.push(e.data);
-            }
-            this.recorder.onstop = (e) => {
-                const blob = new Blob(chunks, {type: 'video/mp4'});
-                const videoOutput$ = $('#recorded-video');
-                videoOutput$.prop('src', URL.createObjectURL(blob));
-                videoOutput$.prop('controls', true);
-            }
+            [
+                ['avRecorder', 'liveAvStream', avChunks, $('#live-video')],
+                ['screenRecorder', 'liveScreenStream', screenChunks, $('#live-screen')]
+            ].forEach(([recorderStr, streamStr, chunks, video$]) => {
+                const stream = this[streamStr];
+                // Start showing the video feed on the screen
+                video$.prop('src', null);
+                video$.prop('controls', false);
+                video$.prop('muted', true);
+                video$.prop('srcObject', stream);
+                video$[0].play();
+
+                // Create video recorder
+                this[recorderStr] = new MediaRecorder(stream);
+                this[recorderStr].ondataavailable = (e) => {
+                    chunks.push(e.data);
+                }
+
+                // Show the recorded video with playback options
+                this[recorderStr].onstop = (e) => {
+                    const blob = new Blob(chunks, {type: 'video/mp4'});
+                    video$.prop('srcObject', null);  // Remove the live stream
+                    video$.prop('src', URL.createObjectURL(blob));  // Add the recorded video
+                    video$.prop('controls', true);
+                    video$.prop('muted', false);
+
+                    // TODO: Allow user to delete or save video at this point
+                }
+
+                // Start recording the video feed
+                this[recorderStr].start();
+            })
 
             this.recordBtn$.prop('disabled', true);
             this.stopBtn$.prop('disabled', false);
-
-            this.recorder.start();
+            this.saveBtn$.prop('hidden', true);
         },
         stopRecording() {
             this.recordBtn$.prop('disabled', false);
             this.stopBtn$.prop('disabled', true);
+            this.saveBtn$.prop('hidden', false);
 
-            // Stop the recorder
-            this.recorder.stop();
-            this.recorder = null;
+            [
+                ['avRecorder', 'liveAvStream', $('#live-video')],
+                ['screenRecorder', 'liveScreenStream', $('#live-screen')]
+            ].forEach(([recorderStr, streamStr, video$]) => {
+                // Stop the recorder
+                this[recorderStr].stop();
+                this[recorderStr] = null;
 
-            // Stop the media stream
-            this.liveStream.getTracks().forEach((track) => {
-                track.stop();
-            });
-            this.liveStream = null;
-            $('#live-video').stop();
+                // Stop the media stream
+                this[streamStr].getTracks().forEach((track) => {
+                    track.stop();
+                });
+                this[streamStr] = null;
+
+                video$.stop();
+            })
         }
     },
     mounted() {
         this.recordBtn$ = $(`#${this.recordBtnId}`);
         this.stopBtn$ = $(`#${this.stopBtnId}`);
+        this.saveBtn$ = $(`#${this.saveBtnId}`);
         this.recordBtn$.on('click', this.startRecording);
         this.stopBtn$.on('click', this.stopRecording);
         navigator.mediaDevices.enumerateDevices()

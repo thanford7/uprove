@@ -389,6 +389,7 @@ class SkillView(APIView):
                 oldSkillIds = {s.id for s in project.skills.all()}
                 diff = oldSkillIds.symmetric_difference(set([s['id'] for s in skillsData]))
                 isChanged = bool(len(diff))
+                Skill.objects.filter(id__in=diff, skillProject_id=project.id).delete()
                 project.skills.clear()
 
             existingSkills = {s.id: s for s in Skill.objects.filter(skillProject_id=project.id)}

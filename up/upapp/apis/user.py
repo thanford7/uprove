@@ -12,6 +12,7 @@ from django.db.transaction import atomic
 from django.template import loader
 from django.templatetags.static import static
 from django.utils import crypto
+from moviepy.editor import VideoFileClip, clips_array
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,7 +23,7 @@ from upapp.apis.employer import JobPostingView
 from upapp.apis.project import SkillView
 from upapp.apis.sendEmail import EmailView
 from upapp.models import *
-from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject
+from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject, getSerializedUserVideo
 from upapp.utils import dataUtil, dateUtil
 
 __all__ = [
@@ -46,9 +47,25 @@ class OrganizationView(APIView):
             raise e
 
 
-class UserVideoView(APIView):
+class UserVideoView(UproveAPIView):
     def post(self, request):
-        pass
+        rawAvVideo = self.data.get('avVideo')
+        rawScreenVideo = self.data.get('screenVideo')
+        if not any([rawAvVideo, rawScreenVideo]):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='At least one video is required')
+
+        avClip = VideoFileClip(rawAvVideo)
+        screenClip = VideoFileClip(rawScreenVideo)
+        combinedClip = clips_array([avClip, screenClip])
+        userVideo = UserVideo(
+            user=self.user,
+            video=combinedClip,
+            title=self.data.get('title') or 'Video',
+            createdDateTime=datetime.utcnow(),
+            modifiedDateTime=datetime.utcnow()
+        )
+
+        return Response(status=status.HTTP_200_OK, data=getSerializedUserVideo(userVideo))
 
     def put(self, request, videoId):
         pass
