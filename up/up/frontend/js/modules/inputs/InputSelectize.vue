@@ -43,7 +43,7 @@ export default {
     },
     updated() {
         if (this.items) {
-            this.elSel.setValue(this.items);
+            this.elSel.setValue(this.items, true);
         }
     }
 }
