@@ -3,7 +3,7 @@
         <i class="fas fa-video"></i> Record video
     </a>
     <button v-else class="btn btn-sm -color-orange" :id="elId"><i class="fas fa-video"></i> Record video</button>
-    <template v-html="embedPlayerHtml"/>
+    <div v-html="embedPlayerHtml"/>
 </template>
 
 <script>
