@@ -12,7 +12,6 @@ from django.db.transaction import atomic
 from django.template import loader
 from django.templatetags.static import static
 from django.utils import crypto
-from moviepy.editor import VideoFileClip, clips_array
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -54,12 +53,9 @@ class UserVideoView(UproveAPIView):
         if not any([rawAvVideo, rawScreenVideo]):
             return Response(status=status.HTTP_400_BAD_REQUEST, data='At least one video is required')
 
-        avClip = VideoFileClip(rawAvVideo)
-        screenClip = VideoFileClip(rawScreenVideo)
-        combinedClip = clips_array([avClip, screenClip])
         userVideo = UserVideo(
             user=self.user,
-            video=combinedClip,
+            video=None,
             title=self.data.get('title') or 'Video',
             createdDateTime=datetime.utcnow(),
             modifiedDateTime=datetime.utcnow()

@@ -16,7 +16,7 @@
             <span>
                 <button class="btn btn-sm -color-orange" :id="recordBtnId"><i class="fas fa-video"></i> Record video</button>
                 &nbsp;<button class="btn btn-sm -color-red" :id="stopBtnId"><i class="fas fa-stop"></i> Stop video</button>
-                &nbsp;<button class="btn btn-sm btn-primary" :id="saveBtnId" hidden><i class="fas fa-save"></i> Save video</button>
+                &nbsp;<button class="btn btn-sm btn-primary" :id="saveBtnId" hidden @click="saveChange"><i class="fas fa-save"></i> Save video</button>
             </span>
         </div>
         <div class="row">
@@ -38,6 +38,8 @@ export default {
     components: {InputSelectize},
     data() {
         return {
+            crudUrl: 'user-video/',
+            mediaFields: ['avVideo', 'screenVideo'],
             recordBtn$: null,
             stopBtn$: null,
             saveBtn$: null,
@@ -83,9 +85,9 @@ export default {
 
             this.recordBtn$.prop('disabled', false);
             [
-                ['avRecorder', 'liveAvStream', avChunks, $('#live-video')],
-                ['screenRecorder', 'liveScreenStream', screenChunks, $('#live-screen')]
-            ].forEach(([recorderStr, streamStr, chunks, video$]) => {
+                ['avRecorder', 'liveAvStream', avChunks, $('#live-video'), 'avVideo'],
+                ['screenRecorder', 'liveScreenStream', screenChunks, $('#live-screen'), 'screenVideo']
+            ].forEach(([recorderStr, streamStr, chunks, video$, formField]) => {
                 const stream = this[streamStr];
                 // Start showing the video feed on the screen
                 video$.prop('src', null);
@@ -103,12 +105,11 @@ export default {
                 // Show the recorded video with playback options
                 this[recorderStr].onstop = (e) => {
                     const blob = new Blob(chunks, {type: 'video/mp4'});
+                    this.formData[formField] = blob;
                     video$.prop('srcObject', null);  // Remove the live stream
                     video$.prop('src', URL.createObjectURL(blob));  // Add the recorded video
                     video$.prop('controls', true);
                     video$.prop('muted', false);
-
-                    // TODO: Allow user to delete or save video at this point
                 }
 
                 // Start recording the video feed
