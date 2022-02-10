@@ -1,0 +1,10 @@
+# syntax=docker/dockerfile:1
+
+FROM node:16
+ENV NODE_ENV=development
+WORKDIR /up
+COPY package.json package-lock.json /up/
+
+RUN npm install npm@latest
+
+COPY . /up

@@ -7,8 +7,11 @@
   "license": "SEE LICENSE IN license.txt",
   "scripts": {
     "dev": "npm-run-all -p serve buildWatch",
-    "serve": "webpack serve --env devkey=/Users/thanford/localHttps/localhost-key.pem --env devcert=/Users/thanford/localHttps/localhost.pem",
-    "buildWatch": "webpack watch --env devkey=/Users/thanford/localHttps/localhost-key.pem --env devcert=/Users/thanford/localHttps/localhost.pem",
+    "docker": "npm-run-all -p serveDocker watchDocker",
+    "serveDocker": "webpack serve --env IS_DOCKER=true",
+    "watchDocker": "webpack watch --env IS_DOCKER=true",
+    "serve": "webpack serve",
+    "buildWatch": "webpack watch",
     "build": "webpack",
     "prod": "webpack --env prod",
     "createWebpackProfile": "webpack-cli --profile --json > compilation-stats.json",

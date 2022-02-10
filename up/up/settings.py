@@ -20,7 +20,7 @@ from django.core.management.utils import get_random_secret_key
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-# BASE_DIR = Path(__file__).resolve().parent.parent
+# ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 env = environ.Env(DEBUG=(bool, False))
@@ -34,6 +34,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', cast=bool, default=False)
+IS_DOCKER = env('IS_DOCKER', cast=bool, default=False)
 
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logger = logging.getLogger()
@@ -46,7 +47,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 PREPEND_WWW = not DEBUG
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,0.0.0.0").split(",")
 CSRF_USE_SESSIONS = True
 
 logger.info(f'Base directory is: {BASE_DIR}')
@@ -108,7 +109,7 @@ if DEBUG is True or env('DB') == 'local':
             'NAME': 'uprove',
             'USER': env('DB_USER'),
             'PASSWORD': env('DB_PASSWORD'),
-            'HOST': 'localhost',
+            'HOST': 'db' if IS_DOCKER else 'localhost',
             'PORT': 5432
         }
     }

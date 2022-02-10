@@ -157,20 +157,15 @@ module.exports = function (env, argv) {
     } else {
         cfg.devServer = {
             host: '0.0.0.0',
-            http2: true,
-            https: {
-                key: fs.readFileSync(env.devkey),
-                cert: fs.readFileSync(env.devcert)
-            },
             historyApiFallback: {
                 index: '/404/'
             },
             watchFiles: ['up/frontend/js/*.js', 'up/frontend/js/*.vue', 'up/frontend/js/**/*.js', 'up/frontend/js/**/*.vue'],
-            hot: true,
+            // hot: true,
             port: 3000,
             proxy: {
                 '!/static': {
-                    target: 'http://localhost:8000'
+                    target: (env.IS_DOCKER) ? 'http://backend:8080' : 'http://localhost:8000'
                 }
             },
             static: {
