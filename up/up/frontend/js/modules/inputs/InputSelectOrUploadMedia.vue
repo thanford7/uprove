@@ -1,14 +1,13 @@
 <template>
     <div>
         <MediaSelectize 
-            ref="existingSel" 
-            :currentMediaIds="currentMediaIds"
+            ref="existingSel"
             :mediaTypes="mediaTypes"
             :isMultiUpload="isMultiUpload"
             :placeholder="`Select existing ${placeholderText}...`"
             @selected="selectedVal = $event" 
         />
-        <InputMedia 
+        <InputMedia
             ref="newUpload"
             :mediaTypes="mediaTypes"
             :isMultiUpload="isMultiUpload"
@@ -41,9 +40,6 @@ export default {
         mediaTypes: {
             type: Array,
             required: true
-        }, 
-        currentMediaIds: {
-            type: Array
         },
         isMultiUpload: {
             type: Boolean

@@ -31,7 +31,7 @@
 <script>
 import BaseModal from "./BaseModal";
 import InputSelectize from "../inputs/InputSelectize";
-import {dateSerializer} from "../../utils/dateUtil";
+import dateUtil from "../../utils/dateUtil";
 import dayjs from "dayjs/esm";
 import dataUtil from "../../utils/data";
 
@@ -97,13 +97,13 @@ export default {
             return applicationData;
         },
         submitApp (e) {
-            this.formData.submissionDateTime = dateSerializer.serializeDateTime(dayjs());
+            this.formData.submissionDateTime = dateUtil.serializeDateTime(dayjs());
             this.formData.withdrawDateTime = null;
             this.saveChange(e);
         },
         withdrawApp(e) {
             this.formData.submissionDateTime = null;
-            this.formData.withdrawDateTime = dateSerializer.serializeDateTime(dayjs());
+            this.formData.withdrawDateTime = dateUtil.serializeDateTime(dayjs());
             this.saveChange(e);
         }
     },

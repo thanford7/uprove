@@ -28,7 +28,7 @@ def logoutUser(request):
 
 def setUproveUser(request, user):
     try:
-        uproveUser = User.objects.select_related('djangoUser').get(djangoUser=user)
+        uproveUser = User.objects.select_related('djangoUser').prefetch_related('profile').get(djangoUser=user)
         request.session['uproveUser'] = getSerializedUser(uproveUser)
     except User.DoesNotExist:
         msg = 'No Uprove user exists for this Django user'

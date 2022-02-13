@@ -73,7 +73,7 @@ const ajaxRequestMixin = {
         return {
             apiUrl: '/api/v1/',
             crudUrl: null,
-            initDataKey: null,  // The key to access the data structure to be updated after CRUD operation
+            initDataKey: null,  // The key to access the data structure to be updated after CRUD operation. To update all initData, leave blank
             isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>

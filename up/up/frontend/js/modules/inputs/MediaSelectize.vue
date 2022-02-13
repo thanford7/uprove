@@ -1,20 +1,24 @@
 <template>
-    <select :id="elId || _uid" :placeholder="placeholder"></select>
+    <InputSelectize
+        :elId="getNewElUid()"
+        :cfg="cfg"
+        :placeholder="placeholder"
+        :isParseAsInt="true"
+        @selected="$emit('selected', $event)"
+    />
 </template>
 <script>
-import {mapState} from 'vuex';
 import dataUtil from '../../utils/data';
+import InputSelectize from "./InputSelectize";
 
 export default {
+    components: {InputSelectize},
     data() {
         return {
             mediaSel: null
         }
     },
     props: {
-        currentMediaIds: {
-            type: Array
-        },
         isMultiUpload: {
             type: Boolean
         },
@@ -24,40 +28,26 @@ export default {
         mediaTypes: {
             type: Array,
             required: true
-        },
-        elId: {
-            type: String
         }
     },
-    computed: mapState({
-        media(state) {
-            const re = new RegExp(`^(${this.mediaTypes.join('|')}).*$`);
-            const mediaItems = state.media.filter((mediaItem) => mediaItem.type.match(re));
-            if (this.mediaSel) {
-                this.mediaSel.addOption(mediaItems);
-            }
-            return mediaItems;
-        }
-    }),
-    watch: {
-        currentMediaIds(newVal) {
-            this.mediaSel.clear();
-            if (newVal && newVal.length) {
-                newVal.forEach((val) => { this.mediaSel.addItem(val); });
-            }
-        }
-    },
-    methods: {
-        getValue() {
-            if (this.isMultiUpload) {
-                return this.mediaSel.getValue().map((val) => parseInt(val));
-            }
-            return parseInt(this.mediaSel.getValue());
-        },
-        createSelectize() {
-            const optgroups = dataUtil.uniqBy(this.media.map((mediaItem) => ({groupName: dataUtil.capitalize(mediaItem.type), groupValue: mediaItem.type})), 'groupName');
-            this.mediaSel = $(`#${this.elId || this._uid}`).selectize({
-                options: this.media,
+    computed: {
+        cfg() {
+            const optgroups = [];
+            const options = this.mediaTypes.reduce((allMedia, mediaType) => {
+                const mediaItems = this.initData[`${mediaType}s`];
+                if (!mediaItems || !mediaItems.length) {
+                    return allMedia;
+                }
+                optgroups.push({groupName: dataUtil.capitalize(mediaType), groupValue: mediaType})
+                mediaItems.forEach((item) => {
+                    item.compositeId = `${mediaType}-${item.id}`;
+                    item.type = mediaType;
+                    allMedia.push(item);
+                });
+                return allMedia;
+            }, []);
+            return {
+                options,
                 valueField: 'id',
                 labelField: 'title',
                 searchField: ['title'],
@@ -85,19 +75,8 @@ export default {
                         }
                     }
                 }
-            })[0].selectize;
-
-            this.mediaSel.on('change', () => {
-                this.$emit('selected', this.getValue());
-            });
-
-            if (this.currentMediaIds && this.currentMediaIds.length) {
-                this.currentMediaIds.forEach((val) => { this.mediaSel.addItem(val, true); });
             }
         }
     },
-    mounted() {
-        this.createSelectize();
-    }
 }
 </script>

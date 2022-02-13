@@ -157,11 +157,6 @@ module.exports = function (env, argv) {
     } else {
         cfg.devServer = {
             host: '0.0.0.0',
-            http2: true,
-            https: {
-                key: fs.readFileSync(env.devkey),
-                cert: fs.readFileSync(env.devcert)
-            },
             historyApiFallback: {
                 index: '/404/'
             },

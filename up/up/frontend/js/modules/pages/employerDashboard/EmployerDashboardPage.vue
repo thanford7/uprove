@@ -167,7 +167,7 @@
 </template>
 
 <script>
-import {dateSerializer} from "../../../utils/dateUtil";
+import dateUtil from "../../../utils/dateUtil";
 import dataUtil, {APPLICATION_STATUS} from "../../../utils/data";
 import dayjs from "dayjs/esm";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
@@ -213,7 +213,7 @@ export default {
         approveApplication(application) {
             const ajaxData = this.getAjaxFormData({
                 id: application.id,
-                approveDateTime: dateSerializer.serializeDateTime(dayjs())
+                approveDateTime: dateUtil.serializeDateTime(dayjs())
             });
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',
@@ -227,7 +227,7 @@ export default {
         declineApplication(application) {
             const ajaxData = this.getAjaxFormData({
                 id: application.id,
-                declineDateTime: dateSerializer.serializeDateTime(dayjs())
+                declineDateTime: dateUtil.serializeDateTime(dayjs())
             });
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',

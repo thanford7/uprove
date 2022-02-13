@@ -6,15 +6,19 @@
         @saveChange="saveChange"
     >
         <div class="mb-3">
-            <label :for="`addSectionTitle`" class="form-label">Section title</label>
-            <InputSelectize :cfg="addSectionCfg" placeholder="Add or select a new section title" @selected="formData.title = $event"/>
+            <label class="form-label">Section title</label>
+            <InputSelectize
+                ref="selTitle"
+                :elId="getNewElUid()"
+                :cfg="addSectionCfg"
+                placeholder="Add or select a new section title"
+                @selected="formData.title = $event"
+            />
         </div>
     </BaseModal>
 </template>
 <script>
-import {mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
-import dataUtil from '../../utils/data';
 import InputSelectize from '../inputs/InputSelectize.vue';
 
 export default {
@@ -24,6 +28,8 @@ export default {
     data() {
         return {
             modalName: 'addSectionModal',
+            crudUrl: 'user-profile/section/',
+            isUpdateData: true,
             contentSection: null,
             addSectionCfg: {
                 maxItems: 1,
@@ -38,25 +44,21 @@ export default {
                     {text: 'Skills & interests'},
                 ]
             },
+            requiredFields: {
+                title: null
+            }
         }
     },
-    computed: {
-        ...mapState({
-            eventBus: 'eventBus',
-            profile: 'profile',
-            crudUrl: 'crudUrlProfile'
-        }),
-    },
     methods: {
-        processFormData(formData) {
-            if (dataUtil.isNil(formData)) {
-                return null;
-            }
-            return {sections: JSON.stringify([...this.profile.sections, {title: formData.title, ids: []}])};
+        processRawData(rawData) {
+            this.requiredFields.title = this.$refs.selTitle.targetEl
+            return rawData;
         },
-        onSaveSuccess(newContentItem) {
-            this.eventBus.loadContent(['profile']);
-        },
-    },
+        processFormData() {
+            const data = this.readForm();
+            data.profileId = this.initData.id;
+            return data;
+        }
+    }
 }
 </script>

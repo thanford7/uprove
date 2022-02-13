@@ -178,8 +178,7 @@ def privacy(request):
 
 def profile(request, profileId):
     profile = UserProfileView.getUserProfile(profileId)
-    data = getSerializedUserProfile(profile)
-    data['isOwner'] = security.isSelf(request, profile.user_id)
+    data = getSerializedUserProfile(profile, isOwner=security.isSelf(request, profile.user_id))
     return render(request, 'userProfile.html', context={'data': dumps(data)})
 
 

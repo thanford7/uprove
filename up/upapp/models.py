@@ -65,6 +65,7 @@ class UserProfile(AuditFields):
     profileName = models.CharField(max_length=100)
     profilePicture = models.ForeignKey('UserImage', on_delete=models.SET_NULL, null=True)
     makePublic = models.BooleanField(default=True)
+    isPrimary = models.BooleanField(default=True)
     password = models.CharField(max_length=20, null=True)  # Enables users to "lock" a profile to only users with a password
 
 

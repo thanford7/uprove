@@ -50,7 +50,6 @@
     </div>
 </template>
 <script>
-import {mapGetters} from 'vuex';
 import ContentEducation from './ContentEducation.vue';
 import ContentExperience from './ContentExperience.vue';
 import ContentMedia from './ContentMedia.vue';

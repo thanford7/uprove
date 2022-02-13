@@ -6,7 +6,7 @@
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
                 <li v-if="isSuperUser || isCandidate" :class="getHighlightClass('candidateDashboard')">
-                    <a class="nav-link nav-link-tight" href="/candidateDashboard">Home</a>
+                    <a class="nav-link nav-link-tight" href="/candidateDashboard">Dashboard</a>
                 </li>
                 <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
                     <a class="nav-link nav-link-tight" href="/employerDashboard">Employer Dashboard</a>

@@ -1,24 +1,41 @@
 <template>
     <BaseModal
         :modalId="modalName"
-        :modalTitle="`Edit ${contentItem.post_type}`"
+        :modalTitle="`Edit ${contentType}`"
         :isLargeDisplay="true"
+        :isContentOnly="isContentOnly"
         @saveChange="saveChange"
     >
-        <MediaFormContent 
-            v-if="contentItem" 
-            ref="form"
-            :contentItem="contentItem"
-            :contentType="contentItem.post_type"
-            :allowedBannerMediaTypes="allowedBannerMediaTypes"
-        />
+        <div class="mb-3">
+            <label for="formContentTitle" class="form-label">Title</label>
+            <input type="text" class="form-control" placeholder="Add title..." id="formContentTitle" v-model="formData.title">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Banner {{allowedBannerMediaTypes.join(' or ')}}</label>
+            <InputSelectOrUploadMedia
+                ref="mediaInput"
+                :mediaTypes="allowedBannerMediaTypes"
+                :isMultiUpload="false"
+            />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputWsiwyg placeholder="Add a description..." v-model="formData.description"/>
+        </div>
+        <div v-if="contentType === 'project'" class="mb-3">
+            <label class="form-label">Files</label>
+            <InputSelectOrUploadMedia
+                ref="fileInput"
+                :mediaTypes="['file']"
+                :isMultiUpload="true"
+            />
+        </div>
     </BaseModal>
 </template>
 <script>
-import Modal from 'bootstrap/js/dist/modal';
-import {mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
-import MediaFormContent from './MediaFormContent.vue';
+import InputSelectOrUploadMedia from '../inputs/InputSelectOrUploadMedia.vue';
+import InputWsiwyg from '../inputs/InputWsiwyg.vue';
 
 export default {
     extends: BaseModal,
@@ -29,36 +46,12 @@ export default {
         }
     },
     inheritAttrs: false,
-    components: {BaseModal, MediaFormContent},
+    props: ['isContentOnly', 'contentType'],
+    components: {BaseModal, InputSelectOrUploadMedia, InputWsiwyg},
     computed: {
-        ...mapState({
-            contentItem(state) {
-                return (this.contentId) ? state.content[this.contentId] : {}
-            },
-            crudUrl(state) {
-                return `${state.crudBase}${this.contentItem.post_type}/${this.contentId}`
-            }
-        }),
         allowedBannerMediaTypes() {
-            return (this.contentItem.post_type === 'video') ? ['video'] : ['video', 'image'];
+            return (this.contentType === 'video') ? ['video'] : ['video', 'image'];
         }
-    },
-    methods: {
-        readForm() {
-            return {}; // Form data is returned in getPreSaveChange
-        },
-        onSaveSuccess(requestData, responseData) {
-            this.eventBus.loadContent([this.contentItem.post_type]);
-        },
-        hookEvents() {
-            this.eventBus.$on('open:editMediaModal', (contentId) => {
-                this.contentId = contentId;
-                this.modal$.show();
-            });
-        },
-        getPreSaveChange() {
-            return this.$refs.form.getPreSaveChange();
-        },
     },
 }
 </script>

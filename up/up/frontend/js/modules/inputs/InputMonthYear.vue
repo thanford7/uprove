@@ -1,16 +1,18 @@
 <template>
-    <div class="input-group" :id="_uid">
+    <div class="input-group" :id="elId">
         <input type="text" aria-label="Month" class="form-control month" placeholder="MM" :value="month" @blur="updateMonth">
         <input type="text" aria-label="Year" class="form-control year" placeholder="YYYY" :value="year" @blur="updateYear">
     </div>
 </template>
 <script>
 import dataUtil from '../../utils/data';
+import dateUtil from '../../utils/dateUtil';
 
 export default {
     data() {
         return {
             el$: null,
+            elId: this.getNewElUid(),
             monthInput$: null,
             yearInput$: null
         }
@@ -18,7 +20,7 @@ export default {
     props: {
         value: {
             type: [Object, String],  // Should be a dayjs instance
-            default: () => dayjs()
+            default: () => dateUtil.now()
         }
     },
     computed: {
@@ -38,7 +40,7 @@ export default {
     methods: {
         updateYear(e) {
             const val = parseInt(e.target.value);
-            if (!val || val < 1900 || val > dayjs().year() + 10) {
+            if (!val || val < 1900 || val > dateUtil.now().year() + 10) {
                 this.yearInput$.val(null);
             }
             this.$emit('input', this.value.year(val));
@@ -51,13 +53,19 @@ export default {
             // dayjs month index is 0-11
             this.$emit('input', this.value.month(val - 1));
         },
+        initInput() {
+            this.el$ = $(`#${this.elId}`);
+            if (this.el$.length) {
+                this.monthInput$ = this.el$.find('.month');
+                this.yearInput$ = this.el$.find('.year');
+            }
+        }
     },
     mounted() {
-        if (!this.el$) {
-            this.el$ = $(`#${this._uid}`);
-            this.monthInput$ = this.el$.find('.month');
-            this.yearInput$ = this.el$.find('.year');
-        }
+        this.initInput();
+    },
+    updated() {
+        this.initInput();
     }
 }
 </script>

@@ -1,6 +1,7 @@
 import urllib.request
 from datetime import datetime
 from email.mime.image import MIMEImage
+from enum import Enum
 
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
@@ -18,17 +19,24 @@ from rest_framework.response import Response
 
 from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
-from upapp.apis.employer import JobPostingView
+from upapp.apis.employer import JobPostingView, OrganizationView
 from upapp.apis.project import SkillView
 from upapp.apis.sendEmail import EmailView
 from upapp.models import *
-from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject, getSerializedUserVideo
+from upapp.modelSerializers import getSerializedUser, getSerializedJobApplication, getSerializedUserProject, \
+    getSerializedUserVideo, getSerializedUserProfile
 from upapp.utils import dataUtil, dateUtil
 
 __all__ = [
     'OrganizationView', 'UserVideoView', 'UserFileView', 'UserImageView', 'UserEducationItemView',
     'UserExperienceItemView', 'UserContentItemView', 'UserView', 'UserProfileView', 'UserProjectView'
 ]
+
+
+class ContentTypes(Enum):
+    EXPERIENCE = 'experience'
+    PROJECT = 'project'
+    VIDEO = 'video'
 
 
 class OrganizationView(APIView):
@@ -271,7 +279,7 @@ class UserView(UproveAPIView):
 
     @staticmethod
     def getUsers():
-        return User.objects.select_related('djangoUser').prefetch_related('image').all()
+        return User.objects.select_related('djangoUser').prefetch_related('image', 'profile').all()
 
     @staticmethod
     def updateUser(user, data):
@@ -328,9 +336,25 @@ class UserView(UproveAPIView):
         return user, bool(password)
 
 
-class UserProfileView(APIView):
+class UserProfileView(UproveAPIView):
     def get(self, request, profileId=None):
         pass
+
+    @atomic
+    def post(self, request):
+        if not security.isSelf(request, self.user['id']):
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
+    @atomic
+    def put(self, request):
+        if not security.isSelf(request, self.user['id']):
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
+        if not self.data or not self.data.get('id'):
+            return Response('A profile ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        profile = self.getUserProfile(self.data['id'])
+
 
     @staticmethod
     def getUserProfile(profileId):
@@ -355,6 +379,118 @@ class UserProfileView(APIView):
                 .get(id=profileId)
         except UserProfile.DoesNotExist as e:
             raise e
+
+
+class UserProfileSectionView(UproveAPIView):
+
+    @atomic
+    def post(self, request):
+        if not security.isSelf(request, self.user['id']):
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
+        if not self.data or not self.data.get('profileId'):
+            return Response('A profile ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        profile = UserProfileView.getUserProfile(self.data['profileId'])
+
+        if profile.user_id != self.user['id']:
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
+        newProfileSection = UserProfileSection(
+            userProfile_id=profile.id
+        )
+        sectionCount = profile.section.all().count()
+        dataUtil.setObjectAttributes(newProfileSection, self.data, {
+            'title': None,
+            'description': None,
+            'sectionOrder': {'propFunc': lambda val: val or sectionCount}
+        })
+        newProfileSection.save()
+        return Response(
+            status=status.HTTP_200_OK,
+            data=getSerializedUserProfile(UserProfileView.getUserProfile(profile.id), isOwner=True)
+        )
+
+    @atomic
+    def put(self, request):
+        if not security.isSelf(request, self.user['id']):
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
+        if not self.data or not self.data.get('id'):
+            return Response('A profile section ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        profileSection = self.getUserProfileSection(self.data['id'])
+
+        if profileSection.userProfile.user_id != self.user['id']:
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
+        dataUtil.setObjectAttributes(profileSection, self.data, {
+            'title': None,
+            'description': None,
+            'sectionOrder': None
+        })
+        profileSection.save()
+        return Response(
+            status=status.HTTP_200_OK,
+            data=getSerializedUserProfile(UserProfileView.getUserProfile(profileSection.userProfile_id), isOwner=True)
+        )
+
+    @staticmethod
+    def getUserProfileSection(profileSectionId):
+        try:
+            return UserProfileSection.objects.select_related('userProfile').get(id=profileSectionId)
+        except UserProfileSection.DoesNotExist as e:
+            raise e
+
+
+class UserProfileContentItemView(UproveAPIView):
+
+    @atomic
+    def post(self, request):
+        if not (contentType := self.data.get('contentType')):
+            return Response('Content type is required', status=status.HTTP_400_BAD_REQUEST)
+
+        if not self.data.get('sectionId'):
+            return Response('A profile section ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        if not security.isSelf(request, self.data.get('userId')):
+            return Response('You are not permitted to edit this content', status=status.HTTP_401_UNAUTHORIZED)
+
+        if contentType == ContentTypes.EXPERIENCE.value:
+            newExperience = UserExperience(
+                createdDateTime=datetime.utcnow()
+            )
+            if orgId := self.data.get('organizationId'):
+                newExperience.organization_id = orgId
+            else:
+                org = OrganizationView.createOrg(self.data)
+                newExperience.organization = org
+
+            dateSerializer = lambda val, allowNone: dateUtil.serializeDatetime(val, formatAs=dateUtil.FormatType.DATE, allowNone=allowNone)
+            dataUtil.setObjectAttributes(newExperience, self.data, {
+                'userId': None,
+                'positionTitle': None,
+                'employmentType': None,
+                'startDate': {'propFunc': lambda val: dateSerializer(val, False)},
+                'endDate': {'propFunc': lambda val: dateSerializer(val, True)},
+                'description': None
+            })
+            newExperience.save()
+        elif contentType == ContentTypes.PROJECT.value:
+            pass
+        elif contentType == ContentTypes.VIDEO.value:
+            pass
+        else:
+            return Response(f'Unrecognized content type of {contentType}', status=status.HTTP_400_BAD_REQUEST)
+
+        profileSection = UserProfileSectionView.getUserProfileSection(self.data['sectionId'])
+
+        if profileSection.userProfile.user_id != self.user['id']:
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
+    @atomic
+    def put(self, request):
+        pass
 
 
 class UserProjectView(APIView):

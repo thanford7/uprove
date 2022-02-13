@@ -1,4 +1,4 @@
-
+from upapp.models import User
 
 def getSessionUser(request):
     try:
@@ -9,7 +9,8 @@ def getSessionUser(request):
 
 def isPermittedSessionUser(request):
     if user := getSessionUser(request):
-        return user['isActive']
+        userObj = User.objects.select_related('djangoUser').get(id=user['id'])
+        return userObj.djangoUser.is_active
     return False
 
 

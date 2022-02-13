@@ -10,9 +10,9 @@ from rest_framework.views import APIView
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView, SkillView
 from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, \
-    ProjectEvaluationCriterion, UserProjectEvaluationCriterion
+    Organization, ProjectEvaluationCriterion, UserProjectEvaluationCriterion
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
-    getSerializedEmployerCustomProjectCriterion, getSerializedProject
+    getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -406,3 +406,36 @@ class UserProjectEvaluationView(UproveAPIView):
         return Response(status=status.HTTP_200_OK, data={
             'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), isEmployer=True)
         })
+
+
+class OrganizationView(UproveAPIView):
+    authentication_classes = (authentication.SessionAuthentication,)
+
+    def get(self, request):
+        if id := self.data.get('id'):
+            try:
+                org = Organization.objects.get(id=id)
+                return Response(status=status.HTTP_200_OK, data=getSerializedOrganization(org))
+            except Organization.DoesNotExist as e:
+                raise e
+        elif searchString := self.data.get('searchString'):
+            q = Q(name__iregex=f'^.*{searchString}.*$')
+
+            if orgType := self.data.get('orgType'):
+                q &= Q(orgType=orgType)
+
+            orgs = Organization.objects.filter(q)
+            return Response(status=status.HTTP_200_OK, data=[getSerializedOrganization(o) for o in orgs])
+
+    @staticmethod
+    @atomic
+    def createOrg(data):
+        org = Organization()
+        dataUtil.setObjectAttributes(org, data, {
+            'name': None,
+            'orgType': None,
+            'logo': None,
+            'user_id':  {'formName': 'userId'}
+        })
+        org.save()
+        return org

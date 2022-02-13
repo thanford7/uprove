@@ -35,6 +35,7 @@
 </template>
 <script>
 import BannerAlert from "../components/BannerAlert";
+import Modal from "bootstrap/js/dist/modal";
 
 export default {
     components: {BannerAlert},
@@ -69,7 +70,19 @@ export default {
                 e.preventDefault();
                 this.$emit('saveChange', e);
             }
+        },
+        initModal() {
+            const modal$ = $(`#${this.modalName}`);
+            if (modal$.length) {
+                Modal.getOrCreateInstance(modal$, {backdrop: 'static'});
+            }
         }
+    },
+    mounted() {
+        this.initModal();
+    },
+    updated() {
+        this.initModal();
     }
 }
 </script>

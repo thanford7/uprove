@@ -150,9 +150,17 @@ export default {
         },
         processFormData() {
             const formData = this.readForm();
-            const {next, inviteEmployerId} = dataUtil.getQueryParams();
+            let {next, inviteEmployerId} = dataUtil.getQueryParams();
+            if (next) {
+                formData.next = next;
+            }
+
+            inviteEmployerId = parseInt(inviteEmployerId);
+            if (inviteEmployerId) {
+                formData.inviteEmployerId = inviteEmployerId;
+            }
+
             return Object.assign(
-                {next, inviteEmployerId},
                 formData,
                 {userTypeBits: dataUtil.sum(formData.userTypes)}
             );

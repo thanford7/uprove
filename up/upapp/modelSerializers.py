@@ -20,6 +20,16 @@ def serializeAuditFields(obj):
     }
 
 
+def _addSerializedUserAssets(dataDict, user):
+    dataDict['education'] = [getSerializedUserEducation(e) for e in user.education.all()]
+    dataDict['experience'] = [getSerializedUserExperience(e) for e in user.experience.all()]
+    dataDict['content'] = [getSerializedUserContentItem(ci) for ci in user.contentItem.all()]
+    dataDict['videos'] = [getSerializedUserVideo(v) for v in user.video.all()]
+    dataDict['files'] = [getSerializedUserFile(f) for f in user.file.all()]
+    dataDict['images'] = [getSerializedUserImage(i) for i in user.image.all()]
+    dataDict['tags'] = [getSerializedUserTag(t) for t in user.tag.all()]
+
+
 def serializeGenericItem(item):
     if item.contentType == 'UserVideo':
         return getSerializedUserVideo(item.contentObject)
@@ -44,6 +54,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'birthDate': getDateTimeFormatOrNone(user.birthDate),
         'email': user.email,
         'profileImage': profileImage,
+        'defaultProfileId': next((p.id for p in user.profile.all() if p.isPrimary), None),
         'employerId': user.employer_id,
         'inviteEmployerId': user.inviteEmployer_id,
         'userTypeBits': user.userTypeBits,
@@ -57,30 +68,36 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
 
     if isIncludeAssets:
         serializedUser['profiles'] = [getSerializedUserProfile(p) for p in user.profile.all()]
-        serializedUser['education'] = [getSerializedUserEducation(e) for e in user.education.all()]
-        serializedUser['experience'] = [getSerializedUserExperience(e) for e in user.experience.all()]
-        serializedUser['content'] = [getSerializedUserContentItem(ci) for ci in user.contentItem.all()]
-        serializedUser['videos'] = [getSerializedUserVideo(v) for v in user.video.all()]
-        serializedUser['files'] = [getSerializedUserFile(f) for f in user.file.all()]
-        serializedUser['images'] = [getSerializedUserImage(i) for i in user.image.all()]
-        serializedUser['tags'] = [getSerializedUserTag(t) for t in user.tag.all()]
+        _addSerializedUserAssets(serializedUser, user)
 
     return serializedUser
 
 
-def getSerializedUserProfile(userProfile: UserProfile):
-    return {
+def getSerializedUserProfile(userProfile: UserProfile, isOwner=None):
+    serializedProfile = {
+        'id': userProfile.id,
         'profileName': userProfile.profileName,
         'makePublic': userProfile.makePublic,
-        'profilePicture': getSerializedUserImage(userProfile.profilePicture),
-        'sections': [getSerializedUserProfileSection(ps) for ps in userProfile.section.all()],
+        'isOwner': isOwner,
+        'profilePicture': getSerializedUserImage(userProfile.profilePicture) if userProfile.profilePicture else None,
+        'sections': sorted(
+            [getSerializedUserProfileSection(ps) for ps in userProfile.section.all()],
+            key=itemgetter('sectionOrder')
+        ),
         **getSerializedUser(userProfile.user),
         **serializeAuditFields(userProfile)
     }
 
+    if isOwner:
+        serializedProfile['assets'] = {}
+        _addSerializedUserAssets(serializedProfile['assets'], userProfile.user)
+
+    return serializedProfile
+
 
 def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
     return {
+        'id': userProfileSection.id,
         'title': userProfileSection.title,
         'description': userProfileSection.description,
         'sectionOrder': userProfileSection.sectionOrder,

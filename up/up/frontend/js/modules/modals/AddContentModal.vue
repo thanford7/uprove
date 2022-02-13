@@ -5,133 +5,78 @@
         :isLargeDisplay="true"
         @saveChange="saveChange"
     >
-        <div>
-            <div>
-                <label for="selectContent" class="form-label">Existing content</label>
-                <ContentSelectize :contentSection="contentSection" :currentContentIds="contentSectionIds" @selected="selectedContentId = $event"/>
-            </div>
-            <div :class="(isNewItem) ? 'modal-body-banner modal-body-banner--top' : ''">
-                <label for="addContentType" class="form-label">New content</label>
-                <InputSelectize elId="addContentType" placeholder="Select content type" :cfg="addContentCfg" @selected="addContentType = $event"/>
-            </div>
+        <div class="btn-group mb-3" role="group">
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btnradio1" autocomplete="off" checked
+                   @change="toggleContentType($event, contentTypes.EXISTING)"
+            >
+            <label class="btn btn-outline-dark" for="btnradio1">Existing content</label>
+
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btnradio2" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.EXPERIENCE)"
+            >
+            <label class="btn btn-outline-dark" for="btnradio2">New work experience</label>
+
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btnradio3" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.PROJECT)"
+            >
+            <label class="btn btn-outline-dark" for="btnradio3">New project</label>
+
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btnradio4" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.VIDEO)"
+            >
+            <label class="btn btn-outline-dark" for="btnradio4">New video</label>
         </div>
-        <div id="newItemForm" v-if="addContentType">
-            <MediaFormContent v-if="['video', 'project'].includes(addContentType)" :contentType="addContentType" :allowedBannerMediaTypes="allowedBannerMediaTypes" ref="formContentMedia"/>
-            <ExperienceFormContent v-if="addContentType === 'experience'" ref="formContentExperience"/>
+        <div v-if="addContentType === contentTypes.EXISTING">
+            <label for="selectContent" class="form-label">Existing content</label>
+            <ContentSelectize :section="formData" :content="initData.assets"
+                              @selected="formData.selectedContentId = $event"/>
         </div>
-        <div class="modal-body-banner modal-body-banner--bottom"><a id="newItemToggle" href="#" @click="toggleAddNewItem(!isNewItem)"><i class="fas fa-plus-circle"></i> Add new content</a></div>
+        <EditMediaModal v-if="[contentTypes.VIDEO, contentTypes.PROJECT].includes(addContentType)"
+                          :contentType="addContentType"
+                            :isContentOnly="true"
+                          ref="formContentMedia"/>
+        <EditExperienceModal v-if="addContentType === contentTypes.EXPERIENCE" ref="formContentExperience"
+                             :isContentOnly="true"/>
     </BaseModal>
 </template>
 <script>
-import {mapGetters, mapState} from 'vuex';
 import BaseModal from './BaseModal.vue';
 import ContentSelectize from '../inputs/ContentSelectize.vue';
-import dataUtil from '../../utils/data';
-import ExperienceFormContent from './ExperienceFormContent.vue';
+import EditExperienceModal from "./EditExperienceModal";
+import EditMediaModal from "./EditMediaModal";
 import InputSelectize from '../inputs/InputSelectize.vue';
-import MediaFormContent from './MediaFormContent.vue';
-import Modal from 'bootstrap/js/dist/modal';
+
+const contentTypes = {
+    EXISTING: 'existing',
+    EXPERIENCE: 'experience',
+    VIDEO: 'video',
+    PROJECT: 'project'
+}
 
 export default {
     extends: BaseModal,
-    components: {BaseModal, ContentSelectize, ExperienceFormContent, InputSelectize, MediaFormContent},
+    components: {BaseModal, ContentSelectize, EditExperienceModal, EditMediaModal, InputSelectize},
     inheritAttrs: false,
     data() {
         return {
-            contentSection: null,  // Either highlights or section. The highlights section is at the top of the page and may restrict content types
-            contentSectionOrder: null, // For all "section" content sections, the contentSectionOrder is used to save updates to the appropriate section
             modalName: 'addContentModal',
-            selectedContentId: null,
-            isNewItem: false,
-            newItemToggle$: null,
-            selectContent$: null,
-            addContentSel$: null,
-            addContentCfg: {
-                maxItems: 1,
-                options: [
-                    {value: 'experience', text: 'Experience'},
-                    {value: 'project', text: 'Project'},
-                    {value: 'video', text: 'Video'},
-                ]
-            },
-            addContentType: null
-        }
-    },
-    computed: {
-        ...mapState({
-            eventBus: 'eventBus',
-            profile: 'profile',
-            crudUrl(state) {
-                return `${state.crudBase}${this.addContentType}`;
-            }
-        }),
-        ...mapGetters({
-            getLastContentType: 'getLastContentType'
-        }),
-        allowedBannerMediaTypes() {
-            return (this.addContentType === 'video') ? ['video'] : ['video', 'image'];
-        },
-        contentSectionIds() {
-            if (this.contentSectionOrder) {
-                return this.profile.sections[this.contentSectionOrder].ids
-            }
-            return [];
+            crudUrl: 'user-profile/content-item/',
+            addContentType: contentTypes.EXISTING,
+            contentTypes
         }
     },
     methods: {
-        hookEvents() {
-            this.eventBus.$on('open:addContentModal', (contentSection, contentSectionOrder) => {
-                this.contentSection = contentSection;
-                this.contentSectionOrder = contentSectionOrder;
-                this.modal$.show();
-            });
-        },
-        readForm() {
-            return {}; // Form data is returned in getPreSaveChange
-        },
-        getPreSaveChange() {
-            let formContent;
-            if (['video', 'project'].includes(this.addContentType)) {
-                formContent = this.$refs.formContentMedia;
-            } else if (this.addContentType === 'experience') {
-                formContent = this.$refs.formContentExperience;
-            }
-            return formContent.getPreSaveChange().then((content) => {
-                if (addContentType === 'video' && content.media) {
-                    content.video = content.media;
-                }
-                return content;
-            });
-        },
-        saveChange() {
-            if (!this.isNewItem && this.selectedContentId) {
-                this.$store.commit(`add${dataUtil.capitalize(this.contentSection)}Id`, {id: this.selectedContentId, sectionIdx: this.contentSectionOrder});
+        toggleContentType(e, contentType) {
+            if ($(e.currentTarget).prop('checked')) {
+                this.addContentType = contentType;
             } else {
-                this.$super(BaseModal).saveChange({method: 'POST'});
+                this.addContentType = null;
             }
-        },
-        onSaveSuccess(newContentItem) {
-            this.eventBus.loadContent(['media', this.addContentType]).then(() => {
-                const lastContentItem = this.getLastContentType(this.addContentType);
-                this.$store.commit(`add${dataUtil.capitalize(this.contentSection)}Id`, {id: lastContentItem.ID});
-            });
-        },
-        toggleAddNewItem(isNewItem) {
-            this.isNewItem = isNewItem;
-            this.newItemToggle$.text((isNewItem) ? 'Select existing content' : 'Add new content');
-            this.selectContent$.toggle(!isNewItem);
-            this.addContentSel$.toggle(isNewItem);
-            $('#newItemForm').toggle(isNewItem);
-        },
-    },
-    mounted() {
-        if(!this.modal$) {
-            this.modal$ = new Modal($('#addContentModal'));
         }
-        this.addContentSel$ = $('#addContentType').parent();
-        this.selectContent$ = $('#selectContent').parent();
-        this.newItemToggle$ = $('#newItemToggle');
-        this.toggleAddNewItem(this.isNewItem);
-    },
+    }
 }
 </script>

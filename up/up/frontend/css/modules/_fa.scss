@@ -1,6 +1,6 @@
 @use 'colors';
 
-.fa {
+.fa, .fas {
     color: colors.$color-darkgrey;
 
     &:hover {

@@ -10,20 +10,35 @@ import {Popover} from "bootstrap";
 
 export default {
     name: "InfoToolTip",
-    props: ['content', 'elId'],
-    mounted() {
-        const el$ = $(`#${this.elId}`);
-        let container = 'body';
-        const modalParent = el$.parents('.modal');
-        if (modalParent.length) {
-            container = `#${$(modalParent[0]).attr('id')}`;
+    data() {
+        return {
+            popover: null
         }
-        new Popover(el$, {
-            content: this.content,
-            container,
-            placement: 'auto',
-            trigger: 'hover'
-        });
+    },
+    props: ['content', 'elId'],
+    methods: {
+        initTooltip() {
+            const el$ = $(`#${this.elId}`);
+            if (!this.popover && el$.length) {
+                let container = 'body';
+                const modalParent = el$.parents('.modal');
+                if (modalParent.length) {
+                    container = `#${$(modalParent[0]).attr('id')}`;
+                }
+                this.popover = new Popover(el$, {
+                    content: this.content,
+                    container,
+                    placement: 'auto',
+                    trigger: 'hover'
+                });
+            }
+        }
+    },
+    mounted() {
+        this.initTooltip();
+    },
+    updated() {
+        this.initTooltip();
     }
 }
 </script>

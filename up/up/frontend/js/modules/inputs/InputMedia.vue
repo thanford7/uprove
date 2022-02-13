@@ -1,15 +1,17 @@
 <template>
-    <div class="input-image d-flex align-items-center" :id="elId">
-        <InfoToolTip :content="`Supported file types are ${supportedFormatsString}`" :elId="getNewElUid()"/>&nbsp;
-        <input 
-            ref="fileInput"
-            type="file"
-            class="form-control"
-            :accept="acceptFormatsString"
-            :multiple="isMultiUpload"
-            @change="$emit('selected', getFileData())"
-            style="display: inline-block; flex-grow: 1"
-        >
+    <div class="input-image" :id="elId">
+        <div class="d-flex align-items-center">
+            <InfoToolTip :content="`Supported file types are ${supportedFormatsString}`" :elId="getNewElUid()"/>&nbsp;
+            <input
+                ref="fileInput"
+                type="file"
+                class="form-control"
+                :accept="acceptFormatsString"
+                :multiple="isMultiUpload"
+                @change="$emit('selected', getFileData())"
+                style="display: inline-block; flex-grow: 1"
+            >
+        </div>
     </div>
 </template>
 <script>
