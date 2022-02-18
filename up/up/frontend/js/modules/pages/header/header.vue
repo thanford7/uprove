@@ -8,6 +8,9 @@
                 <li v-if="isSuperUser || isCandidate" :class="getHighlightClass('candidateDashboard')">
                     <a class="nav-link nav-link-tight" href="/candidateDashboard">Dashboard</a>
                 </li>
+                <li v-if="globalData.uproveUser && globalData.uproveUser.defaultProfileId" :class="getHighlightClass('profile')">
+                    <a class="nav-link nav-link-tight" :href="`/profile/${globalData.uproveUser.defaultProfileId}/`">Profile</a>
+                </li>
                 <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
                     <a class="nav-link nav-link-tight" href="/employerDashboard">Employer Dashboard</a>
                 </li>

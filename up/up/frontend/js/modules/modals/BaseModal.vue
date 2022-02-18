@@ -1,6 +1,7 @@
 <template>
     <div>
-        <div class="modal fade" :id="modalId" tabindex="-1" aria-hidden="true" @keydown="handleKeyPress">
+        <slot v-if="isContentOnly"/>
+        <div v-else class="modal fade" :id="modalId" tabindex="-1" aria-hidden="true" @keydown="handleKeyPress">
             <div
                 class="modal-dialog modal-dialog-centered"
                 :class="modalClasses"
@@ -30,7 +31,6 @@
                 </div>
             </div>
         </div>
-        <slot v-if="isContentOnly"/>
     </div>
 </template>
 <script>
@@ -80,6 +80,9 @@ export default {
     },
     mounted() {
         this.initModal();
+        if (this.isContentOnly) {
+            this.eventBus.on('ajaxSuccess', this.initForm);
+        }
     },
     updated() {
         this.initModal();

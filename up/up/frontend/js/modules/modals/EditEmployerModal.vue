@@ -15,10 +15,10 @@
         <div class="mb-3">
             <InputOrViewMedia
                 inputId="employerLogo"
-                :mediaTypes="['image']"
+                :mediaTypes="[contentTypes.IMAGE]"
                 itemLabel="company logo"
                 :currentItem="formData.logo"
-                @selected="formData.logo = $event"
+                @selectedMediaNew="formData.logo = $event"
             />
         </div>
         <div class="mb-3">
@@ -38,6 +38,7 @@
 </template>
 
 <script>
+import {CONTENT_TYPES} from '../../globalData';
 import BaseModal from "./BaseModal";
 import InputCheckBox from "../inputs/InputCheckBox";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
@@ -58,7 +59,8 @@ export default {
                 companyName: '#employerCompanyName',
             },
             mediaFields: ['logo'],
-            isLogoUpload: true
+            isLogoUpload: true,
+            contentTypes: CONTENT_TYPES
         }
     },
     methods: {

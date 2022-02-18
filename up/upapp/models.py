@@ -25,6 +25,21 @@ def getUploadLocation(relPath):
     return f'{relPath}{"-test/" if settings.DEBUG else "/"}'
 
 
+def getUserUploadLocation(instance, filename):
+    if not instance.user:
+        raise PermissionError('User must be logged in to modify uploads')
+    return f'uploads-candidate{"-test/" if settings.DEBUG else "/"}user_{instance.user.id}/{filename}'
+
+
+def getEmployerUploadLocation(instance, filename):
+    if not instance.user:
+        raise PermissionError('User must be logged in to modify uploads')
+    uproveUser = User.objects.get(djangoUser_id=instance.user.id)
+    if not uproveUser.employer_id:
+        raise PermissionError('User must be associated with an employer to modify uploads')
+    return f'uploads-employer{"-test/" if settings.DEBUG else "/"}employer_{uproveUser.employer_id}/{filename}'
+
+
 # Create your models here.
 class AuditFields(models.Model):
     createdDateTime = models.DateTimeField()
@@ -59,6 +74,26 @@ class User(AuditFields):
     inviteEmployer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True, related_name='inviteEmployer')
     isDemo = models.BooleanField(default=False)
 
+    @property
+    def isEmployer(self):
+        return bool(self.employer_id)
+
+    @property
+    def isCandidate(self):
+        return self.userTypeBits & self.USER_TYPE_CANDIDATE
+
+    @property
+    def isAdmin(self):
+        return self.userTypeBits & self.USER_TYPE_ADMIN
+
+    @property
+    def isActive(self):
+        return self.djangoUser.is_active
+
+    @property
+    def isSuperUser(self):
+        return self.djangoUser.is_superuser
+
 
 class UserProfile(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='profile')
@@ -75,9 +110,6 @@ class UserProfileSection(models.Model):
     description = models.TextField(null=True)
     sectionOrder = models.SmallIntegerField()
 
-    class Meta:
-        unique_together = ('userProfile', 'sectionOrder')
-
 
 class UserProfileSectionItem(models.Model):
     """
@@ -92,29 +124,11 @@ class UserProfileSectionItem(models.Model):
     contentItemId = models.PositiveIntegerField(null=True)
     contentObject = GenericForeignKey('contentType', 'contentItemId')
 
-    class Meta:
-        unique_together = ('userProfileSection', 'contentOrder')
-
 
 class UserEducation(AuditFields):
-    # Keep in sync with globalData.js
-    OPTIONS_DEGREE = [
-        'Associate of Arts',
-        'Associate of Science',
-        'Associate of Applied Science',
-        'Bachelor of Arts',
-        'Bachelor of Science',
-        'Master of Arts',
-        'Master of Science',
-        'Master of Business Administration',
-        'Doctoral Degree',
-        'Doctor of Medicine',
-        'Juris Doctor',
-    ]
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='education')
     school = models.ForeignKey('Organization', on_delete=models.PROTECT)
-    degree = models.CharField(max_length=50, null=True, choices=[(o, o) for o in OPTIONS_DEGREE])
+    degree = models.CharField(max_length=50, null=True)
     degreeSubject = models.CharField(max_length=200, null=True)
     activities = models.TextField(null=True)
     startDate = models.DateField(null=True)
@@ -166,7 +180,7 @@ class UserContentItemSection(models.Model):
 class UserVideo(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='video')
     video = models.FileField(
-        upload_to=getUploadLocation('uploads-candidate'),
+        upload_to=getUserUploadLocation,
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_VIDEO)]
     )
     title = models.CharField(max_length=100)
@@ -175,7 +189,7 @@ class UserVideo(AuditFields):
 class UserFile(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='file')
     file = models.FileField(
-        upload_to=getUploadLocation('uploads-candidate'),
+        upload_to=getUserUploadLocation,
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_FILE)]
     )
     title = models.CharField(max_length=100)
@@ -183,7 +197,7 @@ class UserFile(AuditFields):
 
 class UserImage(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='image')
-    image = models.ImageField(upload_to=getUploadLocation('uploads-candidate'))
+    image = models.ImageField(upload_to=getUserUploadLocation)
     title = models.CharField(max_length=100)
     isDefault = models.BooleanField(default=False)
 
@@ -363,7 +377,7 @@ class UserProjectEvaluationCriterion(AuditFields):
 
 
 class UserProject(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userProject')
     customProject = models.ForeignKey(CustomProject, on_delete=models.PROTECT)
     files = models.ManyToManyField(UserFile)
     videos = models.ManyToManyField(UserVideo)

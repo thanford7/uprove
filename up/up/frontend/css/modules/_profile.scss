@@ -6,7 +6,7 @@
     img {
         border-radius: 10%;
         border: 1px solid colors.$color-moderategrey;
-        max-height: 90px;
+        max-height: 120px;
     }
     @include media-breakpoint-up(md) {
         align-content: flex-start;
@@ -38,15 +38,11 @@
     }
     @include media-breakpoint-up(md) {
         #editProfile {
-            display: none;
             width: 2rem;
             height: 2rem;
-        }
-        &:hover #editProfile {
-            display: block;
             position: absolute;
-            top: 10%;
-            left: 40%;
+            top: 0;
+            left: -2px;
         }
     }
 }

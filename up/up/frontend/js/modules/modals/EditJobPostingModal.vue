@@ -223,8 +223,8 @@ export default {
             });
 
         },
-        setEmptyFormData() {
-            this.formData = {
+        getEmptyFormData() {
+            return {
                 allowedProjects: []
             }
         },

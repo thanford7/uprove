@@ -26,13 +26,5 @@ export default {
             type: String,
         }
     },
-    mounted() {
-        if(!this.el$) {
-            this.el$ = $(`#${this.elId}`);
-            if (this.clickFn) {
-                this.el$.find('a').on('click', this.clickFn);
-            }
-        }
-    }
 }
 </script>

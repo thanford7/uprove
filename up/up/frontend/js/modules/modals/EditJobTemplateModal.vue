@@ -9,7 +9,8 @@
     >
         <div class="mb-3">
             <label for="templateJobTitle" class="form-label">Title</label>
-            <input type="text" class="form-control" placeholder="Required" id="templateJobTitle" v-model="formData.title">
+            <input type="text" class="form-control" placeholder="Required" id="templateJobTitle"
+                   v-model="formData.title">
         </div>
         <div class="mb-3">
             <label for="templateJobDescription" class="form-label">Description</label>
@@ -45,9 +46,9 @@ export default {
         isGoodFormFields(formData) {
             if (formChecker.isEmptyWysiwyg(formData.description)) {
                 this.addPopover($('#templateJobDescription'),
-                {severity: severity.WARN, content: 'Description is required', isOnce: true}
-                    );
-                    return false;
+                    {severity: severity.WARN, content: 'Description is required', isOnce: true}
+                );
+                return false;
             }
             return true;
         }

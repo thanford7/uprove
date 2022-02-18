@@ -1,36 +1,28 @@
 <template>
-    <div class="card col-md-3 col-12 mb-3" :data-content-id="contentItem.id">
+    <div :id="elId" class="card col-md-5 col-12 mb-3">
         <div class="card-inner">
             <h5 class="card-header">
-                {{contentItem.title}}
+                {{cardTitle}}
                 <span v-if="initData.isOwner" class="float-end">
                     <i
                         title="Edit content card"
                         class="fas fa-pencil-alt"
-                        @click="eventBus.emit(openEvent, contentItem)"
-                        :data-content-item="contentItem"
+                        @click="eventBus.emit(openEvent, item)"
                     />
                     <i
                         title="Delete content card"
                         class="fas fa-trash"
                         @click="removeCard"
-                        :data-content-item="contentItem"
                     />
                     <i
-                        title="Delete content card"
-                        class="fas fa-trash"
-                        @click="removeCard"
-                        :data-content-item="contentItem"
-                    />
-                    <i
-                        v-if="!isFirstItem"
+                        v-if="contentItem.contentOrder !== 1"
                         @click="move(-1)"
                         class="fas"
                         :class="`fa-arrow-${(isMobile) ? 'up' : 'left'}`"
                         :title="`Move content card ${(isMobile) ? 'up' : 'left'}`"
                     />
                     <i
-                        v-if="!isLastItem"
+                        v-if="contentItem.contentOrder !== contentSection.sectionItems.length"
                         @click="move(1)"
                         class="fas"
                         :class="`fa-arrow-${(isMobile) ? 'down' : 'right'}`"
@@ -39,20 +31,24 @@
                 </span>
             </h5>
             <ContentMedia 
-                v-if="['video', 'project'].includes(contentItem.post_type)" 
-                :contentItem="contentItem"
+                v-if="[contentTypes.VIDEO, contentTypes.IMAGE, contentTypes.CUSTOM].includes(item.type)"
+                :contentItem="item"
                 @contentUpdated="adjustCardHeight"
             />
-            <ContentEducation v-if="contentItem.post_type === 'education'" :contentItem="contentItem"/>
-            <ContentExperience v-if="contentItem.post_type === 'experience'" :contentItem="contentItem"/>
-            <ViewMoreLink v-if="isHeightExceeded" :clickFn="getMoreContentFn()"/>
+            <ContentEducation v-if="item.type === contentTypes.EDUCATION" :contentItem="item"/>
+            <ContentExperience v-if="item.type === contentTypes.EXPERIENCE" :contentItem="item"/>
+            <ContentProject v-if="item.type === contentTypes.PROJECT" :contentItem="item"/>
+            <ViewMoreLink @click="eventBus.emit('open:displayContentModal', this.item)"/>
         </div>
     </div>
 </template>
 <script>
+import {CONTENT_TYPES} from '../../../globalData';
 import ContentEducation from './ContentEducation.vue';
 import ContentExperience from './ContentExperience.vue';
 import ContentMedia from './ContentMedia.vue';
+import ContentProject from "./ContentProject";
+import contentUtil from "../../../utils/content";
 import dataUtil from "../../../utils/data";
 import Layout from '../../../utils/layout';
 import ViewMoreLink from '../../components/ViewMoreLink.vue';
@@ -60,24 +56,36 @@ import ViewMoreLink from '../../components/ViewMoreLink.vue';
 export default {
     data() {
         return {
+            elId: this.getNewElUid(),
+            crudUrl: 'user-profile/section/content-item/',
+            isUpdateData: true,
+            updateDeleteMethod: 'POST',
             el$: null,
             cardInner$: null,
-            isHeightExceeded: null
+            isHeightExceeded: null,
+            contentTypes: CONTENT_TYPES
         }
     },
     components: {
         ContentMedia,
         ContentEducation,
         ContentExperience,
+        ContentProject,
         ViewMoreLink
     },
     computed: {
+        item() {
+            return this.contentItem.item;
+        },
+        cardTitle() {
+            return contentUtil.getContentTitle(this.item);
+        },
         openEvent() {
             let openType;
-            if (['video', 'project'].includes(this.contentItem.post_type)) {
+            if ([this.contentTypes.VIDEO, this.contentTypes.CUSTOM].includes(this.item.type)) {
                 openType = 'Media'
             } else {
-                openType = dataUtil.capitalize(this.contentItem.post_type)
+                openType = dataUtil.capitalize(this.item.type)
             }
             return `open:edit${openType}Modal`
         },
@@ -87,35 +95,16 @@ export default {
             this.adjustCardHeight();
         }
     },
-    props: {
-        contentItem: {
-            type: Object
-        },
-        contentSection: {
-            type: String
-        },
-        contentSectionOrder: {
-            type: Number
-        },
-        contentItemOrder: {
-            type: Number
-        },
-        isFirstItem: {
-            type: Boolean
-        },
-        isLastItem: {
-            type: Boolean
-        }
-    },
+    props: ['contentItem', 'contentSection'],
     methods: {
-        removeCard() {
-            if(!window.confirm(`Are you sure you want to remove this ${this.contentSection} card? This will not delete it, only remove it from the page.`)) {
-                return;
-            }
-            this.$store.commit(`remove${dataUtil.capitalize(this.contentSection)}Id`, {id: this.contentId, sectionIdx: this.contentSectionOrder});
+        getDeleteConfirmationMessage() {
+            return `Are you sure you want to remove this ${this.contentSection} card? This will not delete it, only remove it from the page.`
         },
-        getMoreContentFn() {
-            return () => this.eventBus.$emit('open:displayContentModal', this.contentItem.ID);
+        removeCard() {
+            this.formData = {
+                id: this.contentItem.id
+            }
+            this.deleteObject();
         },
         adjustCardHeight() {
             if (this.cardInner$ && this.el$) {
@@ -125,18 +114,23 @@ export default {
             }
         },
         move(direction) {
-            this.$store.commit(`move${dataUtil.capitalize(this.contentSection)}Id`, {itemIdx: this.contentItemOrder, sectionIdx: this.contentSectionOrder, direction})
+            this.formData = {
+                id: this.contentItem.id,
+                contentOrder: this.contentItem.contentOrder + direction,
+                sectionId: this.contentSection.id
+            }
+            this.saveChange(null, true);
         }
     },
     mounted() {
         if (!this.el$) {
-            this.el$ = $(`#${this._uid}`);
+            this.el$ = $(`#${this.elId}`);
             this.cardInner$ = this.el$.find('.card-inner');
             this.adjustCardHeight();
             this.isHeightExceeded = Layout.isElHeightExceeded(this.el$);
         }
 
-        this.eventBus.$on('resize', () => { this.adjustCardHeight(); });
+        this.eventBus.on('resize', () => { this.adjustCardHeight(); });
     },
 }
 </script>

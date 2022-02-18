@@ -217,6 +217,8 @@ if USE_LOCAL:
     logger.info('Using local static storage')
     STATIC_URL = '/static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+    DEFAULT_FILE_STORAGE = 'up.customStorage.OverwriteStorage'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:

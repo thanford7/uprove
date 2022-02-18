@@ -15,6 +15,7 @@ const APPLICATION_STATUS = {
 
 class DataUtil {
     dateFormat = 'MM/DD/YYYY';
+    shorthandDateFormat = 'MMM YYYY';
 
     parseIdString(val, separator = ',') {
         if (typeof val !== 'string') {
@@ -169,7 +170,25 @@ class DataUtil {
     }
 
     capitalize(string) {
-        return (string) ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : '';
+        return (string) ? string.charAt(0).toUpperCase() + string.slice(1) : '';
+    }
+
+    /**
+     * Delete an item from an object using a relative path string
+     * @param obj {Object}
+     * @param path {String}: Use dot notation for nested variables
+     */
+    deleteFromPath(obj, path) {
+        path = path.split('.');
+
+        for (let i = 0; i < path.length - 1; i++) {
+            obj = obj[path[i]];
+            if (typeof obj === 'undefined') {
+                return;
+            }
+        }
+
+        delete obj[path.pop()];
     }
 
     deepCopy(val) {
@@ -241,10 +260,16 @@ class DataUtil {
         }
     }
 
+    /**
+     * Returns a copied object with omitted properties removed. Does not mutate original object.
+     * @param targetObject {Object}
+     * @param omitList {Array}: Items in list can have relative paths using dot notation
+     * @returns {*}
+     */
     omit(targetObject, omitList) {
         const objCopy = this.deepCopy(targetObject);
         omitList.forEach((omission) => {
-            delete objCopy[omission];
+            this.deleteFromPath(objCopy, omission);
         })
         return objCopy;
     }

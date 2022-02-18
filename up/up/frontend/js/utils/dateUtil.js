@@ -10,6 +10,14 @@ class DateUtil {
         return dayjs();
     }
 
+    today() {
+        return dayjs().hour(0).minute(0).second(0).millisecond(0);
+    }
+
+    serializeDate(val) {
+        return dayjs(val).format(`${this.dateFormat}`);
+    }
+
     serializeDateTime(val) {
         return dayjs(val).format(`${this.dateFormat} ${this.timeFormat}`);
     }

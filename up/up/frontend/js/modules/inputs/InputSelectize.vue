@@ -11,6 +11,14 @@ export default {
             targetEl: null  // Select element is not displayed so we need to target an inner html element
         }
     },
+    watch: {
+        items(newVal) {
+            if (this.elSel) {
+                newVal = Array.isArray(newVal) ? newVal : [newVal]
+                newVal.forEach((val) => { this.elSel.addItem(val, true); })
+            }
+        }
+    },
     props: ['cfg', 'elId', 'isParseAsInt', 'isParseAsBits', 'placeholder', 'items'],
     methods: {
         parseInteger(val) {
@@ -24,6 +32,9 @@ export default {
             if (!this.elSel && el$.length) {
                 if (this.items) {
                     this.cfg.items = Array.isArray(this.items) ? this.items : [this.items];
+                }
+                if (this.cfg.load && this.cfg.items) {
+                    this.cfg.options = this.cfg.items;
                 }
                 this.elSel = el$.selectize(this.cfg)[0].selectize;
                 this.targetEl = el$.next('.selectize-control')[0];

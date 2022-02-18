@@ -9,8 +9,7 @@ from rest_framework.views import APIView
 
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView, SkillView
-from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, \
-    Organization, ProjectEvaluationCriterion, UserProjectEvaluationCriterion
+from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
     getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject
 import upapp.security as security
@@ -418,8 +417,8 @@ class OrganizationView(UproveAPIView):
                 return Response(status=status.HTTP_200_OK, data=getSerializedOrganization(org))
             except Organization.DoesNotExist as e:
                 raise e
-        elif searchString := self.data.get('searchString'):
-            q = Q(name__iregex=f'^.*{searchString}.*$')
+        elif search := self.data.get('search'):
+            q = Q(name__iregex=f'^.*{search}.*$')
 
             if orgType := self.data.get('orgType'):
                 q &= Q(orgType=orgType)
@@ -429,12 +428,18 @@ class OrganizationView(UproveAPIView):
 
     @staticmethod
     @atomic
-    def createOrg(data):
-        org = Organization()
+    def updateOrCreateOrg(data):
+        try:
+            org = Organization.objects.get(name=data['name'], orgType=data['orgType'])
+        except Organization.DoesNotExist:
+            org = Organization()
+
+        if newLogo := data.get('newLogo'):
+            org.logo = newLogo
+
         dataUtil.setObjectAttributes(org, data, {
             'name': None,
             'orgType': None,
-            'logo': None,
             'user_id':  {'formName': 'userId'}
         })
         org.save()

@@ -4,6 +4,38 @@ const USER_BITS = {
     ADMIN: 4
 }
 
+const CONTENT_TYPES = {
+    EXISTING: 'existing',
+    EXPERIENCE: 'experience',
+    EDUCATION: 'education',
+    PROJECT: 'project',
+    CUSTOM: 'custom',
+    VIDEO: 'video',
+    IMAGE: 'image',
+    FILE: 'file',
+    TEXT: 'text'
+}
+
+const DEGREE_OPTIONS = [
+    'Associate of Arts',
+    'Associate of Science',
+    'Associate of Applied Science',
+    'Bachelor of Arts',
+    'Bachelor of Science',
+    'Certificate',
+    'Master of Arts',
+    'Master of Science',
+    'Master of Business Administration',
+    'Doctoral Degree',
+    'Doctor of Medicine',
+    'Juris Doctor',
+]
+
+const ORGANIZATION_TYPES = {
+    COMPANY: 'company',
+    SCHOOL: 'school'
+};
+
 const globalDataGetter = () => {
     return Object.assign({
         API_URL: '/api/v1/',
@@ -12,19 +44,6 @@ const globalDataGetter = () => {
             IMAGE: ['png', 'jpeg', 'jpg', 'gif'],
             FILE: ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet']
         },
-        DEGREE_OPTIONS: [
-            'Associate of Arts',
-            'Associate of Science',
-            'Associate of Applied Science',
-            'Bachelor of Arts',
-            'Bachelor of Science',
-            'Master of Arts',
-            'Master of Science',
-            'Master of Business Administration',
-            'Doctoral Degree',
-            'Doctor of Medicine',
-            'Juris Doctor',
-        ],
         EMAIL_CANDIDATE_INTEREST: 'CANDIDATE_INTEREST',
         EMAIL_CONTACT: 'CONTACT',
         EMAIL_EMPLOYER_INTEREST: 'EMPLOYER_INTEREST',
@@ -36,10 +55,6 @@ const globalDataGetter = () => {
             'Internship'
         ],
         LOOM_API_KEY: 'db47f7c0-e863-4ed8-ac6e-2c9872ad5c00',
-        ORGANIZATION_TYPES: [
-            'company',
-            'school'
-        ],
         SKILL_LEVEL: {
             1: {
                 title: 'Entry',
@@ -73,4 +88,4 @@ const globalDataGetter = () => {
 
 const globalData = globalDataGetter();
 
-export {globalData as default, USER_BITS};
+export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, USER_BITS};

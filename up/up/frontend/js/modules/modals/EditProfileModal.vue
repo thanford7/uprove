@@ -6,84 +6,41 @@
     >
         <div class="mb-3">
             <label for="formProfileName" class="form-label">Name</label>
-            <input type="text" class="form-control" placeholder="Add name..." id="formProfileName" v-model="formData.profile_name">
+            <input type="text" class="form-control" placeholder="Add name..." id="formProfileName" v-model="formData.profileName">
         </div>
         <div class="mb-3">
             <label class="form-label">Profile picture</label>
-            <InputSelectOrUploadMedia
-                ref="profilePic"
-                :currentMediaIds="[profile.profile_picture.ID]"
-                :mediaTypes="['image']"
-                placeholderDescription="profile picture"
+            <InputOrViewMedia
+                :inputId="getNewElUid()"
+                :mediaTypes="[contentTypes.IMAGE]"
+                itemLabel="profile picture"
+                :currentItem="formData?.profilePicture?.image"
+                :isUploadDefault="!formData.profilePicture"
+                @selectedMediaNew="formData.newProfilePicture = $event"
             />
         </div>
     </BaseModal>
 </template>
 <script>
-import Modal from 'bootstrap/js/dist/modal';
-import {mapState} from 'vuex';
+import {CONTENT_TYPES} from '../../globalData';
 import BaseModal from './BaseModal.vue';
-import InputSelectOrUploadMedia from '../inputs/InputSelectOrUploadMedia.vue';
+import InputOrViewMedia from "../inputs/InputOrViewMedia";
 
 export default {
     extends: BaseModal,
     data() {
         return {
             modalName: 'editProfileModal',
-
-            inputs: {
-                profile_name: {
-                    setter: () => this.profile.profile_name
-                },
+            crudUrl: 'user-profile/',
+            isUpdateData: true,
+            mediaFields: ['newProfilePicture'],
+            requiredFields: {
+                profileName: '#formProfileName'
             },
+            contentTypes: CONTENT_TYPES
         }
     },
     inheritAttrs: false,
-    components: {BaseModal, InputSelectOrUploadMedia},
-    computed: {
-        ...mapState({
-            profile: 'profile',
-            profilePicture: 'profilePicture',
-            crudUrl: 'crudUrlProfile'
-        }),
-        formData() {
-            const formData = {}
-            Object.entries(this.inputs).forEach(([input, cfg]) => {
-                formData[input] = cfg.setter();
-            });
-            return formData;
-        }
-    },
-    methods: {
-        onSaveSuccess(requestData, responseData) {
-            this.eventBus.loadContent(['profile', 'media'])
-        },
-        hookEvents() {
-            this.eventBus.$on('open:editProfileModal', () => {
-                this.modal$.show();
-            });
-        },
-        getPreSaveChange() {
-            const {uploadValue, existingValue} = this.$refs.profilePic.getValue();
-            if (uploadValue) {
-                return this.eventBus.createMediaItem(uploadValue).then((mediaItem) => ({profile_picture: mediaItem.id}));
-            } else {
-                this.formData.profile_picture = existingValue;
-                return this.$super(BaseModal).getPreSaveChange();
-            }
-        },
-        toggleImageUpload(isImageUpload) {
-            this.isImageUpload = isImageUpload;
-            this.imageToggle$.text((isImageUpload) ? 'Select existing image' : 'Upload new image');
-            this.imageUpload$.toggle(isImageUpload);
-            this.imageSel$.toggle(!isImageUpload);
-        },
-    },
-    mounted() {
-        this.imageSel$ = $(`#formImageSel-${this.profile.ID}`).parent().find('.selectize-control');
-        this.imageUpload$ = $(`#formImageUpload-${this.profile.ID}`);
-        this.imageToggle$ = $(`#formToggleImageUpload-${this.profile.ID}`);
-        this.toggleImageUpload(this.isImageUpload);
-    }
+    components: {BaseModal, InputOrViewMedia},
 }
 </script>

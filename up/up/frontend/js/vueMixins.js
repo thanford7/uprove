@@ -75,8 +75,10 @@ const ajaxRequestMixin = {
             crudUrl: null,
             initDataKey: null,  // The key to access the data structure to be updated after CRUD operation. To update all initData, leave blank
             isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
+            updateDeleteMethod: null, // Set to PUT or POST if not sending a delete ID response from ajax request
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
+            mediaFields: [],  // Fields that must be processed as files or media. Can access nested fields using dot notation
             isAjaxModal: false,
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
             pageRedirect: null,  // Page to redirect to after succesful ajax request
@@ -93,7 +95,11 @@ const ajaxRequestMixin = {
                 });
                 if (this.isUpdateData) {
                     if (method === 'DELETE') {
-                        this.updateInitDataDelete(data)
+                        if (this.updateDeleteMethod) {
+                            this.updateInitData(data, this.updateDeleteMethod);
+                        } else {
+                            this.updateInitDataDelete(data);
+                        }
                     } else {
                         this.updateInitData(data, method === 'PUT');
                     }
@@ -133,7 +139,17 @@ const ajaxRequestMixin = {
                         updateObject.push(newData);
                     }
                 } else {
-                    this.initData = newData;
+                    Object.assign(this.initData, newData);  // This ensures Vue picks up changes (opposed to this.initData = newData)
+
+                    // Make sure there aren't any keys that used to be present, but should be removed
+                    if (dataUtil.isObject(newData) && dataUtil.isObject(this.initData)) {
+                        const newKeys = Object.keys(newData);
+                        Object.keys(this.initData).forEach((key) => {
+                            if(!newKeys.includes(key)) {
+                                delete this.initData[key];
+                            }
+                        });
+                    }
                 }
             });
             this.afterUpdateInitData();
@@ -186,7 +202,7 @@ const ajaxRequestMixin = {
         },
         hasRequiredFormFields(formData) {
             return Object.entries(this.requiredFields).reduce((hasRequired, [field, domSel]) => {
-                if (!formData[field]) {
+                if (!dataUtil.get(formData, field)) {
                     this.addPopover($(domSel),
                         {severity: severity.WARN, content: 'Required field', isOnce: true}
                     );
@@ -195,39 +211,60 @@ const ajaxRequestMixin = {
                 return hasRequired & true
             }, true);
         },
+        getAndCheckData() {
+            const formData = this.processFormData();
+            const isGoodData = this.isGoodFormData(formData);
+            return {formData, isGoodData};
+        },
         readAndSubmitForm() {
             const formData = this.processFormData();
             if (!this.isGoodFormData(formData)) {
                 return false;
             }
             return this.submitAjaxRequest(
-                this.getAjaxFormData(formData, this.mediaFields),
+                this.getAjaxFormData(formData),
                 {method: (formData.id) ? 'PUT' : 'POST'}
             )
         },
-        getAjaxFormData(data, mediaFields) {
+        /**
+         * Transforms an object into form data. Splits media data (files, images, videos) into separate fields so they
+         * can be processed differently
+         * @param data {Object}
+         * @returns {FormData}
+         */
+        getAjaxFormData(data) {
             const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(dataUtil.omit(data, mediaFields || [])));
-            (mediaFields || []).forEach((field) => {
-                if (Array.isArray(data[field])) {
-                    data[field].forEach((file) => {
-                        ajaxData.append(field, file);
+            ajaxData.append('data', JSON.stringify(dataUtil.omit(data, this.mediaFields)));
+            this.mediaFields.forEach((field) => {
+                const val = dataUtil.get(data, field);
+                if (!val) {
+                    return;
+                }
+                const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
+                    if (idx !== 0) {
+                        fieldPart = dataUtil.capitalize(fieldPart);
+                    }
+                    return finalField + fieldPart;
+                }, ''); // If field uses dot notation, we need to use the last subfield
+                if (Array.isArray(val)) {
+                    val.forEach((file) => {
+                        ajaxData.append(finalField, file);
                     })
                 } else {
-                    ajaxData.append(field, data[field]);
+                    ajaxData.append(finalField, val);
                 }
             });
             return ajaxData;
         },
         saveChange(e, allowDefault = false) {
-            if (!allowDefault) {
+            if (e && !allowDefault) {
                 e.preventDefault();
             }
-            this.isAjaxModal = Boolean($(e.currentTarget).parents('.modal').length);
+            this.isAjaxModal = (e) ? Boolean($(e.currentTarget).parents('.modal').length) : false;
             return this.readAndSubmitForm();
         },
         deleteObject(e) {
-            this.isAjaxModal = Boolean($(e.currentTarget).parents('.modal').length);
+            this.isAjaxModal = (e) ? Boolean($(e.currentTarget).parents('.modal').length) : false;
             const deleteData = this.getDeleteObjectData();
             if (!deleteData) {
                 eventBus.emit('failure:delete', 'No selection');
@@ -288,6 +325,9 @@ const globalVarsMixin = {
         getNewElUid() {
             newElUid++;
             return newElUid.toString();
+        },
+        log(val) {
+            console.log(val);  // Easy way to debug Vue html code
         },
         getSkillLevelNumbersFromBits(skillLevelBits) {
             return Object.keys(this.globalData.SKILL_LEVEL).filter((level) => parseInt(level) & skillLevelBits);
@@ -358,30 +398,40 @@ const modalsMixin = {
                 }
             });
         },
+        initForm() {
+            this.formData = this.getEmptyFormData();
+            this.clearSelectizeElements();
+        },
         processRawData(rawData) {
             // subclass
             return rawData;
         },
-        setEmptyFormData() {
+        getEmptyFormData() {
             // subclass
-            this.formData = {};
+            return {};
         },
         setFormFields() {
             // subclass - use for form fields that don't have a v-model property (mainly selectize fields)
+        },
+        setFormData(rawData) {
+            if (rawData) {
+                const rawDataCopy = (rawData) ? dataUtil.deepCopy(rawData) : rawData;  // Copy data so we don't mutate original
+                this.formData = this.processRawData(rawDataCopy);
+                this.setFormFields();
+            }
         }
     },
     mounted() {
         eventBus.on(`open:${this.modalName}`, (rawData) => {
             this.modal$ = Modal.getOrCreateInstance($(`#${this.modalName}`), {backdrop: 'static'});
-            const rawDataCopy = (rawData) ? dataUtil.deepCopy(rawData) : rawData;  // Copy data so we don't mutate original
             store.commit('clearAllAlerts');
-            this.setEmptyFormData();
-            this.clearSelectizeElements();
+            this.initForm();
             this.modal$.show();
-            if (rawDataCopy) {
-                this.formData = this.processRawData(rawDataCopy);
-                this.setFormFields();
-            }
+            this.setFormData(rawData);
+        });
+        eventBus.on(`open:${this.modalName}:content`, (rawData) => {
+            this.initForm();
+            this.setFormData(rawData);
         });
     }
 }

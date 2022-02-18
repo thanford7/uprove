@@ -223,3 +223,9 @@ tr {
         transition: transform 0.2s ease-in-out;
     }
 }
+
+.col-12.outer {
+    @include media-breakpoint-down(md) {
+        margin-left: calc(var(--bs-gutter-x) * 0.5);
+    }
+}

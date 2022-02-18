@@ -36,10 +36,10 @@
         <div class="mb-3">
             <InputOrViewMedia
                 inputId="blogPicture"
-                :mediaTypes="['image']"
+                :mediaTypes="[contentTypes.IMAGE]"
                 itemLabel="picture"
                 :currentItem="formData.picture"
-                @selected="formData.picture = $event"
+                @selectedMediaNew="formData.picture = $event"
             />
         </div>
         <div class="mb-3">
@@ -50,6 +50,7 @@
 </template>
 
 <script>
+import {CONTENT_TYPES} from '../../globalData';
 import BaseModal from "./BaseModal";
 import InfoToolTip from "../components/InfoToolTip";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
@@ -74,6 +75,7 @@ export default {
                 authorId: null  // Set on mounted
             },
             mediaFields: ['picture'],
+            contentTypes: CONTENT_TYPES
         }
     },
     computed: {

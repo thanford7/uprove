@@ -2,57 +2,53 @@
     <div class="container-lg mt-3">
         <BannerAlert/>
         <div class="row">
-            <div class="col-md-3 col-12 card-custom">
+            <div class="col-md-3 col-lg-2 col-12 card-custom">
                 <div class="profile-picture">
                     <span id="profilePic">
-                        <img v-if="initData.profilePicture" :src="initData.profilePicture" alt="Profile picture">
+                        <img v-if="initData.profilePicture" :src="initData.profilePicture.image">
                         <i v-else class="fas fa-user fa-4x"></i>
                         <i
                             v-if="initData.isOwner"
-                            class="fas fa-pencil-alt"
+                            class="fas fa-pencil-alt fa-lg"
                             id="editProfile"
-                            @click="eventBus.emit('open:editProfileModal')"
+                            @click="eventBus.emit('open:editProfileModal', initData)"
                         />
                     </span>
-                    <h4 class="-text-center mt-2">{{initData.firstName}} {{initData.lastName}}</h4>
+                    <h4 class="-text-center mt-2">{{initData.user.firstName}} {{initData.user.lastName}}</h4>
                 </div>
             </div>
-            <div class="col-md-8 col-12">
+            <div class="col-md-8 col-12 outer">
                 <div v-for="(section, idx) in initData.sections" class="row card-custom -border-bottom--light mb-2 pb-2 ">
                     <div class="col-12">
                         <h4 class="d-inline-block">{{section.title}}</h4>
-                        <button v-if="initData.isOwner" type="button" class="btn btn-sm btn-outline-dark ms-2" @click="eventBus.emit('open:addContentModal', section)">
+                        <button v-if="initData.isOwner" type="button" class="btn btn-sm btn-outline-dark ms-2" @click="eventBus.emit('open:addContentModal', {sectionId: section.id})">
                             <i class="fas fa-plus"></i> Add card
                         </button>
-                        <div class="-float-right">
+                        <div v-if="initData.isOwner" class="-float-right">
                             <i
                                 v-if="!(idx === 0)"
-                                @click="move(-1, idx)"
+                                @click="move(-1, section)"
                                 class="fas fa-arrow-up"
                                 title="Move section up"
                             />
                             <i
                                 v-if="!(idx === initData.sections.length - 1)"
-                                @click="move(1, idx)"
+                                @click="move(1, section)"
                                 class="fas fa-arrow-down"
                                 title="Move section down"
                             />
                             <i
-                                @click="removeSection(idx)"
+                                @click="removeSection(section)"
                                 class="fas fa-trash"
                                 title="Remove section"
                             />
                         </div>
 
-                        <div class="row grid">
+                        <div class="row mt-2 justify-content-center">
                             <ContentCard
-                                v-for="(sectionItem, itemIdx) in section.sectionItems"
-                                contentSection="section"
-                                :contentSectionOrder="idx"
-                                :contentItemOrder="itemIdx"
-                                :isFirstItem="itemIdx === 0"
-                                :isLastItem="itemIdx === section.ids.length - 1"
-                                :contentItem="sectionItem.item"
+                                v-for="sectionItem in section.sectionItems"
+                                :contentItem="sectionItem"
+                                :contentSection="section"
                             />
                         </div>
                     </div>
@@ -68,11 +64,11 @@
 
         <AddContentModal/>
         <AddSectionModal/>
-<!--        <EditEducationModal/>-->
-<!--        <EditExperienceModal/>-->
-<!--        <EditProfileModal/>-->
-<!--        <EditMediaModal/>-->
-<!--        <DisplayContentModal/>-->
+        <EditEducationModal/>
+        <EditExperienceModal/>
+        <EditProfileModal/>
+        <EditMediaModal/>
+        <DisplayContentModal/>
     </div>
 </template>
 <script>
@@ -87,6 +83,13 @@ import EditProfileModal from '../../modals/EditProfileModal.vue';
 import EditMediaModal from '../../modals/EditMediaModal.vue';
 
 export default {
+    data() {
+        return {
+            crudUrl: 'user-profile/section/',
+            isUpdateData: true,
+            updateDeleteMethod: 'POST'
+        }
+    },
     components: {
         AddContentModal,
         AddSectionModal,
@@ -99,11 +102,23 @@ export default {
         EditMediaModal
     },
     methods: {
-        removeSection(sectionIdx) {
-            this.$store.commit('removeSection', sectionIdx);
+        getDeleteConfirmationMessage() {
+            return 'Are you sure you want to delete this section? The content will not be deleted and will still be available to add to other sections.'
         },
-        move(direction, sectionIdx) {
-            this.$store.commit('moveSection', {direction, sectionIdx})
+        readForm() {
+            return Object.assign(this.formData, {
+                userId: this.initData.user.id,
+                profileId: this.initData.id
+            });
+        },
+        removeSection(section) {
+            this.formData = section;
+            this.deleteObject();
+        },
+        move(direction, section) {
+            section.sectionOrder += direction;
+            this.formData = section;
+            this.saveChange()
         }
     },
 }

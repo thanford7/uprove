@@ -311,9 +311,9 @@ export default {
             this.updateSkillLevelInstructions(formData, formData.skillLevelBits);
             return Object.assign(formData, {newFiles});
         },
-        setEmptyFormData() {
-            this.formData = {};
+        getEmptyFormData() {
             this.$refs.skillsTable.clearData();
+            return {};
         },
         setFormFields() {
             const {skillLevelBits, roleId, skills, employer} = this.formData;
