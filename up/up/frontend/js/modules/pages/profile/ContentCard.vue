@@ -98,7 +98,7 @@ export default {
     props: ['contentItem', 'contentSection'],
     methods: {
         getDeleteConfirmationMessage() {
-            return `Are you sure you want to remove this ${this.contentSection} card? This will not delete it, only remove it from the page.`
+            return `Are you sure you want to remove this ${this.item.type} card? This will not delete it, only remove it from the page.`
         },
         removeCard() {
             this.formData = {

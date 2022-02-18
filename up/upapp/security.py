@@ -4,9 +4,9 @@ from upapp.models import User
 def getSessionUser(request):
     try:
         userDict = request.session['uproveUser']
-        if not (userId := userDict.get('id')):
+        if not userDict:
             return None
-        userObj = User.objects.select_related('djangoUser').get(id=userId)
+        userObj = User.objects.select_related('djangoUser').get(id=userDict['id'])
         return userObj
     except KeyError:
         return None
