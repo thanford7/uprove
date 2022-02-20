@@ -356,7 +356,8 @@ export default {
                     return false;
                 }
                 if (!fileMetaData.skillLevelBits) {
-                    this.addPopover($(`#projectFile-skillBits-${fileMetaData.formId}`),
+                    const targetEl = this.$refs[`projectFile-skillBits-${fileMetaData.formId}`].targetEl;
+                    this.addPopover($(targetEl),
                 {severity: severity.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
