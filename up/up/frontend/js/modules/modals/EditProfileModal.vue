@@ -2,14 +2,14 @@
     <BaseModal
         modalId="editProfileModal"
         modalTitle="Edit profile"
+        :isLargeDisplay="true"
         @saveChange="saveChange"
     >
         <div class="mb-3">
-            <label for="formProfileName" class="form-label">Name</label>
+            <label for="formProfileName" class="form-label">Profile name</label>
             <input type="text" class="form-control" placeholder="Add name..." id="formProfileName" v-model="formData.profileName">
         </div>
         <div class="mb-3">
-            <label class="form-label">Profile picture</label>
             <InputOrViewMedia
                 :inputId="getNewElUid()"
                 :mediaTypes="[contentTypes.IMAGE]"
@@ -19,12 +19,20 @@
                 @selectedMediaNew="formData.newProfilePicture = $event"
             />
         </div>
+        <div class="mb-3">
+            <EditUserTagTable ref="userSkills" :userTags="initData.user.skills" :tagType="tagTypes.SKILL"/>
+        </div>
+        <div class="mb-3">
+            <EditUserTagTable ref="userInterests" :userTags="initData.user.interests" :tagType="tagTypes.INTEREST"/>
+        </div>
     </BaseModal>
 </template>
 <script>
-import {CONTENT_TYPES} from '../../globalData';
+import {CONTENT_TYPES, TAG_TYPES} from '../../globalData';
 import BaseModal from './BaseModal.vue';
+import EditUserTagTable from "../components/EditUserTagTable";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
+import {severity} from "../../vueMixins";
 
 export default {
     extends: BaseModal,
@@ -37,10 +45,33 @@ export default {
             requiredFields: {
                 profileName: '#formProfileName'
             },
-            contentTypes: CONTENT_TYPES
+            contentTypes: CONTENT_TYPES,
+            tagTypes: TAG_TYPES
         }
     },
     inheritAttrs: false,
-    components: {BaseModal, InputOrViewMedia},
+    components: {BaseModal, EditUserTagTable, InputOrViewMedia},
+    methods: {
+        isGoodFormFields(formData) {
+            if(this.$refs.userSkills.hasDuplicate()) {
+                this.addPopover($(this.$refs.userSkills.$el),
+                {severity: severity.WARN, content: 'Cannot have the same skill multiple times', isOnce: true}
+                );
+                return false;
+            }
+            if(this.$refs.userInterests.hasDuplicate()) {
+                this.addPopover($(this.$refs.userInterests.$el),
+                {severity: severity.WARN, content: 'Cannot have the same interest multiple times', isOnce: true}
+                );
+                return false;
+            }
+            return true;
+        },
+        processFormData() {
+            const userSkills = this.$refs.userSkills.getTags();
+            const userInterests = this.$refs.userInterests.getTags();
+            return Object.assign(this.readForm(), {userInterests, userSkills});
+        },
+    }
 }
 </script>

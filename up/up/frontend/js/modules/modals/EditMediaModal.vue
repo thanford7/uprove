@@ -166,8 +166,10 @@ export default {
     },
     mounted() {
         this.requiredFields.title = this.$refs.title;
-        [this.$refs.mediaInput, this.$refs.description, this.$refs.fileInput].forEach((el, idx) => {
-            SECTIONS[idx].el = el;
+        [this.$refs.mediaInput, this.$refs.description, this.$refs.fileInput].forEach((ref, idx) => {
+            if (ref) {
+                SECTIONS[idx].el = ref.$el;
+            }
         });
     }
 }

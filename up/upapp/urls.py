@@ -1,16 +1,12 @@
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
-from upapp.apis import blog
-from upapp.apis import employer
-from upapp.apis import job
-from upapp.apis import project
-from upapp.apis import sendEmail
-from upapp.apis import storage
-from upapp.apis import user
+from upapp.apis import blog, employer, job, project, sendEmail, storage, tag, user
+from upapp.sitemaps import sitemaps
 
 apiPath = 'api/v1/'
 
@@ -48,6 +44,7 @@ urlpatterns = [
     re_path(apiPath + 'project/(?P<projectId>[0-9]+)?/?$', project.ProjectView.as_view()),
     re_path(apiPath + 'project-role/(?P<roleId>[0-9]+)?/?$', project.RoleView.as_view()),
     re_path(apiPath + 'project-skill/(?P<skillId>[0-9]+)?/?$', project.SkillView.as_view()),
+    re_path(apiPath + 'tag/$', tag.TagView.as_view()),
     re_path(apiPath + 'user-job-application/(?P<userJobApplicationId>[0-9]+)?/?$', user.UserJobApplicationView.as_view()),
     re_path(apiPath + 'user-profile/$', user.UserProfileView.as_view()),
     re_path(apiPath + 'user-profile/content-item/$', user.UserProfileContentItemView.as_view()),
@@ -70,7 +67,10 @@ urlpatterns = [
     path('login/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='login'),
 
     # Storage
-    path(apiPath + 'user-storage/', storage.UserStorageView.as_view())
+    path(apiPath + 'user-storage/', storage.UserStorageView.as_view()),
+
+    # Sitemap
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
 ]
 
 if settings.USE_LOCAL:

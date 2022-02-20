@@ -36,6 +36,11 @@ const ORGANIZATION_TYPES = {
     SCHOOL: 'school'
 };
 
+const TAG_TYPES = {
+    INTEREST: 'interest',
+    SKILL: 'skill'
+}
+
 const globalDataGetter = () => {
     return Object.assign({
         API_URL: '/api/v1/',
@@ -58,25 +63,25 @@ const globalDataGetter = () => {
         SKILL_LEVEL: {
             1: {
                 title: 'Entry',
-                description: 'Comparable with 0-2 years experience'
+                description: 'Comparable with 0-2 years experience',
+                pct: 25
             },
             2: {
                 title: 'Intermediate',
-                description: 'Comparable with 3-5 years experience'
+                description: 'Comparable with 3-5 years experience',
+                pct: 50
             },
             4: {
                 title: 'Advanced',
-                description: 'Comparable with 6-8 years experience'
+                description: 'Comparable with 6-8 years experience',
+                pct: 75
             },
             8: {
                 title: 'Expert',
-                description: 'Comparable with 9+ years experience'
+                description: 'Comparable with 9+ years experience',
+                pct: 100
             }
         },
-        TAG_TYPE: [
-            'interest',
-            'skill'
-        ],
         // Keep in sync with User model
         USER_TYPES: {
             [USER_BITS.CANDIDATE]: 'Candidate',
@@ -88,4 +93,4 @@ const globalDataGetter = () => {
 
 const globalData = globalDataGetter();
 
-export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, USER_BITS};
+export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, TAG_TYPES, USER_BITS};

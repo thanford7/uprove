@@ -38,6 +38,19 @@
                 </div>
             </div>
         </template>
+        <template v-if="contentItem.type === contentTypes.EXPERIENCE">
+            <div class="row">
+                <div class="col-2">
+                    <img :src="contentItem.organization.logo">
+                </div>
+                <div class="col-10">
+                    {{contentItem.positionTitle}}<br>
+                    {{contentItem.employmentType}}<br>
+                    {{formatDate(contentItem.startDate)}} to {{formatDate(contentItem.endDate) || 'current'}}
+                    <div v-html="contentItem.description"></div>
+                </div>
+            </div>
+        </template>
         <template v-if="contentItem.type === contentTypes.PROJECT">
                 <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
                 <BadgesSkills :skills="contentItem.customProject.skills"/>

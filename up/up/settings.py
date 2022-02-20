@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'django.contrib.sites',
+    'django.contrib.sitemaps',
     'manifest_loader',
     'storages',
     'rest_framework'
@@ -78,6 +80,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'up.urls'
+# SITE_ID = 1
 
 TEMPLATES = [
     {

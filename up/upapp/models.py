@@ -9,7 +9,7 @@ from django.db import models
 
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
-    'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
+    'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag'
@@ -203,10 +203,6 @@ class UserImage(AuditFields):
 
 
 class UserTag(AuditFields):
-    # Keep in sync with globalData.js
-    TYPE_INTEREST = 'interest'
-    TYPE_SKILL = 'skill'
-    TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]
 
     class SkillLevel(IntEnum):
         ENTRY = 0x1
@@ -217,11 +213,24 @@ class UserTag(AuditFields):
     SKILL_LEVELS = [(int(i), int(i)) for i in SkillLevel]
     ALL_SKILL_LEVEL_BITS = SkillLevel.ENTRY | SkillLevel.INTERMEDIATE | SkillLevel.ADVANCED | SkillLevel.EXPERT
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='tag')
-    tagType = models.CharField(max_length=25, choices=TYPES_TAG)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='userTag')
+    tag = models.ForeignKey('Tag', on_delete=models.CASCADE)
+    description = models.CharField(max_length=200, null=True)  # Override the description provided in the Tag model
+    skillLevelBit = models.SmallIntegerField(choices=SKILL_LEVELS, null=True)
+
+    class Meta:
+        unique_together = ('user', 'tag')
+
+
+class Tag(models.Model):
+    # Keep in sync with globalData.js
+    TYPE_INTEREST = 'interest'
+    TYPE_SKILL = 'skill'
+    TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]
+
     title = models.CharField(max_length=30)
+    type = models.CharField(max_length=25, choices=TYPES_TAG)
     description = models.CharField(max_length=200, null=True)
-    skillLevel = models.SmallIntegerField(choices=SKILL_LEVELS, null=True)
 
 
 class Organization(models.Model):

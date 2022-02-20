@@ -144,8 +144,8 @@ export default {
                     }
                     return userTypes;
                 }, []);
-            this.$refs['userTypes'].elSel.setValue(userTypes);
-            this.$refs['userEmployer'].elSel.setValue(rawData.formData.employerId);
+            this.$refs.userTypes.elSel.setValue(userTypes);
+            this.$refs.userEmployer.elSel.setValue(rawData.formData.employerId);
             return Object.assign(rawData.formData, {userTypes});
         },
         processFormData() {
@@ -166,7 +166,7 @@ export default {
             );
         },
         isGoodFormFields(formData) {
-            if (this.$refs['userTypes'] && formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
+            if (this.$refs.userTypes && formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
                 this.addPopover($(this.$refs.userEmployer.targetEl), {
                     severity: severity.WARN,
                     content: 'Employer and user type of "employer" must both be set',
@@ -191,8 +191,8 @@ export default {
         },
     },
     mounted() {
-        if (this.$refs['userTypes']) {
-            this.requiredFields.userTypes = this.$refs['userTypes'].targetEl;
+        if (this.$refs.userTypes) {
+            this.requiredFields.userTypes = this.$refs.userTypes.targetEl;
         }
     }
 }

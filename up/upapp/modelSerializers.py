@@ -41,7 +41,6 @@ def _addSerializedUserAssets(dataDict, user):
     dataDict['videos'] = [getSerializedUserVideo(v) for v in user.video.all()]
     dataDict['files'] = [getSerializedUserFile(f) for f in user.file.all()]
     dataDict['images'] = [getSerializedUserImage(i) for i in user.image.all()]
-    dataDict['tags'] = [getSerializedUserTag(t) for t in user.tag.all()]
 
 
 def serializeGenericItem(item):
@@ -83,6 +82,8 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'isSuperUser': user.djangoUser.is_superuser,
         'isDemo': user.isDemo,
         'isAuthenticated': user.djangoUser.is_authenticated,
+        'skills': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_SKILL)],
+        'interests': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_INTEREST)],
         **serializeAuditFields(user)
     }
 
@@ -216,11 +217,21 @@ def getSerializedUserImage(userImage: UserImage):
 def getSerializedUserTag(userTag: UserTag):
     return {
         'id': userTag.id,
-        'tagType': userTag.tagType,
-        'title': userTag.title,
-        'description': userTag.description,
-        'skillLevelNum': userTag.skillLevel,
+        'tagType': userTag.tag.type,
+        'tagId': userTag.tag.id,
+        'title': userTag.tag.title,
+        'description': userTag.description or userTag.tag.description,
+        'skillLevelBit': userTag.skillLevelBit,
         **serializeAuditFields(userTag)
+    }
+
+
+def getSerializedTag(tag: Tag):
+    return {
+        'id': tag.id,
+        'title': tag.title,
+        'type': tag.type,
+        'description': tag.description
     }
 
 

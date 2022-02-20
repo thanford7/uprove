@@ -33,7 +33,7 @@ export default {
                 if (this.items) {
                     this.cfg.items = Array.isArray(this.items) ? this.items : [this.items];
                 }
-                if (this.cfg.load && this.cfg.items) {
+                if (this.cfg.load && !this.cfg.options && this.cfg.items) {
                     this.cfg.options = this.cfg.items;
                 }
                 this.elSel = el$.selectize(this.cfg)[0].selectize;

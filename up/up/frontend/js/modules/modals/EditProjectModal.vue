@@ -285,8 +285,8 @@ export default {
         },
         processRawData(rawData) {
             // Update employer selectize with data
-            this.$refs['projectEmployer'].elSel.addOption((rawData.employers || []).map((e) => ({value: e.id, text: e.companyName})))
-            this.$refs['projectEmployer'].elSel.refreshOptions(false);
+            this.$refs.projectEmployer.elSel.addOption((rawData.employers || []).map((e) => ({value: e.id, text: e.companyName})))
+            this.$refs.projectEmployer.elSel.refreshOptions(false);
 
             this.requiredFields.roleId = this.$refs.role.targetEl;
             this.requiredFields.skillLevelBits = this.$refs.projectSkillLevels.targetEl;

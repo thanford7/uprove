@@ -22,11 +22,11 @@ from upapp.apis.employer import JobPostingView, OrganizationView
 from upapp.apis.project import SkillView
 from upapp.apis.sendEmail import EmailView
 from upapp.models import *
-from upapp.modelSerializers import ContentTypes, getSerializedUser, getSerializedJobApplication, getSerializedUserProject, \
+from upapp.modelSerializers import ContentTypes, getSerializedUser, getSerializedJobApplication, \
+    getSerializedUserProject, \
     getSerializedUserVideo, getSerializedUserProfile, getSerializedUserExperience, \
     getSerializedUserEducation, getSerializedUserContentItem
 from upapp.utils import dataUtil, dateUtil
-
 
 CONTENT_TYPE_MODELS = {
     ContentTypes.EXPERIENCE.value: {'model': UserExperience, 'serializer': getSerializedUserExperience},
@@ -211,8 +211,8 @@ class UserView(UproveAPIView):
             user, hasPassword = self.createUser(request.data, security.isPermittedAdmin(request))
         except IntegrityError:
             return Response((
-                f'User with email={self.data["email"]} already exists. If you forgot your password, ' +
-                'please use the \'reset password\' link in the sign in menu.'
+                    f'User with email={self.data["email"]} already exists. If you forgot your password, ' +
+                    'please use the \'reset password\' link in the sign in menu.'
             ), status=status.HTTP_409_CONFLICT)
         if not hasPassword:
             self.sendPasswordResetEmail(request, user.email, {
@@ -259,8 +259,8 @@ class UserView(UproveAPIView):
     @staticmethod
     def getUser(userId):
         try:
-            return User.objects\
-                .select_related('djangoUser')\
+            return User.objects \
+                .select_related('djangoUser') \
                 .prefetch_related(
                     'profile',
                     'profile__section',
@@ -273,7 +273,8 @@ class UserView(UproveAPIView):
                     'video',
                     'file',
                     'image',
-                    'tag',
+                    'userTag',
+                    'userTag__tag',
                     'userProject',
                     'userProject__user',
                     'userProject__videos',
@@ -283,7 +284,7 @@ class UserView(UproveAPIView):
                     'userProject__customProject__skills',
                     'userProject__customProject__project',
                     'userProject__customProject__project__role'
-                )\
+                ) \
                 .get(id=userId)
         except User.DoesNotExist as e:
             raise e
@@ -291,22 +292,22 @@ class UserView(UproveAPIView):
     @staticmethod
     def getUserProfiles(userId):
         try:
-            return User.objects\
-                .select_related('djangoUser')\
+            return User.objects \
+                .select_related('djangoUser') \
                 .prefetch_related(
-                    'profile'
-                    'profile__section',
-                    'profile__section__sectionItem',
-                    'profile__section__sectionItem__contentObject',
-                    'education',
-                    'experience',
-                    'contentItem',
-                    'contentItem__section',
-                    'video',
-                    'file',
-                    'image',
-                    'tag'
-                )\
+                'profile'
+                'profile__section',
+                'profile__section__sectionItem',
+                'profile__section__sectionItem__contentObject',
+                'education',
+                'experience',
+                'contentItem',
+                'contentItem__section',
+                'video',
+                'file',
+                'image',
+                'tag'
+            ) \
                 .get(id=userId)
         except User.DoesNotExist as e:
             raise e
@@ -321,7 +322,8 @@ class UserView(UproveAPIView):
             'firstName': None,
             'middleName': None,
             'lastName': None,
-            'birthDate': {'propFunc': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)},
+            'birthDate': {
+                'propFunc': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)},
             'email': None,
             'userTypeBits': None,
             'employer_id': {'formName': 'employerId'},
@@ -371,6 +373,8 @@ class UserView(UproveAPIView):
 
 
 class UserProfileView(UproveAPIView):
+    USER_SKILL_LIMIT = 5
+
     def get(self, request, profileId=None):
         pass
 
@@ -384,6 +388,10 @@ class UserProfileView(UproveAPIView):
             return Response('A profile ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         profile = self.getUserProfile(self.data['id'])
+
+        if not security.isSelf(profile.user_id, user=self.user):
+            return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
+
         dataUtil.setObjectAttributes(profile, self.data, {
             'profileName': None
         })
@@ -392,6 +400,13 @@ class UserProfileView(UproveAPIView):
             profile.profilePicture = UserImageView.createUserImage(self.user, {'image': profilePicture})
 
         profile.save()
+
+        if userSkills := self.data.get('userSkills'):
+            self.saveUserTags(self.user, Tag.TYPE_SKILL, userSkills)
+
+        if userInterests := self.data.get('userInterests'):
+            self.saveUserTags(self.user, Tag.TYPE_INTEREST, userInterests)
+
         return self.getProfileOwnerResponse(profile.id)
 
     @staticmethod
@@ -409,7 +424,7 @@ class UserProfileView(UproveAPIView):
                     'user__video',
                     'user__file',
                     'user__image',
-                    'user__tag'
+                    'user__userTag'
                 ) \
                 .select_related(
                     'user'
@@ -424,6 +439,42 @@ class UserProfileView(UproveAPIView):
             status=status.HTTP_200_OK,
             data=getSerializedUserProfile(UserProfileView.getUserProfile(profileId), isOwner=True)
         )
+
+    @staticmethod
+    def saveUserTags(user, tagType, tagData):
+        user.userTag.filter(tag__type=tagType).delete()  # Clear existing skills before saving new ones
+        if tagType == Tag.TYPE_SKILL:
+            tagData = tagData[:UserProfileView.USER_SKILL_LIMIT]
+
+        for userTagData in tagData:
+            userTag = UserTag(
+                user=user,
+                createdDateTime=datetime.utcnow(),
+                modifiedDateTime=datetime.utcnow()
+            )
+            if tagId := userTagData.get('id'):
+                try:
+                    userTag = UserTag.objects.get(tag_id=tagId, user_id=user.id)
+                except UserTag.DoesNotExist:
+                    pass
+
+            # Set or update the tag
+            tag = getattr(userTag, 'tag', None) or Tag()
+            # Note: Tag description can only be set from the admin menu to avoid different users overwriting
+            # the default description
+            dataUtil.setObjectAttributes(tag, userTagData, {
+                'title': None,
+                'type': None
+            })
+            tag.save()
+            userTag.tag = tag
+
+            # Update the user tag
+            dataUtil.setObjectAttributes(userTag, userTagData, {
+                'description': None,
+                'skillLevelBit': None
+            })
+            userTag.save()
 
 
 class UserProfileSectionView(UproveAPIView):
@@ -478,7 +529,7 @@ class UserProfileSectionView(UproveAPIView):
                     s.sectionOrder += 1
                     s.save()
                 if sectionMove > 0 and s.sectionOrder <= profileSection.sectionOrder:
-                    s.sectionOrder -=1
+                    s.sectionOrder -= 1
                     s.save()
 
         return UserProfileView.getProfileOwnerResponse(profileSection.userProfile_id)
@@ -499,9 +550,9 @@ class UserProfileSectionView(UproveAPIView):
     @staticmethod
     def getUserProfileSection(profileSectionId):
         try:
-            return UserProfileSection.objects\
-                .select_related('userProfile')\
-                .prefetch_related('sectionItem')\
+            return UserProfileSection.objects \
+                .select_related('userProfile') \
+                .prefetch_related('sectionItem') \
                 .get(id=profileSectionId)
         except UserProfileSection.DoesNotExist as e:
             raise e
@@ -524,11 +575,13 @@ class UserProfileSectionContentItemView(UproveAPIView):
         sectionContentCount = len(sectionItems)
 
         if newContentOrder < 1 or newContentOrder > sectionContentCount:
-            return Response(f'Content order must be between 1 and {sectionContentCount}', status=status.HTTP_400_BAD_REQUEST)
+            return Response(f'Content order must be between 1 and {sectionContentCount}',
+                            status=status.HTTP_400_BAD_REQUEST)
 
         contentItem = next((s for s in sectionItems if s.id == contentId), None)
         if not contentItem:
-            return Response(f'Content item with ID={contentId} is not in the specified section', status=status.HTTP_400_BAD_REQUEST)
+            return Response(f'Content item with ID={contentId} is not in the specified section',
+                            status=status.HTTP_400_BAD_REQUEST)
 
         if contentItem.contentOrder == newContentOrder:
             return UserProfileView.getProfileOwnerResponse(section.userProfile.id)
@@ -561,8 +614,8 @@ class UserProfileSectionContentItemView(UproveAPIView):
 
     @staticmethod
     def getUserProfileSectionItem(contentId):
-        return UserProfileSectionItem.objects\
-            .select_related('userProfileSection', 'userProfileSection__userProfile')\
+        return UserProfileSectionItem.objects \
+            .select_related('userProfileSection', 'userProfileSection__userProfile') \
             .get(id=contentId)
 
 
@@ -747,8 +800,6 @@ class UserProfileContentItemView(UproveAPIView):
         return CONTENT_TYPE_MODELS[contentType]['model'].objects.get(id=contentId)
 
 
-
-
 class UserProjectView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
 
@@ -761,7 +812,8 @@ class UserProjectView(UproveAPIView):
         if userId:
             if not security.isSelf(userId, user=self.user):
                 return Response('You are not authorized to view this project', status=status.HTTP_401_UNAUTHORIZED)
-            return Response([getSerializedUserProject(up) for up in self.getUserProjects(userId)], status=status.HTTP_200_OK)
+            return Response([getSerializedUserProject(up) for up in self.getUserProjects(userId)],
+                            status=status.HTTP_200_OK)
 
         project = self.getUserProjects(userProjectId=userProjectId)
         if not security.isSelf(project.user_id, user=self.user):
@@ -775,7 +827,8 @@ class UserProjectView(UproveAPIView):
         if isinstance(project, Response):
             return project
 
-        return Response(status=status.HTTP_200_OK, data=getSerializedUserProject(self.getUserProjects(userProjectId=project.id)))
+        return Response(status=status.HTTP_200_OK,
+                        data=getSerializedUserProject(self.getUserProjects(userProjectId=project.id)))
 
     @atomic
     def put(self, request, userProjectId=None):
@@ -820,7 +873,7 @@ class UserProjectView(UproveAPIView):
         except ProtectedError:
             return Response(
                 ('You cannot delete this project because it is used in one or more job applications. If you wish to '
-                'delete the project, remove it from any job applications or withdraw your job applications.'),
+                 'delete the project, remove it from any job applications or withdraw your job applications.'),
                 status=status.HTTP_409_CONFLICT
             )
         return Response(status=status.HTTP_200_OK, data=userProjectId)
@@ -854,7 +907,7 @@ class UserProjectView(UproveAPIView):
                 existingFiles.add(file)
                 usedFileIds.append(file.id)
                 isChanged = True
-            else: # Update existing files
+            else:  # Update existing files
                 fileId = fileMetaData['id']
                 if not (file := existingFilesDict.get(fileId)):
                     return Response(f'No current file exists with ID={fileId}', status=status.HTTP_400_BAD_REQUEST)
@@ -898,7 +951,8 @@ class UserProjectView(UproveAPIView):
             for up in UserProjectView.getUserProjects(userId=data['userId'])
         }
         if project := existingProjects.get((data['userId'], customProjectId)):
-            return Response(f'User project for {project.customProject.project.title} already exists', status=status.HTTP_409_CONFLICT)
+            return Response(f'User project for {project.customProject.project.title} already exists',
+                            status=status.HTTP_409_CONFLICT)
 
         project = UserProject(
             user_id=data['userId'],
@@ -909,9 +963,12 @@ class UserProjectView(UproveAPIView):
         )
         project.save()
 
-        UserProjectView.addFiles(project, data, 'files', 'filesMetaData', UserProjectView.getCreateFileFn(UserFile, 'file'))
-        UserProjectView.addFiles(project, data, 'videos', 'videosMetaData', UserProjectView.getCreateFileFn(UserVideo, 'video'))
-        UserProjectView.addFiles(project, data, 'images', 'imagesMetaData', UserProjectView.getCreateFileFn(UserImage, 'image'))
+        UserProjectView.addFiles(project, data, 'files', 'filesMetaData',
+                                 UserProjectView.getCreateFileFn(UserFile, 'file'))
+        UserProjectView.addFiles(project, data, 'videos', 'videosMetaData',
+                                 UserProjectView.getCreateFileFn(UserVideo, 'video'))
+        UserProjectView.addFiles(project, data, 'images', 'imagesMetaData',
+                                 UserProjectView.getCreateFileFn(UserImage, 'image'))
 
         return project
 
@@ -925,22 +982,22 @@ class UserProjectView(UproveAPIView):
             projectFilter &= Q(id=userProjectId)
         if userId:
             projectFilter &= Q(user_id=userId)
-        projects = UserProject.objects\
+        projects = UserProject.objects \
             .select_related(
-                'customProject',
-                'customProject__project',
-                'customProject__project__role',
-                'user'
-            )\
+            'customProject',
+            'customProject__project',
+            'customProject__project__role',
+            'user'
+        ) \
             .prefetch_related(
-                'customProject__skills',
-                'userProjectEvaluationCriterion',
-                'userProjectEvaluationCriterion__employer',
-                'userProjectEvaluationCriterion__evaluator',
-                'files',
-                'images',
-                'videos'
-            )\
+            'customProject__skills',
+            'userProjectEvaluationCriterion',
+            'userProjectEvaluationCriterion__employer',
+            'userProjectEvaluationCriterion__evaluator',
+            'files',
+            'images',
+            'videos'
+        ) \
             .filter(projectFilter)
 
         if userProjectId:
@@ -965,7 +1022,8 @@ class UserJobApplicationView(UproveAPIView):
             security.isSelf(jobApplication.userProject.user_id, user=self.user),
             security.isPermittedEmployer(request, jobApplication.employerProject.employer_id)
         ]):
-            return Response('You do not have permission to view this job application', status=status.HTTP_401_UNAUTHORIZED)
+            return Response('You do not have permission to view this job application',
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         return Response(getSerializedJobApplication(jobApplication), status=status.HTTP_200_OK)
 
@@ -974,7 +1032,8 @@ class UserJobApplicationView(UproveAPIView):
         if userProjectId := self.data.get('userProjectId'):
             userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
             if not security.isSelf(userProject.user_id, user=self.user):
-                return Response('You do not have permission to post this job application', status=status.HTTP_401_UNAUTHORIZED)
+                return Response('You do not have permission to post this job application',
+                                status=status.HTTP_401_UNAUTHORIZED)
         else:
             userProject = UserProjectView.createUserProject(request, self.data)
             # Return error response if something went wrong
@@ -1004,8 +1063,8 @@ class UserJobApplicationView(UproveAPIView):
         isSelf = security.isSelf(jobApplication.userProject.user_id, user=self.user)
         isEmployer = security.isPermittedEmployer(request, jobApplication.employerJob.employer_id)
         if not any([isSelf, isEmployer]):
-            return Response('You do not have permission to update this job application', status=status.HTTP_401_UNAUTHORIZED)
-
+            return Response('You do not have permission to update this job application',
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         dtGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATETIME, allowNone=True)
         if isSelf and data.get('userProjectId'):
@@ -1035,13 +1094,15 @@ class UserJobApplicationView(UproveAPIView):
 
         jobApplication = self.getUserJobApplications(userJobApplicationId=userJobApplicationId)
         if not security.isSelf(jobApplication.userProject.user_id, user=self.user):
-            return Response('You do not have permission to delete this job application', status=status.HTTP_401_UNAUTHORIZED)
+            return Response('You do not have permission to delete this job application',
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         jobApplication.delete()
         return Response(status=status.HTTP_200_OK, data=userJobApplicationId)
 
     @staticmethod
-    def getUserJobApplications(userJobApplicationId=None, userId=None, userProjectId=None, employerJobId=None, employerId=None):
+    def getUserJobApplications(userJobApplicationId=None, userId=None, userProjectId=None, employerJobId=None,
+                               employerId=None):
         if not any([userJobApplicationId, userId, userProjectId, employerJobId]):
             return Response('An ID is required', status=status.HTTP_400_BAD_REQUEST)
 
@@ -1057,25 +1118,25 @@ class UserJobApplicationView(UproveAPIView):
         if employerId:
             applicationFilter &= Q(employerJob__employer_id=employerId)
 
-        userJobApplications = UserJobApplication.objects\
+        userJobApplications = UserJobApplication.objects \
             .select_related(
-                'userProject',
-                'userProject__user',
-                'userProject__customProject',
-                'userProject__customProject__project',
-                'userProject__customProject__project__role',
-                'employerJob'
-            )\
+            'userProject',
+            'userProject__user',
+            'userProject__customProject',
+            'userProject__customProject__project',
+            'userProject__customProject__project__role',
+            'employerJob'
+        ) \
             .prefetch_related(
-                'userProject__files',
-                'userProject__images',
-                'userProject__videos',
-                'userProject__customProject__skills',
-                'employerJob__allowedProjects',
-                'employerJob__allowedProjects__project',
-                'employerJob__allowedProjects__project__role',
-                'employerJob__allowedProjects__skills',
-            )\
+            'userProject__files',
+            'userProject__images',
+            'userProject__videos',
+            'userProject__customProject__skills',
+            'employerJob__allowedProjects',
+            'employerJob__allowedProjects__project',
+            'employerJob__allowedProjects__project__role',
+            'employerJob__allowedProjects__skills',
+        ) \
             .filter(applicationFilter)
 
         if userJobApplicationId:
@@ -1124,4 +1185,4 @@ class UprovePasswordResetForm(PasswordResetForm):
 
 
 def generatePassword():
-    return crypto.get_random_string(length=30, allowed_chars=crypto.RANDOM_STRING_CHARS+'!@#$%^&*()-+=')
+    return crypto.get_random_string(length=30, allowed_chars=crypto.RANDOM_STRING_CHARS + '!@#$%^&*()-+=')
