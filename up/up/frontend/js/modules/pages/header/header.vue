@@ -31,12 +31,12 @@
                             <i class="fas fa-user-circle fa-lg"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
-                            <a
-                                class="dropdown-item"
-                               :href="`/account-settings/${globalData.uproveUser.id}/`"
-                            >
-                                Account settings
-                            </a>
+<!--                            <a-->
+<!--                                class="dropdown-item"-->
+<!--                               :href="`/account-settings/${globalData.uproveUser.id}/`"-->
+<!--                            >-->
+<!--                                Account settings-->
+<!--                            </a>-->
                             <a class="dropdown-item" href="#"
                                @click="submitAjaxRequest(null, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
                                 out</a>
@@ -48,10 +48,10 @@
                         <a class="nav-link nav-link-tight" href="#" @click="eventBus.emit('open:signInModal')">Sign in</a>
                     </li>
                     <template v-else>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
-                                settings</a>
-                        </li>
+<!--                        <li class="nav-item">-->
+<!--                            <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Account-->
+<!--                                settings</a>-->
+<!--                        </li>-->
                         <li class="nav-item">
                             <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Log out</a>
                         </li>
