@@ -4,3 +4,4 @@ node_modules
 .env
 /up/up/frontend/dist/*
 secrets
+db_backup
