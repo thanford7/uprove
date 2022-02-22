@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.db.transaction import atomic
+from django.utils import timezone
 from psycopg2 import IntegrityError
 from rest_framework import authentication, status
 from rest_framework.response import Response
@@ -39,8 +40,8 @@ class EmployerView(APIView):
                 logo=data.get('logo'),
                 description=data.get('description'),
                 isDemo=data.get('isDemo') or False,
-                modifiedDateTime=datetime.utcnow(),
-                createdDateTime=datetime.utcnow()
+                modifiedDateTime=timezone.now(),
+                createdDateTime=timezone.now()
             )
             employer.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, isEmployer=True))
@@ -124,8 +125,8 @@ class JobPostingView(APIView):
             salaryFloor=data.get('salaryFloor'),
             salaryCeiling=data.get('salaryCeiling'),
             salaryUnit=data.get('salaryUnit'),
-            modifiedDateTime=datetime.utcnow(),
-            createdDateTime=datetime.utcnow()
+            modifiedDateTime=timezone.now(),
+            createdDateTime=timezone.now()
         )
         employerJob.save()
 
@@ -398,8 +399,8 @@ class UserProjectEvaluationView(UproveAPIView):
                     evaluator_id=self.data['evaluatorId'],
                     evaluationCriterion_id=evaluationCriterionData['id'],
                     value=evaluationCriterionData.get('value', 0),
-                    createdDateTime=datetime.utcnow(),
-                    modifiedDateTime=datetime.utcnow()
+                    createdDateTime=timezone.now(),
+                    modifiedDateTime=timezone.now()
                 ).save()
 
         return Response(status=status.HTTP_200_OK, data={

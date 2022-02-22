@@ -2,6 +2,8 @@ from datetime import date, datetime, time
 from enum import Enum
 from typing import Union, Optional
 
+MINUTES_IN_DAY = 60 * 24
+
 FORMAT_DATE = '%m-%d-%Y'
 FORMAT_TIME = '%H:%M:%S'
 FORMAT_DATETIME = f'{FORMAT_DATE} {FORMAT_TIME}'

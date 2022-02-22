@@ -51,6 +51,7 @@ urlpatterns = [
     re_path(apiPath + 'user-profile/section/$', user.UserProfileSectionView.as_view()),
     re_path(apiPath + 'user-profile/section/content-item/$', user.UserProfileSectionContentItemView.as_view()),
     re_path(apiPath + 'user-project/(?P<userProjectId>[0-9]+)?/?$', user.UserProjectView.as_view()),
+    re_path(apiPath + 'user-project/status/?$', user.UserProjectStatusView.as_view()),
     re_path(apiPath + 'user-project-evaluation/$', employer.UserProjectEvaluationView.as_view()),
     re_path(apiPath + 'user-video/$', user.UserVideoView.as_view()),
 

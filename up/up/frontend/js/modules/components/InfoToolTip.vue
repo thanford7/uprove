@@ -15,7 +15,7 @@ export default {
             popover: null
         }
     },
-    props: ['content', 'elId'],
+    props: ['content', 'isHtmlContent', 'elId'],
     methods: {
         initTooltip() {
             const el$ = $(`#${this.elId}`);
@@ -27,6 +27,7 @@ export default {
                 }
                 this.popover = new Popover(el$, {
                     content: this.content,
+                    html: this.isHtmlContent || false,
                     container,
                     placement: 'auto',
                     trigger: 'hover'

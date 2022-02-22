@@ -156,14 +156,14 @@ class DataUtil {
     }
 
     getApplicationStatus(jobApplication) {
-        if (jobApplication.approveDateTime) {
+        if (jobApplication.withdrawDateTime) {
+            return `${APPLICATION_STATUS.WITHDRAWN} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
+        } else if (jobApplication.approveDateTime) {
             return `${APPLICATION_STATUS.APPROVED} ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
         } else if (jobApplication.declineDateTime) {
             return `${APPLICATION_STATUS.DECLINED} ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
         } else if (jobApplication.submissionDateTime) {
             return `${APPLICATION_STATUS.SUBMITTED} ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
-        } else if (jobApplication.withdrawDateTime) {
-            return `${APPLICATION_STATUS.WITHDRAWN} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
         } else {
             return APPLICATION_STATUS.NOT_SUBMITTED;
         }

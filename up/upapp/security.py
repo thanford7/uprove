@@ -1,3 +1,4 @@
+from upapp.utils.dataUtil import intOrNone
 from upapp.models import User
 
 #TODO: Improve security to update stored session user when user data changes
@@ -31,11 +32,11 @@ def isPermittedAdmin(request=None, user=None):
 def isSelf(userId, request=None, user=None):
     user = user or getSessionUser(request)
     if user:
-        return user.id == userId and user.isActive
+        return user.id == intOrNone(userId) and user.isActive
     return False
 
 
 def isPermittedEmployer(request, employerId):
     if user := getSessionUser(request):
-        return user.employer_id == employerId
+        return user.employer_id == intOrNone(employerId)
     return False

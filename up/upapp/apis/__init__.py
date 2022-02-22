@@ -1,7 +1,7 @@
-from datetime import datetime
 from enum import Enum, auto
 
 from django.http import QueryDict
+from django.utils import timezone
 from rest_framework.views import APIView
 
 from upapp.models import UserActivity, Activity
@@ -31,7 +31,7 @@ def saveActivity(activityKey: ActivityKey, userId: int):
     UserActivity(
         activity=Activity.objects.get(key=activityKey.name),
         user_id=userId,
-        timestamp=datetime.utcnow()
+        timestamp=timezone.now()
     ).save()
 
 

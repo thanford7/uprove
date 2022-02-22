@@ -96,7 +96,7 @@ export default {
             this.allTags.splice(idx, 1);
         },
         getHeaders() {
-            const headers = [{value: 'Description'}, {}];
+            const headers = [{value: 'Description', classes: 'w-50'}, {}];
             if (this.tagType === TAG_TYPES.INTEREST) {
                 headers.unshift({value: dataUtil.capitalize(TAG_TYPES.INTEREST)});
             } else if (this.tagType === TAG_TYPES.SKILL) {
@@ -114,7 +114,7 @@ export default {
         },
         getSkillLevelsCfg() {
             return Object.assign(
-                skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL),
+                skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL, false),
                 {placeholder: 'Select a skill level'}
             )
         },

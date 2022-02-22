@@ -6,13 +6,13 @@
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
                 <li v-if="isSuperUser || isCandidate" :class="getHighlightClass('candidateDashboard')">
-                    <a class="nav-link nav-link-tight" href="/candidateDashboard">Dashboard</a>
+                    <a class="nav-link nav-link-tight" href="/candidateDashboard">{{(isEmployer) ? 'Candidate Dashboard' : 'Dashboard'}}</a>
                 </li>
                 <li v-if="globalData.uproveUser && globalData.uproveUser.defaultProfileId" :class="getHighlightClass('profile')">
                     <a class="nav-link nav-link-tight" :href="`/profile/${globalData.uproveUser.defaultProfileId}/`">Profile</a>
                 </li>
                 <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
-                    <a class="nav-link nav-link-tight" href="/employerDashboard">Employer Dashboard</a>
+                    <a class="nav-link nav-link-tight" href="/employerDashboard">{{(isCandidate) ? 'Employer Dashboard' : 'Dashboard'}}</a>
                 </li>
                 <li class="nav-item" :class="getHighlightClass('projects')">
                     <a class="nav-link nav-link-tight" href="/projects">Projects</a>

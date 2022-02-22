@@ -1,10 +1,10 @@
 import logging
-from datetime import datetime
 
 from django.contrib import messages
 from django.db import IntegrityError
 from django.db.models import Q
 from django.db.transaction import atomic
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -45,8 +45,8 @@ class ProjectView(APIView):
             description=data['description'],
             background=data['background'],
             employer_id=data.get('employerId'),
-            modifiedDateTime=datetime.utcnow(),
-            createdDateTime=datetime.utcnow()
+            modifiedDateTime=timezone.now(),
+            createdDateTime=timezone.now()
         )
         project.save()
 
@@ -93,7 +93,7 @@ class ProjectView(APIView):
             return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
 
         if isChanged:
-            project.modifiedDateTime = datetime.utcnow()
+            project.modifiedDateTime = timezone.now()
 
         project.save()
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
@@ -152,8 +152,8 @@ class ProjectView(APIView):
                     description=metaData.get('description'),
                     skillLevelBits=metaData['skillLevelBits'],
                     file=file,
-                    modifiedDateTime=datetime.utcnow(),
-                    createdDateTime=datetime.utcnow()
+                    modifiedDateTime=timezone.now(),
+                    createdDateTime=timezone.now()
                 )
                 projectFile.save()
                 isChanged = True
@@ -173,7 +173,7 @@ class ProjectView(APIView):
                 })
                 if file:
                     existingProjectFile.file = file
-                    existingProjectFile.modifiedDateTime = datetime.utcnow()
+                    existingProjectFile.modifiedDateTime = timezone.now()
                 existingProjectFile.save()
 
         deleteProjectFileIds = [id for id in existingProjectFiles.keys() if id not in usedProjectFileIds]
@@ -201,8 +201,8 @@ class ProjectView(APIView):
                     project=project,
                     instructions=instruction['instructions'],
                     skillLevelBit=instruction['skillLevelBit'],
-                    modifiedDateTime=datetime.utcnow(),
-                    createdDateTime=datetime.utcnow()
+                    modifiedDateTime=timezone.now(),
+                    createdDateTime=timezone.now()
                 )
                 newInstruction.save()
                 isChanged = True

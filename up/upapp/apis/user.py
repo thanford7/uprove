@@ -1,5 +1,4 @@
 import urllib.request
-from datetime import datetime
 from email.mime.image import MIMEImage
 
 from django.conf import settings
@@ -11,7 +10,7 @@ from django.db.models import Q, ProtectedError
 from django.db.transaction import atomic
 from django.template import loader
 from django.templatetags.static import static
-from django.utils import crypto
+from django.utils import crypto, timezone
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -35,6 +34,19 @@ CONTENT_TYPE_MODELS = {
     ContentTypes.CUSTOM.value: {'model': UserContentItem, 'serializer': getSerializedUserContentItem},
     ContentTypes.PROJECT.value: {'model': UserProject, 'serializer': getSerializedUserProject}
 }
+PROJECT_COMPLETE_LOCK_DAYS = 30
+
+
+def isUserProjectLocked(userProject):
+    return (
+        userProject.status == UserProject.Status.COMPLETE.value
+        and getDaysUntilProjectUnlock(userProject) > 0
+    )
+
+
+def getDaysUntilProjectUnlock(userProject):
+    statusChangeMinutes = (userProject.statusChangeDateTime - timezone.now()).total_seconds() / 60
+    return round(PROJECT_COMPLETE_LOCK_DAYS - (statusChangeMinutes / dateUtil.MINUTES_IN_DAY), 1)
 
 
 class UserVideoView(UproveAPIView):
@@ -66,8 +78,8 @@ class UserVideoView(UproveAPIView):
             user=user,
             video=data['video'],
             title=data.get('title') or data['video'].name,
-            createdDateTime=datetime.utcnow(),
-            modifiedDateTime=datetime.utcnow()
+            createdDateTime=timezone.now(),
+            modifiedDateTime=timezone.now()
         )
         video.save()
         return video
@@ -100,8 +112,8 @@ class UserFileView(APIView):
                 user=user,
                 file=fileData,
                 title=data.get('title') or fileData.name,
-                createdDateTime=datetime.utcnow(),
-                modifiedDateTime=datetime.utcnow()
+                createdDateTime=timezone.now(),
+                modifiedDateTime=timezone.now()
             )
             file.save()
             savedFiles.append(file)
@@ -130,8 +142,8 @@ class UserImageView(APIView):
             user=user,
             image=data['image'],
             title=data.get('title') or data['image'].name,
-            createdDateTime=datetime.utcnow(),
-            modifiedDateTime=datetime.utcnow()
+            createdDateTime=timezone.now(),
+            modifiedDateTime=timezone.now()
         )
         image.save()
         return image
@@ -363,8 +375,8 @@ class UserView(UproveAPIView):
             employer_id=data.get('employerId'),
             inviteEmployer_id=data.get('inviteEmployerId'),
             isDemo=data.get('isDemo') or False,
-            modifiedDateTime=datetime.utcnow(),
-            createdDateTime=datetime.utcnow()
+            modifiedDateTime=timezone.now(),
+            createdDateTime=timezone.now()
         )
         user.save()
         saveActivity(ActivityKey.CREATE_ACCOUNT, user.id)
@@ -449,8 +461,8 @@ class UserProfileView(UproveAPIView):
         for userTagData in tagData:
             userTag = UserTag(
                 user=user,
-                createdDateTime=datetime.utcnow(),
-                modifiedDateTime=datetime.utcnow()
+                createdDateTime=timezone.now(),
+                modifiedDateTime=timezone.now()
             )
             if tagId := userTagData.get('id'):
                 try:
@@ -686,7 +698,7 @@ class UserProfileContentItemView(UproveAPIView):
         # Save the content item depending on the type of content
         if contentType == ContentTypes.EXPERIENCE.value:
             contentItem = contentItem or UserExperience(
-                createdDateTime=datetime.utcnow()
+                createdDateTime=timezone.now()
             )
             if (orgId := self.data.get('organizationId')) and not self.data.get('organizationNewLogo'):
                 contentItem.organization_id = orgId
@@ -709,7 +721,7 @@ class UserProfileContentItemView(UproveAPIView):
             return contentItem
         elif contentType == ContentTypes.EDUCATION.value:
             contentItem = contentItem or UserEducation(
-                createdDateTime=datetime.utcnow()
+                createdDateTime=timezone.now()
             )
             if (schoolId := self.data.get('schoolId')) and not self.data.get('schoolNewLogo'):
                 contentItem.school_id = schoolId
@@ -731,7 +743,7 @@ class UserProfileContentItemView(UproveAPIView):
             contentItem.save()
             return contentItem
         elif contentType in [ContentTypes.CUSTOM.value, ContentTypes.VIDEO.value]:
-            contentItem = contentItem or UserContentItem(createdDateTime=datetime.utcnow())
+            contentItem = contentItem or UserContentItem(createdDateTime=timezone.now())
             dataUtil.setObjectAttributes(contentItem, self.data, {
                 'user_id': {'formName': 'userId'},
                 'title': None
@@ -832,8 +844,7 @@ class UserProjectView(UproveAPIView):
 
     @atomic
     def put(self, request, userProjectId=None):
-        data = request.data
-        userProjectId = userProjectId or data['id']
+        userProjectId = userProjectId or self.data['id']
         if not userProjectId:
             return Response('A user project ID is required', status=status.HTTP_400_BAD_REQUEST)
 
@@ -841,17 +852,20 @@ class UserProjectView(UproveAPIView):
         if not security.isSelf(project.user_id, user=self.user):
             return Response('You are not authorized to edit this project', status=status.HTTP_401_UNAUTHORIZED)
 
+        if isUserProjectLocked(project):
+            return Response(f'Project is locked for another {dataUtil.pluralize("day", getDaysUntilProjectUnlock(project))}', status=status.HTTP_401_UNAUTHORIZED)
+
         isChanged = any([
-            dataUtil.setObjectAttributes(project, data, {
+            dataUtil.setObjectAttributes(project, self.data, {
                 'projectNotes': None,
             }),
-            self.addFiles(project, data, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
-            self.addFiles(project, data, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
-            self.addFiles(project, data, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
+            self.addFiles(project, self.data, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
+            self.addFiles(project, self.data, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
+            self.addFiles(project, self.data, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
         ])
 
         if isChanged:
-            project.modifiedDateTime = datetime.utcnow()
+            project.modifiedDateTime = timezone.now()
             project.save()
 
         return Response(
@@ -860,7 +874,7 @@ class UserProjectView(UproveAPIView):
         )
 
     def delete(self, request, userProjectId=None):
-        userProjectId = userProjectId or request.data['id']
+        userProjectId = userProjectId or self.data['id']
         if not userProjectId:
             return Response('A user project ID is required', status=status.HTTP_400_BAD_REQUEST)
 
@@ -884,8 +898,8 @@ class UserProjectView(UproveAPIView):
             file = objClass(
                 user_id=userId,
                 title=fileMetaData['title'],
-                createdDateTime=datetime.utcnow(),
-                modifiedDateTime=datetime.utcnow()
+                createdDateTime=timezone.now(),
+                modifiedDateTime=timezone.now()
             )
             setattr(file, fileAttr, fileData)
             file.save()
@@ -958,8 +972,8 @@ class UserProjectView(UproveAPIView):
             user_id=data['userId'],
             customProject_id=customProjectId,
             projectNotes=data.get('projectNotes'),
-            modifiedDateTime=datetime.utcnow(),
-            createdDateTime=datetime.utcnow()
+            modifiedDateTime=timezone.now(),
+            createdDateTime=timezone.now()
         )
         project.save()
 
@@ -1007,6 +1021,32 @@ class UserProjectView(UproveAPIView):
 
         return projects
 
+
+class UserProjectStatusView(UproveAPIView):
+    authentication_classes = (authentication.SessionAuthentication,)
+
+    def put(self, request):
+        userProjectId = self.data['id']
+        if not userProjectId:
+            return Response('A user project ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        project = UserProjectView.getUserProjects(userProjectId=userProjectId)
+        if not security.isSelf(project.user_id, user=self.user):
+            return Response('You are not authorized to edit this project', status=status.HTTP_401_UNAUTHORIZED)
+
+        if isUserProjectLocked(project):
+            return Response(f'Project is locked for another {dataUtil.pluralize("day", getDaysUntilProjectUnlock(project))}', status=status.HTTP_401_UNAUTHORIZED)
+
+        dataUtil.setObjectAttributes(project, self.data, {
+            'status': None,
+        })
+        project.statusChangeDateTime = timezone.now()
+        project.save()
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data=getSerializedUserProject(project)
+        )
 
 class UserJobApplicationView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)

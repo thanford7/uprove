@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.utils import timezone
 
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
@@ -386,12 +387,21 @@ class UserProjectEvaluationCriterion(AuditFields):
 
 
 class UserProject(AuditFields):
+    class Status(Enum):
+        DRAFT = 'draft'
+        HIDDEN = 'hidden'
+        COMPLETE = 'complete'
+
+    PROJECT_STATUSES = [(i.value, i.value) for i in Status]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userProject')
     customProject = models.ForeignKey(CustomProject, on_delete=models.PROTECT)
     files = models.ManyToManyField(UserFile)
     videos = models.ManyToManyField(UserVideo)
     images = models.ManyToManyField(UserImage)
     projectNotes = models.TextField(null=True)
+    status = models.CharField(max_length=8, choices=PROJECT_STATUSES, default=Status.DRAFT.value)
+    statusChangeDateTime = models.DateTimeField(default=timezone.now)
 
     class Meta:
         unique_together = ('user', 'customProject')

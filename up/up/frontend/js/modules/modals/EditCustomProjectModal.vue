@@ -139,7 +139,6 @@ export default {
         toggleAll(e, isUsed) {
             e.preventDefault();
             this.evaluationCriteria.forEach((ec) => { ec.isUsed = isUsed; });
-            console.log(this.evaluationCriteria);
         }
     }
 }

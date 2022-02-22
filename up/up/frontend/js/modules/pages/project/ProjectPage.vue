@@ -83,7 +83,7 @@
                                 <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Link project to {{pluralize('job position', (formData.jobIds || []).length)}}</button>
                             </template>
                             <template v-else>
-                                <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Save project to profile</button>
+                                <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Save project to dashboard</button>
                             </template>
                         </template>
                     </AccordionItem>
@@ -147,6 +147,7 @@ import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import skillSelectize from "../../selectizeCfgs/skill";
+import globalData from "../../../globalData";
 
 export default {
     name: "ProjectPage.vue",
@@ -157,6 +158,7 @@ export default {
     data() {
         return {
             crudUrl: null,  // Set on mounted
+            pageRedirect: null, // Set on mounted
             isUpdateData: true,
             initDataKey: null,
             requiredFields: {
@@ -300,8 +302,9 @@ export default {
         }
     },
     mounted() {
-        if (this.isEmployer) {
-            this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
+        this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
+        if (this.isCandidate) {
+            this.pageRedirect = `/candidateDashboard/${this.globalData.uproveUser.id}/`
         }
 
         this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';

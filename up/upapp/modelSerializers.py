@@ -424,9 +424,16 @@ def getSerializedUserProjectEvaluationCriterion(criterion: UserProjectEvaluation
 
 
 def getSerializedUserProject(userProject: UserProject, isEmployer=False):
+    from upapp.apis.user import isUserProjectLocked, getDaysUntilProjectUnlock
+
+    isLocked = isUserProjectLocked(userProject)
     baseData = {
         'id': userProject.id,
         'type': ContentTypes.PROJECT.value,
+        'status': userProject.status,
+        'statusChangeDateTime': getDateTimeFormatOrNone(userProject.statusChangeDateTime),
+        'isLocked': isLocked,
+        'daysUntilUnlock': getDaysUntilProjectUnlock(userProject) if isLocked else None,
         'user': {
             'id': userProject.user.id,
             'firstName': userProject.user.firstName,

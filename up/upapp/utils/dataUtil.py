@@ -1,6 +1,9 @@
 import re
-from datetime import datetime
 
+import inflect
+from django.utils import timezone
+
+inflectEngine = inflect.engine()
 
 def getFileNameFromUrl(url):
     if not url:
@@ -35,7 +38,7 @@ def setObjectAttributes(obj, data: dict, keyFuncDict: dict):
         setattr(obj, key, val)
 
     if isChanged and hasattr(obj, 'modifiedDateTime'):
-        obj.modifiedDateTime = datetime.utcnow()
+        obj.modifiedDateTime = timezone.now()
 
     return isChanged
 
@@ -43,3 +46,14 @@ def setObjectAttributes(obj, data: dict, keyFuncDict: dict):
 def capitalizeAllWords(str):
     words = str.split(' ')
     return ' '. join([w.capitalize() for w in words])
+
+
+def pluralize(word, count):
+    return f'{count} {inflectEngine.plural(word, count)}'
+
+
+def intOrNone(val):
+    try:
+        return int(val)
+    except ValueError:
+        return None
