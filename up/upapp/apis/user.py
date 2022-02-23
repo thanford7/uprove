@@ -881,11 +881,6 @@ class UserProjectView(UproveAPIView):
             project.modifiedDateTime = timezone.now()
             project.save()
 
-        if self.data.get('isSubmitApplications'):
-            for application in project.jobApplication.all():
-                application.submissionDateTime = timezone.now()
-                application.save()
-
         return Response(
             status=status.HTTP_200_OK,
             data={
@@ -1063,6 +1058,11 @@ class UserProjectStatusView(UproveAPIView):
             'status': {'isProtectExisting': True},
             'isHidden': {'isProtectExisting': True},
         })
+
+        if self.data.get('isSubmitApplications'):
+            for application in project.jobApplication.all():
+                application.submissionDateTime = timezone.now()
+                application.save()
 
         if projectStatus:
             project.statusChangeDateTime = timezone.now()

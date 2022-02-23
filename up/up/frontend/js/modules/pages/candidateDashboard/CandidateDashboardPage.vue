@@ -260,8 +260,7 @@ export default {
                 $(e.currentTarget).prop('checked', false);
                 return;
             }
-            if (userProject.jobApplicationCount && window.confirm(`Do you want to submit the ${this.pluralize('application', userProject.jobApplicationCount)} associated
-            with this project? You can always submit each application later using the applications section in your dashboard.`)) {
+            if (userProject.jobApplicationCount && window.confirm(`Do you want to submit the ${this.pluralize('application', userProject.jobApplicationCount)} associated with this project? You can always submit each application later using the applications section in your dashboard.`)) {
                 this.formData.isSubmitApplications = true;
             }
             this.readAndSubmitForm();
