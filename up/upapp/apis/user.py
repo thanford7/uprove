@@ -45,7 +45,7 @@ def isUserProjectLocked(userProject):
 
 
 def getDaysUntilProjectUnlock(userProject):
-    statusChangeMinutes = (userProject.statusChangeDateTime - timezone.now()).total_seconds() / 60
+    statusChangeMinutes = (timezone.now() - userProject.statusChangeDateTime).total_seconds() / 60
     return round(PROJECT_COMPLETE_LOCK_DAYS - (statusChangeMinutes / dateUtil.MINUTES_IN_DAY), 1)
 
 
@@ -239,6 +239,7 @@ class UserView(UproveAPIView):
             })
 
         EmailView.sendFormattedEmail(request, contactType=EmailView.TYPE_CANDIDATE_SIGNUP)
+        UserProfileView.createUserProfile(user.id, isPrimary=True)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedUser(user))
 
@@ -420,6 +421,18 @@ class UserProfileView(UproveAPIView):
             self.saveUserTags(self.user, Tag.TYPE_INTEREST, userInterests)
 
         return self.getProfileOwnerResponse(profile.id)
+
+    @staticmethod
+    def createUserProfile(userId, makePublic=True, isPrimary=False):
+        profile = UserProfile(
+            user_id=userId,
+            makePublic=makePublic,
+            isPrimary=isPrimary,
+            createdDateTime=timezone.now(),
+            modifiedDateTime=timezone.now()
+        )
+        profile.save()
+        return profile
 
     @staticmethod
     def getUserProfile(profileId):
@@ -910,7 +923,7 @@ class UserProjectView(UproveAPIView):
     @staticmethod
     def addFiles(project, data, fileDataKey, fileMetaDataKey, createObjFn):
         isChanged = False
-        filesDict = {f.name: f for f in data.getlist(fileDataKey, [])}
+        filesDict = {f.name: f for f in data.get(fileDataKey, [])}
         usedFileIds = []
         existingFiles = getattr(project, fileDataKey)
         existingFilesDict = {f.id: f for f in existingFiles.all()}
@@ -984,6 +997,8 @@ class UserProjectView(UproveAPIView):
         UserProjectView.addFiles(project, data, 'images', 'imagesMetaData',
                                  UserProjectView.getCreateFileFn(UserImage, 'image'))
 
+        saveActivity(ActivityKey.CANDIDATE_CREATE_PROJECT, project.user_id)
+
         return project
 
     @staticmethod
@@ -1034,19 +1049,27 @@ class UserProjectStatusView(UproveAPIView):
         if not security.isSelf(project.user_id, user=self.user):
             return Response('You are not authorized to edit this project', status=status.HTTP_401_UNAUTHORIZED)
 
-        if isUserProjectLocked(project):
+        projectStatus = self.data.get('status')
+        if projectStatus and isUserProjectLocked(project):
             return Response(f'Project is locked for another {dataUtil.pluralize("day", getDaysUntilProjectUnlock(project))}', status=status.HTTP_401_UNAUTHORIZED)
 
         dataUtil.setObjectAttributes(project, self.data, {
-            'status': None,
+            'status': {'isProtectExisting': True},
+            'isHidden': {'isProtectExisting': True},
         })
-        project.statusChangeDateTime = timezone.now()
+
+        if projectStatus:
+            project.statusChangeDateTime = timezone.now()
+            if projectStatus == UserProject.Status.COMPLETE.value:
+                saveActivity(ActivityKey.CANDIDATE_COMPLETE_PROJECT, project.user_id)
+
         project.save()
 
         return Response(
             status=status.HTTP_200_OK,
             data=getSerializedUserProject(project)
         )
+
 
 class UserJobApplicationView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)

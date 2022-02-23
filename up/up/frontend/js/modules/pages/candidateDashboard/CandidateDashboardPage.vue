@@ -11,13 +11,20 @@
                         :cardItem="userProject"
                         :elId="getNewElUid()"
                         :isShowViewMoreLink="false"
-                        class="badge-card-top"
                     >
-                        <template v-slot:topImage>
+                        <template v-slot:outer>
                             <div class="badge badge-top -color-darkblue">{{userProject.customProject.role}}</div>
                         </template>
                         <template v-slot:header>
                             {{userProject.customProject.projectTitle}}
+                            <span
+                                v-if="userProject.files.length"
+                                class="fa-stack fa-stack-sm float-end"
+                                :title="`${pluralize('file', userProject.files.length)} uploaded`"
+                            >
+                              <i class="fas fa-file fa-stack-2x"></i>
+                              <strong class="fa-stack-1x -color-white-text">{{userProject.files.length}}</strong>
+                            </span>
                         </template>
                         <template v-slot:body>
                             <div class="mb-1 pb-1 -border-bottom--light">
@@ -29,44 +36,47 @@
                                 <BadgesSkills :skills="userProject.customProject.skills"/>
                             </div>
                             <div>
-                                <a href="#" @click="eventBus.emit('open:editUserProjectModal', userProject)">
-                                    Edit project
-                                </a>
-                            </div>
-                            <div>
                                 <a :href="`/project/${userProject.customProject.projectId}/?${getCustomProjectQueryParams(userProject.customProject)}`" target="_blank">
                                     <i class="fas fa-external-link-alt"></i>
                                     View project instructions
                                 </a>
                             </div>
-                            <div class="dropdown mt-2 mb-2">
-                                <button class="btn btn-secondary btn-sm dropdown-toggle w-100" type="button" id="projectStatus"
-                                        data-bs-toggle="dropdown" aria-expanded="false" :disabled="(userProject.isLocked) ? true : null"
-                                        :title="(userProject.isLocked) ? `Project cannot be changed for another ${pluralize('day', userProject.daysUntilUnlock)} to give employers time to review` : null"
+                            <div>
+                                <div
+                                    class="form-check form-switch mt-2"
+                                    :title="getProjectLockedNote(userProject)"
                                 >
-                                    <i v-if="userProject.isLocked" class="fas fa-lock"></i>
-                                    Project status: {{capitalize(userProject.status)}}
-                                </button>
-                                <ul class="dropdown-menu" aria-labelledby="projectStatus">
-                                    <li>
-                                        <a class="dropdown-item" href="#" @click="setProjectStatus(userProject, projectStatuses.DRAFT)">
-                                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="CONTENT.draftStatusInfo"/>
-                                            Draft
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" @click="setProjectStatus(userProject, projectStatuses.COMPLETE)">
-                                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="CONTENT.completeStatusInfo"/>
-                                            Complete
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" @click="setProjectStatus(userProject, projectStatuses.HIDDEN)">
-                                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="CONTENT.hiddenStatusInfo"/>
-                                            Hidden
-                                        </a>
-                                    </li>
-                                </ul>
+                                  <input class="form-check-input" type="checkbox" id="projectStatus"
+                                         :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
+                                         @change="toggleProjectComplete(userProject, $event)"
+                                    :disabled="(userProject.isLocked) ? true : null"
+                                  >
+                                  <label class="form-check-label" for="projectStatus">
+                                      <span v-if="userProject.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
+                                      <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="CONTENT.draftStatusInfo + CONTENT.completeStatusInfo"/>
+                                      Project complete
+                                  </label>
+                                </div>
+                                <div class="form-check form-switch mt-2">
+                                  <input class="form-check-input" type="checkbox" id="projectHidden"
+                                         :checked="userProject.isHidden"
+                                         @change="toggleProjectHidden(userProject, $event)"
+                                  >
+                                  <label class="form-check-label" for="projectHidden">
+                                      <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="CONTENT.hiddenStatusInfo"/>
+                                      Project hidden
+                                  </label>
+                                </div>
+                                <div class="mt-2">
+                                    <button
+                                        class="btn btn-primary btn-sm w-100"
+                                        @click="eventBus.emit('open:editUserProjectModal', userProject)"
+                                        :disabled="userProject.isLocked"
+                                        :title="getProjectLockedNote(userProject)"
+                                    >
+                                        Upload project files
+                                    </button>
+                                </div>
                             </div>
                         </template>
                     </BaseCard>
@@ -121,7 +131,7 @@
 </template>
 
 <script>
-import globalData, {PROJECT_STATUSES} from '../../../globalData';
+import {PROJECT_STATUSES} from '../../../globalData';
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
@@ -152,6 +162,9 @@ export default {
     methods: {
         capitalize: dataUtil.capitalize,
         getApplicationStatus: dataUtil.getApplicationStatus,
+        getProjectLockedNote(userProject) {
+            return (userProject.isLocked) ? `Project cannot be changed for another ${this.pluralize('day', userProject.daysUntilUnlock)} to give employers time to review` : null;
+        },
         getStartedApplications(project) {
             return this.initData.jobApplications.filter((app) => {
                 return (
@@ -202,21 +215,34 @@ export default {
             this.initDataKey = null;
             this.formData = {}
         },
-        setProjectStatus(userProject, status) {
+        afterUpdateInitData() {
+            this.resetAjaxData()
+        },
+        toggleProjectComplete(userProject, e) {
+            this.crudUrl = 'user-project/status/';
+            this.initDataKey = 'userProjects';
+            const isChecked = e.returnValue;
+            this.formData = {
+                id: userProject.id,
+                status: (isChecked) ? this.globalData.PROJECT_STATUSES.COMPLETE : this.globalData.PROJECT_STATUSES.DRAFT
+            };
+            if (isChecked && !window.confirm(
+                `Are you sure you sure you want to finalize this project? You will not be able to edit it for the next ${this.pluralize('day', this.globalData.PROJECT_COMPLETE_LOCK_DAYS)}.`
+            )) {
+                this.resetAjaxData();
+                $(e.currentTarget).prop('checked', false);
+                return;
+            }
+            this.readAndSubmitForm();
+        },
+        toggleProjectHidden(userProject, e) {
             this.crudUrl = 'user-project/status/';
             this.initDataKey = 'userProjects';
             this.formData = {
                 id: userProject.id,
-                status
+                isHidden: e.returnValue
             };
-            if (status === this.globalData.PROJECT_STATUSES.COMPLETE && !window.confirm(
-                `Are you sure you sure you want to finalize this project? You will not be able to edit it for the next ${this.pluralize('day', this.globalData.PROJECT_COMPLETE_LOCK_DAYS)}.`
-            )) {
-                this.resetAjaxData();
-                return;
-            }
             this.readAndSubmitForm();
-            this.resetAjaxData();
         }
     },
     mounted() {

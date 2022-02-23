@@ -43,3 +43,13 @@ button.btn {
         top: 0
     }
 }
+
+.fa-stack {
+    cursor: default;
+    &.fa-stack-sm {
+        font-size: 0.7em;
+    }
+    i {
+        vertical-align: middle;
+    }
+}

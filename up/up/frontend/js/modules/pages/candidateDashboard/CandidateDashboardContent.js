@@ -27,7 +27,6 @@ const CONTENT = {
             <li><span class='fa-li'><i class='fas fa-check-circle -color-green-text'></i></span>Visible in your dashboard</li>
             <li><span class='fa-li'><i class='fas fa-check-circle -color-green-text'></i></span>Visible in your profile if you have chosen to display it</li>
             <li><span class='fa-li'><i class='fas fa-times-circle -color-red-text'></i></span>Not visible in employer searches for this project</li>
-            <li><span class='fa-li'><i class='fas fa-check-circle -color-green-text'></i></span>Available to submit for any employer job applications</li>
         </ul>
     `
 }

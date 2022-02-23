@@ -56,12 +56,6 @@ $accordion-button-active-color: colors.$color-white;
         margin-right: calc(var(--bs-gutter-x) / 2);
         margin-left: calc(var(--bs-gutter-x) / 2);
         overflow: hidden;
-        transition: all .2s;
-
-        &:hover {
-            transform: translate(-3px, -3px);
-            box-shadow: 5px 5px 3px colors.$color-lightgrey;
-        }
 
         .card-img-top {
             height: 145px;
@@ -164,7 +158,31 @@ $accordion-button-active-color: colors.$color-white;
             left: 50%;
             transform: translateX(-50%);
             top: -15px;
+            z-index: 1000;
         }
+    }
+}
+
+.card-outer {
+    overflow: visible;
+    position: relative;
+
+    .card {
+        margin: 0;
+        height: 100%;
+
+        .card-inner {
+            max-height: none;
+            height: 100%;
+        }
+    }
+
+    .badge-top {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: -15px;
+        z-index: 1000;
     }
 }
 

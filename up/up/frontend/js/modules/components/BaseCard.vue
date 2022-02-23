@@ -1,13 +1,16 @@
 <template>
-    <div class="card col-md-3 mb-3" v-if="cardItem" :id="elId">
-        <slot name="topImage"></slot>
-        <div class="card-inner">
-            <div class="card-header">
-                <slot name="header"></slot>
-            </div>
-            <div class="card-body">
-                <slot name="body"></slot>
-                <ViewMoreLink v-if="isHeightExceeded && isShowViewMoreLink" :clickFn="getMoreContentFn" :elId="getNewElUid()"/>
+    <div class="card-outer col-md-4 mb-3 mt-3">
+        <slot name="outer"></slot>
+        <div class="card" v-if="cardItem" :id="elId">
+            <slot name="topImage"></slot>
+            <div class="card-inner">
+                <div class="card-header">
+                    <slot name="header"></slot>
+                </div>
+                <div class="card-body">
+                    <slot name="body"></slot>
+                    <ViewMoreLink v-if="isHeightExceeded && isShowViewMoreLink" :clickFn="getMoreContentFn" :elId="getNewElUid()"/>
+                </div>
             </div>
         </div>
     </div>

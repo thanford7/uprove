@@ -433,6 +433,7 @@ def getSerializedUserProject(userProject: UserProject, isEmployer=False):
         'status': userProject.status,
         'statusChangeDateTime': getDateTimeFormatOrNone(userProject.statusChangeDateTime),
         'isLocked': isLocked,
+        'isHidden': userProject.isHidden,
         'daysUntilUnlock': getDaysUntilProjectUnlock(userProject) if isLocked else None,
         'user': {
             'id': userProject.user.id,

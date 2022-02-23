@@ -98,7 +98,7 @@ class User(AuditFields):
 
 class UserProfile(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='profile')
-    profileName = models.CharField(max_length=100)
+    profileName = models.CharField(max_length=100, default='Default')
     profilePicture = models.ForeignKey('UserImage', on_delete=models.SET_NULL, null=True)
     makePublic = models.BooleanField(default=True)
     isPrimary = models.BooleanField(default=True)
@@ -392,16 +392,15 @@ class UserProject(AuditFields):
         HIDDEN = 'hidden'
         COMPLETE = 'complete'
 
-    PROJECT_STATUSES = [(i.value, i.value) for i in Status]
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userProject')
     customProject = models.ForeignKey(CustomProject, on_delete=models.PROTECT)
     files = models.ManyToManyField(UserFile)
     videos = models.ManyToManyField(UserVideo)
     images = models.ManyToManyField(UserImage)
     projectNotes = models.TextField(null=True)
-    status = models.CharField(max_length=8, choices=PROJECT_STATUSES, default=Status.DRAFT.value)
+    status = models.CharField(max_length=8, default=Status.DRAFT.value)
     statusChangeDateTime = models.DateTimeField(default=timezone.now)
+    isHidden = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('user', 'customProject')

@@ -25,6 +25,8 @@ class ActivityKey(Enum):
     CREATE_ACCOUNT = auto()
     SET_PASSWORD = auto()
     VIEW_PROJECT_SELECTION = auto()
+    CANDIDATE_CREATE_PROJECT = auto()
+    CANDIDATE_COMPLETE_PROJECT = auto()
 
 
 def saveActivity(activityKey: ActivityKey, userId: int):
