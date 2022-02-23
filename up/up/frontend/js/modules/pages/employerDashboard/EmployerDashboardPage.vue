@@ -64,8 +64,8 @@
                     :headers="[
                         [
                             {},
-                            {value: 'First name', sortFn: 'userProject.user.firstName'},
-                            {value: 'Last name', sortFn: 'userProject.user.lastName'},
+                            {value: 'First name', sortFn: 'user.firstName'},
+                            {value: 'Last name', sortFn: 'user.lastName'},
                             {value: 'Status', sortFn: getApplicationStatus},
                             {value: 'Job title', sortFn: 'job.jobTitle'},
                             {value: 'Project', sortFn: 'userProject.customProject.projectTitle'},
@@ -100,11 +100,11 @@
                                     </li>
                                 </HamburgerDropdown>
                             </td>
-                            <td>{{application.userProject.user.firstName}}</td>
-                            <td>{{application.userProject.user.lastName}}</td>
+                            <td>{{application.user.firstName}}</td>
+                            <td>{{application.user.lastName}}</td>
                             <td>{{getApplicationStatus(application)}}</td>
                             <td>{{application.job.jobTitle}}</td>
-                            <td>{{application.userProject.customProject.projectTitle}}</td>
+                            <td>{{application?.userProject?.customProject?.projectTitle || '-None-'}}</td>
                         </tr>
                     </template>
                 </Table>

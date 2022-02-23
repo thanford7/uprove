@@ -49,7 +49,7 @@
                                   <input class="form-check-input" type="checkbox" id="projectStatus"
                                          :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
                                          @change="toggleProjectComplete(userProject, $event)"
-                                    :disabled="(userProject.isLocked) ? true : null"
+                                    :disabled="userProject.isLocked || !userProject.files.length"
                                   >
                                   <label class="form-check-label" for="projectStatus">
                                       <span v-if="userProject.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
@@ -69,13 +69,21 @@
                                 </div>
                                 <div class="mt-2">
                                     <button
-                                        class="btn btn-primary btn-sm w-100"
+                                        class="btn btn-primary btn-sm"
+                                        :class="(userProject.isLocked) ? 'w-75' : 'w-100'"
                                         @click="eventBus.emit('open:editUserProjectModal', userProject)"
                                         :disabled="userProject.isLocked"
                                         :title="getProjectLockedNote(userProject)"
                                     >
                                         Upload project files
                                     </button>
+                                    <span v-if="userProject.isLocked">
+                                        &nbsp;
+                                        <ButtonDelete
+                                            class="btn-sm"
+                                            @click="deleteProject(userProject)"
+                                        />
+                                    </span>
                                 </div>
                             </div>
                         </template>
@@ -136,6 +144,7 @@ import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseCard from "../../components/BaseCard";
+import ButtonDelete from "../../buttons/ButtonDelete";
 import CONTENT from "./CandidateDashboardContent";
 import dataUtil from "../../../utils/data";
 import EditJobApplicationModal from "../../modals/EditJobApplicationModal";
@@ -149,12 +158,14 @@ import Table from "../../components/Table";
 export default {
     name: "CandidateDashboardPage",
     components: {
-        BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, EditJobApplicationModal, EditUserProjectModal,
-        HamburgerDropdown, InfoToolTip, PageHeader, Table
+        BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, ButtonDelete, EditJobApplicationModal,
+        EditUserProjectModal, HamburgerDropdown, InfoToolTip, PageHeader, Table
     },
     data() {
         return {
             isUpdateData: true,
+            confirmDelete: false,  // Delete confirmation is done directly in this file
+            initDataKey: null,  // Set when ajax method is called
             CONTENT,
             projectStatuses: PROJECT_STATUSES
         }
@@ -163,7 +174,12 @@ export default {
         capitalize: dataUtil.capitalize,
         getApplicationStatus: dataUtil.getApplicationStatus,
         getProjectLockedNote(userProject) {
-            return (userProject.isLocked) ? `Project cannot be changed for another ${this.pluralize('day', userProject.daysUntilUnlock)} to give employers time to review` : null;
+            if (!userProject.files.length) {
+                return 'You must upload at least one file before marking the project as complete.'
+            } else if (userProject.isLocked) {
+                return `Project cannot be changed for another ${this.pluralize('day', userProject.daysUntilUnlock)} to give employers time to review`
+            }
+            return null;
         },
         getStartedApplications(project) {
             return this.initData.jobApplications.filter((app) => {
@@ -218,9 +234,20 @@ export default {
         afterUpdateInitData() {
             this.resetAjaxData()
         },
+        afterDeleteInitData() {
+            this.resetAjaxData();
+        },
+        deleteProject(userProject) {
+            this.crudUrl = 'user-project/';
+            this.initDataKey = 'userProjects';
+            this.formData = {id: userProject.id};
+            if (window.confirm('Are you sure you want to delete this project? This will withdraw any job applications where you use this project.')) {
+                this.deleteObject();
+            }
+        },
         toggleProjectComplete(userProject, e) {
             this.crudUrl = 'user-project/status/';
-            this.initDataKey = 'userProjects';
+            this.initDataKey = ['userProjects', 'jobApplications'];
             const isChecked = e.returnValue;
             this.formData = {
                 id: userProject.id,
@@ -232,6 +259,10 @@ export default {
                 this.resetAjaxData();
                 $(e.currentTarget).prop('checked', false);
                 return;
+            }
+            if (userProject.jobApplicationCount && window.confirm(`Do you want to submit the ${this.pluralize('application', userProject.jobApplicationCount)} associated
+            with this project? You can always submit each application later using the applications section in your dashboard.`)) {
+                this.formData.isSubmitApplications = true;
             }
             this.readAndSubmitForm();
         },

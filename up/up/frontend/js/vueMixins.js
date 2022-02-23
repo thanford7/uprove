@@ -82,7 +82,8 @@ const ajaxRequestMixin = {
             isAjaxModal: false,
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
             pageRedirect: null,  // Page to redirect to after succesful ajax request
-            successAlertType: severity.SUCCESS
+            successAlertType: severity.SUCCESS,
+            confirmDelete: true  // If false a window confirmation will not be required to delete
         }
     },
     methods: {
@@ -170,6 +171,11 @@ const ajaxRequestMixin = {
 
             const updateList = this.getUpdateObject(this.initDataKey[0]);
             dataUtil.removeItemFromList(updateList, (item) => item.id === deleteId);
+            this.afterDeleteInitData();
+
+        },
+        afterDeleteInitData() {
+            // subclass
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
             store.commit('addAlert', {
@@ -292,7 +298,7 @@ const ajaxRequestMixin = {
         submitAjaxRequest(requestData, requestCfg = {}) {
             const overrides = Object.assign(requestCfg, this.getAjaxCfgOverride());
             const method = overrides.method || 'PUT';
-            if (method === 'DELETE' && this.getDeleteConfirmationMessage()) {
+            if (method === 'DELETE' && this.confirmDelete && this.getDeleteConfirmationMessage()) {
                 if (!window.confirm(this.getDeleteConfirmationMessage())) {
                     return;
                 }

@@ -383,7 +383,14 @@ def getSerializedJobTemplate(template: JobTemplate):
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False, isEmployer=False):
     val = {
         'id': jobApplication.id,
-        'userProject': getSerializedUserProject(jobApplication.userProject, isEmployer=isEmployer),
+        'user': {
+            'id': jobApplication.user.id,
+            'firstName': jobApplication.user.firstName,
+            'middleName': jobApplication.user.middleName,
+            'lastName': jobApplication.user.lastName,
+            'email': jobApplication.user.email
+        },
+        'userProject': getSerializedUserProject(jobApplication.userProject, isEmployer=isEmployer) if jobApplication.userProject else None,
         'inviteDateTime': getDateTimeFormatOrNone(jobApplication.inviteDateTime),
         'submissionDateTime': getDateTimeFormatOrNone(jobApplication.submissionDateTime),
         'approveDateTime': getDateTimeFormatOrNone(jobApplication.approveDateTime),
@@ -435,6 +442,7 @@ def getSerializedUserProject(userProject: UserProject, isEmployer=False):
         'isLocked': isLocked,
         'isHidden': userProject.isHidden,
         'daysUntilUnlock': getDaysUntilProjectUnlock(userProject) if isLocked else None,
+        'jobApplicationCount': userProject.jobApplication.all().count(),
         'user': {
             'id': userProject.user.id,
             'firstName': userProject.user.firstName,

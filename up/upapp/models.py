@@ -363,7 +363,8 @@ class JobTemplate(models.Model):
 
 
 class UserJobApplication(models.Model):
-    userProject = models.ForeignKey('UserProject', on_delete=models.PROTECT)
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    userProject = models.ForeignKey('UserProject', on_delete=models.SET_NULL, null=True, related_name='jobApplication')
     employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
     inviteDateTime = models.DateTimeField(null=True)
     submissionDateTime = models.DateTimeField(null=True)
@@ -372,7 +373,7 @@ class UserJobApplication(models.Model):
     withdrawDateTime = models.DateTimeField(null=True)
 
     class Meta:
-        unique_together = ('userProject', 'employerJob')
+        unique_together = ('user', 'employerJob')
 
 
 class UserProjectEvaluationCriterion(AuditFields):

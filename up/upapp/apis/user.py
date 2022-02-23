@@ -847,7 +847,7 @@ class UserProjectView(UproveAPIView):
 
     @atomic
     def post(self, request):
-        project = self.createUserProject(request, request.data)
+        project = self.createUserProject(request, self.data, self.files)
         # Return error response if something went wrong
         if isinstance(project, Response):
             return project
@@ -872,18 +872,26 @@ class UserProjectView(UproveAPIView):
             dataUtil.setObjectAttributes(project, self.data, {
                 'projectNotes': None,
             }),
-            self.addFiles(project, self.data, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
-            self.addFiles(project, self.data, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
-            self.addFiles(project, self.data, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
+            self.addFiles(project, self.data, self.files, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
+            self.addFiles(project, self.data, self.files, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
+            self.addFiles(project, self.data, self.files, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
         ])
 
         if isChanged:
             project.modifiedDateTime = timezone.now()
             project.save()
 
+        if self.data.get('isSubmitApplications'):
+            for application in project.jobApplication.all():
+                application.submissionDateTime = timezone.now()
+                application.save()
+
         return Response(
             status=status.HTTP_200_OK,
-            data=getSerializedUserProject(self.getUserProjects(userProjectId=project.id))
+            data={
+                'userProjects': [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId=self.user.id)],
+                'jobApplications': [getSerializedJobApplication(ja, includeJob=True) for ja in UserJobApplicationView.getUserJobApplications(userId=self.user.id)]
+            }
         )
 
     def delete(self, request, userProjectId=None):
@@ -895,14 +903,11 @@ class UserProjectView(UproveAPIView):
         if not security.isSelf(project.user_id, user=self.user):
             return Response('You are not authorized to delete this project', status=status.HTTP_401_UNAUTHORIZED)
 
-        try:
-            project.delete()
-        except ProtectedError:
-            return Response(
-                ('You cannot delete this project because it is used in one or more job applications. If you wish to '
-                 'delete the project, remove it from any job applications or withdraw your job applications.'),
-                status=status.HTTP_409_CONFLICT
-            )
+        for jobApplication in project.jobApplication.all():
+            jobApplication.withdrawDateTime = timezone.now()
+            jobApplication.save()
+
+        project.delete()
         return Response(status=status.HTTP_200_OK, data=userProjectId)
 
     @staticmethod
@@ -921,9 +926,9 @@ class UserProjectView(UproveAPIView):
         return createFileFn
 
     @staticmethod
-    def addFiles(project, data, fileDataKey, fileMetaDataKey, createObjFn):
+    def addFiles(project, data, fileData, fileDataKey, fileMetaDataKey, createObjFn):
         isChanged = False
-        filesDict = {f.name: f for f in data.get(fileDataKey, [])}
+        filesDict = {f.name: f for f in fileData.get(fileDataKey, [])}
         usedFileIds = []
         existingFiles = getattr(project, fileDataKey)
         existingFilesDict = {f.id: f for f in existingFiles.all()}
@@ -953,7 +958,7 @@ class UserProjectView(UproveAPIView):
         return isChanged
 
     @staticmethod
-    def createUserProject(request, data):
+    def createUserProject(request, data, fileData):
         if not security.isSelf(data['userId'], request=request):
             return Response('You are not authorized to post this project', status=status.HTTP_401_UNAUTHORIZED)
 
@@ -990,11 +995,11 @@ class UserProjectView(UproveAPIView):
         )
         project.save()
 
-        UserProjectView.addFiles(project, data, 'files', 'filesMetaData',
+        UserProjectView.addFiles(project, data, fileData, 'files', 'filesMetaData',
                                  UserProjectView.getCreateFileFn(UserFile, 'file'))
-        UserProjectView.addFiles(project, data, 'videos', 'videosMetaData',
+        UserProjectView.addFiles(project, data, fileData, 'videos', 'videosMetaData',
                                  UserProjectView.getCreateFileFn(UserVideo, 'video'))
-        UserProjectView.addFiles(project, data, 'images', 'imagesMetaData',
+        UserProjectView.addFiles(project, data, fileData, 'images', 'imagesMetaData',
                                  UserProjectView.getCreateFileFn(UserImage, 'image'))
 
         saveActivity(ActivityKey.CANDIDATE_CREATE_PROJECT, project.user_id)
@@ -1019,6 +1024,7 @@ class UserProjectView(UproveAPIView):
             'user'
         ) \
             .prefetch_related(
+            'jobApplication',
             'customProject__skills',
             'userProjectEvaluationCriterion',
             'userProjectEvaluationCriterion__employer',
@@ -1098,15 +1104,23 @@ class UserJobApplicationView(UproveAPIView):
                 return Response('You do not have permission to post this job application',
                                 status=status.HTTP_401_UNAUTHORIZED)
         else:
-            userProject = UserProjectView.createUserProject(request, self.data)
+            userProject = UserProjectView.createUserProject(request, self.data, self.files)
             # Return error response if something went wrong
             if isinstance(userProject, Response):
                 return userProject
 
-        jobApplication = UserJobApplication(
-            userProject_id=userProject.id,
-            employerJob_id=self.data['employerJobId']
-        )
+        try:
+            # Check if the candidate has submitted a past application which was withdrawn (and is now reapplying)
+            jobApplication = UserJobApplication.objects.get(user_id=self.data['userId'], employerJob_id=self.data['employerJobId'])
+            jobApplication.userProject_id = userProject.id
+            jobApplication.withdrawDateTime = None
+        except UserJobApplication.DoesNotExist:
+            # User application is new
+            jobApplication = UserJobApplication(
+                user_id=self.data['userId'],
+                userProject_id=userProject.id,
+                employerJob_id=self.data['employerJobId']
+            )
 
         jobApplication.save()
 
@@ -1132,6 +1146,7 @@ class UserJobApplicationView(UproveAPIView):
         dtGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATETIME, allowNone=True)
         if isSelf and data.get('userProjectId'):
             dataUtil.setObjectAttributes(jobApplication, data, {
+                'user_id': {'formName': 'userId'},
                 'userProject_id': {'formName': 'userProjectId', 'isProtectExisting': True},
                 'submissionDateTime': {'propFunc': dtGetter},
                 'withdrawDateTime': {'propFunc': dtGetter}
@@ -1183,6 +1198,7 @@ class UserJobApplicationView(UproveAPIView):
 
         userJobApplications = UserJobApplication.objects \
             .select_related(
+            'user',
             'userProject',
             'userProject__user',
             'userProject__customProject',

@@ -58,6 +58,9 @@ export default {
                 return false;
             }
             const userProject = this.initData.userProjects.find((up) => up.id === this.formData.userProjectId);
+            if (!userProject) {
+                return false;
+            }
             return this.allowedProjectIds.includes(userProject.customProject.id);
         },
         isShowWithdraw() {
@@ -69,7 +72,10 @@ export default {
     },
     methods: {
         processFormData() {
-            return dataUtil.pick(this.formData, ['id', 'userProjectId', 'submissionDateTime', 'withdrawDateTime']);
+            return Object.assign(
+                {userId: this.initData.user.id},
+                dataUtil.pick(this.formData, ['id', 'userProjectId', 'submissionDateTime', 'withdrawDateTime'])
+            );
         },
         processRawData(applicationData) {
             const applicationProjectSel = this.$refs.applicationProject.elSel;

@@ -21,9 +21,7 @@
                     </div>
                     <div v-if="!isFooterHidden" class="modal-footer">
                         <slot name="footer">
-                            <button v-if="isAllowDelete" type="button" class="btn btn-danger -pull-left" @click="$emit('deleteObject', $event)" title="Delete">
-                                <i class="fas fa-trash -color-white-fa"></i>
-                            </button>
+                            <ButtonDelete v-if="isAllowDelete" class="-pull-left" @click="$emit('deleteObject', $event)"/>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button v-if="!isReadOnly" @click="$emit('saveChange', $event)" type="button" class="btn btn-primary">{{primaryButtonText || 'Save changes'}}</button>
                         </slot>
@@ -35,10 +33,11 @@
 </template>
 <script>
 import BannerAlert from "../components/BannerAlert";
+import ButtonDelete from "../buttons/ButtonDelete";
 import Modal from "bootstrap/js/dist/modal";
 
 export default {
-    components: {BannerAlert},
+    components: {BannerAlert, ButtonDelete},
     props: [
         'modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable',
         'isFooterHidden', 'isLargeDisplay', 'isFullScreenDisplay', 'isAllowDelete', 'isContentOnly'
