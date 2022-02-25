@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from '../../globalData';
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
 import form from "../../utils/form";
@@ -231,14 +231,14 @@ export default {
         isGoodFormFields(formData) {
             if (form.isEmptyWysiwyg(formData.jobDescription)) {
                 this.addPopover($('#modalJobDescription'),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
             }
 
             if (!formData.allowedProjects || !formData.allowedProjects.length) {
                 this.addPopover($(this.$refs['jobProjects'].targetEl),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
             }
@@ -247,14 +247,14 @@ export default {
                 const customProject = formData.allowedProjects[i];
                 if (dataUtil.isNil(customProject.skillLevelBit)) {
                     this.addPopover($(this.$refs[`modalJobCustomProject-skillBits-${customProject.id}`].targetEl),
-                    {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                         );
                     return false;
                 }
 
                 if (dataUtil.isNil(customProject.skillIds)) {
                     this.addPopover($(this.$refs[`modalJobCustomProject-skills-${customProject.id}`].targetEl),
-                    {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                         );
                     return false;
                 }
@@ -263,7 +263,7 @@ export default {
                     const skill = customProject.skills[x];
                     if (skill.skillLevelBits && !(skill.skillLevelBits & customProject.skillLevelBit)) {
                         this.addPopover($(this.$refs[`modalJobCustomProject-skills-${customProject.id}`].targetEl),
-                        {severity: severity.WARN, content: `${skill.name} has a skill level that is not equal to the project skill level`, isOnce: true}
+                        {severity: SEVERITY.WARN, content: `${skill.name} has a skill level that is not equal to the project skill level`, isOnce: true}
                             );
                         return false;
                     }

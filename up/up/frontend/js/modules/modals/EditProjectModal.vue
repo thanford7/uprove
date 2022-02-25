@@ -150,7 +150,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from '../../globalData';
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
 import EditSkillsTable from "../components/EditSkillsTable";
@@ -161,7 +161,6 @@ import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import RemoveIcon from "../components/RemoveIcon";
 import skillLevelSelectize from "../selectizeCfgs/skillLevels";
-import skillSelectize from "../selectizeCfgs/skill";
 import form from "../../utils/form";
 import $ from "jquery";
 
@@ -335,7 +334,7 @@ export default {
         isGoodFormFields(formData) {
             if (form.isEmptyWysiwyg(formData.description)) {
                 this.addPopover($('#projectDescription'),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
             }
@@ -345,26 +344,26 @@ export default {
                 const fileMetaData = formData.filesMetaData[i];
                 if (!formData.files[i]) {
                     this.addPopover($(`#projectFile-file-${fileMetaData.formId}`),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (!fileMetaData.title) {
                     this.addPopover($(`#projectFile-title-${fileMetaData.formId}`),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (!fileMetaData.skillLevelBits) {
                     const targetEl = this.$refs[`projectFile-skillBits-${fileMetaData.formId}`].targetEl;
                     this.addPopover($(targetEl),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (fileMetaData.fileKey && uniqueFileKeys.includes(fileMetaData.fileKey)) {
                     this.addPopover($(`#projectFile-file-${fileMetaData.formId}`),
-                {severity: severity.WARN, content: 'File cannot have the same name as another file', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'File cannot have the same name as another file', isOnce: true}
                     );
                     return false;
                 }
@@ -378,13 +377,13 @@ export default {
                 const instruction = formData.instructions[i];
                 if (!instruction.instructions || FormChecker.isEmptyWysiwyg(instruction.instructions)) {
                     this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (!(skillLevelBits & instruction.skillLevelBit)) {
                     this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
-                {severity: severity.WARN, content: 'Skill level must be included at the project level', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Skill level must be included at the project level', isOnce: true}
                     );
                     return false;
                 }
@@ -393,7 +392,7 @@ export default {
             }
             if (skillLevelBits) {
                 this.addPopover($('#projectSkillLevels'),
-            {severity: severity.WARN, content: 'Skill level must have instructions', isOnce: true}
+            {severity: SEVERITY.WARN, content: 'Skill level must have instructions', isOnce: true}
                 );
                 return false;
             }
@@ -402,7 +401,7 @@ export default {
                  const criterion = formData.evaluationCriteria[i];
                  if (!criterion.criterion) {
                      this.addPopover($(`#projectCriterion-criterion-${criterion.id}`),
-                {severity: severity.WARN, content: 'Criterion is required', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Criterion is required', isOnce: true}
                     );
                     return false;
                  }

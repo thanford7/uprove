@@ -10,7 +10,10 @@
                    id="btn-existing" autocomplete="off" checked
                    @change="toggleContentType($event, contentTypes.EXISTING)"
             >
-            <label class="btn btn-outline-dark" for="btn-existing">Existing content</label>
+            <label class="btn btn-outline-dark" for="btn-existing">
+                Existing content
+                <InfoToolTip :elId="getNewElUid()" content="Existing cards and projects that you have already created."/>
+            </label>
 
             <input type="radio" class="btn-check" name="btnradio"
                    id="btn-experience" autocomplete="off"
@@ -63,19 +66,21 @@
     </BaseModal>
 </template>
 <script>
-import {CONTENT_TYPES} from '../../globalData';
-import {severity} from "../../vueMixins";
+import {CONTENT_TYPES, SEVERITY} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import ContentSelectize from '../inputs/ContentSelectize.vue';
 import EditEducationModal from "./EditEducationModal";
 import EditExperienceModal from "./EditExperienceModal";
 import EditMediaModal from "./EditMediaModal";
 import InputSelectize from '../inputs/InputSelectize.vue';
+import InfoToolTip from "../components/InfoToolTip";
 
 
 export default {
     extends: BaseModal,
-    components: {BaseModal, ContentSelectize, EditEducationModal, EditExperienceModal, EditMediaModal, InputSelectize},
+    components: {
+        InfoToolTip,
+        BaseModal, ContentSelectize, EditEducationModal, EditExperienceModal, EditMediaModal, InputSelectize},
     inheritAttrs: false,
     data() {
         return {
@@ -92,7 +97,7 @@ export default {
         isGoodFormFields(formData) {
             if (this.addContentType === this.contentTypes.EXISTING && !formData.existingContentId) {
                 this.addPopover($(this.$refs.contentExisting.$refs.sel.targetEl),
-                    {severity: severity.WARN, content: 'You must select a piece of content to add', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'You must select a piece of content to add', isOnce: true}
                 );
                 return false;
             }

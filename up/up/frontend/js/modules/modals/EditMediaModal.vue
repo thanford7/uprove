@@ -40,8 +40,7 @@
     </BaseModal>
 </template>
 <script>
-import {CONTENT_TYPES} from '../../globalData';
-import {severity} from "../../vueMixins";
+import {CONTENT_TYPES, SEVERITY} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import dataUtil from "../../utils/data";
 import InputSelectOrUploadMedia from '../inputs/InputSelectOrUploadMedia.vue';
@@ -105,7 +104,7 @@ export default {
             for(let i = 0; i < this.sectionsLength; i++) {
                 if(SECTIONS[i].isRequired && dataUtil.isNil(formData.sections[i])) {
                     this.addPopover($(SECTIONS[i].el),
-                        {severity: severity.WARN, content: 'This section is required', isOnce: true}
+                        {severity: SEVERITY.WARN, content: 'This section is required', isOnce: true}
                     );
                     return false;
                 }

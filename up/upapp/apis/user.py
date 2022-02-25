@@ -883,10 +883,7 @@ class UserProjectView(UproveAPIView):
 
         return Response(
             status=status.HTTP_200_OK,
-            data={
-                'userProjects': [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId=self.user.id)],
-                'jobApplications': [getSerializedJobApplication(ja, includeJob=True) for ja in UserJobApplicationView.getUserJobApplications(userId=self.user.id)]
-            }
+            data=getSerializedUserProject(UserProjectView.getUserProjects(userProjectId=userProjectId))
         )
 
     def delete(self, request, userProjectId=None):
@@ -1061,6 +1058,7 @@ class UserProjectStatusView(UproveAPIView):
 
         if self.data.get('isSubmitApplications'):
             for application in project.jobApplication.all():
+                application.withdrawDateTime = None
                 application.submissionDateTime = timezone.now()
                 application.save()
 
@@ -1073,7 +1071,12 @@ class UserProjectStatusView(UproveAPIView):
 
         return Response(
             status=status.HTTP_200_OK,
-            data=getSerializedUserProject(project)
+            data={
+                'userProjects': [getSerializedUserProject(up) for up in
+                                 UserProjectView.getUserProjects(userId=self.user.id)],
+                'jobApplications': [getSerializedJobApplication(ja, includeJob=True) for ja in
+                                    UserJobApplicationView.getUserJobApplications(userId=self.user.id)]
+            }
         )
 
 

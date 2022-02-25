@@ -1,20 +1,14 @@
-import {Popover} from "bootstrap";
 import {TOOLTIPS} from "./definitions";
 import {createStore, mapState} from "vuex";
+import CustomPopover, {createPopoverChain} from "./utils/popoverCustom";
 import dataUtil from './utils/data'
-import globalData, {USER_BITS} from './globalData';
+import globalData, {SEVERITY, USER_BITS} from './globalData';
 import layout from "./utils/layout";
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
 import pluralize from 'pluralize';
 
 
-const severity = {
-    SUCCESS: 'success',
-    WARN: 'warn',
-    DANGER: 'danger',
-    INFO: 'info'
-};
 let newElUid = 0;
 const eventBus = mitt();
 
@@ -58,7 +52,7 @@ const store = createStore({
             state.alerts = [];
         },
         clearSuccessAlerts(state) {
-            state.alerts = state.alerts.filter((alert) => alert.alertType !== severity.SUCCESS);
+            state.alerts = state.alerts.filter((alert) => alert.alertType !== SEVERITY.SUCCESS);
         }
     }
 });
@@ -82,7 +76,7 @@ const ajaxRequestMixin = {
             isAjaxModal: false,
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
             pageRedirect: null,  // Page to redirect to after succesful ajax request
-            successAlertType: severity.SUCCESS,
+            successAlertType: SEVERITY.SUCCESS,
             confirmDelete: true  // If false a window confirmation will not be required to delete
         }
     },
@@ -180,7 +174,7 @@ const ajaxRequestMixin = {
         onSaveFailure(xhr, textStatus, errorThrown) {
             store.commit('addAlert', {
                 message: this.getFailureMessage(errorThrown, xhr),
-                alertType: severity.DANGER
+                alertType: SEVERITY.DANGER
             });
             eventBus.emit('ajaxFailure', {xhr, textStatus, errorThrown});
         },
@@ -210,7 +204,7 @@ const ajaxRequestMixin = {
             return Object.entries(this.requiredFields).reduce((hasRequired, [field, domSel]) => {
                 if (!dataUtil.get(formData, field)) {
                     this.addPopover($(domSel),
-                        {severity: severity.WARN, content: 'Required field', isOnce: true}
+                        {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
@@ -445,31 +439,11 @@ const modalsMixin = {
 
 const popoverMixin = {
     methods: {
-        addPopover(el$, {content, severity, isOnce = false}) {
-            let container = 'body';
-            const modal = el$.parents('.modal');
-            if (modal.length) {
-                container = `#${$(modal[0]).attr('id')}`;
-            }
-            const template = `<div class="popover ${severity}" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>`
-            const popover = new Popover(el$, {
-                container,
-                content,
-                template,
-                placement: 'auto'
-            });
-            layout.scrollTo(el$);
-            el$.focus();
-            popover.show();
-            if (isOnce) {
-                setTimeout(() => {
-                    $(container).one('click', () => {
-                        popover.dispose();
-                    });
-                }, 1);
-            }
-        }
+        addPopover(el$, popoverCfg = {}) {
+            return new CustomPopover(el$, popoverCfg);
+        },
+        createPopoverChain
     }
 }
 
-export {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store, severity};
+export {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store};

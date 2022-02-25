@@ -80,8 +80,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
-import {USER_BITS} from '../../globalData';
+import {SEVERITY, USER_BITS} from '../../globalData';
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
 import InfoToolTip from "../components/InfoToolTip";
@@ -106,7 +105,7 @@ export default {
                 lastName: '#userLName',
                 email: '#userEmail',
             },
-            successAlertType: severity.INFO,
+            successAlertType: SEVERITY.INFO,
             infoBirthDate: 'We don\'t share age or birth date with employers, but we would like to wish you a happy birthday!'
         }
     },
@@ -168,7 +167,7 @@ export default {
         isGoodFormFields(formData) {
             if (this.$refs.userTypes && formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
                 this.addPopover($(this.$refs.userEmployer.targetEl), {
-                    severity: severity.WARN,
+                    severity: SEVERITY.WARN,
                     content: 'Employer and user type of "employer" must both be set',
                     isOnce: true
                 });

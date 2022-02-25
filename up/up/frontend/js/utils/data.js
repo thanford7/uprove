@@ -207,6 +207,14 @@ class DataUtil {
         return currentTarget;
     }
 
+    getFromArrayOrNone(array, idx) {
+        if (!array) {
+            return null;
+        }
+        const val = array.slice(idx, idx + 1);
+        return (val.length) ? val[0] : null;
+    }
+
     groupByKey(targetArray, key) {
         return targetArray.reduce((r, v, i, a, k = this.get(v, key)) => ((r[k] || (r[k] = [])).push(v), r), {})
     }

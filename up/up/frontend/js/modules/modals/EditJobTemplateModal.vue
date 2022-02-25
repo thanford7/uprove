@@ -20,11 +20,11 @@
 </template>
 
 <script>
+import {SEVERITY} from '../../globalData';
 import BaseModal from "./BaseModal";
 import formChecker from "../../utils/form";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import $ from "jquery";
-import {severity} from "../../vueMixins";
 
 export default {
     name: "EditJobTemplateModal",
@@ -46,7 +46,7 @@ export default {
         isGoodFormFields(formData) {
             if (formChecker.isEmptyWysiwyg(formData.description)) {
                 this.addPopover($('#templateJobDescription'),
-                    {severity: severity.WARN, content: 'Description is required', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Description is required', isOnce: true}
                 );
                 return false;
             }

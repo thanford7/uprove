@@ -133,7 +133,7 @@
 </template>
 
 <script>
-import {severity} from "../../../vueMixins";
+import {SEVERITY} from "../../../globalData";
 import AccordionItem from "../../components/AccordionItem";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
@@ -147,7 +147,6 @@ import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import skillSelectize from "../../selectizeCfgs/skill";
-import globalData from "../../../globalData";
 
 export default {
     name: "ProjectPage.vue",
@@ -249,11 +248,11 @@ export default {
         },
         isGoodFormFields(formData) {
             if(this.isEmployer && (!formData.jobIds || !formData.jobIds.length)) {
-                this.addPopover($(this.$refs.employerJobs.targetEl), {content: 'At least one job is required', severity: severity.WARN, isOnce: true});
+                this.addPopover($(this.$refs.employerJobs.targetEl), {content: 'At least one job is required', severity: SEVERITY.WARN, isOnce: true});
                 return false;
             }
             if(!formData.skillIds || !formData.skillIds.length) {
-                this.addPopover($(this.$refs.skills.targetEl), {content: 'At least one skill is required', severity: severity.WARN, isOnce: true});
+                this.addPopover($(this.$refs.skills.targetEl), {content: 'At least one skill is required', severity: SEVERITY.WARN, isOnce: true});
                 return false;
             }
             return true;
@@ -303,10 +302,6 @@ export default {
     },
     mounted() {
         this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
-        if (this.isCandidate) {
-            this.pageRedirect = `/candidateDashboard/${this.globalData.uproveUser.id}/`
-        }
-
         this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';
 
         // Set skill levels from bits
@@ -320,16 +315,63 @@ export default {
             skillLevelSelectize.setSkillLevels(this.initData.userProjects, true);
         }
 
-        this.crudUrl = (this.isEmployer) ? `job-project-link/${this.initData.project.id}/` : 'user-project/';
         this.eventBus.on('ajaxSuccess', () => {
             this.clearSelectizeElements()
         });
 
         if (!initData.project.isLimited) {
             const {skillLevel, skill} = dataUtil.getQueryParams();
+            const defaultSkillLevel = (this.projectSkillLevelCfg.options.length === 1) ? this.projectSkillLevelCfg.options[0].value : null;
             this.$refs.skills.elSel.setValue(skill || skillSelectize.getDefaultSkills(this.initData.project.skills));
-            this.$refs.projectSkillLevel.elSel.setValue(skillLevel);
+            this.$refs.projectSkillLevel.elSel.setValue(skillLevel || defaultSkillLevel);
         }
+
+        const popoverCfgs = [];
+        if (this.isEmployer) {
+            this.crudUrl = `job-project-link/${this.initData.project.id}/`;
+            if (!this.employerJobsCfg.options.length) {
+                popoverCfgs.push({
+                    el$: $(this.$refs.employerJobs.targetEl),
+                    content: 'You do not have any job positions. Go to your Employer Dashboard to create your first job position.',
+                });
+            } else {
+                popoverCfgs.push({
+                    el$: $(this.$refs.employerJobs.targetEl),
+                    content: 'Select one or more job positions where candidates can use this project to apply for the job.',
+                    clickTarget: this.$refs.employerJobs.targetEl
+                });
+            }
+            if (!this.$refs.projectSkillLevel.elSel.getValue()) {
+                popoverCfgs.push({
+                    el$: $(this.$refs.projectSkillLevel.targetEl),
+                    content: 'Choose your desired career level. The instructions for this project will change based on the selected level.',
+                    clickTarget: this.$refs.projectSkillLevel.targetEl,
+                    showEvent: {target$: $(this.$refs.employerJobs.targetEl), event: 'blur'}
+                });
+            }
+            popoverCfgs.push({
+                el$: $(this.$refs.skills.targetEl),
+                content: `These are the recommended skills based on common skills required for a ${this.initData.project.role} role. You can add or remove skills based on the type of role you are hiring for.`,
+                showEvent: {target$: $(this.$refs.projectSkillLevel.targetEl), event: 'blur'}
+            });
+        } else if (this.isCandidate) {
+            this.crudUrl = 'user-project/';
+            this.pageRedirect = `/candidateDashboard/${this.globalData.uproveUser.id}/`;
+            // Only add this info popover if the skill level is unset
+            if (!this.$refs.projectSkillLevel.elSel.getValue()) {
+                popoverCfgs.push({
+                    el$: $(this.$refs.projectSkillLevel.targetEl),
+                    content: 'Choose your desired career level to get started.',
+                    clickTarget: this.$refs.projectSkillLevel.targetEl
+                });
+            }
+            popoverCfgs.push({
+                el$: $(this.$refs.skills.targetEl),
+                content: 'These are the recommended skills based on employer interest. Adding skills will allow you to show off more of your talent, but will also increase the time to complete the project.',
+                showEvent: (popoverCfgs.length) ? {target$: $(this.$refs.projectSkillLevel.targetEl), event: 'blur'} : null
+            });
+        }
+        this.createPopoverChain(popoverCfgs, {severity: SEVERITY.INFO, isOnce: true});
     }
 }
 </script>

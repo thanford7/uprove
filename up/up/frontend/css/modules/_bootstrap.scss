@@ -131,6 +131,25 @@ $accordion-button-active-color: colors.$color-white;
             border-bottom-color: $warning;
         }
     }
+
+    &.info {
+        background-color: colors.$color-orange;
+        .popover-arrow::after {
+            border-top-color: colors.$color-orange;
+            border-bottom-color: colors.$color-orange;
+        }
+    }
+
+    &.danger {
+        background-color: $danger;
+        .popover-arrow::after {
+            border-top-color: $danger;
+            border-bottom-color: $danger;
+        }
+        .popover-body {
+            color: colors.$color-white;
+        }
+    }
 }
 
 .popover[data-popper-placement="left"], .popover[data-popper-placement="right"] {
@@ -139,6 +158,25 @@ $accordion-button-active-color: colors.$color-white;
         .popover-arrow::after {
             border-left-color: $warning;
             border-right-color: $warning;
+        }
+    }
+
+    &.info {
+        background-color: colors.$color-orange;
+        .popover-arrow::after {
+            border-left-color: colors.$color-orange;
+            border-right-color: colors.$color-orange;
+        }
+    }
+
+    &.danger {
+        background-color: $danger;
+        .popover-arrow::after {
+            border-left-color: $danger;
+            border-right-color: $danger;
+        }
+        .popover-body {
+            color: colors.$color-white;
         }
     }
 }

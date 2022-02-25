@@ -42,6 +42,13 @@ const PROJECT_STATUSES = {
     COMPLETE: 'complete'
 }
 
+const SEVERITY = {
+    SUCCESS: 'success',
+    WARN: 'warn',
+    DANGER: 'danger',
+    INFO: 'info'
+};
+
 const TAG_TYPES = {
     INTEREST: 'interest',
     SKILL: 'skill'
@@ -103,4 +110,4 @@ const globalDataGetter = () => {
 
 const globalData = globalDataGetter();
 
-export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROJECT_STATUSES, TAG_TYPES, USER_BITS};
+export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROJECT_STATUSES, SEVERITY, TAG_TYPES, USER_BITS};

@@ -49,6 +49,7 @@ export default {
                     }
                     this.$emit('selected', val);
                 });
+                this.elSel.on('blur', () => { $(this.targetEl).trigger('blur'); });
             }
         }
     },

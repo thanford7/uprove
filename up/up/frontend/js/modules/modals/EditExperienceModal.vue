@@ -61,8 +61,7 @@
     </BaseModal>
 </template>
 <script>
-import {CONTENT_TYPES, ORGANIZATION_TYPES} from '../../globalData';
-import {severity} from "../../vueMixins";
+import {CONTENT_TYPES, SEVERITY, ORGANIZATION_TYPES} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
 import InputMonthYear from '../inputs/InputMonthYear.vue';
@@ -124,14 +123,14 @@ export default {
             if (!formData.organizationId) {
                 if (!formData.organization.name) {
                     this.addPopover($(`#${this.$refs.orgName.targetEl}`),
-                        {severity: severity.WARN, content: 'Organization name is required', isOnce: true}
+                        {severity: SEVERITY.WARN, content: 'Organization name is required', isOnce: true}
                     );
                     return false;
                 }
             }
             if (formData.startDate && formData.endDate && !dataUtil.convertToDayJS(formData.endDate).isAfter(formData.startDate)) {
                 this.addPopover($(`#${this.$refs.endDate.elId}`),
-                    {severity: severity.WARN, content: 'End month must be after start month', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'End month must be after start month', isOnce: true}
                 );
                 return false;
             }

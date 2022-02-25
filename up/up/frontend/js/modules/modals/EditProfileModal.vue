@@ -28,11 +28,10 @@
     </BaseModal>
 </template>
 <script>
-import {CONTENT_TYPES, TAG_TYPES} from '../../globalData';
+import {CONTENT_TYPES, SEVERITY, TAG_TYPES} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import EditUserTagTable from "../components/EditUserTagTable";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
-import {severity} from "../../vueMixins";
 
 export default {
     extends: BaseModal,
@@ -55,13 +54,13 @@ export default {
         isGoodFormFields(formData) {
             if(this.$refs.userSkills.hasDuplicate()) {
                 this.addPopover($(this.$refs.userSkills.$el),
-                {severity: severity.WARN, content: 'Cannot have the same skill multiple times', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Cannot have the same skill multiple times', isOnce: true}
                 );
                 return false;
             }
             if(this.$refs.userInterests.hasDuplicate()) {
                 this.addPopover($(this.$refs.userInterests.$el),
-                {severity: severity.WARN, content: 'Cannot have the same interest multiple times', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Cannot have the same interest multiple times', isOnce: true}
                 );
                 return false;
             }

@@ -86,7 +86,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from '../../globalData';
 import AddNewLink from "../components/AddNewLink";
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
@@ -173,22 +173,25 @@ export default {
                 for (let i = 0; i < formData[dataKey].length; i++) {
                     const file = formData[dataKey][i];
                     const metaData = formData[metaDataKey][i];
-                    if (uniqueFileKeys.includes(metaData.fileKey)) {
-                        this.addPopover($(`#${idKey}-input-${metaData.id}`),
-                        {severity: severity.WARN, content: 'File name must be unique', isOnce: true}
-                            );
-                        return false;
+                    // Only new files will have a fileKey. We don't need to worry about name collisions from previous files
+                    if (metaData.fileKey) {
+                        if (uniqueFileKeys.includes(metaData.fileKey)) {
+                            this.addPopover($(`#${idKey}-input-${metaData.id}`),
+                            {severity: SEVERITY.WARN, content: 'File name must be unique', isOnce: true}
+                                );
+                            return false;
+                        }
+                        uniqueFileKeys.push(metaData.fileKey);
                     }
-                    uniqueFileKeys.push(metaData.fileKey);
                     if (!file) {
                         this.addPopover($(`#${idKey}-input-${metaData.id}`),
-                        {severity: severity.WARN, content: 'Required field', isOnce: true}
+                        {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                             );
                         return false;
                     }
                     if (!metaData.title) {
                         this.addPopover($(`#${idKey}-title-${metaData.id}`),
-                    {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                         );
                         return false;
                     }

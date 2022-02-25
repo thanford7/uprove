@@ -49,6 +49,7 @@
 </template>
 
 <script>
+import {SEVERITY} from '../../globalData';
 import BadgesSkillLevels from "../components/BadgesSkillLevels";
 import BadgesSkills from "../components/BadgesSkills";
 import BaseModal from "./BaseModal";
@@ -57,7 +58,6 @@ import InputCheckBox from "../inputs/InputCheckBox";
 import InputSelectize from "../inputs/InputSelectize";
 import dataUtil from "../../utils/data";
 import $ from "jquery";
-import {severity} from "../../vueMixins";
 
 export default {
     name: "EditCustomProjectModal",
@@ -117,7 +117,7 @@ export default {
                 const criterion = formData.evaluationCriteria[i];
                 if (!criterion.criterion || !criterion.criterion.length) {
                     this.addPopover($(`#criterion-${criterion.id}`).next('textarea'),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }

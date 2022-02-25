@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from '../../globalData';
 import BaseModal from "./BaseModal";
 import InputEmail from "../inputs/InputEmail";
 import FormChecker from "../../utils/form";
@@ -26,7 +26,7 @@ export default {
         return {
             modalName: 'resetPasswordModal',
             crudUrl: 'password-reset-generate/',
-            successAlertType: severity.INFO,
+            successAlertType: SEVERITY.INFO,
             requiredFields: {
                 email: 'resetEmail',
             }
@@ -35,7 +35,7 @@ export default {
     methods: {
         isGoodFormFields(formData) {
             if (!FormChecker.isGoodEmail(formData.email)) {
-                this.addPopover($('#resetEmail'), {content: 'Please use valid email', severity: severity.WARN, isOnce: true});
+                this.addPopover($('#resetEmail'), {content: 'Please use valid email', severity: SEVERITY.WARN, isOnce: true});
                 return false;
             }
             return true;
