@@ -44,7 +44,7 @@
                             <div>
                                 <div
                                     class="form-check form-switch mt-2"
-                                    :title="getProjectLockedNote(userProject)"
+                                    :title="getProjectCompleteLockedNote(userProject)"
                                 >
                                   <input class="form-check-input" type="checkbox" id="projectStatus"
                                          :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
@@ -154,6 +154,7 @@ import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import Table from "../../components/Table";
+import userProjectUtil from "../../../utils/userProject";
 
 export default {
     name: "CandidateDashboardPage",
@@ -173,14 +174,8 @@ export default {
     methods: {
         capitalize: dataUtil.capitalize,
         getApplicationStatus: dataUtil.getApplicationStatus,
-        getProjectLockedNote(userProject) {
-            if (!userProject.files.length) {
-                return 'You must upload at least one file before marking the project as complete.'
-            } else if (userProject.isLocked) {
-                return `Project cannot be changed for another ${this.pluralize('day', userProject.daysUntilUnlock)} to give employers time to review`
-            }
-            return null;
-        },
+        getProjectLockedNote: userProjectUtil.getProjectLockedNote,
+        getProjectCompleteLockedNote: userProjectUtil.getProjectCompleteLockedNote,
         getStartedApplications(project) {
             return this.initData.jobApplications.filter((app) => {
                 return (

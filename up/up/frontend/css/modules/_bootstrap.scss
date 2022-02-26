@@ -66,6 +66,26 @@ $font-size-root: 14px;
 
         .card-header {
             overflow: hidden;
+            position: relative;
+            .card-edit-options {
+                padding: 3px;
+                background-color: colors.$color-lightgrey;
+                position: absolute;
+                right: 5px;
+                top: 5px;
+                visibility: hidden;
+                border-radius: 10px;
+                border: 1px solid colors.$color-moderategrey;
+
+                i {
+                    margin-left: 3px;
+                    margin-right: 3px;
+                }
+            }
+        }
+
+        &:hover .card-edit-options {
+            visibility: visible;
         }
 
         .card-inner {

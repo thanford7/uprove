@@ -1,6 +1,5 @@
 <template>
     <div v-if="contentItem">
-        <img v-if="contentItem.customProject.projectImage" :src="contentItem.customProject.projectImage" class="card-img-top">
         <div class="card-body pt-1 pb-1">
             <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
             <BadgesSkills :skills="contentItem.customProject.skills"/>

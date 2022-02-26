@@ -634,7 +634,17 @@ class UserProfileSectionContentItemView(UproveAPIView):
         if not security.isSelf(sectionContentItem.userProfileSection.userProfile.user_id, request=request):
             return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
 
+        sectionId = sectionContentItem.userProfileSection_id
         sectionContentItem.delete()
+
+        # Update the section ordering to make sure there aren't any gaps
+        section = UserProfileSectionView.getUserProfileSection(sectionId)
+        for idx, contentItem in enumerate(sorted(section.sectionItem.all(), key=lambda val: val.contentOrder)):
+            contentOrder = idx + 1
+            if contentItem.contentOrder != contentOrder:
+                contentItem.contentOrder = contentOrder
+                contentItem.save()
+
         return UserProfileView.getProfileOwnerResponse(sectionContentItem.userProfileSection.userProfile.id)
 
     @staticmethod

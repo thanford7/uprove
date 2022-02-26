@@ -2,11 +2,8 @@
     <BaseModal
         :modalId="modalName"
         :modalTitle="(formData.id) ? `Edit project: ${formData.customProject.projectTitle}`: 'Create new project'"
-        :primaryButtonText="(formData.id) ? 'Save changes' : 'Create project'"
         :isAllowDelete="Boolean(formData.id)"
         :isLargeDisplay="true"
-        @saveChange="saveChange($event)"
-        @deleteObject="deleteObject($event)"
     >
         <div class="mb-3 -border-bottom--light">
             <div class="d-flex align-items-center">
@@ -82,6 +79,19 @@
             <h5 class="-text-bold">Project Notes <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.userProjectNotes"/></h5>
             <InputWsiwyg v-model="formData.projectNotes" elId="blogPost" placeholder="Write post..."/>
         </div>
+        <template v-slot:footer>
+            <ButtonDelete class="-pull-left" @click="deleteObject"/>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button
+                @click="saveChange"
+                type="button" class="btn btn-primary"
+                :disabled="formData.isLocked"
+                :title="getProjectLockedNote(formData)"
+            >
+                <span v-if="formData.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
+                {{(formData.id) ? 'Save changes' : 'Create project'}}
+            </button>
+        </template>
     </BaseModal>
 </template>
 
@@ -94,6 +104,7 @@ import InfoToolTip from "../components/InfoToolTip";
 import InputMedia from "../inputs/InputMedia";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import RemoveIcon from "../components/RemoveIcon";
+import userProjectUtil from "../../utils/userProject";
 import $ from "jquery";
 
 export default {
@@ -114,6 +125,7 @@ export default {
         }
     },
     methods: {
+        getProjectLockedNote: userProjectUtil.getProjectLockedNote,
         addNewFile() {
             this.newFileCount++;
             this.formData.files.push({

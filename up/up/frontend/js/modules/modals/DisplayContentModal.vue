@@ -79,7 +79,7 @@
                     <img :src="image.image">
                 </template>
                 <div v-for="file in contentItem.files">
-                    <FileDisplay :file="file"/>
+                    <FileDisplay :file="file" :isPreventDownload="!isEmployer"/>
                 </div>
         </template>
     </BaseModal>

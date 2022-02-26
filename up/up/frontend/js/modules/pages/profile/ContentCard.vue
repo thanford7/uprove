@@ -3,7 +3,7 @@
         <div class="card-inner">
             <h5 class="card-header">
                 {{cardTitle}}
-                <span v-if="initData.isOwner" class="float-end">
+                <span v-if="initData.isOwner" class="card-edit-options">
                     <i
                         title="Edit content card"
                         class="fas fa-pencil-alt"
