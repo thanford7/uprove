@@ -183,7 +183,7 @@ export default {
                 roleId: null,
                 skillLevelBits: null
             },
-            mediaFields: ['image', 'files'],
+            mediaFields: new Set(['image', 'files']),
             newFileUniqueIdx: 0,
             newCriterionUniqueIdx: 0
         }

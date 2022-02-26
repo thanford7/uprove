@@ -755,7 +755,7 @@ class UserProfileContentItemView(UproveAPIView):
             })
             contentItem.save()
             return contentItem
-        elif contentType in [ContentTypes.CUSTOM.value, ContentTypes.VIDEO.value]:
+        elif contentType == ContentTypes.CUSTOM.value:
             contentItem = contentItem or UserContentItem(createdDateTime=timezone.now())
             dataUtil.setObjectAttributes(contentItem, self.data, {
                 'user_id': {'formName': 'userId'},
@@ -770,23 +770,23 @@ class UserProfileContentItemView(UproveAPIView):
                 mediaKey = section.get('mediaKey')
                 if section['type'] == 'video':
                     if mediaKey:
-                        section['video'] = self.data[mediaKey]
+                        section['video'] = self.files[mediaKey][0]
                         contentItems = [UserVideoView.createUserVideo(self.user, section)]
                     else:
                         contentItems = [UserVideoView.getVideo(section['value'])]
                 elif section['type'] == 'image':
                     if mediaKey:
-                        section['image'] = self.data[mediaKey]
+                        section['image'] = self.files[mediaKey][0]
                         contentItems = [UserImageView.createUserImage(self.user, section)]
                     else:
                         contentItems = [UserImageView.getImage(section['value'])]
                 elif section['type'] == 'file':
                     if mediaKey:
-                        section['file'] = self.data[mediaKey]
+                        section['file'] = self.files[mediaKey]
                         contentItems = UserFileView.createUserFiles(self.user, section)
-                    else:
-                        if not isinstance(section['value'], list):
-                            section['value'] = [section['value']]
+                    elif fileVal := section['value']:
+                        if not isinstance(fileVal, list):
+                            section['value'] = [fileVal]
                         contentItems = list(UserFile.objects.filter(id__in=section['value']))
 
                 if contentItems:
@@ -797,11 +797,11 @@ class UserProfileContentItemView(UproveAPIView):
                             contentObject=item
                         ).save()
                         sectionIdx += 1
-                else:
+                elif contentItem and (text := section['value']):
                     UserContentItemSection(
                         userContentItem=contentItem,
                         contentOrder=sectionIdx,
-                        text=section['value']
+                        text=text
                     ).save()
                     sectionIdx += 1
             return contentItem

@@ -31,7 +31,7 @@
                 </span>
             </h5>
             <ContentMedia 
-                v-if="[contentTypes.VIDEO, contentTypes.IMAGE, contentTypes.CUSTOM].includes(item.type)"
+                v-if="item.type === contentTypes.CUSTOM"
                 :contentItem="item"
                 @contentUpdated="adjustCardHeight"
             />
@@ -82,10 +82,12 @@ export default {
         },
         openEvent() {
             let openType;
-            if ([this.contentTypes.VIDEO, this.contentTypes.CUSTOM].includes(this.item.type)) {
-                openType = 'Media'
+            if (this.item.type === this.contentTypes.CUSTOM) {
+                openType = 'Media';
+            } else if (this.item.type === this.contentTypes.PROJECT) {
+                openType = 'UserProject';
             } else {
-                openType = dataUtil.capitalize(this.item.type)
+                openType = dataUtil.capitalize(this.item.type);
             }
             return `open:edit${openType}Modal`
         },

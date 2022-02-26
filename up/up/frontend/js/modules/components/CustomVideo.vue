@@ -39,7 +39,7 @@ export default {
     data() {
         return {
             crudUrl: 'user-video/',
-            mediaFields: ['avVideo', 'screenVideo'],
+            mediaFields: new Set(['avVideo', 'screenVideo']),
             recordBtn$: null,
             stopBtn$: null,
             saveBtn$: null,

@@ -21,6 +21,9 @@ export default {
     },
     props: ['cfg', 'elId', 'isParseAsInt', 'isParseAsBits', 'placeholder', 'items'],
     methods: {
+        clear() {
+            this.elSel.clear(true);
+        },
         parseInteger(val) {
             if (Array.isArray(val)) {
                 return val.map((v) => parseInt(v));
@@ -46,6 +49,13 @@ export default {
                     }
                     if (this.isParseAsBits && Array.isArray(val)) {
                         val = dataUtil.sum(val);
+                    }
+                    // Make sure null values and empty arrays are not included
+                    if (Array.isArray(val)) {
+                        val = val.filter((v) => !dataUtil.isNil(v));
+                        if (!val.length) {
+                            val = null;
+                        }
                     }
                     this.$emit('selected', val);
                 });

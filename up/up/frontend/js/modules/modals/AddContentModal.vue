@@ -1,7 +1,7 @@
 <template>
     <BaseModal
         :modalId="modalName"
-        modalTitle="Add content"
+        modalTitle="Add card"
         :isLargeDisplay="true"
         @saveChange="saveChange"
     >
@@ -31,13 +31,10 @@
                    id="btn-custom" autocomplete="off"
                    @change="toggleContentType($event, contentTypes.CUSTOM)"
             >
-            <label class="btn btn-outline-dark" for="btn-custom">Custom project</label>
-
-            <input type="radio" class="btn-check" name="btnradio"
-                   id="btn-video" autocomplete="off"
-                   @change="toggleContentType($event, contentTypes.VIDEO)"
-            >
-            <label class="btn btn-outline-dark" for="btn-video">Video</label>
+            <label class="btn btn-outline-dark" for="btn-custom">
+                Custom content
+                <InfoToolTip :elId="getNewElUid()" content="Add video, images, files, and descriptions to showcase anything. For example, it could be a project you created outside of the Uprove platform or research you have completed on a specific company."/>
+            </label>
         </div>
         <div v-if="addContentType === contentTypes.EXISTING">
             <label class="form-label">Existing content</label>
@@ -48,7 +45,7 @@
             />
         </div>
         <EditMediaModal
-            v-if="[contentTypes.VIDEO, contentTypes.CUSTOM].includes(addContentType)"
+            v-if="addContentType === contentTypes.CUSTOM"
             :defaultContentType="addContentType"
             :isContentOnly="true"
             ref="contentMedia"
@@ -87,7 +84,7 @@ export default {
             modalName: 'addContentModal',
             crudUrl: 'user-profile/content-item/',
             isUpdateData: true,
-            mediaFields: [],
+            mediaFields: new Set(),
             addContentType: CONTENT_TYPES.EXISTING,
             contentTypes: CONTENT_TYPES,
             isGoodContentData: null
@@ -118,7 +115,7 @@ export default {
                 const {formData: contentData, isGoodData} = contentModal.getAndCheckData();
                 this.isGoodContentData = isGoodData;
                 Object.assign(mainData, contentData);
-                this.mediaFields = [...this.mediaFields, ...(contentModal.mediaFields || [])]
+                this.mediaFields = new Set([...this.mediaFields, ...(contentModal.mediaFields || [])])
             } else {
                 this.isGoodContentData = true;
             }
@@ -139,7 +136,7 @@ export default {
                 this.addContentType = null;
             }
 
-            if ([this.contentTypes.VIDEO, this.contentTypes.CUSTOM].includes(this.addContentType)) {
+            if (this.addContentType === this.contentTypes.CUSTOM) {
                 this.eventBus.emit('open:editMediaModal:content');
             }
             if (this.addContentType === this.contentTypes.EXPERIENCE) {

@@ -37,12 +37,14 @@ const store = createStore({
                 this.commit('clearSuccessAlerts');
             }, 5000);
 
-            // If modal is open, scroll to the top, otherwise scroll to the top of the page
-            const modal$ = $('.modal.show .modal-content');
-            if (modal$.length) {
-                layout.scrollTo(modal$, true);
-            } else {
-                layout.scrollTo($('#vue-container'));
+            if ([SEVERITY.DANGER, SEVERITY.WARN].includes(alert.type)) {
+                // If modal is open, scroll to the top, otherwise scroll to the top of the page
+                const modal$ = $('.modal.show .modal-content');
+                if (modal$.length) {
+                    layout.scrollTo(modal$, true);
+                } else {
+                    layout.scrollTo($('#vue-container'));
+                }
             }
         },
         clearAlert(state, alertId) {
@@ -72,7 +74,7 @@ const ajaxRequestMixin = {
             updateDeleteMethod: null, // Set to PUT or POST if not sending a delete ID response from ajax request
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
-            mediaFields: [],  // Fields that must be processed as files or media. Can access nested fields using dot notation
+            mediaFields: new Set(),  // Fields that must be processed as files or media. Can access nested fields using dot notation
             isAjaxModal: false,
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
             pageRedirect: null,  // Page to redirect to after succesful ajax request
@@ -391,16 +393,20 @@ const modalsMixin = {
         }
     },
     methods: {
-        clearSelectizeElements() {
+        clearElements() {
             Object.values(this.$refs).forEach((ref) => {
-                if (ref && ref.elSel) {
-                    ref.elSel.clear(true);
+                if (ref) {
+                    if (ref.elSel) {
+                        ref.elSel.clear(true); // Clear selectize elements
+                    } else if (ref.clear) {
+                        ref.clear();  // Clear any other elements with a clear method
+                    }
                 }
             });
         },
         initForm() {
             this.formData = this.getEmptyFormData();
-            this.clearSelectizeElements();
+            this.clearElements();
         },
         processRawData(rawData) {
             // subclass

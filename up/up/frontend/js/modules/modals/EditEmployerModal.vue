@@ -58,7 +58,7 @@ export default {
             requiredFields: {
                 companyName: '#employerCompanyName',
             },
-            mediaFields: ['logo'],
+            mediaFields: new Set(['logo']),
             isLogoUpload: true,
             contentTypes: CONTENT_TYPES
         }

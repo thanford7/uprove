@@ -90,6 +90,7 @@
         <EditExperienceModal/>
         <EditProfileModal/>
         <EditMediaModal/>
+        <EditUserProjectModal/>
         <DisplayContentModal/>
     </div>
 </template>
@@ -105,6 +106,7 @@ import EditProfileModal from '../../modals/EditProfileModal.vue';
 import EditMediaModal from '../../modals/EditMediaModal.vue';
 import InfoToolTip from "../../components/InfoToolTip";
 import ProgressPill from "../../components/ProgressPill";
+import EditUserProjectModal from "../../modals/EditUserProjectModal";
 
 export default {
     data() {
@@ -115,6 +117,7 @@ export default {
         }
     },
     components: {
+        EditUserProjectModal,
         AddContentModal,
         AddSectionModal,
         BannerAlert,

@@ -80,7 +80,7 @@ export default {
             requiredFields: {
                 'school.name': null
             },
-            mediaFields: ['school.newLogo'],
+            mediaFields: new Set(['school.newLogo']),
             contentTypes: CONTENT_TYPES,
             orgCfg: orgSelectize.getOrgCfg(ORGANIZATION_TYPES.SCHOOL),
             degreeCfg: {

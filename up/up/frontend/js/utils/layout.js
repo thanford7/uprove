@@ -9,7 +9,7 @@ class Layout {
     }
 
     scrollTo(el$, isTop=false) {
-        let container = 'body';
+        let container = 'html, body';
         const modal = el$.parents('.modal');
         if (modal.length) {
             container = `#${$(modal[0]).attr('id')}`;

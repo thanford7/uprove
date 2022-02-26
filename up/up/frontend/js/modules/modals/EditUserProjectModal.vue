@@ -110,7 +110,7 @@ export default {
             newFileCount: 0,
             newVideoCount: 0,
             newImageCount: 0,
-            mediaFields: ['files', 'videos', 'images']
+            mediaFields: new Set(['files', 'videos', 'images'])
         }
     },
     methods: {

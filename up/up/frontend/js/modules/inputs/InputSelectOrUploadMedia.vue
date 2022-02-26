@@ -48,6 +48,10 @@ export default {
     },
     components: {InputMedia, MediaSelectize},
     methods: {
+        clear() {
+            this.$refs.existingSel.clear();
+            this.$refs.newUpload.clear();
+        },
         toggleUpload(isUpload) {
             this.isUpload = isUpload;
             $(this.$refs.newUpload.$el).toggle(isUpload);

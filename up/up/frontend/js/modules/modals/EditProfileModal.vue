@@ -40,7 +40,7 @@ export default {
             modalName: 'editProfileModal',
             crudUrl: 'user-profile/',
             isUpdateData: true,
-            mediaFields: ['newProfilePicture'],
+            mediaFields: new Set(['newProfilePicture']),
             requiredFields: {
                 profileName: '#formProfileName'
             },

@@ -56,6 +56,9 @@ export default {
         }
     },
     methods: {
+        clear() {
+            this.$refs.fileInput.value = '';
+        },
         getFileData() {
             const files = this.$refs.fileInput.files;
             // Need to destructure files because it is of type "FileList" which doesn't offer array methods

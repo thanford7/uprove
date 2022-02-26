@@ -86,7 +86,7 @@ export default {
                 startDate: null,
                 employmentType: null
             },
-            mediaFields: ['organization.newLogo'],
+            mediaFields: new Set(['organization.newLogo']),
             employmentTypeSelCfg: {
                 options: [
                     {name: 'Full-time'},

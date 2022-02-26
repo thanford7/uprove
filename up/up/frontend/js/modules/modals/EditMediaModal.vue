@@ -12,7 +12,10 @@
             <input ref="title" type="text" class="form-control" placeholder="Add title..." v-model="formData.title">
         </div>
         <div class="mb-3">
-            <label class="form-label">Banner {{allowedBannerMediaTypes.join(' or ')}}</label>
+            <label class="form-label">
+                Banner {{allowedBannerMediaTypes.join(' or ')}}
+                <InfoToolTip :elId="getNewElUid()" content="This will be prominently displayed at the top of the card."/>
+            </label>
             <InputSelectOrUploadMedia
                 ref="mediaInput"
                 :currentVal="getMediaId(formData.sections[0])"
@@ -46,6 +49,7 @@ import dataUtil from "../../utils/data";
 import InputSelectOrUploadMedia from '../inputs/InputSelectOrUploadMedia.vue';
 import InputWsiwyg from '../inputs/InputWsiwyg.vue';
 import mediaSelectize from "../selectizeCfgs/media";
+import InfoToolTip from "../components/InfoToolTip";
 
 const SECTIONS = [
     {type: null, isRequired: true},
@@ -65,12 +69,12 @@ export default {
             requiredFields: {
                 title: null
             },
-            mediaFields: [],  // Dynamically update based on input
+            mediaFields: new Set(),  // Dynamically update based on input
         }
     },
     inheritAttrs: false,
     props: ['isContentOnly', 'defaultContentType'],
-    components: {BaseModal, InputSelectOrUploadMedia, InputWsiwyg},
+    components: {InfoToolTip, BaseModal, InputSelectOrUploadMedia, InputWsiwyg},
     computed: {
         allowedBannerMediaTypes() {
             return (this.contentType === CONTENT_TYPES.VIDEO) ? [CONTENT_TYPES.VIDEO] : [CONTENT_TYPES.VIDEO, CONTENT_TYPES.IMAGE];
@@ -144,9 +148,7 @@ export default {
                 this.formData[mediaKey] = val;  // Add the media item to the form to be saved as media
                 sectionItemData.mediaKey = mediaKey;  // Add a reference to the media key so it can be found when saving
                 sectionItemData.value = null;  // Remove any references to an existing media item
-                if (!this.mediaFields.includes(mediaKey)) {
-                    this.mediaFields.push(mediaKey);
-                }
+                this.mediaFields.add(mediaKey);
                 if (val.type.includes(CONTENT_TYPES.IMAGE)) {
                     sectionItemData.type = CONTENT_TYPES.IMAGE;
                 } else if (val.type.includes(CONTENT_TYPES.VIDEO)) {
@@ -159,7 +161,7 @@ export default {
                 sectionItemData.type = val.type;
                 sectionItemData.value = val.id;
                 sectionItemData.mediaKey = null;
-                this.mediaFields = this.mediaFields.filter((f) => f !== mediaKey);
+                this.mediaFields.delete(mediaKey);
             }
         }
     },

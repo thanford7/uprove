@@ -7,7 +7,7 @@
         :isScrollable="true"
         :isLargeDisplay="true"
     >
-        <template v-if="[contentTypes.VIDEO, contentTypes.IMAGE, contentTypes.CUSTOM].includes(contentItem.type)">
+        <template v-if="contentItem.type === contentTypes.CUSTOM">
             <div class="mb-3" v-for="section in contentItem.sections">
                 <template v-if="section.item">
                     <video v-if="section.item.type === contentTypes.VIDEO" controls :src="section.item.video" @resize="$emit('contentUpdated')"></video>

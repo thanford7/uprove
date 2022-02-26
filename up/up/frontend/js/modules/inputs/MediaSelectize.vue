@@ -1,5 +1,6 @@
 <template>
     <InputSelectize
+        ref="input"
         :elId="getNewElUid()"
         :cfg="cfg"
         :items="currentVal"
@@ -74,6 +75,9 @@ export default {
     methods: {
         parseVal(val) {
             return mediaSelectize.getParsedCompositeId(val);
+        },
+        clear() {
+            this.$refs.input.clear();
         }
     }
 }

@@ -74,7 +74,7 @@ export default {
                 post: '#blogPost',
                 authorId: null  // Set on mounted
             },
-            mediaFields: ['picture'],
+            mediaFields: new Set(['picture']),
             contentTypes: CONTENT_TYPES
         }
     },
