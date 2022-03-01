@@ -66,24 +66,7 @@
         <template v-if="contentItem.type === contentTypes.PROJECT">
                 <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
                 <BadgesSkills :skills="contentItem.customProject.skills"/>
-                <div id="projectInfo" class="accordion mb-3 mt-3">
-                    <AccordionItem accordionElId="projectInfo" :elId="getNewElUid()" :isOpen="false" :isAllowMultipleOpen="true">
-                        <template v-slot:header>
-                            Project description
-                        </template>
-                        <template v-slot:body>
-                            <div v-html="contentItem.customProject.projectDescription"></div>
-                        </template>
-                    </AccordionItem>
-                    <AccordionItem accordionElId="projectInfo" :elId="getNewElUid()" :isOpen="false" :isAllowMultipleOpen="true">
-                        <template v-slot:header>
-                            Project background
-                        </template>
-                        <template v-slot:body>
-                            <div v-html="contentItem.customProject.projectBackground"></div>
-                        </template>
-                    </AccordionItem>
-                </div>
+                <ProjectDetailAccordion :userProject="contentItem"/>
                 <template v-for="video in contentItem.videos">
                     <video controls :src="video.video"></video>
                 </template>
@@ -105,10 +88,11 @@ import BaseModal from './BaseModal.vue';
 import dataUtil from '../../utils/data';
 import contentUtil from "../../utils/content";
 import FileDisplay from "../components/FileDisplay";
+import ProjectDetailAccordion from "../components/ProjectDetailAccordion";
 
 export default {
     extends: BaseModal,
-    components: {BaseModal, AccordionItem, BadgesSkillLevels, BadgesSkills, FileDisplay},
+    components: {BaseModal, AccordionItem, BadgesSkillLevels, BadgesSkills, FileDisplay, ProjectDetailAccordion},
     inheritAttrs: false,
     data() {
         return {

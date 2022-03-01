@@ -199,7 +199,7 @@ class UserView(UproveAPIView):
         user = self.getUser(userId)
         self.updateUser(user, request.data)
         currentUproveUser = security.getSessionUser(request)
-        if security.isSelf(userId, user=user) or not currentUproveUser:
+        if security.isSelf(userId, user=currentUproveUser) or not currentUproveUser:
             setUproveUser(request, user.djangoUser)
         return Response(getSerializedUser(user), status=status.HTTP_200_OK)
 

@@ -20,6 +20,7 @@ urlpatterns = [
     path('candidate-board/', views.candidateBoard, name='candidateBoard'),
     re_path('^candidateDashboard/(?P<userId>[0-9]+)?/?$', views.candidateDashboard, name='candidateDashboard'),
     path('candidateOnboard/', views.candidateOnboard, name='candidateOnboard'),
+    re_path('^candidate-project/(?P<userProjectId>[0-9]+)?/?$', views.candidateProject, name='candidateProject'),
     path('contact/', views.contact, name='contact'),
     re_path('^employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
     path('errors/', views.errors, name='errors'),

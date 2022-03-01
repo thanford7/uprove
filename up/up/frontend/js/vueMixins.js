@@ -343,8 +343,12 @@ const globalVarsMixin = {
                 return levels;
             }, []);
         },
-        redirectUrl(url) {
-            window.location.replace(url);
+        redirectUrl(url, isNewTab=false) {
+            if (isNewTab) {
+                window.open(url, '_blank');
+            } else {
+                window.location.replace(url);
+            }
         },
         pluralize(word, count) {
             return pluralize(word, count, true);

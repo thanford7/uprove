@@ -95,6 +95,10 @@ class User(AuditFields):
     def isSuperUser(self):
         return self.djangoUser.is_superuser
 
+    @property
+    def primaryProfile(self):
+        return next((p for p in self.profile.all() if p.isPrimary), None)
+
 
 class UserProfile(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='profile')

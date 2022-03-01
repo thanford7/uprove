@@ -11,7 +11,7 @@ from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
-from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
+from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView, isUserProjectLocked
 from upapp.models import EmployerCustomProjectCriterion, Role, Skill
 from upapp.viewsAuth import getLoginRedirectUrl
 
@@ -80,19 +80,36 @@ def blog(request, blogId=None):
 
 def candidateBoard(request):
     user = security.getSessionUser(request)
-    if not user or not security.isPermittedAdmin(user=user):
+    if not user or not (user.isAdmin or user.isEmployer):
         return _getUnauthorizedPage(request)
 
     return render(request, 'candidateBoard.html', context={'data': dumps({
-        'profiles': [{
-            'profileId': profile.id,
-            'profileName': profile.profileName,
-            'firstName': profile.user.firstName,
-            'lastName': profile.user.lastName
+        'candidates': [{
+            'profileId': candidate.primaryProfile.id,
+            'profileName': candidate.primaryProfile.profileName,
+            'firstName': candidate.firstName,
+            'lastName': candidate.lastName,
+            'userProjects': [{
+                'id': project.id,
+                'projectTitle': project.customProject.project.title,
+                'role': project.customProject.project.role.name,
+                'status': project.status,
+                'skillLevelBit': project.customProject.skillLevelBit,
+                'skills': [getSerializedSkill(s) for s in project.customProject.skills.all()]
+            } for project in candidate.userProject.all()
+                if user.isAdmin or (project.status == UserProject.Status.COMPLETE.value and not project.isHidden)
+            ]
         }
-            for profile
-            in UserProfile.objects.select_related('user', 'user__djangoUser').filter(user__djangoUser__is_active=True)
-            if profile.user.isCandidate  # TODO: Add this to filter
+            for candidate
+            in User.objects
+                .select_related('djangoUser')
+                .prefetch_related('profile', 'userProject', 'userProject__customProject')
+                .annotate(isCandidateF=F('userTypeBits').bitand(User.USER_TYPE_CANDIDATE))
+                .filter(
+                    djangoUser__is_active=True,
+                    isDemo=False,
+                    isCandidateF__gt=0
+                )
         ]
     })})
 
@@ -127,6 +144,21 @@ def candidateOnboard(request):
     return render(request, 'candidateOnboard.html', context={'data': dumps({
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
+    })})
+
+
+def candidateProject(request, userProjectId=None):
+    user = security.getSessionUser(request)
+    if not user or not (user.isAdmin or user.isEmployer):
+        return _getUnauthorizedPage(request)
+
+    if not userProjectId:
+        return _getErrorPage(request, HTTPStatus.BAD_REQUEST, 'A user project ID is required')
+
+    userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
+    return render(request, 'candidateProject.html', context={'data': dumps({
+        'user': getSerializedUser(UserView.getUser(userProject.user_id), isIncludeAssets=True),
+        'userProject': getSerializedUserProject(userProject)
     })})
 
 

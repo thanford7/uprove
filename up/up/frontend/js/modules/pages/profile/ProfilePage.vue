@@ -2,43 +2,7 @@
     <div class="container-lg mt-3">
         <BannerAlert/>
         <div class="row">
-            <div class="col-md-3 col-lg-2 card-custom">
-                <div class="profile-picture">
-                    <span id="profilePic">
-                        <img v-if="initData.profilePicture" :src="initData.profilePicture.image">
-                        <i v-else class="fas fa-user fa-4x"></i>
-                        <i
-                            v-if="initData.isOwner"
-                            class="fas fa-pencil-alt fa-lg"
-                            id="editProfile"
-                            @click="eventBus.emit('open:editProfileModal', initData)"
-                        />
-                    </span>
-                    <h4 class="-text-center mt-2">{{initData.user.firstName}} {{initData.user.lastName}}</h4>
-                </div>
-                <div class="mt-3">
-                    <span class="-sub-text">SKILLS</span>
-                    <div v-for="skill in initData.user.skills">
-                        <span class="-sub-text">{{skill.title}}&nbsp;</span>
-                        <InfoToolTip v-if="skill.description" :elId="getNewElUid()" :content="skill.description"/>
-                        <ProgressPill
-                            color="darkblue"
-                            :pctComplete="getSkillPct(skill)"
-                            :text="getSkillText(skill)"
-                            :hoverText="getSkillDescription(skill)"
-                        />
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <span class="-sub-text">INTERESTS</span>
-                    <div>
-                        <template v-for="interest in initData.user.interests">
-                            <span class="-sub-text">{{interest.title}}&nbsp;</span>
-                            <InfoToolTip v-if="interest.description" :elId="getNewElUid()" :content="interest.description"/>&nbsp;
-                        </template>
-                    </div>
-                </div>
-            </div>
+            <CandidateSideBar :user="initData.user" :isOwner="initData.isOwner" :profilePicture="initData.profilePicture"/>
             <div class="col-md-8">
                 <div v-for="(section, idx) in initData.sections" class="row card-custom -border-bottom--light mb-2 pb-2 ">
                     <div class="col-12">
@@ -98,6 +62,7 @@
 import AddContentModal from '../../modals/AddContentModal.vue';
 import AddSectionModal from '../../modals/AddSectionModal.vue';
 import BannerAlert from "../../components/BannerAlert";
+import CandidateSideBar from "./CandidateSideBar";
 import ContentCard from "./ContentCard.vue"
 import DisplayContentModal from '../../modals/DisplayContentModal.vue';
 import EditEducationModal from '../../modals/EditEducationModal.vue';
@@ -121,6 +86,7 @@ export default {
         AddContentModal,
         AddSectionModal,
         BannerAlert,
+        CandidateSideBar,
         ContentCard,
         DisplayContentModal,
         EditEducationModal,
@@ -133,15 +99,6 @@ export default {
     methods: {
         getDeleteConfirmationMessage() {
             return 'Are you sure you want to delete this section? The content will not be deleted and will still be available to add to other sections.'
-        },
-        getSkillPct(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.pct;
-        },
-        getSkillText(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.title;
-        },
-        getSkillDescription(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.description;
         },
         readForm() {
             return Object.assign(this.formData, {
