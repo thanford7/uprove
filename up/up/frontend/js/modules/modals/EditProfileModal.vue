@@ -32,6 +32,7 @@ import {CONTENT_TYPES, SEVERITY, TAG_TYPES} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import EditUserTagTable from "../components/EditUserTagTable";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
+import dataUtil from "../../utils/data";
 
 export default {
     extends: BaseModal,
@@ -58,6 +59,15 @@ export default {
                 );
                 return false;
             }
+            for(let i = 0; i < formData.userSkills.length; i++) {
+                const userSkill = formData.userSkills[i];
+                if (!userSkill.skillLevelBit) {
+                    this.addPopover($(this.$refs.userSkills.$el),
+                    {severity: SEVERITY.WARN, content: `${userSkill.title} skill must have a skill level`, isOnce: true}
+                    );
+                    return false;
+                }
+            }
             if(this.$refs.userInterests.hasDuplicate()) {
                 this.addPopover($(this.$refs.userInterests.$el),
                 {severity: SEVERITY.WARN, content: 'Cannot have the same interest multiple times', isOnce: true}
@@ -69,7 +79,10 @@ export default {
         processFormData() {
             const userSkills = this.$refs.userSkills.getTags();
             const userInterests = this.$refs.userInterests.getTags();
-            return Object.assign(this.readForm(), {userInterests, userSkills});
+            return Object.assign(
+                dataUtil.pick(this.readForm(), ['id', 'profileName', 'profilePicture', 'newProfilePicture']),
+                {userInterests, userSkills}
+            );
         },
     }
 }

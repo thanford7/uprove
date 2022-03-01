@@ -14,6 +14,7 @@
                     <tr>
                         <td class="border-bottom-0">
                             <InputSelectize
+                                ref="tag"
                                 :cfg="getTagSelectizeCfg(tag)"
                                 :elId="getNewElUid()"
                                 :items="tag.id"
@@ -129,10 +130,12 @@ export default {
             skillLevelSelectize.setSkillLevels([tag], true);
         },
         setTag(tag, tagId) {
-            tag.id = tagId;
+            tag.id = parseInt(tagId) || tagId;
             // If ID is not an integer, that means it's a new tag
             if (!parseInt(tagId)) {
                 tag.title = tagId;
+            } else {
+                tag.title = this.getTagById(tagId).title;
             }
         },
         getTags() {
@@ -146,6 +149,9 @@ export default {
                     t.isEdit = false;  // Close the edit form if it is currently open
                     return t;
                 });
+        },
+        getTagById(tagId) {
+            return this.$refs.tag.elSel.options[tagId] || {}
         },
         hasDuplicate() {
             const tags = this.getTags();

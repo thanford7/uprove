@@ -38,6 +38,18 @@
                 </div>
             </div>
         </template>
+        <template v-if="contentItem.type === contentTypes.CERTIFICATION">
+            <div class="row">
+                <div class="col-2">
+                    <img :src="contentItem.organization.logo">
+                </div>
+                <div class="col-10">
+                    <div>{{contentItem.title}}</div>
+                    <div>Issued: {{formatDate(contentItem.issueDate)}}</div>
+                    <div v-if="contentItem.hasExpiration">Expires: {{formatDate(contentItem.expirationDate)}}</div>
+                </div>
+            </div>
+        </template>
         <template v-if="contentItem.type === contentTypes.EXPERIENCE">
             <div class="row">
                 <div class="col-2">
@@ -79,7 +91,7 @@
                     <img :src="image.image">
                 </template>
                 <div v-for="file in contentItem.files">
-                    <FileDisplay :file="file" :isPreventDownload="!isEmployer"/>
+                    <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
                 </div>
         </template>
     </BaseModal>

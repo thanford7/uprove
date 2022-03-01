@@ -75,6 +75,7 @@ const ajaxRequestMixin = {
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
             mediaFields: new Set(),  // Fields that must be processed as files or media. Can access nested fields using dot notation
+            childForms: [],  // If any modals are used with "contentOnly" they must be added here so they can be cleared correctly
             isAjaxModal: false,
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
             pageRedirect: null,  // Page to redirect to after succesful ajax request
@@ -393,20 +394,9 @@ const modalsMixin = {
         }
     },
     methods: {
-        clearElements() {
-            Object.values(this.$refs).forEach((ref) => {
-                if (ref) {
-                    if (ref.elSel) {
-                        ref.elSel.clear(true); // Clear selectize elements
-                    } else if (ref.clear) {
-                        ref.clear();  // Clear any other elements with a clear method
-                    }
-                }
-            });
-        },
         initForm() {
             this.formData = this.getEmptyFormData();
-            this.clearElements();
+            eventBus.emit('formClear');  // Clear all non-reactive elements
         },
         processRawData(rawData) {
             // subclass

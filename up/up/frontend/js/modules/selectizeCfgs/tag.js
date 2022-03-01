@@ -8,7 +8,7 @@ class TagSelectize {
             sortField: 'title',
             searchField: 'title',
             create: true,
-            loadThrottle: 500,
+            loadThrottle: 200,
             placeholder: `Start typing to see existing ${tagType}s`
         };
         cfg.load = (query, callback) => {
@@ -30,7 +30,7 @@ class TagSelectize {
                 return `
                     <div class="option" data-selectable data-value="${data.id}" style="cursor: pointer;">
                         <div class="-text-bold">${escape(data.title)}</div>
-                        <div class="-sub-text">${escape(data.description)}</div>
+                        <div class="-sub-text">${(data.description) ? escape(data.description) : ''}</div>
                     </div>
                 `;
             }

@@ -76,9 +76,6 @@ export default {
         parseVal(val) {
             return mediaSelectize.getParsedCompositeId(val);
         },
-        clear() {
-            this.$refs.input.clear();
-        }
     }
 }
 </script>

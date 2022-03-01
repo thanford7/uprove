@@ -17,6 +17,7 @@ urlpatterns = [
     path('admin/', views.admin, name='admin'),
     path('account-settings/<int:userId>/', views.accountSettings, name='accountSettings'),
     re_path('^blog/(?P<blogId>[0-9]+)?/?$', views.blog, name='blog'),
+    path('candidate-board/', views.candidateBoard, name='candidateBoard'),
     re_path('^candidateDashboard/(?P<userId>[0-9]+)?/?$', views.candidateDashboard, name='candidateDashboard'),
     path('candidateOnboard/', views.candidateOnboard, name='candidateOnboard'),
     path('contact/', views.contact, name='contact'),

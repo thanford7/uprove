@@ -78,6 +78,25 @@ def blog(request, blogId=None):
     return render(request, 'blog.html', {'data': dumps(data)})
 
 
+def candidateBoard(request):
+    user = security.getSessionUser(request)
+    if not user or not security.isPermittedAdmin(user=user):
+        return _getUnauthorizedPage(request)
+
+    return render(request, 'candidateBoard.html', context={'data': dumps({
+        'profiles': [{
+            'profileId': profile.id,
+            'profileName': profile.profileName,
+            'firstName': profile.user.firstName,
+            'lastName': profile.user.lastName
+        }
+            for profile
+            in UserProfile.objects.select_related('user', 'user__djangoUser').filter(user__djangoUser__is_active=True)
+            if profile.user.isCandidate  # TODO: Add this to filter
+        ]
+    })})
+
+
 def candidateDashboard(request, userId=None):
     user = security.getSessionUser(request)
     if not user:

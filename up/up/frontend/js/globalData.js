@@ -8,6 +8,7 @@ const CONTENT_TYPES = {
     EXISTING: 'existing',
     EXPERIENCE: 'experience',
     EDUCATION: 'education',
+    CERTIFICATION: 'certification',
     PROJECT: 'project',
     CUSTOM: 'custom',
     VIDEO: 'video',

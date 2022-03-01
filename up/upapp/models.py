@@ -9,7 +9,7 @@ from django.db import models
 from django.utils import timezone
 
 __all__ = (
-    'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
+    'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserCertification', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
@@ -136,6 +136,15 @@ class UserEducation(AuditFields):
     endDate = models.DateField(null=True)
 
 
+class UserCertification(AuditFields):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='certification')
+    organization = models.ForeignKey('Organization', on_delete=models.PROTECT)
+    hasExpiration = models.BooleanField(default=False)
+    title = models.CharField(max_length=200, null=False)
+    issueDate = models.DateField()
+    expirationDate = models.DateField(null=True)
+
+
 class UserExperience(AuditFields):
     # Keep in sync with globalData.js
     OPTIONS_EMPLOYMENT_TYPE = [
@@ -232,6 +241,9 @@ class Tag(models.Model):
     title = models.CharField(max_length=30)
     type = models.CharField(max_length=25, choices=TYPES_TAG)
     description = models.CharField(max_length=200, null=True)
+
+    class Meta:
+        unique_together = ('title', 'type')
 
 
 class Organization(models.Model):

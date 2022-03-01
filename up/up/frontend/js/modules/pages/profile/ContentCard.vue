@@ -35,15 +35,17 @@
                 :contentItem="item"
                 @contentUpdated="adjustCardHeight"
             />
+            <ContentCertification v-if="item.type === contentTypes.CERTIFICATION" :contentItem="item"/>
             <ContentEducation v-if="item.type === contentTypes.EDUCATION" :contentItem="item"/>
             <ContentExperience v-if="item.type === contentTypes.EXPERIENCE" :contentItem="item"/>
             <ContentProject v-if="item.type === contentTypes.PROJECT" :contentItem="item"/>
-            <ViewMoreLink @click="eventBus.emit('open:displayContentModal', this.item)"/>
+            <ViewMoreLink v-if="isHeightExceeded || item.type === contentTypes.PROJECT" @click="eventBus.emit('open:displayContentModal', this.item)"/>
         </div>
     </div>
 </template>
 <script>
 import {CONTENT_TYPES} from '../../../globalData';
+import ContentCertification from "./ContentCertification";
 import ContentEducation from './ContentEducation.vue';
 import ContentExperience from './ContentExperience.vue';
 import ContentMedia from './ContentMedia.vue';
@@ -67,6 +69,7 @@ export default {
         }
     },
     components: {
+        ContentCertification,
         ContentMedia,
         ContentEducation,
         ContentExperience,

@@ -60,6 +60,9 @@ export default {
                     this.$emit('selected', val);
                 });
                 this.elSel.on('blur', () => { $(this.targetEl).trigger('blur'); });
+                this.eventBus.on('formClear', () => {
+                    this.clear();
+                });
             }
         }
     },

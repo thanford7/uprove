@@ -82,7 +82,7 @@ export default {
             },
             mediaFields: new Set(['school.newLogo']),
             contentTypes: CONTENT_TYPES,
-            orgCfg: orgSelectize.getOrgCfg(ORGANIZATION_TYPES.SCHOOL),
+            orgCfg: orgSelectize.getOrgCfg({orgType: ORGANIZATION_TYPES.SCHOOL}),
             degreeCfg: {
                 options: DEGREE_OPTIONS.map((o) => ({type: o})),
                 valueField: 'type',

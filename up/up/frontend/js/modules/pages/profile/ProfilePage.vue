@@ -135,13 +135,13 @@ export default {
             return 'Are you sure you want to delete this section? The content will not be deleted and will still be available to add to other sections.'
         },
         getSkillPct(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit].pct;
+            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.pct;
         },
         getSkillText(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit].title;
+            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.title;
         },
         getSkillDescription(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit].description;
+            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.description;
         },
         readForm() {
             return Object.assign(this.formData, {

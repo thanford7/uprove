@@ -20,16 +20,18 @@ from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
 from upapp.apis.project import SkillView
 from upapp.apis.sendEmail import EmailView
+from upapp.apis.tag import TagView
 from upapp.models import *
 from upapp.modelSerializers import ContentTypes, getSerializedUser, getSerializedJobApplication, \
     getSerializedUserProject, \
     getSerializedUserVideo, getSerializedUserProfile, getSerializedUserExperience, \
-    getSerializedUserEducation, getSerializedUserContentItem
+    getSerializedUserEducation, getSerializedUserCertification, getSerializedUserContentItem
 from upapp.utils import dataUtil, dateUtil
 
 CONTENT_TYPE_MODELS = {
     ContentTypes.EXPERIENCE.value: {'model': UserExperience, 'serializer': getSerializedUserExperience},
     ContentTypes.EDUCATION.value: {'model': UserEducation, 'serializer': getSerializedUserEducation},
+    ContentTypes.CERTIFICATION.value: {'model': UserCertification, 'serializer': getSerializedUserCertification},
     ContentTypes.VIDEO.value: {'model': UserVideo, 'serializer': getSerializedUserVideo},
     ContentTypes.CUSTOM.value: {'model': UserContentItem, 'serializer': getSerializedUserContentItem},
     ContentTypes.PROJECT.value: {'model': UserProject, 'serializer': getSerializedUserProject}
@@ -86,11 +88,6 @@ class UserVideoView(UproveAPIView):
 
 
 class UserFileView(APIView):
-    def post(self, request):
-        pass
-
-    def put(self, request, fileId):
-        pass
 
     @staticmethod
     def getFile(fileId):
@@ -122,11 +119,6 @@ class UserFileView(APIView):
 
 
 class UserImageView(APIView):
-    def post(self, request):
-        pass
-
-    def put(self, request, imageId):
-        pass
 
     @staticmethod
     def getImage(imageId):
@@ -150,11 +142,6 @@ class UserImageView(APIView):
 
 
 class UserEducationItemView(APIView):
-    def post(self, request):
-        pass
-
-    def put(self, request, educationId):
-        pass
 
     @staticmethod
     def getEducationItem(educationId):
@@ -164,12 +151,17 @@ class UserEducationItemView(APIView):
             raise e
 
 
-class UserExperienceItemView(APIView):
-    def post(self, request):
-        pass
+class UserCertificationItemView(APIView):
 
-    def put(self, request, experienceId):
-        pass
+    @staticmethod
+    def getCertificationItem(certificationId):
+        try:
+            return UserCertification.objects.select_related('organization').get(id=certificationId)
+        except UserCertification.DoesNotExist as e:
+            raise e
+
+
+class UserExperienceItemView(APIView):
 
     @staticmethod
     def getExperienceItem(experienceId):
@@ -180,12 +172,6 @@ class UserExperienceItemView(APIView):
 
 
 class UserContentItemView(APIView):
-
-    def post(self, request):
-        pass
-
-    def put(self, request, contentId):
-        pass
 
     @staticmethod
     def getContentItem(contentId):
@@ -280,7 +266,11 @@ class UserView(UproveAPIView):
                     'profile__section__sectionItem',
                     'profile__section__sectionItem__contentObject',
                     'education',
+                    'education__school',
+                    'certification',
+                    'certification__organization',
                     'experience',
+                    'experience__organization',
                     'contentItem',
                     'contentItem__section',
                     'video',
@@ -483,16 +473,7 @@ class UserProfileView(UproveAPIView):
                 except UserTag.DoesNotExist:
                     pass
 
-            # Set or update the tag
-            tag = getattr(userTag, 'tag', None) or Tag()
-            # Note: Tag description can only be set from the admin menu to avoid different users overwriting
-            # the default description
-            dataUtil.setObjectAttributes(tag, userTagData, {
-                'title': None,
-                'type': None
-            })
-            tag.save()
-            userTag.tag = tag
+            userTag.tag = TagView.updateOrCreate(userTagData, tag=getattr(userTag, 'tag', None))
 
             # Update the user tag
             dataUtil.setObjectAttributes(userTag, userTagData, {
@@ -713,7 +694,8 @@ class UserProfileContentItemView(UproveAPIView):
         )
 
     def delete(self, request):
-        # Note this endpoint will actually delete the content. To disassociate content from a section, use {TODO} endpoint
+        # Note this endpoint will actually delete the content.
+        # To disassociate content from a section, use the UserProfileSectionContentItemView
         pass
 
     @atomic
@@ -759,9 +741,31 @@ class UserProfileContentItemView(UproveAPIView):
                 'user_id': {'formName': 'userId'},
                 'degree': None,
                 'degreeSubject': None,
-                'startDate': {'propFunc': lambda val: dateGetter(val, False)},
+                'startDate': {'propFunc': lambda val: dateGetter(val, True)},
                 'endDate': {'propFunc': lambda val: dateGetter(val, True)},
                 'activities': None
+            })
+            contentItem.save()
+            return contentItem
+        elif contentType == ContentTypes.CERTIFICATION.value:
+            contentItem = contentItem or UserCertification(
+                createdDateTime=timezone.now()
+            )
+            if (organizationId := self.data.get('organizationId')) and not self.data.get('organizationNewLogo'):
+                contentItem.organization_id = organizationId
+            else:
+                self.data['organization']['newLogo'] = self.data.get('organizationNewLogo')
+                org = OrganizationView.updateOrCreateOrg(self.data['organization'])
+                contentItem.organization = org
+
+            dateGetter = lambda val, allowNone: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE,
+                                                                             allowNone=allowNone)
+            dataUtil.setObjectAttributes(contentItem, self.data, {
+                'user_id': {'formName': 'userId'},
+                'hasExpiration': None,
+                'title': None,
+                'issueDate': {'propFunc': lambda val: dateGetter(val, False)},
+                'expirationDate': {'propFunc': lambda val: dateGetter(val, True)},
             })
             contentItem.save()
             return contentItem

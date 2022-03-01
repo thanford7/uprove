@@ -11,6 +11,7 @@ from upapp.utils.htmlTruncate import truncate
 class ContentTypes(Enum):
     EXISTING = 'existing'
     EDUCATION = 'education'
+    CERTIFICATION = 'certification'
     EXPERIENCE = 'experience'
     PROJECT = 'project'
     CUSTOM = 'custom'
@@ -35,6 +36,7 @@ def serializeAuditFields(obj):
 
 def _addSerializedUserAssets(dataDict, user):
     dataDict[ContentTypes.EDUCATION.value] = [getSerializedUserEducation(e) for e in user.education.all()]
+    dataDict[ContentTypes.CERTIFICATION.value] = [getSerializedUserCertification(e) for e in user.certification.all()]
     dataDict[ContentTypes.EXPERIENCE.value] = [getSerializedUserExperience(e) for e in user.experience.all()]
     dataDict[ContentTypes.CUSTOM.value] = [getSerializedUserContentItem(ci) for ci in user.contentItem.all()]
     dataDict[ContentTypes.PROJECT.value] = [getSerializedUserProject(up) for up in user.userProject.all()]
@@ -54,6 +56,8 @@ def serializeGenericItem(item):
         return getSerializedUserImage(item.contentObject)
     if isinstance(item.contentObject, UserEducation):
         return getSerializedUserEducation(item.contentObject)
+    if isinstance(item.contentObject, UserCertification):
+        return getSerializedUserCertification(item.contentObject)
     if isinstance(item.contentObject, UserExperience):
         return getSerializedUserExperience(item.contentObject)
     if isinstance(item.contentObject, UserContentItem):
@@ -148,6 +152,19 @@ def getSerializedUserEducation(userEducation: UserEducation):
         'startDate': getDateTimeFormatOrNone(userEducation.startDate),
         'endDate': getDateTimeFormatOrNone(userEducation.endDate),
         **serializeAuditFields(userEducation)
+    }
+
+
+def getSerializedUserCertification(userCertification: UserCertification):
+    return {
+        'id': userCertification.id,
+        'type': ContentTypes.CERTIFICATION.value,
+        'organization': getSerializedOrganization(userCertification.organization),
+        'hasExpiration': userCertification.hasExpiration,
+        'title': userCertification.title,
+        'issueDate': getDateTimeFormatOrNone(userCertification.issueDate),
+        'expirationDate': getDateTimeFormatOrNone(userCertification.expirationDate),
+        **serializeAuditFields(userCertification)
     }
 
 

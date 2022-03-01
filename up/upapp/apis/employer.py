@@ -421,8 +421,8 @@ class OrganizationView(UproveAPIView):
         elif search := self.data.get('search'):
             q = Q(name__iregex=f'^.*{search}.*$')
 
-            if orgType := self.data.get('orgType'):
-                q &= Q(orgType=orgType)
+            if orgTypes := self.data.get('orgType'):
+                q &= Q(orgType__in=orgTypes)
 
             orgs = Organization.objects.filter(q)
             return Response(status=status.HTTP_200_OK, data=[getSerializedOrganization(o) for o in orgs])

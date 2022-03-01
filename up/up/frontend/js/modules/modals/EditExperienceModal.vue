@@ -99,7 +99,7 @@ export default {
                 valueField: 'name',
                 labelField: 'name'
             },
-            orgCfg: orgSelectize.getOrgCfg(ORGANIZATION_TYPES.COMPANY),
+            orgCfg: orgSelectize.getOrgCfg({orgType: ORGANIZATION_TYPES.COMPANY}),
             contentTypes: CONTENT_TYPES,
             mediaSelectize
         }

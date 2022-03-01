@@ -8,6 +8,8 @@ class ContentUtil {
         }
         if ([CONTENT_TYPES.IMAGE, CONTENT_TYPES.VIDEO, CONTENT_TYPES.CUSTOM].includes(item.type)) {
             return item.title;
+        } else if (item.type === CONTENT_TYPES.CERTIFICATION) {
+            return `${item.organization.name}: ${item.title}`;
         } else if (item.type === CONTENT_TYPES.EDUCATION) {
             return `${item.school.name}: ${item.degree}`;
         } else if (item.type === CONTENT_TYPES.EXPERIENCE) {

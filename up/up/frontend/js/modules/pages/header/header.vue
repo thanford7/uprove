@@ -18,6 +18,9 @@
                     <a class="nav-link nav-link-tight" href="/projects">Projects</a>
                 </li>
                 <li v-if="isSuperUser" class="nav-item" :class="getHighlightClass('admin')">
+                    <a class="nav-link nav-link-tight" href="/candidate-board">Candidate Board</a>
+                </li>
+                <li v-if="isSuperUser" class="nav-item" :class="getHighlightClass('admin')">
                     <a class="nav-link nav-link-tight" href="/admin">Admin</a>
                 </li>
                 <li v-if="!isMobile" class="nav-item nav-link-tight" :class="(isMobile) ? '' : 'dropdown'">

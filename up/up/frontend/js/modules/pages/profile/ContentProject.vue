@@ -4,6 +4,15 @@
             <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
             <BadgesSkills :skills="contentItem.customProject.skills"/>
             <div v-html="contentItem.customProject.projectDescription"></div>
+            <div v-for="file in contentItem.videos">
+                <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+            </div>
+            <div v-for="file in contentItem.images">
+                <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+            </div>
+            <div v-for="file in contentItem.files">
+                <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+            </div>
         </div>
     </div>
 </template>

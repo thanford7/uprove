@@ -28,6 +28,15 @@
             <label class="btn btn-outline-dark" for="btn-education">Education</label>
 
             <input type="radio" class="btn-check" name="btnradio"
+                   id="btn-certification" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.CERTIFICATION)"
+            >
+            <label class="btn btn-outline-dark" for="btn-certification">
+                Credential
+                <InfoToolTip :elId="getNewElUid()" content="Add a license or certification."/>
+            </label>
+
+            <input type="radio" class="btn-check" name="btnradio"
                    id="btn-custom" autocomplete="off"
                    @change="toggleContentType($event, contentTypes.CUSTOM)"
             >
@@ -55,6 +64,11 @@
             ref="contentEducation"
             :isContentOnly="true"
         />
+        <EditCertificationModal
+            v-if="addContentType === contentTypes.CERTIFICATION"
+            ref="contentCertification"
+            :isContentOnly="true"
+        />
         <EditExperienceModal
             v-if="addContentType === contentTypes.EXPERIENCE"
             ref="contentExperience"
@@ -66,6 +80,7 @@
 import {CONTENT_TYPES, SEVERITY} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import ContentSelectize from '../inputs/ContentSelectize.vue';
+import EditCertificationModal from "./EditCertificationModal";
 import EditEducationModal from "./EditEducationModal";
 import EditExperienceModal from "./EditExperienceModal";
 import EditMediaModal from "./EditMediaModal";
@@ -77,7 +92,7 @@ export default {
     extends: BaseModal,
     components: {
         InfoToolTip,
-        BaseModal, ContentSelectize, EditEducationModal, EditExperienceModal, EditMediaModal, InputSelectize},
+        BaseModal, ContentSelectize, EditCertificationModal, EditEducationModal, EditExperienceModal, EditMediaModal, InputSelectize},
     inheritAttrs: false,
     data() {
         return {
@@ -108,7 +123,9 @@ export default {
             } else if (this.addContentType === CONTENT_TYPES.EXPERIENCE) {
                 contentModal = this.$refs.contentExperience;
             } else if (this.addContentType === CONTENT_TYPES.EDUCATION) {
-                contentModal = this.$refs.contentEducation
+                contentModal = this.$refs.contentEducation;
+            } else if (this.addContentType === CONTENT_TYPES.CERTIFICATION) {
+                contentModal = this.$refs.contentCertification;
             }
 
             if (contentModal) {
@@ -138,14 +155,29 @@ export default {
 
             if (this.addContentType === this.contentTypes.CUSTOM) {
                 this.eventBus.emit('open:editMediaModal:content');
-            }
-            if (this.addContentType === this.contentTypes.EXPERIENCE) {
+            } else if (this.addContentType === this.contentTypes.EXPERIENCE) {
                 this.eventBus.emit('open:editExperienceModal:content');
-            }
-            if (this.addContentType === this.contentTypes.EDUCATION) {
+            } else if (this.addContentType === this.contentTypes.EDUCATION) {
                 this.eventBus.emit('open:editEducationModal:content');
+            } else if (this.addContentType === this.contentTypes.EDUCATION) {
+                this.eventBus.emit('open:editCertificationModal:content');
             }
+        },
+        setFormRefs() {
+            this.childForms = [
+                this.$refs.contentCertification,
+                this.$refs.contentEducation,
+                this.$refs.contentExperience,
+                this.$refs.contentExisting,
+                this.$refs.contentMedia
+            ]
         }
+    },
+    mounted() {
+        this.setFormRefs();
+    },
+    updated() {
+        this.setFormRefs();
     }
 }
 </script>
