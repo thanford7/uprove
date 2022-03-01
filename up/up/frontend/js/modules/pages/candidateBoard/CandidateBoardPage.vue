@@ -69,7 +69,7 @@ export default {
     },
     mounted() {
         this.initData.candidates.forEach((c) => {
-            skillLevelSelectize.setSkillLevels(c.userProjects, true)
+            skillLevelSelectize.setSkillLevels(c.userProjects, true);
         });
     }
 }
