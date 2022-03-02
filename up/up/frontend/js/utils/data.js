@@ -99,7 +99,9 @@ class DataUtil {
                 searchParams.delete(key);  // Remove existing
                 const vals = (Array.isArray(val)) ? val : [val];
                 vals.forEach((v) => {
-                    searchParams.append(key, v);
+                    if(!this.isNil(val)) {
+                        searchParams.append(key, v);
+                    }
                 });  // Add new values
             });
             const targetPath = path || window.location.pathname;

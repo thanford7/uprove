@@ -13,12 +13,7 @@
                 />
             </div>
             <div class="col-md-3">
-                <InputSelectize
-                    ref="skills"
-                    elId="skills"
-                    :isParseAsInt="true"
-                    placeholder="Skills: All" :cfg="skillsCfg" @selected="setSkills($event)"
-                />
+                <SkillsSelectize ref="skills" :skills="initData.skills" @selected="setSkills($event)"/>
             </div>
             <div class="col-md-3">
                 <InputSelectize
@@ -43,11 +38,11 @@ import dataUtil from "../../../utils/data";
 import InputSelectize from "../../inputs/InputSelectize";
 import ProjectCard from "../../components/ProjectCard";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
-import skillSelectize from "../../selectizeCfgs/skill";
+import SkillsSelectize from "../../inputs/SkillsSelectize";
 
 export default {
     name: "ProjectsPage.vue",
-    components: {InputSelectize, ProjectCard},
+    components: {InputSelectize, ProjectCard, SkillsSelectize},
     data() {
         return {
             filter: {}
@@ -80,9 +75,6 @@ export default {
                 options: dataUtil.sortBy(this.initData.roles.map((r) => ({value: r.id, text: r.name})), 'text')
             };
         },
-        skillsCfg() {
-            return skillSelectize.getSkillCfg(this.initData.skills);
-        },
         projectSkillLevelsCfg() {
             return skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL);
         }
@@ -93,14 +85,8 @@ export default {
             dataUtil.setQueryParams([{key: 'role', val: roles}]);
         },
         setSkills(skillIds) {
-            const skills = this.initData.skills.reduce((skills, s) => {
-                if (skillIds.includes(s.id)) {
-                    skills.push(s.name);
-                }
-                return skills;
-            }, []);
-            this.filter.skills = skills;
-            dataUtil.setQueryParams([{key: 'skill', val: skills}]);
+            this.filter.skills = this.$refs.skills.getSkills(skillIds);
+            dataUtil.setQueryParams([{key: 'skill', val: skillIds}]);
         },
         setSkillLevels(levels) {
             this.filter.skillLevels = levels;
@@ -111,7 +97,7 @@ export default {
         skillLevelSelectize.setSkillLevels(this.initData.projects);
         const queryParams = dataUtil.getQueryParams();
         this.$refs.role.elSel.setValue(queryParams.role);
-        this.$refs.skills.elSel.setValue(queryParams.skill);
+        this.$refs.skills.setValue(queryParams.skill);
         this.$refs.projectSkillLevels.elSel.setValue(queryParams.level);
     }
 }
