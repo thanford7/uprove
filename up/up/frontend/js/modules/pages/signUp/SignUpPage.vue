@@ -1,6 +1,5 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
+    <BasePage>
         <div v-if="!isMobile" class="row mt-5 mb-3 justify-content-center">
             <div class="col-md-5 card-custom">
                 <h4>Candidate Sign Up</h4>
@@ -37,16 +36,16 @@
                 </div>
             </div>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
-import BannerAlert from "../../components/BannerAlert";
 import EditUserModal from "../../modals/EditUserModal";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
+import BasePage from "../BasePage";
 
 export default {
     name: "SignUpPage",
-    components: {BannerAlert, EditUserModal, EmployerRequestInfoModal},
+    components: {BasePage, EditUserModal, EmployerRequestInfoModal},
 }
 </script>

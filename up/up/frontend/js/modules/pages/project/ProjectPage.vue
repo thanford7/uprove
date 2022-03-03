@@ -1,7 +1,6 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
+    <BasePage>
+        <div class="row" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-8 card-custom">
                 <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.role}}</span></h1>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
@@ -73,11 +72,11 @@
                                 :isParseAsBits="true"
                                 placeholder="Career level" :cfg="projectSkillLevelCfg" @selected="formData.skillLevelBit = $event"
                             />
-                            <InputSelectize
+                            <SkillsSelectize
                                 ref="skills"
-                                elId="skills"
-                                :isParseAsInt="true"
-                                placeholder="Skills" :cfg="skillsCfg" @selected="formData.skillIds = $event"
+                                :skills="initData.project.skills"
+                                :cfg="{isMulti: true, projectId: initData.project.id, placeholder: 'Skills'}"
+                                @selected="formData.skillIds = $event"
                             />
                             <template v-if="isEmployer">
                                 <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Link project to {{pluralize('job position', (formData.jobIds || []).length)}}</button>
@@ -127,9 +126,9 @@
                 </div>
             </template>
         </div>
-        <EditUserModal/>
-        <EmployerRequestInfoModal/>
-    </div>
+    </BasePage>
+    <EditUserModal/>
+    <EmployerRequestInfoModal/>
 </template>
 
 <script>
@@ -147,12 +146,15 @@ import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import skillSelectize from "../../selectizeCfgs/skill";
+import SkillsSelectize from "../../inputs/SkillsSelectize";
+import BasePage from "../BasePage";
 
 export default {
     name: "ProjectPage.vue",
     components: {
+        BasePage,
         AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CollapseDiv, EditUserModal,
-        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize
+        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize, SkillsSelectize
     },
     data() {
         return {
@@ -202,10 +204,6 @@ export default {
                 maxItems: null,
                 options: dataUtil.sortBy(this.initData.jobs.map((j) => ({value: j.id, text: j.jobTitle})), 'text')
             };
-        },
-        skillsCfg() {
-            const proj = this.initData.project;
-            return skillSelectize.getSkillCfg(proj.skills, {isMulti: true, projectId: proj.id});
         },
         projectSkillLevelCfg() {
             const options = this.getSkillLevelNumbersFromBits(this.initData.project.skillLevelBits).map((sBit) => {
@@ -301,9 +299,6 @@ export default {
         }
     },
     mounted() {
-        this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
-        this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';
-
         // Set skill levels from bits
         if (this.initData.jobs) {
             this.setJobSkillLevels(this.initData.jobs);
@@ -315,14 +310,12 @@ export default {
             skillLevelSelectize.setSkillLevels(this.initData.userProjects, true);
         }
 
-        this.eventBus.on('ajaxSuccess', () => {
-            this.clearSelectizeElements()
-        });
-
         if (!initData.project.isLimited) {
+            this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
+            this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';
             const {skillLevel, skill} = dataUtil.getQueryParams();
             const defaultSkillLevel = (this.projectSkillLevelCfg.options.length === 1) ? this.projectSkillLevelCfg.options[0].value : null;
-            this.$refs.skills.elSel.setValue(skill || skillSelectize.getDefaultSkills(this.initData.project.skills));
+            this.$refs.skills.setValue(skill || skillSelectize.getDefaultSkills(this.initData.project.skills));
             this.$refs.projectSkillLevel.elSel.setValue(skillLevel || defaultSkillLevel);
         }
 

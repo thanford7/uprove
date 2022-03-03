@@ -14,22 +14,19 @@
                 <template v-else>
                     <tr>
                         <td class="border-bottom-0">
-                            <InputSelectize
+                            <SkillsSelectize
                                 v-if="!skill.projectId"
-                                :cfg="getSkillSelectizeCfg()"
-                                :elId="getNewElUid()"
+                                :skills="initData.skills"
+                                :cfg="{isMulti: false, isShowRequired: true, placeholder: 'Select a skill'}"
                                 :items="skill.id"
-                                :isParseAsInt="true"
                                 @selected="setSkill(skill, $event)"
                             />
                             <span v-else>{{skill.name}}</span>
                         </td>
                         <td class="border-bottom-0">
-                            <InputSelectize
-                                :cfg="getSkillLevelsCfg()"
-                                :elId="getNewElUid()"
+                            <SkillLevelsSelectize
+                                placeholder="All"
                                 :items="getSkillLevelNumbersFromBits(skill.skillLevelBits)"
-                                :isParseAsBits="true"
                                 @selected="setProjectSkillLevels(skill, $event)"
                             />
                         </td>
@@ -70,13 +67,14 @@ import dataUtil from "../../utils/data";
 import InputSelectize from "../inputs/InputSelectize";
 import skillPriority from "../selectizeCfgs/skillPriority";
 import skillLevelSelectize from "../selectizeCfgs/skillLevels";
-import skillSelectize from "../selectizeCfgs/skill";
+import SkillLevelsSelectize from "../inputs/SkillLevelsSelectize";
+import SkillsSelectize from "../inputs/SkillsSelectize";
 import Table from "./Table";
 import skillPrioritySelectize from "../selectizeCfgs/skillPriority";
 
 export default {
     name: "EditSkillsTable",
-    components: {BadgesSkillLevels, InputSelectize, Table},
+    components: {BadgesSkillLevels, InputSelectize, SkillLevelsSelectize, SkillsSelectize, Table},
     props: ['skills'],
     data() {
         return {
@@ -103,22 +101,10 @@ export default {
         getSkillPriorityLabel(skill) {
             return skillPriority.getPriorityLabel(skill);
         },
-        getSkillLevelsCfg() {
-            return Object.assign(
-                skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL),
-                {placeholder: 'All'}
-            )
-        },
         getSkillPriorityCfg() {
             return Object.assign(
                 {},
                 {...skillPrioritySelectize.cfg},
-            );
-        },
-        getSkillSelectizeCfg() {
-            return Object.assign(
-                skillSelectize.getSkillCfg(this.initData.skills, {isMulti: false, isShowRequired: true}),
-                {placeholder: 'Select a skill'}
             );
         },
         setProjectSkillLevels(skill, skillLevelBits) {

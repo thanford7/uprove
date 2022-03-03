@@ -1,6 +1,5 @@
 <template>
-    <div class="container-lg mt-3">
-        <BannerAlert/>
+    <BasePage>
         <div class="row">
             <CandidateSideBar :user="initData.user" :isOwner="initData.isOwner" :profilePicture="initData.profilePicture"/>
             <div class="col-md-8">
@@ -47,16 +46,15 @@
                 </div>
             </div>
         </div>
-
-        <AddContentModal/>
-        <AddSectionModal/>
-        <EditEducationModal/>
-        <EditExperienceModal/>
-        <EditProfileModal/>
-        <EditMediaModal/>
-        <EditUserProjectModal/>
-        <DisplayContentModal/>
-    </div>
+    </BasePage>
+    <AddContentModal/>
+    <AddSectionModal/>
+    <EditEducationModal/>
+    <EditExperienceModal/>
+    <EditProfileModal/>
+    <EditMediaModal/>
+    <EditUserProjectModal/>
+    <DisplayContentModal/>
 </template>
 <script>
 import AddContentModal from '../../modals/AddContentModal.vue';
@@ -72,6 +70,7 @@ import EditMediaModal from '../../modals/EditMediaModal.vue';
 import InfoToolTip from "../../components/InfoToolTip";
 import ProgressPill from "../../components/ProgressPill";
 import EditUserProjectModal from "../../modals/EditUserProjectModal";
+import BasePage from "../BasePage";
 
 export default {
     data() {
@@ -82,6 +81,7 @@ export default {
         }
     },
     components: {
+        BasePage,
         EditUserProjectModal,
         AddContentModal,
         AddSectionModal,

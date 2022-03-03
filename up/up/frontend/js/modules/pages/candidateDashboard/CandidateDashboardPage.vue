@@ -1,7 +1,5 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <PageHeader title="Dashboard" :image="initData.user.profileImage"/>
+    <BasePage headerTitle="Dashboard" :headerImage="initData.user.profileImage">
         <div class="row mb-3 justify-content-center">
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3 style="display: inline-block">Projects</h3>
@@ -133,7 +131,7 @@
                 </Table>
             </div>
         </div>
-    </div>
+    </BasePage>
     <EditJobApplicationModal/>
     <EditUserProjectModal/>
 </template>
@@ -155,10 +153,12 @@ import PageHeader from "../../components/PageHeader";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import Table from "../../components/Table";
 import userProjectUtil from "../../../utils/userProject";
+import BasePage from "../BasePage";
 
 export default {
     name: "CandidateDashboardPage",
     components: {
+        BasePage,
         BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, ButtonDelete, EditJobApplicationModal,
         EditUserProjectModal, HamburgerDropdown, InfoToolTip, PageHeader, Table
     },

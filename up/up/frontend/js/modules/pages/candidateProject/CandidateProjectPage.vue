@@ -1,7 +1,5 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <PageHeader :title="pageHeader"/>
+    <BasePage :headerTitle="pageHeader">
         <div class="row">
             <CandidateSideBar :user="initData.user" :profilePicture="initData.user.profileImage"/>
             <div class="col-md-8 card-custom">
@@ -23,7 +21,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
@@ -36,10 +34,12 @@ import FileDisplay from "../../components/FileDisplay";
 import PageHeader from "../../components/PageHeader";
 import ProjectDetailAccordion from "../../components/ProjectDetailAccordion";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
+import BasePage from "../BasePage";
 
 export default {
     name: "CandidateProjectPage",
     components: {
+        BasePage,
         BadgesSkillLevels, BadgesSkills, BannerAlert, CandidateSideBar,
         FileDisplay, PageHeader, ProjectDetailAccordion
     },

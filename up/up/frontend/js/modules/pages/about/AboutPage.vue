@@ -1,8 +1,7 @@
 <template>
-    <div class="container-lg">
-        <div class="row mt-4 mb-4">
-            <h2>About us</h2>
-            <div class="col-12">
+    <BasePage headerTitle="About us">
+        <div class="row mb-3">
+            <div class="col-12 card-custom">
                 <p>Uprove was started out of frustration with the hiring process. In a past life as a hiring manager, one of the co-founders of Uprove, Todd, made a bad
                 hire which cost months of time trying to train and improve the employee. The employee's resume was stellar and all hiring managers liked them so the outcome
                     came as a surprise.</p>
@@ -13,10 +12,11 @@
                 <p>At Uprove, we want to help everyone conduct project based interviews so they can make the best hire possible!</p>
             </div>
         </div>
-    </div>
+    </BasePage>
 </template>
 <script>
+import BasePage from "../BasePage";
 export default {
-    
+    components: {BasePage}
 }
 </script>

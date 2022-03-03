@@ -28,7 +28,7 @@ export default {
             crudUrl: 'password-reset-generate/',
             successAlertType: SEVERITY.INFO,
             requiredFields: {
-                email: 'resetEmail',
+                email: '#resetEmail',
             }
         }
     },

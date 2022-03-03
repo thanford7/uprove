@@ -22,11 +22,10 @@
                             />
                         </td>
                         <td v-if="tagType === tagTypes.SKILL" class="border-bottom-0">
-                            <InputSelectize
-                                :cfg="getSkillLevelsCfg()"
-                                :elId="getNewElUid()"
+                            <SkillLevelsSelectize
                                 :items="getSkillLevelNumbersFromBits(tag.skillLevelBit)"
-                                :isParseAsBits="true"
+                                :cfg="{isMulti: false}"
+                                placeholder="Select a skill level"
                                 @selected="setTagSkillLevel(tag, $event)"
                             />
                         </td>
@@ -65,12 +64,13 @@ import dataUtil from "../../utils/data";
 import InfoToolTip from "./InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import skillLevelSelectize from "../selectizeCfgs/skillLevels";
+import SkillLevelsSelectize from "../inputs/SkillLevelsSelectize";
 import Table from "./Table";
 import tagSelectize from "../selectizeCfgs/tag";
 
 export default {
     name: "EditUserTagTable",
-    components: {BadgesSkillLevels, InfoToolTip, InputSelectize, Table},
+    components: {BadgesSkillLevels, InfoToolTip, InputSelectize, SkillLevelsSelectize, Table},
     props: ['userTags', 'tagType'],
     data() {
         return {
@@ -112,12 +112,6 @@ export default {
             this.allTags.forEach((tag, tagIdx) => {
                 tag.isEdit = tagIdx === idx;
             });
-        },
-        getSkillLevelsCfg() {
-            return Object.assign(
-                skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL, false),
-                {placeholder: 'Select a skill level'}
-            )
         },
         getTagSelectizeCfg(initialItems) {
             return Object.assign(

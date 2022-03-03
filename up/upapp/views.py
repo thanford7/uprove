@@ -93,6 +93,7 @@ def candidateBoard(request):
                 'id': project.id,
                 'projectTitle': project.customProject.project.title,
                 'role': project.customProject.project.role.name,
+                'roleId': project.customProject.project.role.id,
                 'status': project.status,
                 'skillLevelBit': project.customProject.skillLevelBit,
                 'skills': [getSerializedSkill(s) for s in project.customProject.skills.all()]
@@ -110,7 +111,9 @@ def candidateBoard(request):
                     isDemo=False,
                     isCandidateF__gt=0
                 )
-        ]
+        ],
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 
 

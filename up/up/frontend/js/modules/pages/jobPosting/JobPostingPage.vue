@@ -1,11 +1,9 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <PageHeader
-            :title="`${initData.job.jobTitle} position`"
-            :image="initData.employer.logo"
-            :imageAlt="initData.employer.companyName"
-        />
+    <BasePage
+        :headerTitle="`${initData.job.jobTitle} position`"
+        :headerImage="initData.employer.logo"
+        :headerImageAlt="initData.employer.companyName"
+    >
         <div class="row mb-3 justify-content-center" :class="(isMobile) ? 'mobile-top' : ''">
             <div :id="accordionElId" class="col-md-9 accordion">
                 <AccordionItem :accordionElId="accordionElId" :elId="getNewElUid()">
@@ -89,8 +87,8 @@
                 <div class="-sub-text"><a href="#" @click="eventBus.emit('open:submitHelpModal')">Submit question</a></div>
             </div>
         </div>
-        <SubmitHelpModal/>
-    </div>
+    </BasePage>
+    <SubmitHelpModal/>
 </template>
 
 <script>
@@ -101,10 +99,11 @@ import InputSelectize from "../../inputs/InputSelectize";
 import PageHeader from "../../components/PageHeader";
 import SubmitHelpModal from "../../modals/SubmitHelpModal";
 import dataUtil from "../../../utils/data";
+import BasePage from "../BasePage";
 
 export default {
     name: "JobPostingPage.vue",
-    components: {AccordionItem, BannerAlert, FileDisplay, InputSelectize, PageHeader, SubmitHelpModal},
+    components: {BasePage, AccordionItem, BannerAlert, FileDisplay, InputSelectize, PageHeader, SubmitHelpModal},
     data() {
         return {
             accordionElId: `accordion-${this.getNewElUid()}`,

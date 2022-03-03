@@ -223,6 +223,7 @@ class ProjectView(UproveAPIView):
                     'skillLevelBits': None,
                     'employer_id': {'formName': 'employerId'}
                 })
+                existingCriterion.save()
                 usedCriteriaIds.append(existingCriterion.id)
             else:
                 newCriterion = ProjectEvaluationCriterion(

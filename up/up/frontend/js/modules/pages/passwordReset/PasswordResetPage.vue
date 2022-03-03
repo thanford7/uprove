@@ -1,7 +1,5 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <PageHeader :title="(initData.isNew) ? 'Set Password' : 'Password Reset'"/>
+    <BasePage :headerTitle="(initData.isNew) ? 'Set Password' : 'Password Reset'">
         <div class="row mb-3">
             <div class="col-md-4">
                 <form>
@@ -28,17 +26,18 @@
                 </form>
             </div>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
+import BasePage from "../BasePage";
 import PageHeader from "../../components/PageHeader";
 import $ from "jquery";
 
 export default {
     name: "PasswordResetPage.vue",
-    components: {BannerAlert, PageHeader},
+    components: {BannerAlert, BasePage, PageHeader},
     data() {
         return {
             crudUrl: 'setPassword/',

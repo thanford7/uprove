@@ -2,8 +2,11 @@ import dataUtil from "../../utils/data";
 import skillLevels from "./skillLevels";
 
 class SkillSelectize {
-    getSkillCfg(skills, {isMulti = true, projectId = null, isIncludeDetails = false, isShowRequired=false} = {}) {
+    getSkillCfg(skills, {isMulti = true, projectId = null, isIncludeDetails = false, isShowRequired=false, placeholder=null} = {}) {
         const cfg = {options: this.getSkillOptions(skills, projectId, isShowRequired)};
+        if (placeholder) {
+            cfg.placeholder = placeholder;
+        }
         if (isIncludeDetails) {
             cfg.render = {
                 option: (data, escape) => {

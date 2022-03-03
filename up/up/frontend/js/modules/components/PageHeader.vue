@@ -1,5 +1,5 @@
 <template>
-    <div class="row mt-3 mb-3">
+    <div class="row mt-3 mb-2">
         <div class="align-items-center" style="display: flex">
             <img v-if="image" :src="image" class="employer-logo">
             <h2 v-else-if="imageAlt" style="display: inline-block; margin-bottom: 0">{{imageAlt}}&nbsp;|&nbsp;</h2>

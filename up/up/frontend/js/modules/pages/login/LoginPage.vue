@@ -1,7 +1,6 @@
 <template>
-    <div class="container-lg">
+    <BasePage headerTitle="Login">
         <div class="row mt-3 mb-3">
-            <h2>Login</h2>
             <div class="col-md-4">
                 <form>
                     <div class="mb-3">
@@ -16,16 +15,17 @@
                 </form>
             </div>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
 import dataUtil from "../../../utils/data";
 import InputEmail from "../../inputs/InputEmail";
+import BasePage from "../BasePage";
 
 export default {
     name: "LoginPage.vue",
-    components: {InputEmail},
+    components: {BasePage, InputEmail},
     data() {
         return {
             crudUrl: 'login/',

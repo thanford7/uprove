@@ -73,12 +73,12 @@
                 :cfg="getProjectSkillLevelsCfg(customProject)"
                 @selected="customProject.skillLevelBit = $event"
             />
-            <InputSelectize
+            <SkillsSelectize
                 :ref="`modalJobCustomProject-skills-${customProject.id}`"
-                :elId="`modalJobCustomProject-skills-${customProject.id}`"
                 :items="getDefaultSkills(customProject)"
-                :isParseAsInt="true"
-                placeholder="Skills (required)" :cfg="getSkillsCfg(customProject)" @selected="customProject.skillIds = $event"
+                :skills="getProject(customProject.projectId).skills"
+                :cfg="{isMulti: true, projectId: getProject(customProject.projectId).id, isIncludeDetails: true, placeholder: 'Skills (required)'}"
+                @selected="customProject.skillIds = $event"
             />
         </div>
     </BaseModal>
@@ -93,13 +93,14 @@ import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import skillSelectize from "../selectizeCfgs/skill";
+import SkillsSelectize from "../inputs/SkillsSelectize";
 import $ from "jquery";
 
 export default {
     name: "EditJobPostingModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InfoToolTip, InputSelectize, InputWsiwyg},
+    components: {SkillsSelectize, BaseModal, InfoToolTip, InputSelectize, InputWsiwyg},
     data() {
         return {
             modalName: 'editJobPostingModal',
@@ -191,13 +192,6 @@ export default {
                     .filter(([key, level]) => skillLevels.includes(key))
                     .map(([key, level]) => ({value: key, text: level.title}))
             }
-        },
-        getSkillsCfg(customProject) {
-            const project = this.getProject(customProject.projectId);
-            return skillSelectize.getSkillCfg(
-                project.skills,
-                {isMulti: true, projectId: project.id, isIncludeDetails: true}
-            );
         },
         getDefaultSkills(customProject) {
             const project = this.getProject(customProject.projectId);

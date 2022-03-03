@@ -1,6 +1,5 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
+    <BasePage>
         <div class="card-custom">
             <div class="row mb-3 mt-3">
                 <p>
@@ -38,17 +37,18 @@
                 </div>
             </div>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
 import dataUtil from "../../../utils/data";
 import PageHeader from "../../components/PageHeader";
+import BasePage from "../BasePage";
 
 export default {
     name: "CandidateOnboardPage",
-    components: {BannerAlert, PageHeader},
+    components: {BasePage, BannerAlert, PageHeader},
     data() {
         return {
             selectedRoleIds: []

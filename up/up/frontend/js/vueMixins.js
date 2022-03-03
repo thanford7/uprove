@@ -446,4 +446,18 @@ const popoverMixin = {
     }
 }
 
-export {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store};
+const filterMixin = {
+    data() {
+        return {
+            filter: {}
+        }
+    },
+    methods: {
+        setFilter(val, filterName, queryParamName=null) {
+            this.filter[filterName] = val;
+            dataUtil.setQueryParams([{key: queryParamName || filterName, val}]);
+        }
+    }
+}
+
+export {ajaxRequestMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, store};

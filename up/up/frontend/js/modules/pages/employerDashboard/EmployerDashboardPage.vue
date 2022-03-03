@@ -1,12 +1,5 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <div class="row mt-3 mb-3">
-            <div class="align-items-center" style="display: flex">
-                <img v-if="initData.employer.logo" :src="initData.employer.logo" alt="" class="employer-logo">
-                <h2 style="display: inline-block; margin-bottom: 0">{{initData.employer.companyName}} Dashboard</h2>
-            </div>
-        </div>
+    <BasePage :headerTitle="`${initData.employer.companyName} Dashboard`" :headerImage="initData.employer.logo">
         <div class="row mb-3 justify-content-center">
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3 style="display: inline-block">Job postings</h3>
@@ -155,15 +148,15 @@
                 </div>
             </div>
         </div>
-        <EditCustomProjectModal/>
-        <EditEmployerModal/>
-        <EditJobPostingModal/>
-        <InviteJobApplicantModal/>
-        <ViewCandidateApplicationModal
-            @approve="approveApplication($event)"
-            @decline="declineApplication($event)"
-        />
-    </div>
+    </BasePage>
+    <EditCustomProjectModal/>
+    <EditEmployerModal/>
+    <EditJobPostingModal/>
+    <InviteJobApplicantModal/>
+    <ViewCandidateApplicationModal
+        @approve="approveApplication($event)"
+        @decline="declineApplication($event)"
+    />
 </template>
 
 <script>
@@ -173,6 +166,7 @@ import dayjs from "dayjs/esm";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
+import BasePage from "../BasePage";
 import EditCustomProjectModal from "../../modals/EditCustomProjectModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
@@ -185,8 +179,9 @@ import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplication
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        BannerAlert, BadgesSkillLevels, BadgesSkills, EditCustomProjectModal, EditEmployerModal, EditJobPostingModal,
-        HamburgerDropdown, InfoToolTip, InviteJobApplicantModal, Table, ViewCandidateApplicationModal
+        BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditCustomProjectModal, EditEmployerModal,
+        EditJobPostingModal, HamburgerDropdown, InfoToolTip, InviteJobApplicantModal,
+        Table, ViewCandidateApplicationModal
     },
     data() {
         return {

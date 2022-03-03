@@ -40,7 +40,7 @@ export default {
                     this.cfg.options = this.cfg.items;
                 }
                 this.elSel = el$.selectize(this.cfg)[0].selectize;
-                this.targetEl = el$.next('.selectize-control')[0];
+                this.targetEl = el$.next('.selectize-control').find('.selectize-input')[0];
 
                 this.elSel.on('change', () => {
                     let val = this.elSel.getValue();

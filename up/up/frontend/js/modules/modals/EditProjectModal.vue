@@ -41,11 +41,10 @@
         </div>
         <div class="mb-3">
             <label for="projectSkillLevels" class="form-label">Skill levels</label>
-            <InputSelectize
+            <SkillLevelsSelectize
                 ref="projectSkillLevels"
-                elId="projectSkillLevels"
-                :isParseAsBits="true"
-                placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="setProjectSkillLevelBits"
+                placeholder="Required"
+                @selected="setProjectSkillLevelBits"
             />
         </div>
         <div class="mb-3">
@@ -86,13 +85,12 @@
         <div class="mb-3">
             <label class="form-label">Evaluation criteria</label>
             <div v-for="criterion in formData.evaluationCriteria" class="mb-3 pt-1 -hover-highlight-border position-relative">
-                <InputSelectize
+                <SkillLevelsSelectize
                     class="mt-3"
                     :ref="`projectCriterion-skillBits-${criterion.id}`"
-                    :elId="`projectCriterion-skillBits-${criterion.id}`"
-                    :isParseAsBits="true"
                     :items="getSkillLevelNumbersFromBits(criterion.skillLevelBits)"
-                    placeholder="Skill levels (leave blank for all)" :cfg="projectSkillLevelsCfg" @selected="criterion.skillLevelBits = $event"
+                    placeholder="Skill levels (leave blank for all)"
+                    @selected="criterion.skillLevelBits = $event"
                 />
                 <InputSelectize
                     :ref="`projectCriterion-category-${criterion.id}`"
@@ -130,12 +128,11 @@
                 :id="`projectFile-description-${fileId}`"
                 v-model="file.description"
             />
-            <InputSelectize
+            <SkillLevelsSelectize
                 :ref="`projectFile-skillBits-${fileId}`"
-                :elId="`projectFile-skillBits-${fileId}`"
-                :isParseAsBits="true"
                 :items="getSkillLevelNumbersFromBits(file.skillLevelBits)"
-                placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="file.skillLevelBits = $event"
+                placeholder="Required"
+                @selected="file.skillLevelBits = $event"
             />
             <a v-if="file.oldFile || file.id" href="#" @click="changeFile(fileId)">
                 <i class="fas fa-exchange-alt"></i>
@@ -161,6 +158,7 @@ import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import RemoveIcon from "../components/RemoveIcon";
 import skillLevelSelectize from "../selectizeCfgs/skillLevels";
+import SkillLevelsSelectize from "../inputs/SkillLevelsSelectize";
 import form from "../../utils/form";
 import $ from "jquery";
 
@@ -168,7 +166,10 @@ export default {
     name: "EditProjectModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, EditSkillsTable, FileDisplay, InputMedia, InputSelectize, InputWsiwyg, RemoveIcon},
+    components: {
+        BaseModal, EditSkillsTable, FileDisplay, InputMedia, InputSelectize,
+        InputWsiwyg, RemoveIcon, SkillLevelsSelectize
+    },
     data() {
         return {
             modalName: 'editProjectModal',
@@ -209,9 +210,6 @@ export default {
                 options: dataUtil.sortBy(this.initData.roles.map((r) => ({value: r.id, text: r.name})), 'text')
             };
         },
-        projectSkillLevelsCfg() {
-            return skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL);
-        }
     },
     methods: {
         addCriterionInput() {

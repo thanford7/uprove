@@ -5,6 +5,7 @@
         :isParseAsInt="true"
         placeholder="Skills: All"
         :cfg="skillsCfg"
+        :items="items"
     />
 </template>
 
@@ -14,12 +15,18 @@ import skillSelectize from "../selectizeCfgs/skill";
 
 export default {
     name: "SkillsSelectize",
-    props: ['skills', 'cfg'],
+    props: ['skills', 'cfg', 'items'],
+    data() {
+        return {
+            targetEl: null,
+            elSel: null
+        }
+    },
     components: {InputSelectize},
     computed: {
         skillsCfg() {
             return skillSelectize.getSkillCfg(this.skills, this.cfg);
-        },
+        }
     },
     methods: {
         setValue(val) {
@@ -33,6 +40,10 @@ export default {
                 return skills;
             }, []) : [];
         }
+    },
+    mounted() {
+        this.targetEl = this.$refs.skills.targetEl;
+        this.elSel = this.$refs.skills.elSel;
     }
 }
 </script>
