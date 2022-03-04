@@ -1037,7 +1037,8 @@ class UserProjectView(UproveAPIView):
             'userProjectEvaluationCriterion__evaluator',
             'files',
             'images',
-            'videos'
+            'videos',
+            'customProject__project__projectInstructions'
         ) \
             .filter(projectFilter)
 

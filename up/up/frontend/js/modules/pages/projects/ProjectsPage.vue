@@ -6,7 +6,7 @@
                     ref="role"
                     placeholder="Roles: All"
                     :roles="initData.roles"
-                    @selected="setFilter($event, 'role')"
+                    @selected="setFilter($event, 'roles', 'role')"
                 />
             </div>
             <div class="col-md-3">

@@ -477,6 +477,10 @@ def getSerializedUserProject(userProject: UserProject, isEmployer=False):
             'projectImage': getattr(userProject.customProject.project.image, 'url', None),
             'projectDescription': userProject.customProject.project.description,
             'projectBackground': userProject.customProject.project.background,
+            'projectInstructions': next(
+                (pi.instructions for pi in userProject.customProject.project.projectInstructions.all() if pi.skillLevelBit & userProject.customProject.skillLevelBit),
+                None
+            ),
             'role': userProject.customProject.project.role.name,
         },
         'projectNotes': userProject.projectNotes,
