@@ -80,8 +80,11 @@ export default {
             const project = this.initData.projects.find((p) => p.id === this.formData.projectId);
             let evalCriteria = (project.evaluationCriteria || []).filter((ec) => !ec.skillLevelBits || ec.skillLevelBits & this.formData.skillLevelBit);
             evalCriteria.forEach((ec) => {
-                const existingCriterion = this.initData.customProjectEvaluationCriteria.find((pec) => pec.evaluationCriterionId === ec.id);
+                const existingCriterion = this.initData.customProjectEvaluationCriteria.find((pec) => pec.evaluationCriterionId === ec.id && pec.customProjectId === this.formData.id);
                 ec.isUsed = dataUtil.isNil(ec.isUsed) ? Boolean(existingCriterion) : ec.isUsed;
+                if (existingCriterion) {
+                    ec.customProjectCriterionId = existingCriterion.id;
+                }
             });
             evalCriteria = [...evalCriteria, ...this.formData.newCriterion]
             return dataUtil.sortBy(evalCriteria, ['category', 'isUsed']);

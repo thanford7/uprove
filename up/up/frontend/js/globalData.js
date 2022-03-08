@@ -4,6 +4,12 @@ const USER_BITS = {
     ADMIN: 4
 }
 
+const PROJECT_EVAL_CUTOFFS = [
+    {cutoff: 50, color: 'danger'},
+    {cutoff: 80, color: 'warning'},
+    {cutoff: 100, color: 'success'}
+]
+
 const CONTENT_TYPES = {
     EXISTING: 'existing',
     EXPERIENCE: 'experience',
@@ -111,4 +117,5 @@ const globalDataGetter = () => {
 
 const globalData = globalDataGetter();
 
-export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROJECT_STATUSES, SEVERITY, TAG_TYPES, USER_BITS};
+export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROJECT_EVAL_CUTOFFS,
+    PROJECT_STATUSES, SEVERITY, TAG_TYPES, USER_BITS};

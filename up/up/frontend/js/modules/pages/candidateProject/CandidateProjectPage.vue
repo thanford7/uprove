@@ -16,7 +16,7 @@
                     <div v-for="file in allFiles" class="col-md-6">
                         <video v-if="file.type === CONTENT_TYPES.VIDEO" controls :src="file.video"></video>
                         <img v-else-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image">
-                        <FileDisplay v-else :file="file" :isPreventDownload="!isEmployer && !isAdmin"/>
+                        <FileDisplay v-else :file="file" :isPreventDownload="!isEmployer && !isAdmin && !isSelf(initData.user.id)"/>
                     </div>
                 </div>
             </div>

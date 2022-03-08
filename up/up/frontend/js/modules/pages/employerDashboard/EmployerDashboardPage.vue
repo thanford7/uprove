@@ -62,6 +62,7 @@
                             {value: 'Status', sortFn: getApplicationStatus},
                             {value: 'Job title', sortFn: 'job.jobTitle'},
                             {value: 'Project', sortFn: 'userProject.customProject.projectTitle'},
+                            {value: 'Project score', sortFn: 'userProject.evaluationScorePct'}
                         ]
                     ]"
                     emptyDataMessage="No job applications"
@@ -98,6 +99,7 @@
                             <td>{{getApplicationStatus(application)}}</td>
                             <td>{{application.job.jobTitle}}</td>
                             <td>{{application?.userProject?.customProject?.projectTitle || '-None-'}}</td>
+                            <td>{{(application?.userProject?.evaluationScorePct) ? `${application?.userProject?.evaluationScorePct}%` : 'None'}}</td>
                         </tr>
                     </template>
                 </Table>
@@ -174,6 +176,7 @@ import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 import Table from "../../components/Table";
+import userProjectUtil from "../../../utils/userProject";
 import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 
 export default {
@@ -189,6 +192,37 @@ export default {
             applications: null,
             customProjects: null,
             sortKeysJobPostingTable: []
+        }
+    },
+    computed: {
+        applications() {
+            return this.initData.employer.jobs.reduce((applications, job) => {
+                return [...applications, ...job.applications.map((app) => {
+                    if (app.userProject) {
+                        app.userProject.evaluationScorePct = userProjectUtil.getEvaluationScore(app.userProject.evaluationCriteria);
+                    }
+                    app.job = {
+                        id: job.id,
+                        jobTitle: job.jobTitle
+                    };
+                    return app;
+                })];
+            }, []);
+        },
+        customProjects() {
+            const customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
+                job.allowedProjects.forEach((ap) => {
+                    if (ap.id in customProjects) {
+                        customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
+                    } else {
+                        ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
+                        ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
+                        customProjects[ap.id] = ap;
+                    }
+                });
+                return customProjects;
+            }, {});
+            return Object.values(customProjects);
         }
     },
     methods: {
@@ -234,30 +268,5 @@ export default {
             });
         }
     },
-    mounted() {
-        this.applications = this.initData.employer.jobs.reduce((applications, job) => {
-            return [...applications, ...job.applications.map((app) => {
-                app.job = {
-                    id: job.id,
-                    jobTitle: job.jobTitle
-                };
-                return app;
-            })];
-        }, []);
-
-        this.customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
-            job.allowedProjects.forEach((ap) => {
-                if (ap.id in customProjects) {
-                    customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
-                } else {
-                    ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
-                    ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
-                    customProjects[ap.id] = ap;
-                }
-            });
-            return customProjects;
-        }, {});
-        this.customProjects = Object.values(this.customProjects);
-    }
 }
 </script>

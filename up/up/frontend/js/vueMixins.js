@@ -128,7 +128,7 @@ const ajaxRequestMixin = {
                 const updateObject = this.getUpdateObject(dataKey);  // Object in memory to be updated
                 // Response data contains more than one data object to be mapped to in memory data
                 if (dataUtil.isObject(newData) && dataKey in newData) {
-                    this.initData[dataKey] = newData[dataKey];
+                    dataUtil.updateObjectInPlace(this.initData[dataKey], newData[dataKey]);
                 } else if (Array.isArray(updateObject)) {
                     if (isPut) {
                         const item = updateObject.find((item) => item.id === newData.id);
@@ -137,17 +137,7 @@ const ajaxRequestMixin = {
                         updateObject.push(newData);
                     }
                 } else {
-                    Object.assign(this.initData, newData);  // This ensures Vue picks up changes (opposed to this.initData = newData)
-
-                    // Make sure there aren't any keys that used to be present, but should be removed
-                    if (dataUtil.isObject(newData) && dataUtil.isObject(this.initData)) {
-                        const newKeys = Object.keys(newData);
-                        Object.keys(this.initData).forEach((key) => {
-                            if(!newKeys.includes(key)) {
-                                delete this.initData[key];
-                            }
-                        });
-                    }
+                    dataUtil.updateObjectInPlace(this.initData, newData);
                 }
             });
             this.afterUpdateInitData();
@@ -328,6 +318,9 @@ const globalVarsMixin = {
         getNewElUid() {
             newElUid++;
             return newElUid.toString();
+        },
+        isSelf(userId) {
+            return this.globalData.uproveUser.id === userId;
         },
         log(val) {
             console.log(val);  // Easy way to debug Vue html code

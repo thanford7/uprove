@@ -40,6 +40,12 @@
                                             <div class="col-10 border-end">
                                                 <div>
                                                     {{p.role}}: {{p.projectTitle}}
+                                                    <span v-if="p.evaluationScorePct">
+                                                        <span
+                                                            class="badge rounded-pill"
+                                                            :class="`bg-${getBadgeColor({score: p.evaluationScorePct})}`"
+                                                        >{{p.evaluationScorePct}}%</span>
+                                                    </span>
                                                 </div>
                                                 <div>
                                                     <BadgesSkillLevels :skillLevels="p.skillLevels"/>
@@ -73,14 +79,15 @@
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
+import BasePage from "../BasePage";
+import dataUtil from "../../../utils/data";
 import PageHeader from "../../components/PageHeader";
 import RolesSelectize from "../../inputs/RolesSelectize";
 import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import Table from "../../components/Table";
-import BasePage from "../BasePage";
-import dataUtil from "../../../utils/data";
+import userProjectUtil from "../../../utils/userProject";
 
 export default {
     name: "CandidateBoardPage",
@@ -138,6 +145,7 @@ export default {
         }
     },
     methods: {
+        getBadgeColor: userProjectUtil.getBadgeColor,
         setSkills(skillIds) {
             this.filter.skills = this.$refs.skills.getSkills(skillIds);
             dataUtil.setQueryParams([{key: 'skill', val: skillIds}]);
@@ -146,6 +154,11 @@ export default {
     mounted() {
         this.initData.candidates.forEach((c) => {
             skillLevelSelectize.setSkillLevels(c.userProjects, true);
+            c.userProjects.forEach((up) => {
+                if (up.evaluationCriteria) {
+                    up.evaluationScorePct = userProjectUtil.getEvaluationScore(up.evaluationCriteria);
+                }
+            });
         });
     }
 }

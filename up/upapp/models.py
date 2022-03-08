@@ -422,6 +422,15 @@ class UserProject(AuditFields):
     class Meta:
         unique_together = ('user', 'customProject')
 
+    @property
+    def evaluationScorePct(self):
+        evaluationCriterion = list(self.userProjectEvaluationCriterion.all())
+        if not evaluationCriterion:
+            return None
+        score = sum((e.value for e in evaluationCriterion))
+        bestScore = len(evaluationCriterion) * 3
+        return int((score / bestScore) * 100)
+
 
 class BlogPost(AuditFields):
     author = models.ForeignKey(User, on_delete=models.PROTECT)

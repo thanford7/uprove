@@ -96,6 +96,7 @@ def candidateBoard(request):
                 'roleId': project.customProject.project.role.id,
                 'status': project.status,
                 'skillLevelBit': project.customProject.skillLevelBit,
+                'evaluationScorePct': project.evaluationScorePct,
                 'skills': [getSerializedSkill(s) for s in project.customProject.skills.all()]
             } for project in candidate.userProject.all()
                 if user.isAdmin or (project.status == UserProject.Status.COMPLETE.value and not project.isHidden)
