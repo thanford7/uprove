@@ -1,6 +1,6 @@
 <template>
     <span :id="elId">
-        <i class="fas fa-info-circle"></i>
+        <i v-if="!isExcludeInfoCircle" class="fas fa-info-circle"></i>
         <slot></slot>
     </span>
 </template>
@@ -15,7 +15,7 @@ export default {
             popover: null
         }
     },
-    props: ['content', 'isHtmlContent', 'elId'],
+    props: ['content', 'isHtmlContent', 'elId', 'isExcludeInfoCircle'],
     methods: {
         initTooltip() {
             const el$ = $(`#${this.elId}`);

@@ -40,12 +40,19 @@
                                             <div class="col-10 border-end">
                                                 <div>
                                                     {{p.role}}: {{p.projectTitle}}
-                                                    <span v-if="p.evaluationScorePct">
-                                                        <span
-                                                            class="badge rounded-pill"
-                                                            :class="`bg-${getBadgeColor({score: p.evaluationScorePct})}`"
-                                                        >{{p.evaluationScorePct}}%</span>
-                                                    </span>
+                                                    <template v-if="p.evaluationScorePct">
+                                                        <InfoToolTip
+                                                            :elId="getNewElUid()"
+                                                            :content="getEvalPopoverHtml()"
+                                                            :isHtmlContent="true"
+                                                            :isExcludeInfoCircle="true"
+                                                        >
+                                                            <span
+                                                                class="badge rounded-pill"
+                                                                :class="`bg-${getBadgeColor({score: p.evaluationScorePct})}`"
+                                                            >{{p.evaluationScorePct}}%</span>
+                                                        </InfoToolTip>
+                                                    </template>
                                                 </div>
                                                 <div>
                                                     <BadgesSkillLevels :skillLevels="p.skillLevels"/>
@@ -81,6 +88,7 @@ import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../BasePage";
 import dataUtil from "../../../utils/data";
+import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
 import RolesSelectize from "../../inputs/RolesSelectize";
 import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";
@@ -92,7 +100,7 @@ import userProjectUtil from "../../../utils/userProject";
 export default {
     name: "CandidateBoardPage",
     components: {
-        BasePage, BadgesSkillLevels, BadgesSkills, BannerAlert, PageHeader,
+        BasePage, BadgesSkillLevels, BadgesSkills, BannerAlert, InfoToolTip, PageHeader,
         RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
     },
     data() {
@@ -146,6 +154,7 @@ export default {
     },
     methods: {
         getBadgeColor: userProjectUtil.getBadgeColor,
+        getEvalPopoverHtml: userProjectUtil.getEvalPopoverHtml,
         setSkills(skillIds) {
             this.filter.skills = this.$refs.skills.getSkills(skillIds);
             dataUtil.setQueryParams([{key: 'skill', val: skillIds}]);
