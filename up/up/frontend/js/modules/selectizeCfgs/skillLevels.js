@@ -2,7 +2,7 @@ import dataUtil from "../../utils/data";
 import globalData from "../../globalData";
 
 class SkillLevelSelectize {
-    getSkillLevelCfg(skillLevels, isMulti=true) {
+    getSkillLevelCfg(skillLevels, {isMulti = true} = {}) {
         const options = Object.entries(skillLevels).map(([key, level]) => ({value: key, text: level.title}));
         if (isMulti) {
             return {

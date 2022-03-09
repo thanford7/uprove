@@ -1,8 +1,6 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <div class="row mt-3">
-            <h1>Admin Page</h1>
+    <BasePage headerTitle="Admin page">
+        <div class="row mb-3">
             <h3>Create</h3>
             <div class="col-md-3 me-2 mb-2">
                 <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editEmployerModal')">Employer account</button>
@@ -23,7 +21,7 @@
                 <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editJobTemplateModal')">Job template</button>
             </div>
         </div>
-        <div class="row mt-3 mb-3">
+        <div class="row mb-3">
             <h3>Edit</h3>
             <div class="col-md-3 me-2">
                 <InputSelectize
@@ -66,12 +64,10 @@
                 />
             </div>
             <div class="col-md-3 me-2">
-                <InputSelectize
+                <SkillsSelectize
                     ref="editSkill"
-                    elId="editSkill"
-                    placeholder="Select skill"
-                    :cfg="skillCfg"
-                    :isParseAsInt="true"
+                    :skills="initData.skills"
+                    :cfg="{isMulti: false, isShowRequired: true, placeholder:'Select skill'}"
                     @selected="openEditSkillModal.bind(this)($event)"
                 />
             </div>
@@ -86,7 +82,7 @@
                 />
             </div>
         </div>
-    </div>
+    </BasePage>
     <EditEmployerModal/>
     <EditRoleModal/>
     <EditJobTemplateModal/>
@@ -105,10 +101,14 @@ import EditSkillModal from "../../modals/EditSkillModal";
 import EditUserModal from "../../modals/EditUserModal";
 import InputSelectize from "../../inputs/InputSelectize";
 import skillSelectize from "../../selectizeCfgs/skill";
+import SkillsSelectize from "../../inputs/SkillsSelectize";
+import BasePage from "../BasePage";
 
 export default {
     name: "AdminPage.vue",
     components: {
+        BasePage,
+        SkillsSelectize,
         BannerAlert, EditEmployerModal, EditRoleModal, EditProjectModal, EditJobTemplateModal,
         EditSkillModal, EditUserModal, InputSelectize
     },
@@ -160,9 +160,6 @@ export default {
                 sortField: 'text',
                 options: this.getProjectOptions()
             }
-        },
-        skillCfg() {
-            return skillSelectize.getSkillCfg(this.initData.skills, {isMulti: false, isShowRequired: true});
         },
         userCfg() {
             return {

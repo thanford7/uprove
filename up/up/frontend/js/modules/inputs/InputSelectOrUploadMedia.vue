@@ -1,18 +1,18 @@
 <template>
     <div>
         <MediaSelectize 
-            ref="existingSel" 
-            :currentMediaIds="currentMediaIds"
+            ref="existingSel"
+            :currentVal="currentVal"
             :mediaTypes="mediaTypes"
             :isMultiUpload="isMultiUpload"
             :placeholder="`Select existing ${placeholderText}...`"
-            @selected="selectedVal = $event" 
+            @selectedMedia="$emit('selectedMediaExisting', $event)"
         />
-        <InputMedia 
+        <InputMedia
             ref="newUpload"
             :mediaTypes="mediaTypes"
             :isMultiUpload="isMultiUpload"
-            @selected="uploadVal = $event"
+            @selected="$emit('selectedMediaNew', $event)"
         />
         <a href="#" ref="toggleUpload" @click="toggleUpload(!isUpload)">{{selectPlaceholderText}}</a>
     </div>
@@ -41,16 +41,10 @@ export default {
         mediaTypes: {
             type: Array,
             required: true
-        }, 
-        currentMediaIds: {
-            type: Array
         },
-        isMultiUpload: {
-            type: Boolean
-        },
-        placeholderDescription: {
-            type: String
-        }
+        isMultiUpload: Boolean,
+        placeholderDescription: String,
+        currentVal: [String, Number]
     },
     components: {InputMedia, MediaSelectize},
     methods: {
@@ -58,12 +52,6 @@ export default {
             this.isUpload = isUpload;
             $(this.$refs.newUpload.$el).toggle(isUpload);
             $(this.$refs.existingSel.$el).parent().find('.selectize-control').toggle(!isUpload);
-        },
-        getValue() {
-            return {
-                uploadValue: (this.isUpload) ? this.uploadVal : null,
-                existingValue: (this.isUpload) ? null : this.selectedVal
-            }
         }
     },
     mounted() {

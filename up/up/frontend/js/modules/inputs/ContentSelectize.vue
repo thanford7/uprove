@@ -1,72 +1,67 @@
 <template>
-    <select id="selectContent"></select>
+    <InputSelectize
+        ref="sel"
+        :elId="getNewElUid()"
+        :cfg="cfg"
+        placeholder="Select content item"
+        @selected="emitValue($event)"
+    />
 </template>
 <script>
-import {mapState} from 'vuex';
+import {CONTENT_TYPES} from '../../globalData';
+import contentUtil from "../../utils/content";
 import dataUtil from '../../utils/data';
+import InputSelectize from "./InputSelectize";
 
 export default {
     data() {
         return {
-            contentSel: null
+            contentSel: null,
+            compositeDelimiter: '-'
         }
     },
-    props: ['contentSection', 'currentContentIds'],
-    computed: mapState({
-        selectedContentIds(state) { return (this.contentSection === 'highlight') ? state[`${this.contentSection}Ids`] : this.currentContentIds || []; },
-        content: 'content',
-        eventBus: 'eventBus'
-    }),
-    watch: {
-        // Update available content options after a user adds/removes content
-        selectedContentIds(newVal, oldVal) {
-            const options = this.getContentOptions();
-            this.contentSel.clear(true); // Clear existing selected options
-            this.contentSel.clearOptions(true);
-            this.contentSel.addOption(options);
-            this.handleNoOptions(options);
-        }
-    },
-    methods: {
-        getContentOptions() {
-            return Object.values(this.content).filter((contentItem) => !this.selectedContentIds.includes(contentItem.ID));
-        },
-        getSelectedContentId() {
-            return this.contentSel.getValue();
-        },
-        handleNoOptions(options) {
-            if (options.length) {
-                this.contentSel.enable();
-                this.contentSel.settings.placeholder = 'Select content';
-            } else {
-                this.contentSel.settings.placeholder = 'No content available';
-                this.contentSel.disable();
+    props: ['assets'],
+    computed: {
+        cfg() {
+            if (!this.assets) {
+                return {};
             }
-            this.contentSel.updatePlaceholder();
-        }
-    },
-    mounted() {
-        if(!this.contentSel) {
-            const options = this.getContentOptions();
-            const optgroups = dataUtil.uniqBy(options.map((option) => ({groupName: dataUtil.capitalize(option.post_type), groupValue: option.post_type})), 'groupValue');
-            this.contentSel = $('#selectContent').selectize({
+            const optgroups = [];
+            const options = [CONTENT_TYPES.EDUCATION, CONTENT_TYPES.EXPERIENCE, CONTENT_TYPES.CUSTOM, CONTENT_TYPES.PROJECT].reduce((allContent, contentType) => {
+                const content = this.assets[contentType];
+                // Add grouping
+                if (content.length) {
+                    optgroups.push({groupName: dataUtil.capitalize(contentType), groupValue: contentType})
+                }
+                // Add each option
+                content.forEach((item) => {
+                    item.title = contentUtil.getContentTitle(item);
+                    item.compositeId = `${contentType}${this.compositeDelimiter}${item.id}`; // Required because content types can have overlapping IDs
+                    allContent.push(item);
+                });
+                return allContent;
+            }, []);
+            return {
                 options,
-                valueField: 'ID',
-                labelField: 'post_title',
-                searchField: ['post_title'],
+                valueField: 'compositeId',
+                labelField: 'title',
+                searchField: ['title'],
                 optgroups,
-                optgroupField: 'post_type',
+                optgroupField: 'type',
                 optgroupValueField: 'groupValue',
                 optgroupLabelField: 'groupName',
                 maxItems: 1,
                 closeAfterSelect: true
-            })[0].selectize;
-
-            this.handleNoOptions(options);
-
-            this.contentSel.on('change', () => {
-                this.$emit('selected', this.getSelectedContentId());
-            });
+            };
+        }
+    },
+    components: {
+        InputSelectize
+    },
+    methods: {
+        emitValue(compositeId) {
+            const [contentType, id] = compositeId.split(this.compositeDelimiter);
+            this.$emit('selectedContent', {contentType, id: parseInt(id)});
         }
     }
 }

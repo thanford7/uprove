@@ -1,5 +1,5 @@
 <template>
-    <div class="container-lg blog-post">
+    <BasePage class="blog-post">
         <div class="row mt-3 mb-3">
             <a href="/blog/">Back to blog posts</a>
             <div class="col card-custom" :class="(isMobile) ? '' : 'image-wrap'">
@@ -21,15 +21,16 @@
                 </div>
             </div>
         </div>
-    </div>
+    </BasePage>
     <EditBlogModal v-if="isSuperUser" newInitDataKey="blog" newDeleteRedirectUrl="/blog/"/>
 </template>
 
 <script>
 import EditBlogModal from "../../modals/EditBlogModal";
+import BasePage from "../BasePage";
 export default {
     name: "BlogSinglePage",
-    components: {EditBlogModal},
+    components: {BasePage, EditBlogModal},
     methods: {
         getBlogUrl(blog) {
             return `https://www.uprove.co/blog/${blog.id}/`;

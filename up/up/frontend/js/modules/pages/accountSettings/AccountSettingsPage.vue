@@ -1,7 +1,6 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <div class="row mt-4">
+    <BasePage headerTitle="Account settings">
+        <div class="row">
             <div class="col-md-2 col-12 profile-picture">
                 <span id="profilePic">
                     <img src="" alt="Profile picture">
@@ -10,13 +9,14 @@
                 <h4 class="-text-center">{{initData.firstName}} {{initData.lastName}}</h4>
             </div>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
-import BannerAlert from "../../components/BannerAlert";
+import BasePage from "../BasePage";
+
 export default {
     name: "AccountSettingsPage.vue",
-    components: {BannerAlert}
+    components: {BasePage}
 }
 </script>

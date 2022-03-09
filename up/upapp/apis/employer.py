@@ -1,7 +1,6 @@
-from datetime import datetime
-
 from django.db.models import Q
 from django.db.transaction import atomic
+from django.utils import timezone
 from psycopg2 import IntegrityError
 from rest_framework import authentication, status
 from rest_framework.response import Response
@@ -9,10 +8,9 @@ from rest_framework.views import APIView
 
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView, SkillView
-from upapp.models import CustomProject, Employer, EmployerCustomProjectCriterion, EmployerJob, \
-    ProjectEvaluationCriterion, UserProjectEvaluationCriterion
+from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
-    getSerializedEmployerCustomProjectCriterion, getSerializedProject
+    getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -40,8 +38,8 @@ class EmployerView(APIView):
                 logo=data.get('logo'),
                 description=data.get('description'),
                 isDemo=data.get('isDemo') or False,
-                modifiedDateTime=datetime.utcnow(),
-                createdDateTime=datetime.utcnow()
+                modifiedDateTime=timezone.now(),
+                createdDateTime=timezone.now()
             )
             employer.save()
             return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, isEmployer=True))
@@ -125,8 +123,8 @@ class JobPostingView(APIView):
             salaryFloor=data.get('salaryFloor'),
             salaryCeiling=data.get('salaryCeiling'),
             salaryUnit=data.get('salaryUnit'),
-            modifiedDateTime=datetime.utcnow(),
-            createdDateTime=datetime.utcnow()
+            modifiedDateTime=timezone.now(),
+            createdDateTime=timezone.now()
         )
         employerJob.save()
 
@@ -229,11 +227,10 @@ class JobPostingView(APIView):
         )
 
     @staticmethod
-    def setCustomProjects(employerJob, allowedProjects, isClearExisting=True):
+    def setCustomProjects(employerJob, allowedProjects):
         existingCustomProjects = JobPostingView.getCustomProjects()
-        if isClearExisting:
-            employerJob.allowedProjects.clear()
-
+        existingAllowedProjectIds = [ap.id for ap in employerJob.allowedProjects.all()]
+        newAllowedProjectIds = []
         for customProjectData in allowedProjects:
             customProject = CustomProject(
                 project_id=customProjectData['projectId'],
@@ -246,10 +243,33 @@ class JobPostingView(APIView):
             ):
                 customProject.save()
             customProject = existingCustomProject or customProject
+            newAllowedProjectIds.append(customProject.id)
             SkillView.setSkillIds(customProject, customProjectData['skillIds'])
-            if customProject.id in [ap.id for ap in employerJob.allowedProjects.all()]:
+
+            # Set default evaluation criteria
+            if customProject.id not in existingAllowedProjectIds:
+                defaultEvaluationCriteria = ProjectEvaluationCriterion.objects.filter(project_id=customProject.project_id)
+                existingEvaluationCriteria = {(e.employer_id, e.customProject_id): e for e in
+                    EmployerCustomProjectCriterion.objects.filter(
+                        employer=employerJob.employer,
+                        customProject=customProject
+                    )
+                }
+                for criterion in defaultEvaluationCriteria:
+                    if not existingEvaluationCriteria.get((employerJob.employer_id, customProject.id)):
+                        EmployerCustomProjectCriterion(
+                            employer=employerJob.employer,
+                            customProject=customProject,
+                            evaluationCriterion=criterion
+                        ).save()
+
+            if customProject.id in existingAllowedProjectIds:
                 continue
             employerJob.allowedProjects.add(customProject)
+
+        for projectId in existingAllowedProjectIds:
+            if projectId not in newAllowedProjectIds:
+                employerJob.allowedProjects.remove(CustomProject.objects.get(id=projectId))
 
 
 class JobProjectLinkView(APIView):
@@ -267,7 +287,7 @@ class JobProjectLinkView(APIView):
         for job in jobs:
             if not security.isPermittedEmployer(request, job.employer_id):
                 return Response('You do not have permission to alter this job', status=status.HTTP_401_UNAUTHORIZED)
-            JobPostingView.setCustomProjects(job, [customProjectData], isClearExisting=False)
+            JobPostingView.setCustomProjects(job, [customProjectData])
 
         user = security.getSessionUser(request)
         return Response(status=status.HTTP_200_OK,
@@ -295,19 +315,18 @@ class JobProjectLinkView(APIView):
         return Response(status=status.HTTP_200_OK, data=customProject.id)
 
 
-class EmployerCustomProject(APIView):
+class EmployerCustomProject(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
 
     @atomic
     def put(self, request, customProjectId=None):
-        data = request.data
-        customProjectId = customProjectId or data.get('id')
+        customProjectId = customProjectId or self.data.get('id')
         if not customProjectId:
             return Response('A custom project ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         customProject = CustomProject.objects.get(id=customProjectId)
 
-        employerId = data.get('employerId')
+        employerId = self.data.get('employerId')
         if not employerId:
             return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
 
@@ -317,7 +336,7 @@ class EmployerCustomProject(APIView):
 
         # Add or remove jobs linked to custom project
         # TODO: Optimize this query
-        linkedJobIds = [j['id'] for j in data.get('jobs', [])]
+        linkedJobIds = [j['id'] for j in self.data.get('jobs', [])]
         for job in EmployerJob.objects.prefetch_related('allowedProjects').filter(employer_id=employerId):
             isLinked = customProject in job.allowedProjects.all()
             if isLinked and job.id not in linkedJobIds:
@@ -326,15 +345,15 @@ class EmployerCustomProject(APIView):
                 job.allowedProjects.add(customProject)
 
         existingEmployerCriteria = {
-            c.evaluationCriterion_id: c for c in
-            EmployerCustomProjectCriterion.objects.filter(customProject_id=data['id'], employer_id=employerId)
+            c.id: c for c in
+            EmployerCustomProjectCriterion.objects.filter(customProject_id=self.data['id'], employer_id=employerId)
         }
         projectCriteriaFilter = Q(employer_id=None) | Q(employer_id=employerId)
         existingProjectCriteria = {
             pc.id: pc for pc in
             ProjectEvaluationCriterion.objects.filter(project_id=customProject.project_id).filter(projectCriteriaFilter)
         }
-        for criterionData in data.get('evaluationCriteria', []):
+        for criterionData in self.data.get('evaluationCriteria', []):
             if projectCriterion := existingProjectCriteria.get(criterionData['id']):
                 dataUtil.setObjectAttributes(projectCriterion, criterionData, {
                     'criterion': None,
@@ -352,7 +371,7 @@ class EmployerCustomProject(APIView):
                 )
                 projectCriterion.save()
 
-            employerCriterion = existingEmployerCriteria.get(projectCriterion.id)
+            employerCriterion = existingEmployerCriteria.get(criterionData.get('customProjectCriterionId'))
             if criterionData['isUsed'] and not employerCriterion:
                 EmployerCustomProjectCriterion(
                     employer_id=employerId,
@@ -399,10 +418,49 @@ class UserProjectEvaluationView(UproveAPIView):
                     evaluator_id=self.data['evaluatorId'],
                     evaluationCriterion_id=evaluationCriterionData['id'],
                     value=evaluationCriterionData.get('value', 0),
-                    createdDateTime=datetime.utcnow(),
-                    modifiedDateTime=datetime.utcnow()
+                    createdDateTime=timezone.now(),
+                    modifiedDateTime=timezone.now()
                 ).save()
 
         return Response(status=status.HTTP_200_OK, data={
             'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), isEmployer=True)
         })
+
+
+class OrganizationView(UproveAPIView):
+    authentication_classes = (authentication.SessionAuthentication,)
+
+    def get(self, request):
+        if id := self.data.get('id'):
+            try:
+                org = Organization.objects.get(id=id)
+                return Response(status=status.HTTP_200_OK, data=getSerializedOrganization(org))
+            except Organization.DoesNotExist as e:
+                raise e
+        elif search := self.data.get('search'):
+            q = Q(name__iregex=f'^.*{search}.*$')
+
+            if orgTypes := self.data.get('orgType'):
+                q &= Q(orgType__in=orgTypes)
+
+            orgs = Organization.objects.filter(q)
+            return Response(status=status.HTTP_200_OK, data=[getSerializedOrganization(o) for o in orgs])
+
+    @staticmethod
+    @atomic
+    def updateOrCreateOrg(data):
+        try:
+            org = Organization.objects.get(name=data['name'], orgType=data['orgType'])
+        except Organization.DoesNotExist:
+            org = Organization()
+
+        if newLogo := data.get('newLogo'):
+            org.logo = newLogo
+
+        dataUtil.setObjectAttributes(org, data, {
+            'name': None,
+            'orgType': None,
+            'user_id':  {'formName': 'userId'}
+        })
+        org.save()
+        return org

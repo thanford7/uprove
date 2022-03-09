@@ -1,15 +1,16 @@
 import logging
-from datetime import datetime
 
 from django.contrib import messages
 from django.db import IntegrityError
 from django.db.models import Q
 from django.db.transaction import atomic
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from upapp import security
+from upapp.apis import UproveAPIView
 from upapp.modelSerializers import getSerializedProject, getSerializedRole, getSerializedSkill
 from upapp.models import Project, Role, Skill, ProjectFile, ProjectInstructions, ProjectEvaluationCriterion
 from upapp.utils import dataUtil
@@ -18,17 +19,16 @@ from upapp.utils import dataUtil
 logger = logging.getLogger()
 
 
-class ProjectView(APIView):
+class ProjectView(UproveAPIView):
 
     def get(self, request, projectId=None):
-        projectId = projectId or request.data['id']
+        projectId = projectId or self.data['id']
         isPermittedSessionUser = security.isPermittedSessionUser(request)
-        user = security.getSessionUser(request)
-        employerId = user['employerId'] if user else None
+        employerId = self.user.employer_id if self.user else None
         if projectId:
             return Response(getSerializedProject(self.getProject(projectId), isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId), status=status.HTTP_200_OK)
 
-        employerId = request.data.get('employerId')
+        employerId = self.data.get('employerId')
         return Response([getSerializedProject(p, isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId) for p in self.getProjects(employerId=employerId)])
 
     @atomic
@@ -36,27 +36,24 @@ class ProjectView(APIView):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        data = request.data
-        project = Project(
-            title=data['title'],
-            image=data.get('image'),
-            role_id=data['roleId'],
-            skillLevelBits=data['skillLevelBits'],
-            description=data['description'],
-            background=data['background'],
-            employer_id=data.get('employerId'),
-            modifiedDateTime=datetime.utcnow(),
-            createdDateTime=datetime.utcnow()
-        )
+        project = dataUtil.setObjectAttributes(Project(createdDateTime=timezone.now()), self.data, {
+            'title': None,
+            'image': None,
+            'role_id': {'formName': 'roleId'},
+            'skillLevelBits': None,
+            'description': None,
+            'background': None,
+            'employer_id': {'formName': 'employerId'},
+        })
         project.save()
 
         try:
-            SkillView.setProjectSkills(project, data.get('skills'))
+            SkillView.setProjectSkills(project, self.data.get('skills'))
         except ValueError as e:
             return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
-        self.setInstructions(project, data.get('instructions'))
-        self.setEvaluationCriteria(project, data.get('evaluationCriteria'))
-        self.setFiles(project, data.getlist('files', []), data.get('filesMetaData', []), request)
+        self.setInstructions(project, self.data.get('instructions'))
+        self.setEvaluationCriteria(project, self.data.get('evaluationCriteria'))
+        self.setFiles(project, self.data.get('files', []), self.data.get('filesMetaData', []), request)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
 
@@ -93,7 +90,7 @@ class ProjectView(APIView):
             return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
 
         if isChanged:
-            project.modifiedDateTime = datetime.utcnow()
+            project.modifiedDateTime = timezone.now()
 
         project.save()
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
@@ -152,8 +149,8 @@ class ProjectView(APIView):
                     description=metaData.get('description'),
                     skillLevelBits=metaData['skillLevelBits'],
                     file=file,
-                    modifiedDateTime=datetime.utcnow(),
-                    createdDateTime=datetime.utcnow()
+                    modifiedDateTime=timezone.now(),
+                    createdDateTime=timezone.now()
                 )
                 projectFile.save()
                 isChanged = True
@@ -173,7 +170,7 @@ class ProjectView(APIView):
                 })
                 if file:
                     existingProjectFile.file = file
-                    existingProjectFile.modifiedDateTime = datetime.utcnow()
+                    existingProjectFile.modifiedDateTime = timezone.now()
                 existingProjectFile.save()
 
         deleteProjectFileIds = [id for id in existingProjectFiles.keys() if id not in usedProjectFileIds]
@@ -201,8 +198,8 @@ class ProjectView(APIView):
                     project=project,
                     instructions=instruction['instructions'],
                     skillLevelBit=instruction['skillLevelBit'],
-                    modifiedDateTime=datetime.utcnow(),
-                    createdDateTime=datetime.utcnow()
+                    modifiedDateTime=timezone.now(),
+                    createdDateTime=timezone.now()
                 )
                 newInstruction.save()
                 isChanged = True
@@ -226,6 +223,7 @@ class ProjectView(APIView):
                     'skillLevelBits': None,
                     'employer_id': {'formName': 'employerId'}
                 })
+                existingCriterion.save()
                 usedCriteriaIds.append(existingCriterion.id)
             else:
                 newCriterion = ProjectEvaluationCriterion(

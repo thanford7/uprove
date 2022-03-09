@@ -80,8 +80,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
-import {USER_BITS} from '../../globalData';
+import {SEVERITY, USER_BITS} from '../../globalData';
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
 import InfoToolTip from "../components/InfoToolTip";
@@ -106,7 +105,7 @@ export default {
                 lastName: '#userLName',
                 email: '#userEmail',
             },
-            successAlertType: severity.INFO,
+            successAlertType: SEVERITY.INFO,
             infoBirthDate: 'We don\'t share age or birth date with employers, but we would like to wish you a happy birthday!'
         }
     },
@@ -144,23 +143,31 @@ export default {
                     }
                     return userTypes;
                 }, []);
-            this.$refs['userTypes'].elSel.setValue(userTypes);
-            this.$refs['userEmployer'].elSel.setValue(rawData.formData.employerId);
+            this.$refs.userTypes.elSel.setValue(userTypes);
+            this.$refs.userEmployer.elSel.setValue(rawData.formData.employerId);
             return Object.assign(rawData.formData, {userTypes});
         },
         processFormData() {
             const formData = this.readForm();
-            const {next, inviteEmployerId} = dataUtil.getQueryParams();
+            let {next, inviteEmployerId} = dataUtil.getQueryParams();
+            if (next) {
+                formData.next = next;
+            }
+
+            inviteEmployerId = parseInt(inviteEmployerId);
+            if (inviteEmployerId) {
+                formData.inviteEmployerId = inviteEmployerId;
+            }
+
             return Object.assign(
-                {next, inviteEmployerId},
                 formData,
                 {userTypeBits: dataUtil.sum(formData.userTypes)}
             );
         },
         isGoodFormFields(formData) {
-            if (this.$refs['userTypes'] && formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
+            if (this.$refs.userTypes && formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
                 this.addPopover($(this.$refs.userEmployer.targetEl), {
-                    severity: severity.WARN,
+                    severity: SEVERITY.WARN,
                     content: 'Employer and user type of "employer" must both be set',
                     isOnce: true
                 });
@@ -183,8 +190,8 @@ export default {
         },
     },
     mounted() {
-        if (this.$refs['userTypes']) {
-            this.requiredFields.userTypes = this.$refs['userTypes'].targetEl;
+        if (this.$refs.userTypes) {
+            this.requiredFields.userTypes = this.$refs.userTypes.targetEl;
         }
     }
 }

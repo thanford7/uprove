@@ -73,19 +73,19 @@
                 :cfg="getProjectSkillLevelsCfg(customProject)"
                 @selected="customProject.skillLevelBit = $event"
             />
-            <InputSelectize
+            <SkillsSelectize
                 :ref="`modalJobCustomProject-skills-${customProject.id}`"
-                :elId="`modalJobCustomProject-skills-${customProject.id}`"
                 :items="getDefaultSkills(customProject)"
-                :isParseAsInt="true"
-                placeholder="Skills (required)" :cfg="getSkillsCfg(customProject)" @selected="customProject.skillIds = $event"
+                :skills="getProject(customProject.projectId).skills"
+                :cfg="{isMulti: true, projectId: getProject(customProject.projectId).id, isIncludeDetails: true, placeholder: 'Skills (required)'}"
+                @selected="customProject.skillIds = $event"
             />
         </div>
     </BaseModal>
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from '../../globalData';
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
 import form from "../../utils/form";
@@ -93,13 +93,14 @@ import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import skillSelectize from "../selectizeCfgs/skill";
+import SkillsSelectize from "../inputs/SkillsSelectize";
 import $ from "jquery";
 
 export default {
     name: "EditJobPostingModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InfoToolTip, InputSelectize, InputWsiwyg},
+    components: {SkillsSelectize, BaseModal, InfoToolTip, InputSelectize, InputWsiwyg},
     data() {
         return {
             modalName: 'editJobPostingModal',
@@ -192,13 +193,6 @@ export default {
                     .map(([key, level]) => ({value: key, text: level.title}))
             }
         },
-        getSkillsCfg(customProject) {
-            const project = this.getProject(customProject.projectId);
-            return skillSelectize.getSkillCfg(
-                project.skills,
-                {isMulti: true, projectId: project.id, isIncludeDetails: true}
-            );
-        },
         getDefaultSkills(customProject) {
             const project = this.getProject(customProject.projectId);
             return (customProject.skills) ? customProject.skills.map((s) => s.id) : skillSelectize.getDefaultSkills(project.skills);
@@ -223,22 +217,22 @@ export default {
             });
 
         },
-        setEmptyFormData() {
-            this.formData = {
+        getEmptyFormData() {
+            return {
                 allowedProjects: []
             }
         },
         isGoodFormFields(formData) {
             if (form.isEmptyWysiwyg(formData.jobDescription)) {
                 this.addPopover($('#modalJobDescription'),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
             }
 
             if (!formData.allowedProjects || !formData.allowedProjects.length) {
                 this.addPopover($(this.$refs['jobProjects'].targetEl),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
             }
@@ -247,26 +241,16 @@ export default {
                 const customProject = formData.allowedProjects[i];
                 if (dataUtil.isNil(customProject.skillLevelBit)) {
                     this.addPopover($(this.$refs[`modalJobCustomProject-skillBits-${customProject.id}`].targetEl),
-                    {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                         );
                     return false;
                 }
 
                 if (dataUtil.isNil(customProject.skillIds)) {
                     this.addPopover($(this.$refs[`modalJobCustomProject-skills-${customProject.id}`].targetEl),
-                    {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                         );
                     return false;
-                }
-
-                for (let x = 0; x < customProject.skills.length; x++) {
-                    const skill = customProject.skills[x];
-                    if (skill.skillLevelBits && !(skill.skillLevelBits & customProject.skillLevelBit)) {
-                        this.addPopover($(this.$refs[`modalJobCustomProject-skills-${customProject.id}`].targetEl),
-                        {severity: severity.WARN, content: `${skill.name} has a skill level that is not equal to the project skill level`, isOnce: true}
-                            );
-                        return false;
-                    }
                 }
             }
 

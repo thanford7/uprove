@@ -1,64 +1,48 @@
 <template>
-    <select :id="elId || _uid" :placeholder="placeholder"></select>
+    <InputSelectize
+        ref="input"
+        :elId="getNewElUid()"
+        :cfg="cfg"
+        :items="currentVal"
+        :placeholder="placeholder"
+        @selected="$emit('selectedMedia', parseVal($event))"
+    />
 </template>
 <script>
-import {mapState} from 'vuex';
 import dataUtil from '../../utils/data';
+import InputSelectize from "./InputSelectize";
+import mediaSelectize from "../selectizeCfgs/media";
 
 export default {
-    data() {
-        return {
-            mediaSel: null
-        }
-    },
+    components: {InputSelectize},
     props: {
-        currentMediaIds: {
-            type: Array
-        },
-        isMultiUpload: {
-            type: Boolean
-        },
-        placeholder: {
-            type: String
-        },
+        isMultiUpload: Boolean,
+        placeholder: String,
+        currentVal: [String, Number],
         mediaTypes: {
             type: Array,
             required: true
-        },
-        elId: {
-            type: String
         }
     },
-    computed: mapState({
-        media(state) {
-            const re = new RegExp(`^(${this.mediaTypes.join('|')}).*$`);
-            const mediaItems = state.media.filter((mediaItem) => mediaItem.type.match(re));
-            if (this.mediaSel) {
-                this.mediaSel.addOption(mediaItems);
-            }
-            return mediaItems;
-        }
-    }),
-    watch: {
-        currentMediaIds(newVal) {
-            this.mediaSel.clear();
-            if (newVal && newVal.length) {
-                newVal.forEach((val) => { this.mediaSel.addItem(val); });
-            }
-        }
-    },
-    methods: {
-        getValue() {
-            if (this.isMultiUpload) {
-                return this.mediaSel.getValue().map((val) => parseInt(val));
-            }
-            return parseInt(this.mediaSel.getValue());
-        },
-        createSelectize() {
-            const optgroups = dataUtil.uniqBy(this.media.map((mediaItem) => ({groupName: dataUtil.capitalize(mediaItem.type), groupValue: mediaItem.type})), 'groupName');
-            this.mediaSel = $(`#${this.elId || this._uid}`).selectize({
-                options: this.media,
-                valueField: 'id',
+    computed: {
+        cfg() {
+            const optgroups = [];
+            const options = (this.initData.assets) ? this.mediaTypes.reduce((allMedia, mediaType) => {
+                const mediaItems = this.initData.assets[`${mediaType}s`];
+                if (!mediaItems || !mediaItems.length) {
+                    return allMedia;
+                }
+                optgroups.push({groupName: dataUtil.capitalize(mediaType), groupValue: mediaType})
+                mediaItems.forEach((item) => {
+                    item.compositeId = mediaSelectize.getCompositeId(mediaType, item.id);
+                    item.type = mediaType;
+                    allMedia.push(item);
+                });
+                return allMedia;
+            }, []) : [];
+            return {
+                options,
+                valueField: 'compositeId',
                 labelField: 'title',
                 searchField: ['title'],
                 optgroups,
@@ -70,12 +54,12 @@ export default {
                 render: {
                     option: (item, escape) => {
                         if (item.type === 'image') {
-                            return `<div><div class="img"><img src="${item.guid}" class="img-thumbnail"><span>${escape(item.title)}</span></div></div>`;
+                            return `<div><div class="img"><img src="${item.image}" class="img-thumbnail"><span>${escape(item.title)}</span></div></div>`;
                         } else if (item.type === 'video') {
                             return `<div>
                                         <div class="img">
                                             <video class="img-thumbnail" preload="metadata">
-                                                <source src="${item.guid}#t=1">
+                                                <source src="${item.video}#t=1">
                                             </video>
                                             <span>${escape(item.title)}</span>
                                         </div>
@@ -85,19 +69,13 @@ export default {
                         }
                     }
                 }
-            })[0].selectize;
-
-            this.mediaSel.on('change', () => {
-                this.$emit('selected', this.getValue());
-            });
-
-            if (this.currentMediaIds && this.currentMediaIds.length) {
-                this.currentMediaIds.forEach((val) => { this.mediaSel.addItem(val, true); });
             }
         }
     },
-    mounted() {
-        this.createSelectize();
+    methods: {
+        parseVal(val) {
+            return mediaSelectize.getParsedCompositeId(val);
+        },
     }
 }
 </script>

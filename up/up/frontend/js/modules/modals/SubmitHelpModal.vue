@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from "../../globalData";
 import BaseModal from "./BaseModal";
 import FormChecker from "../../utils/form";
 import globalData from "../../globalData";
@@ -57,11 +57,11 @@ export default {
         isGoodFormFields(formData) {
             if (!this.isLoggedIn) {
                 if (!FormChecker.isGoodEmail(formData.fromEmail)) {
-                    this.addPopover($('#contactEmail'), {content: 'Please add valid email', isOnce: true, severity: severity.WARN});
+                    this.addPopover($('#contactEmail'), {content: 'Please add valid email', isOnce: true, severity: SEVERITY.WARN});
                     return false;
                 }
                 if (!formData.name) {
-                    this.addPopover($('#contactName'), {content: 'Required field', isOnce: true, severity: severity.WARN});
+                    this.addPopover($('#contactName'), {content: 'Required field', isOnce: true, severity: SEVERITY.WARN});
                     return false;
                 }
             }

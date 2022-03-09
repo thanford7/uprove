@@ -49,6 +49,7 @@
 </template>
 
 <script>
+import {SEVERITY} from '../../globalData';
 import BadgesSkillLevels from "../components/BadgesSkillLevels";
 import BadgesSkills from "../components/BadgesSkills";
 import BaseModal from "./BaseModal";
@@ -57,7 +58,6 @@ import InputCheckBox from "../inputs/InputCheckBox";
 import InputSelectize from "../inputs/InputSelectize";
 import dataUtil from "../../utils/data";
 import $ from "jquery";
-import {severity} from "../../vueMixins";
 
 export default {
     name: "EditCustomProjectModal",
@@ -80,8 +80,11 @@ export default {
             const project = this.initData.projects.find((p) => p.id === this.formData.projectId);
             let evalCriteria = (project.evaluationCriteria || []).filter((ec) => !ec.skillLevelBits || ec.skillLevelBits & this.formData.skillLevelBit);
             evalCriteria.forEach((ec) => {
-                const existingCriterion = this.initData.customProjectEvaluationCriteria.find((pec) => pec.evaluationCriterionId === ec.id);
+                const existingCriterion = this.initData.customProjectEvaluationCriteria.find((pec) => pec.evaluationCriterionId === ec.id && pec.customProjectId === this.formData.id);
                 ec.isUsed = dataUtil.isNil(ec.isUsed) ? Boolean(existingCriterion) : ec.isUsed;
+                if (existingCriterion) {
+                    ec.customProjectCriterionId = existingCriterion.id;
+                }
             });
             evalCriteria = [...evalCriteria, ...this.formData.newCriterion]
             return dataUtil.sortBy(evalCriteria, ['category', 'isUsed']);
@@ -117,7 +120,7 @@ export default {
                 const criterion = formData.evaluationCriteria[i];
                 if (!criterion.criterion || !criterion.criterion.length) {
                     this.addPopover($(`#criterion-${criterion.id}`).next('textarea'),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
@@ -139,7 +142,6 @@ export default {
         toggleAll(e, isUsed) {
             e.preventDefault();
             this.evaluationCriteria.forEach((ec) => { ec.isUsed = isUsed; });
-            console.log(this.evaluationCriteria);
         }
     }
 }

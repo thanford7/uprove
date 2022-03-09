@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
@@ -6,10 +6,11 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.utils import timezone
 
 __all__ = (
-    'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserExperience',
-    'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Organization',
+    'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserCertification', 'UserExperience',
+    'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag'
@@ -23,6 +24,21 @@ ALLOWED_UPLOADS_FILE = ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb
 
 def getUploadLocation(relPath):
     return f'{relPath}{"-test/" if settings.DEBUG else "/"}'
+
+
+def getUserUploadLocation(instance, filename):
+    if not instance.user:
+        raise PermissionError('User must be logged in to modify uploads')
+    return f'uploads-candidate{"-test/" if settings.DEBUG else "/"}user_{instance.user.id}/{filename}'
+
+
+def getEmployerUploadLocation(instance, filename):
+    if not instance.user:
+        raise PermissionError('User must be logged in to modify uploads')
+    uproveUser = User.objects.get(djangoUser_id=instance.user.id)
+    if not uproveUser.employer_id:
+        raise PermissionError('User must be associated with an employer to modify uploads')
+    return f'uploads-employer{"-test/" if settings.DEBUG else "/"}employer_{uproveUser.employer_id}/{filename}'
 
 
 # Create your models here.
@@ -59,12 +75,37 @@ class User(AuditFields):
     inviteEmployer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True, related_name='inviteEmployer')
     isDemo = models.BooleanField(default=False)
 
+    @property
+    def isEmployer(self):
+        return bool(self.employer_id)
+
+    @property
+    def isCandidate(self):
+        return self.userTypeBits & self.USER_TYPE_CANDIDATE
+
+    @property
+    def isAdmin(self):
+        return self.userTypeBits & self.USER_TYPE_ADMIN
+
+    @property
+    def isActive(self):
+        return self.djangoUser.is_active
+
+    @property
+    def isSuperUser(self):
+        return self.djangoUser.is_superuser
+
+    @property
+    def primaryProfile(self):
+        return next((p for p in self.profile.all() if p.isPrimary), None)
+
 
 class UserProfile(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='profile')
-    profileName = models.CharField(max_length=100)
+    profileName = models.CharField(max_length=100, default='Default')
     profilePicture = models.ForeignKey('UserImage', on_delete=models.SET_NULL, null=True)
     makePublic = models.BooleanField(default=True)
+    isPrimary = models.BooleanField(default=True)
     password = models.CharField(max_length=20, null=True)  # Enables users to "lock" a profile to only users with a password
 
 
@@ -73,9 +114,6 @@ class UserProfileSection(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True)
     sectionOrder = models.SmallIntegerField()
-
-    class Meta:
-        unique_together = ('userProfile', 'sectionOrder')
 
 
 class UserProfileSectionItem(models.Model):
@@ -91,33 +129,24 @@ class UserProfileSectionItem(models.Model):
     contentItemId = models.PositiveIntegerField(null=True)
     contentObject = GenericForeignKey('contentType', 'contentItemId')
 
-    class Meta:
-        unique_together = ('userProfileSection', 'contentOrder')
-
 
 class UserEducation(AuditFields):
-    # Keep in sync with globalData.js
-    OPTIONS_DEGREE = [
-        'Associate of Arts',
-        'Associate of Science',
-        'Associate of Applied Science',
-        'Bachelor of Arts',
-        'Bachelor of Science',
-        'Master of Arts',
-        'Master of Science',
-        'Master of Business Administration',
-        'Doctoral Degree',
-        'Doctor of Medicine',
-        'Juris Doctor',
-    ]
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='education')
     school = models.ForeignKey('Organization', on_delete=models.PROTECT)
-    degree = models.CharField(max_length=50, null=True, choices=[(o, o) for o in OPTIONS_DEGREE])
+    degree = models.CharField(max_length=50, null=True)
     degreeSubject = models.CharField(max_length=200, null=True)
     activities = models.TextField(null=True)
     startDate = models.DateField(null=True)
     endDate = models.DateField(null=True)
+
+
+class UserCertification(AuditFields):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='certification')
+    organization = models.ForeignKey('Organization', on_delete=models.PROTECT)
+    hasExpiration = models.BooleanField(default=False)
+    title = models.CharField(max_length=200, null=False)
+    issueDate = models.DateField()
+    expirationDate = models.DateField(null=True)
 
 
 class UserExperience(AuditFields):
@@ -165,7 +194,7 @@ class UserContentItemSection(models.Model):
 class UserVideo(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='video')
     video = models.FileField(
-        upload_to=getUploadLocation('uploads-candidate'),
+        upload_to=getUserUploadLocation,
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_VIDEO)]
     )
     title = models.CharField(max_length=100)
@@ -174,7 +203,7 @@ class UserVideo(AuditFields):
 class UserFile(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='file')
     file = models.FileField(
-        upload_to=getUploadLocation('uploads-candidate'),
+        upload_to=getUserUploadLocation,
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_FILE)]
     )
     title = models.CharField(max_length=100)
@@ -182,16 +211,12 @@ class UserFile(AuditFields):
 
 class UserImage(AuditFields):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='image')
-    image = models.ImageField(upload_to=getUploadLocation('uploads-candidate'))
+    image = models.ImageField(upload_to=getUserUploadLocation)
     title = models.CharField(max_length=100)
     isDefault = models.BooleanField(default=False)
 
 
 class UserTag(AuditFields):
-    # Keep in sync with globalData.js
-    TYPE_INTEREST = 'interest'
-    TYPE_SKILL = 'skill'
-    TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]
 
     class SkillLevel(IntEnum):
         ENTRY = 0x1
@@ -202,11 +227,27 @@ class UserTag(AuditFields):
     SKILL_LEVELS = [(int(i), int(i)) for i in SkillLevel]
     ALL_SKILL_LEVEL_BITS = SkillLevel.ENTRY | SkillLevel.INTERMEDIATE | SkillLevel.ADVANCED | SkillLevel.EXPERT
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='tag')
-    tagType = models.CharField(max_length=25, choices=TYPES_TAG)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='userTag')
+    tag = models.ForeignKey('Tag', on_delete=models.CASCADE)
+    description = models.CharField(max_length=200, null=True)  # Override the description provided in the Tag model
+    skillLevelBit = models.SmallIntegerField(choices=SKILL_LEVELS, null=True)
+
+    class Meta:
+        unique_together = ('user', 'tag')
+
+
+class Tag(models.Model):
+    # Keep in sync with globalData.js
+    TYPE_INTEREST = 'interest'
+    TYPE_SKILL = 'skill'
+    TYPES_TAG = [(t, t) for t in (TYPE_INTEREST, TYPE_SKILL)]
+
     title = models.CharField(max_length=30)
+    type = models.CharField(max_length=25, choices=TYPES_TAG)
     description = models.CharField(max_length=200, null=True)
-    skillLevel = models.SmallIntegerField(choices=SKILL_LEVELS, null=True)
+
+    class Meta:
+        unique_together = ('title', 'type')
 
 
 class Organization(models.Model):
@@ -338,7 +379,8 @@ class JobTemplate(models.Model):
 
 
 class UserJobApplication(models.Model):
-    userProject = models.ForeignKey('UserProject', on_delete=models.PROTECT)
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    userProject = models.ForeignKey('UserProject', on_delete=models.SET_NULL, null=True, related_name='jobApplication')
     employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
     inviteDateTime = models.DateTimeField(null=True)
     submissionDateTime = models.DateTimeField(null=True)
@@ -347,7 +389,7 @@ class UserJobApplication(models.Model):
     withdrawDateTime = models.DateTimeField(null=True)
 
     class Meta:
-        unique_together = ('userProject', 'employerJob')
+        unique_together = ('user', 'employerJob')
 
 
 class UserProjectEvaluationCriterion(AuditFields):
@@ -362,15 +404,32 @@ class UserProjectEvaluationCriterion(AuditFields):
 
 
 class UserProject(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    class Status(Enum):
+        DRAFT = 'draft'
+        HIDDEN = 'hidden'
+        COMPLETE = 'complete'
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userProject')
     customProject = models.ForeignKey(CustomProject, on_delete=models.PROTECT)
     files = models.ManyToManyField(UserFile)
     videos = models.ManyToManyField(UserVideo)
     images = models.ManyToManyField(UserImage)
     projectNotes = models.TextField(null=True)
+    status = models.CharField(max_length=8, default=Status.DRAFT.value)
+    statusChangeDateTime = models.DateTimeField(default=timezone.now)
+    isHidden = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('user', 'customProject')
+
+    @property
+    def evaluationScorePct(self):
+        evaluationCriterion = list(self.userProjectEvaluationCriterion.all())
+        if not evaluationCriterion:
+            return None
+        score = sum((e.value for e in evaluationCriterion))
+        bestScore = len(evaluationCriterion) * 3
+        return int((score / bestScore) * 100)
 
 
 class BlogPost(AuditFields):

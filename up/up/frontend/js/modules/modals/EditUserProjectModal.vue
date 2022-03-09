@@ -2,11 +2,8 @@
     <BaseModal
         :modalId="modalName"
         :modalTitle="(formData.id) ? `Edit project: ${formData.customProject.projectTitle}`: 'Create new project'"
-        :primaryButtonText="(formData.id) ? 'Save changes' : 'Create project'"
         :isAllowDelete="Boolean(formData.id)"
         :isLargeDisplay="true"
-        @saveChange="saveChange($event)"
-        @deleteObject="deleteObject($event)"
     >
         <div class="mb-3 -border-bottom--light">
             <div class="d-flex align-items-center">
@@ -82,11 +79,24 @@
             <h5 class="-text-bold">Project Notes <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.userProjectNotes"/></h5>
             <InputWsiwyg v-model="formData.projectNotes" elId="blogPost" placeholder="Write post..."/>
         </div>
+        <template v-slot:footer>
+            <ButtonDelete class="-pull-left" @click="deleteObject"/>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button
+                @click="saveChange"
+                type="button" class="btn btn-primary"
+                :disabled="formData.isLocked"
+                :title="getProjectLockedNote(formData)"
+            >
+                <span v-if="formData.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
+                {{(formData.id) ? 'Save changes' : 'Create project'}}
+            </button>
+        </template>
     </BaseModal>
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from '../../globalData';
 import AddNewLink from "../components/AddNewLink";
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
@@ -94,6 +104,7 @@ import InfoToolTip from "../components/InfoToolTip";
 import InputMedia from "../inputs/InputMedia";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import RemoveIcon from "../components/RemoveIcon";
+import userProjectUtil from "../../utils/userProject";
 import $ from "jquery";
 
 export default {
@@ -110,10 +121,11 @@ export default {
             newFileCount: 0,
             newVideoCount: 0,
             newImageCount: 0,
-            mediaFields: ['files', 'videos', 'images']
+            mediaFields: new Set(['files', 'videos', 'images'])
         }
     },
     methods: {
+        getProjectLockedNote: userProjectUtil.getProjectLockedNote,
         addNewFile() {
             this.newFileCount++;
             this.formData.files.push({
@@ -173,22 +185,25 @@ export default {
                 for (let i = 0; i < formData[dataKey].length; i++) {
                     const file = formData[dataKey][i];
                     const metaData = formData[metaDataKey][i];
-                    if (uniqueFileKeys.includes(metaData.fileKey)) {
-                        this.addPopover($(`#${idKey}-input-${metaData.id}`),
-                        {severity: severity.WARN, content: 'File name must be unique', isOnce: true}
-                            );
-                        return false;
+                    // Only new files will have a fileKey. We don't need to worry about name collisions from previous files
+                    if (metaData.fileKey) {
+                        if (uniqueFileKeys.includes(metaData.fileKey)) {
+                            this.addPopover($(`#${idKey}-input-${metaData.id}`),
+                            {severity: SEVERITY.WARN, content: 'File name must be unique', isOnce: true}
+                                );
+                            return false;
+                        }
+                        uniqueFileKeys.push(metaData.fileKey);
                     }
-                    uniqueFileKeys.push(metaData.fileKey);
                     if (!file) {
                         this.addPopover($(`#${idKey}-input-${metaData.id}`),
-                        {severity: severity.WARN, content: 'Required field', isOnce: true}
+                        {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                             );
                         return false;
                     }
                     if (!metaData.title) {
                         this.addPopover($(`#${idKey}-title-${metaData.id}`),
-                    {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                         );
                         return false;
                     }

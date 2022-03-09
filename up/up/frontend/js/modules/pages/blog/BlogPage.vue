@@ -1,9 +1,6 @@
 <template>
-    <div class="container-lg blog-post">
-        <div class="row mt-3 mb-3">
-            <h2>Blog</h2>
-        </div>
-        <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
+    <BasePage headerTitle="Blog" class="blog-post">
+        <div class="row mb-3" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-8 pe-md-4 card-custom" :class="(isMobile) ? '' : 'image-wrap'">
                 <template v-if="latestPost">
                     <img v-if="latestPost.picture" :src="latestPost.picture" class="blog-img">
@@ -42,17 +39,18 @@
                 </ul>
             </div>
         </div>
-    </div>
+    </BasePage>
     <EditBlogModal v-if="isSuperUser" newInitDataKey="blogs"/>
 </template>
 
 <script>
 import dataUtil from "../../../utils/data";
 import EditBlogModal from "../../modals/EditBlogModal";
+import BasePage from "../BasePage";
 
 export default {
     name: "BlogPage.vue",
-    components: {EditBlogModal},
+    components: {BasePage, EditBlogModal},
     computed: {
         unpublishedPosts() {
             return this.initData.blogs.filter((b) => !b.isPublished);

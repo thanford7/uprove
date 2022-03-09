@@ -35,12 +35,11 @@
 </template>
 
 <script>
+import {SEVERITY} from '../../globalData';
 import BaseModal from './BaseModal.vue';
-import dataUtil from '../../utils/data';
 import InputEmail from '../inputs/InputEmail';
 import InputSelectize from '../inputs/InputSelectize';
 import FormChecker from '../../utils/form';
-import {severity} from "../../vueMixins";
 
 export default {
     name: "EmployerRequestInfoModal.vue",
@@ -71,7 +70,7 @@ export default {
             if (!FormChecker.isGoodEmail(formData.fromEmail)) {
                 this.addPopover(
                     $('#formEmployerRequestEmail'),
-                    {content: 'Please add valid email', severity: severity.WARN, isOnce: true}
+                    {content: 'Please add valid email', severity: SEVERITY.WARN, isOnce: true}
                 );
                 return false;
             }

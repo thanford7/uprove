@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'django.contrib.sites',
+    'django.contrib.sitemaps',
     'manifest_loader',
     'storages',
     'rest_framework'
@@ -79,6 +81,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'up.urls'
+# SITE_ID = 1
 
 TEMPLATES = [
     {
@@ -218,6 +221,8 @@ if USE_LOCAL:
     logger.info('Using local static storage')
     STATIC_URL = '/static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+    DEFAULT_FILE_STORAGE = 'up.customStorage.OverwriteStorage'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:

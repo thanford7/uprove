@@ -1,16 +1,12 @@
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
-from upapp.apis import blog
-from upapp.apis import employer
-from upapp.apis import job
-from upapp.apis import project
-from upapp.apis import sendEmail
-from upapp.apis import storage
-from upapp.apis import user
+from upapp.apis import blog, employer, job, project, sendEmail, storage, tag, user
+from upapp.sitemaps import sitemaps
 
 apiPath = 'api/v1/'
 
@@ -21,8 +17,10 @@ urlpatterns = [
     path('admin/', views.admin, name='admin'),
     path('account-settings/<int:userId>/', views.accountSettings, name='accountSettings'),
     re_path('^blog/(?P<blogId>[0-9]+)?/?$', views.blog, name='blog'),
+    path('candidate-board/', views.candidateBoard, name='candidateBoard'),
     re_path('^candidateDashboard/(?P<userId>[0-9]+)?/?$', views.candidateDashboard, name='candidateDashboard'),
     path('candidateOnboard/', views.candidateOnboard, name='candidateOnboard'),
+    re_path('^candidate-project/(?P<userProjectId>[0-9]+)?/?$', views.candidateProject, name='candidateProject'),
     path('contact/', views.contact, name='contact'),
     re_path('^employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
     path('errors/', views.errors, name='errors'),
@@ -44,11 +42,18 @@ urlpatterns = [
     re_path(apiPath + 'job-posting/(?P<jobId>[0-9]+)?/?$', employer.JobPostingView.as_view()),
     re_path(apiPath + 'job-project-link/(?P<projectId>[0-9]+)?/?$', employer.JobProjectLinkView.as_view()),
     re_path(apiPath + 'job-template/(?P<templateId>[0-9]+)?/?$', job.JobTemplateView.as_view()),
+    re_path(apiPath + 'organization/$', employer.OrganizationView.as_view()),
     re_path(apiPath + 'project/(?P<projectId>[0-9]+)?/?$', project.ProjectView.as_view()),
     re_path(apiPath + 'project-role/(?P<roleId>[0-9]+)?/?$', project.RoleView.as_view()),
     re_path(apiPath + 'project-skill/(?P<skillId>[0-9]+)?/?$', project.SkillView.as_view()),
+    re_path(apiPath + 'tag/$', tag.TagView.as_view()),
     re_path(apiPath + 'user-job-application/(?P<userJobApplicationId>[0-9]+)?/?$', user.UserJobApplicationView.as_view()),
+    re_path(apiPath + 'user-profile/$', user.UserProfileView.as_view()),
+    re_path(apiPath + 'user-profile/content-item/$', user.UserProfileContentItemView.as_view()),
+    re_path(apiPath + 'user-profile/section/$', user.UserProfileSectionView.as_view()),
+    re_path(apiPath + 'user-profile/section/content-item/$', user.UserProfileSectionContentItemView.as_view()),
     re_path(apiPath + 'user-project/(?P<userProjectId>[0-9]+)?/?$', user.UserProjectView.as_view()),
+    re_path(apiPath + 'user-project/status/?$', user.UserProjectStatusView.as_view()),
     re_path(apiPath + 'user-project-evaluation/$', employer.UserProjectEvaluationView.as_view()),
     re_path(apiPath + 'user-video/$', user.UserVideoView.as_view()),
 
@@ -65,7 +70,10 @@ urlpatterns = [
     path('login/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='login'),
 
     # Storage
-    path(apiPath + 'user-storage/', storage.UserStorageView.as_view())
+    path(apiPath + 'user-storage/', storage.UserStorageView.as_view()),
+
+    # Sitemap
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
 ]
 
 if settings.USE_LOCAL:

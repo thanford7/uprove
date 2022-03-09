@@ -41,11 +41,10 @@
         </div>
         <div class="mb-3">
             <label for="projectSkillLevels" class="form-label">Skill levels</label>
-            <InputSelectize
+            <SkillLevelsSelectize
                 ref="projectSkillLevels"
-                elId="projectSkillLevels"
-                :isParseAsBits="true"
-                placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="setProjectSkillLevelBits"
+                placeholder="Required"
+                @selected="setProjectSkillLevelBits"
             />
         </div>
         <div class="mb-3">
@@ -86,13 +85,12 @@
         <div class="mb-3">
             <label class="form-label">Evaluation criteria</label>
             <div v-for="criterion in formData.evaluationCriteria" class="mb-3 pt-1 -hover-highlight-border position-relative">
-                <InputSelectize
+                <SkillLevelsSelectize
                     class="mt-3"
                     :ref="`projectCriterion-skillBits-${criterion.id}`"
-                    :elId="`projectCriterion-skillBits-${criterion.id}`"
-                    :isParseAsBits="true"
                     :items="getSkillLevelNumbersFromBits(criterion.skillLevelBits)"
-                    placeholder="Skill levels (leave blank for all)" :cfg="projectSkillLevelsCfg" @selected="criterion.skillLevelBits = $event"
+                    placeholder="Skill levels (leave blank for all)"
+                    @selected="criterion.skillLevelBits = $event"
                 />
                 <InputSelectize
                     :ref="`projectCriterion-category-${criterion.id}`"
@@ -130,12 +128,11 @@
                 :id="`projectFile-description-${fileId}`"
                 v-model="file.description"
             />
-            <InputSelectize
+            <SkillLevelsSelectize
                 :ref="`projectFile-skillBits-${fileId}`"
-                :elId="`projectFile-skillBits-${fileId}`"
-                :isParseAsBits="true"
                 :items="getSkillLevelNumbersFromBits(file.skillLevelBits)"
-                placeholder="Required" :cfg="projectSkillLevelsCfg" @selected="file.skillLevelBits = $event"
+                placeholder="Required"
+                @selected="file.skillLevelBits = $event"
             />
             <a v-if="file.oldFile || file.id" href="#" @click="changeFile(fileId)">
                 <i class="fas fa-exchange-alt"></i>
@@ -150,7 +147,7 @@
 </template>
 
 <script>
-import {severity} from "../../vueMixins";
+import {SEVERITY} from '../../globalData';
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
 import EditSkillsTable from "../components/EditSkillsTable";
@@ -161,7 +158,7 @@ import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import RemoveIcon from "../components/RemoveIcon";
 import skillLevelSelectize from "../selectizeCfgs/skillLevels";
-import skillSelectize from "../selectizeCfgs/skill";
+import SkillLevelsSelectize from "../inputs/SkillLevelsSelectize";
 import form from "../../utils/form";
 import $ from "jquery";
 
@@ -169,7 +166,10 @@ export default {
     name: "EditProjectModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, EditSkillsTable, FileDisplay, InputMedia, InputSelectize, InputWsiwyg, RemoveIcon},
+    components: {
+        BaseModal, EditSkillsTable, FileDisplay, InputMedia, InputSelectize,
+        InputWsiwyg, RemoveIcon, SkillLevelsSelectize
+    },
     data() {
         return {
             modalName: 'editProjectModal',
@@ -184,7 +184,7 @@ export default {
                 roleId: null,
                 skillLevelBits: null
             },
-            mediaFields: ['image', 'files'],
+            mediaFields: new Set(['image', 'files']),
             newFileUniqueIdx: 0,
             newCriterionUniqueIdx: 0
         }
@@ -210,9 +210,6 @@ export default {
                 options: dataUtil.sortBy(this.initData.roles.map((r) => ({value: r.id, text: r.name})), 'text')
             };
         },
-        projectSkillLevelsCfg() {
-            return skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL);
-        }
     },
     methods: {
         addCriterionInput() {
@@ -285,8 +282,8 @@ export default {
         },
         processRawData(rawData) {
             // Update employer selectize with data
-            this.$refs['projectEmployer'].elSel.addOption((rawData.employers || []).map((e) => ({value: e.id, text: e.companyName})))
-            this.$refs['projectEmployer'].elSel.refreshOptions(false);
+            this.$refs.projectEmployer.elSel.addOption((rawData.employers || []).map((e) => ({value: e.id, text: e.companyName})))
+            this.$refs.projectEmployer.elSel.refreshOptions(false);
 
             this.requiredFields.roleId = this.$refs.role.targetEl;
             this.requiredFields.skillLevelBits = this.$refs.projectSkillLevels.targetEl;
@@ -311,9 +308,9 @@ export default {
             this.updateSkillLevelInstructions(formData, formData.skillLevelBits);
             return Object.assign(formData, {newFiles});
         },
-        setEmptyFormData() {
-            this.formData = {};
+        getEmptyFormData() {
             this.$refs.skillsTable.clearData();
+            return {};
         },
         setFormFields() {
             const {skillLevelBits, roleId, skills, employer} = this.formData;
@@ -335,7 +332,7 @@ export default {
         isGoodFormFields(formData) {
             if (form.isEmptyWysiwyg(formData.description)) {
                 this.addPopover($('#projectDescription'),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
             }
@@ -345,25 +342,26 @@ export default {
                 const fileMetaData = formData.filesMetaData[i];
                 if (!formData.files[i]) {
                     this.addPopover($(`#projectFile-file-${fileMetaData.formId}`),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (!fileMetaData.title) {
                     this.addPopover($(`#projectFile-title-${fileMetaData.formId}`),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (!fileMetaData.skillLevelBits) {
-                    this.addPopover($(`#projectFile-skillBits-${fileMetaData.formId}`),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                    const targetEl = this.$refs[`projectFile-skillBits-${fileMetaData.formId}`].targetEl;
+                    this.addPopover($(targetEl),
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (fileMetaData.fileKey && uniqueFileKeys.includes(fileMetaData.fileKey)) {
                     this.addPopover($(`#projectFile-file-${fileMetaData.formId}`),
-                {severity: severity.WARN, content: 'File cannot have the same name as another file', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'File cannot have the same name as another file', isOnce: true}
                     );
                     return false;
                 }
@@ -377,13 +375,13 @@ export default {
                 const instruction = formData.instructions[i];
                 if (!instruction.instructions || FormChecker.isEmptyWysiwyg(instruction.instructions)) {
                     this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
-                {severity: severity.WARN, content: 'Required field', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 if (!(skillLevelBits & instruction.skillLevelBit)) {
                     this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
-                {severity: severity.WARN, content: 'Skill level must be included at the project level', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Skill level must be included at the project level', isOnce: true}
                     );
                     return false;
                 }
@@ -392,7 +390,7 @@ export default {
             }
             if (skillLevelBits) {
                 this.addPopover($('#projectSkillLevels'),
-            {severity: severity.WARN, content: 'Skill level must have instructions', isOnce: true}
+            {severity: SEVERITY.WARN, content: 'Skill level must have instructions', isOnce: true}
                 );
                 return false;
             }
@@ -401,7 +399,7 @@ export default {
                  const criterion = formData.evaluationCriteria[i];
                  if (!criterion.criterion) {
                      this.addPopover($(`#projectCriterion-criterion-${criterion.id}`),
-                {severity: severity.WARN, content: 'Criterion is required', isOnce: true}
+                {severity: SEVERITY.WARN, content: 'Criterion is required', isOnce: true}
                     );
                     return false;
                  }

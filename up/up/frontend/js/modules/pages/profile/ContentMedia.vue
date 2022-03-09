@@ -1,27 +1,44 @@
 <template>
     <div v-if="contentItem">
-        <video v-if="contentItem.mediaType === 'video'" controls :src="contentItem.mediaGuid" @resize="$emit('contentUpdated')"></video>
-        <img v-if="contentItem.mediaType === 'image'" :src="contentItem.mediaGuid" alt="Banner media" class="card-img-top">
-        <div v-if="hasDescription || (contentItem.files && contentItem.files.length)" class="card-body pt-1 pb-1">
-            <div v-if="hasDescription" v-html="contentItem.description"></div>
-            <div v-for="file in contentItem.files" :key="file.guid">
-                <i class="fas fa-external-link-alt"></i> <a :href="file.guid" target="_blank">{{file.title}}</a>
+        <template v-for="(section, idx) in contentItem.sections">
+            <template v-if="idx === 0">
+                <template v-if="section.item">
+                    <video v-if="section.item.type === contentTypes.VIDEO" controls :src="section.item.video" @resize="$emit('contentUpdated')"></video>
+                    <img v-if="section.item.type === contentTypes.IMAGE" :src="section.item.image" alt="Banner media" class="card-img-top">
+                </template>
+            </template>
+            <div v-else class="card-body pt-1 pb-1">
+                <template v-if="section.item">
+                    <video v-if="section.item.type === contentTypes.VIDEO" controls :src="section.item.video" @resize="$emit('contentUpdated')"></video>
+                    <img v-else-if="section.item.type === contentTypes.IMAGE" :src="section.item.image">
+                    <FileDisplay
+                        v-else-if="section.item.type === contentTypes.FILE"
+                        :file="section.item"
+                    />
+                </template>
+                <div v-else v-html="section.text"></div>
             </div>
-        </div>
+        </template>
     </div>
 </template>
 <script>
+import {CONTENT_TYPES} from '../../../globalData';
+import FileDisplay from "../../components/FileDisplay";
+import form from "../../../utils/form";
 
 export default {
-    props: {
-        contentItem: {
-            type: Object
+    data() {
+        return {
+            contentTypes: CONTENT_TYPES
         }
     },
-    computed: {
-        // Tiptap adds a p element as the template. If the description is just that, there is no content.
-        hasDescription() {
-            return Boolean(this.contentItem.description) && this.contentItem.description !== '<p></p>';
+    components: {FileDisplay},
+    props: {
+        contentItem: Object
+    },
+    methods: {
+        hasText(text) {
+            return !form.isEmptyWysiwyg(text);
         }
     }
 }

@@ -1,53 +1,51 @@
 <template>
-    <div class="container-lg">
-        <div class="row mt-3 mb-3">
-            <h1>Projects</h1>
-        </div>
-        <div class="row filter mb-3">
+    <BasePage headerTitle="Projects">
+        <template v-slot:filter>
             <div class="col-md-3">
-                <InputSelectize
+                <RolesSelectize
                     ref="role"
-                    elId="role"
-                    :isParseAsInt="true"
-                    placeholder="Roles: All" :cfg="rolesCfg" @selected="setRoles($event)"
+                    placeholder="Roles: All"
+                    :roles="initData.roles"
+                    @selected="setFilter($event, 'roles', 'role')"
                 />
             </div>
             <div class="col-md-3">
-                <InputSelectize
+                <SkillsSelectize
                     ref="skills"
-                    elId="skills"
-                    :isParseAsInt="true"
-                    placeholder="Skills: All" :cfg="skillsCfg" @selected="setSkills($event)"
+                    :skills="initData.skills"
+                    @selected="setSkills($event)"
                 />
             </div>
             <div class="col-md-3">
-                <InputSelectize
+                <SkillLevelsSelectize
                     ref="projectSkillLevels"
-                    elId="projectSkillLevels"
-                    :isParseAsInt="true"
-                    placeholder="Experience Levels: All" :cfg="projectSkillLevelsCfg" @selected="setSkillLevels($event)"
+                    placeholder="Experience Levels: All"
+                    @selected="setFilter($event, 'skillLevelBits', 'level')"
                 />
             </div>
-        </div>
+        </template>
         <div class="row justify-content-center">
             <template v-for="project in filteredProjects">
                 <ProjectCard :cardItem="project"></ProjectCard>
             </template>
             <p v-if="!filteredProjects.length" class="float-end" style="width: auto">No projects to display</p>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
 import dataUtil from "../../../utils/data";
-import InputSelectize from "../../inputs/InputSelectize";
+import BasePage from "../BasePage";
 import ProjectCard from "../../components/ProjectCard";
+import RolesSelectize from "../../inputs/RolesSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
-import skillSelectize from "../../selectizeCfgs/skill";
+import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";
+import SkillsSelectize from "../../inputs/SkillsSelectize";
+import PageHeader from "../../components/PageHeader";
 
 export default {
     name: "ProjectsPage.vue",
-    components: {InputSelectize, ProjectCard},
+    components: {BasePage, PageHeader, ProjectCard, RolesSelectize, SkillLevelsSelectize, SkillsSelectize},
     data() {
         return {
             filter: {}
@@ -64,8 +62,7 @@ export default {
                 ) {
                     return filteredProjects;
                 }
-                if (this.filter.skillLevels && this.filter.skillLevels.length
-                    && !this.filter.skillLevels.filter((skillLevel) => skillLevel & project.skillLevelBits).length
+                if (this.filter.skillLevelBits && !(this.filter.skillLevelBits & project.skillLevelBits)
                 ) {
                     return filteredProjects;
                 }
@@ -73,45 +70,18 @@ export default {
                 return filteredProjects;
             }, [])
         },
-        rolesCfg() {
-            return {
-                plugins: ['remove_button'],
-                maxItems: null,
-                options: dataUtil.sortBy(this.initData.roles.map((r) => ({value: r.id, text: r.name})), 'text')
-            };
-        },
-        skillsCfg() {
-            return skillSelectize.getSkillCfg(this.initData.skills);
-        },
-        projectSkillLevelsCfg() {
-            return skillLevelSelectize.getSkillLevelCfg(this.globalData.SKILL_LEVEL);
-        }
     },
     methods: {
-        setRoles(roles) {
-            this.filter.roles = roles;
-            dataUtil.setQueryParams([{key: 'role', val: roles}]);
-        },
         setSkills(skillIds) {
-            const skills = this.initData.skills.reduce((skills, s) => {
-                if (skillIds.includes(s.id)) {
-                    skills.push(s.name);
-                }
-                return skills;
-            }, []);
-            this.filter.skills = skills;
-            dataUtil.setQueryParams([{key: 'skill', val: skills}]);
+            this.filter.skills = this.$refs.skills.getSkills(skillIds);
+            dataUtil.setQueryParams([{key: 'skill', val: skillIds}]);
         },
-        setSkillLevels(levels) {
-            this.filter.skillLevels = levels;
-            dataUtil.setQueryParams([{key: 'level', val: levels}]);
-        }
     },
     mounted() {
         skillLevelSelectize.setSkillLevels(this.initData.projects);
         const queryParams = dataUtil.getQueryParams();
         this.$refs.role.elSel.setValue(queryParams.role);
-        this.$refs.skills.elSel.setValue(queryParams.skill);
+        this.$refs.skills.setValue(queryParams.skill);
         this.$refs.projectSkillLevels.elSel.setValue(queryParams.level);
     }
 }

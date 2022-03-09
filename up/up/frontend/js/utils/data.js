@@ -15,6 +15,7 @@ const APPLICATION_STATUS = {
 
 class DataUtil {
     dateFormat = 'MM/DD/YYYY';
+    shorthandDateFormat = 'MMM YYYY';
 
     parseIdString(val, separator = ',') {
         if (typeof val !== 'string') {
@@ -98,7 +99,9 @@ class DataUtil {
                 searchParams.delete(key);  // Remove existing
                 const vals = (Array.isArray(val)) ? val : [val];
                 vals.forEach((v) => {
-                    searchParams.append(key, v);
+                    if(!this.isNil(val)) {
+                        searchParams.append(key, v);
+                    }
                 });  // Add new values
             });
             const targetPath = path || window.location.pathname;
@@ -155,21 +158,58 @@ class DataUtil {
     }
 
     getApplicationStatus(jobApplication) {
-        if (jobApplication.approveDateTime) {
+        if (jobApplication.withdrawDateTime) {
+            return `${APPLICATION_STATUS.WITHDRAWN} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
+        } else if (jobApplication.approveDateTime) {
             return `${APPLICATION_STATUS.APPROVED} ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
         } else if (jobApplication.declineDateTime) {
             return `${APPLICATION_STATUS.DECLINED} ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
         } else if (jobApplication.submissionDateTime) {
             return `${APPLICATION_STATUS.SUBMITTED} ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
-        } else if (jobApplication.withdrawDateTime) {
-            return `${APPLICATION_STATUS.WITHDRAWN} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
         } else {
             return APPLICATION_STATUS.NOT_SUBMITTED;
         }
     }
 
+    /**
+     * This ensures Vue picks up changes (opposed to plain old assignment)
+     * @param object: The object to be updated
+     * @param newObjectData: The new object data. Any keys in the object that are not in newObjectData will be deleted
+     */
+    updateObjectInPlace(object, newObjectData) {
+        Object.assign(object, newObjectData);
+
+        // Make sure there aren't any keys that used to be present, but should be removed
+        if (dataUtil.isObject(newObjectData) && dataUtil.isObject(object)) {
+            const newKeys = Object.keys(newObjectData);
+            Object.keys(object).forEach((key) => {
+                if(!newKeys.includes(key)) {
+                    delete object[key];
+                }
+            });
+        }
+    }
+
     capitalize(string) {
-        return (string) ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : '';
+        return (string) ? string.charAt(0).toUpperCase() + string.slice(1) : '';
+    }
+
+    /**
+     * Delete an item from an object using a relative path string
+     * @param obj {Object}
+     * @param path {String}: Use dot notation for nested variables
+     */
+    deleteFromPath(obj, path) {
+        path = path.split('.');
+
+        for (let i = 0; i < path.length - 1; i++) {
+            obj = obj[path[i]];
+            if (typeof obj === 'undefined') {
+                return;
+            }
+        }
+
+        delete obj[path.pop()];
     }
 
     deepCopy(val) {
@@ -186,6 +226,14 @@ class DataUtil {
             }
         }
         return currentTarget;
+    }
+
+    getFromArrayOrNone(array, idx) {
+        if (!array) {
+            return null;
+        }
+        const val = array.slice(idx, idx + 1);
+        return (val.length) ? val[0] : null;
     }
 
     groupByKey(targetArray, key) {
@@ -241,10 +289,16 @@ class DataUtil {
         }
     }
 
+    /**
+     * Returns a copied object with omitted properties removed. Does not mutate original object.
+     * @param targetObject {Object}
+     * @param omitList {Array}: Items in list can have relative paths using dot notation
+     * @returns {*}
+     */
     omit(targetObject, omitList) {
         const objCopy = this.deepCopy(targetObject);
         omitList.forEach((omission) => {
-            delete objCopy[omission];
+            this.deleteFromPath(objCopy, omission);
         })
         return objCopy;
     }

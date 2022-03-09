@@ -1,6 +1,7 @@
-from datetime import date, datetime
+from datetime import date
 
 from django.db.transaction import atomic
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -32,8 +33,8 @@ class BlogPostView(APIView):
             picture=data.get('picture'),
             post=data['post'],
             publishDate=dateUtil.deserializeDateTime(data.get('publishDate'), dateUtil.FormatType.DATE, allowNone=True),
-            modifiedDateTime=datetime.utcnow(),
-            createdDateTime=datetime.utcnow(),
+            modifiedDateTime=timezone.now(),
+            createdDateTime=timezone.now(),
         )
         blogPost.save()
         if blogTagData := data.get('blogTags'):

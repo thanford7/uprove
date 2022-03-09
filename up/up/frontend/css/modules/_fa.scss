@@ -1,6 +1,6 @@
 @use 'colors';
 
-.fa {
+.fa, .fas {
     color: colors.$color-darkgrey;
 
     &:hover {
@@ -41,5 +41,15 @@ button.btn {
         padding: 0 4px;
         left: 90%;
         top: 0
+    }
+}
+
+.fa-stack {
+    cursor: default;
+    &.fa-stack-sm {
+        font-size: 0.7em;
+    }
+    i {
+        vertical-align: middle;
     }
 }

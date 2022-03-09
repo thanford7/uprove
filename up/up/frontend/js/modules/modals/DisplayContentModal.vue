@@ -2,81 +2,115 @@
     <BaseModal
         :modalId="modalName"
         :isReadOnly="true"
-        :modalTitle="contentItem.post_title"
+        :modalTitle="cardTitle"
         :isFooterHidden="true"
         :isScrollable="true"
+        :isLargeDisplay="true"
     >
-        <template v-if="['video', 'project'].includes(contentItem.post_type)">
-            <div class="row mb-3">
-                <video v-if="contentItem.mediaType === 'video'" controls :src="contentItem.mediaGuid"></video>
-                <img v-if="contentItem.mediaType === 'image'" :src="contentItem.mediaGuid" alt="Banner media">
+        <template v-if="contentItem.type === contentTypes.CUSTOM">
+            <div class="mb-3" v-for="section in contentItem.sections">
+                <template v-if="section.item">
+                    <video v-if="section.item.type === contentTypes.VIDEO" controls :src="section.item.video" @resize="$emit('contentUpdated')"></video>
+                    <img v-else-if="section.item.type === contentTypes.IMAGE" :src="section.item.image">
+                    <FileDisplay
+                        v-else-if="section.item.type === contentTypes.FILE"
+                        :file="section.item"
+                    />
+                </template>
+                <div v-else v-html="section.text"></div>
             </div>
-            <div class="row mb-3">
-                <div v-html="contentItem.description"></div>
-                <div v-for="file in contentItem.files" :key="file.guid">
-                    <i class="fas fa-external-link-alt"></i> <a :href="file.guid" target="_blank">{{file.title}}</a>
+        </template>
+        <template v-if="contentItem.type === contentTypes.EDUCATION">
+            <div class="row">
+                <div class="col-2">
+                    <img :src="contentItem.school.logo">
+                </div>
+                <div class="col-10">
+                    {{contentItem.degree}}<br>
+                    {{contentItem.degreeSubject}}<br>
+                    <template v-if="contentItem.startDate">
+                        {{formatDate(contentItem.startDate)}} to {{formatDate(contentItem.endDate) || 'current'}}
+                    </template>
+                    <div v-if="contentItem.activities">
+                        Activities:<br>
+                        <div v-html="contentItem.activities"></div>
+                    </div>
                 </div>
             </div>
         </template>
-        <template v-if="contentItem.post_type === 'education'">
-            <div v-for="educationItem in contentItem.contentItems" :key="educationItem.ID">
-                <div class="row mb-3">
-                    <div class="col-2"><img :src="educationItem.guid" alt="School logo"></div>
-                    <div class="col-10"><b>{{educationItem.school_name}}</b></div>
-                    <div class="w-100"></div>
-                    <div class="-text-medium">
-                        {{educationItem.degree_type}}<br>
-                        {{educationItem.degree_subject}}<br>
-                        {{formatDate(educationItem.start_date)}} to {{formatDate(educationItem.end_date) || 'current'}}
-                    </div>
-
-                    <div v-if="educationItem.activities" class="-sub-text">
-                        Activities:<br>
-                        {{educationItem.activities}}
-                    </div>
+        <template v-if="contentItem.type === contentTypes.CERTIFICATION">
+            <div class="row">
+                <div class="col-2">
+                    <img :src="contentItem.organization.logo">
+                </div>
+                <div class="col-10">
+                    <div>{{contentItem.title}}</div>
+                    <div>Issued: {{formatDate(contentItem.issueDate)}}</div>
+                    <div v-if="contentItem.hasExpiration">Expires: {{formatDate(contentItem.expirationDate)}}</div>
                 </div>
             </div>
+        </template>
+        <template v-if="contentItem.type === contentTypes.EXPERIENCE">
+            <div class="row">
+                <div class="col-2">
+                    <img :src="contentItem.organization.logo">
+                </div>
+                <div class="col-10">
+                    {{contentItem.positionTitle}}<br>
+                    {{contentItem.employmentType}}<br>
+                    {{formatDate(contentItem.startDate)}} to {{formatDate(contentItem.endDate) || 'current'}}
+                    <div v-html="contentItem.description"></div>
+                </div>
+            </div>
+        </template>
+        <template v-if="contentItem.type === contentTypes.PROJECT">
+                <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
+                <BadgesSkills :skills="contentItem.customProject.skills"/>
+                <ProjectDetailAccordion :userProject="contentItem"/>
+                <template v-for="video in contentItem.videos">
+                    <video controls :src="video.video"></video>
+                </template>
+                <template v-for="image in contentItem.images">
+                    <img :src="image.image">
+                </template>
+                <div v-for="file in contentItem.files">
+                    <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+                </div>
         </template>
     </BaseModal>
 </template>
 <script>
-import Modal from 'bootstrap/js/dist/modal';
-import {mapGetters, mapState} from 'vuex';
+import {CONTENT_TYPES} from '../../globalData';
+import AccordionItem from "../components/AccordionItem";
+import BadgesSkillLevels from "../components/BadgesSkillLevels";
+import BadgesSkills from "../components/BadgesSkills";
 import BaseModal from './BaseModal.vue';
 import dataUtil from '../../utils/data';
+import contentUtil from "../../utils/content";
+import FileDisplay from "../components/FileDisplay";
+import ProjectDetailAccordion from "../components/ProjectDetailAccordion";
 
 export default {
     extends: BaseModal,
-    components: {BaseModal},
+    components: {BaseModal, AccordionItem, BadgesSkillLevels, BadgesSkills, FileDisplay, ProjectDetailAccordion},
+    inheritAttrs: false,
     data() {
         return {
             modalName: 'displayContentModal',
-            contentItem: {}
+            contentTypes: CONTENT_TYPES,
         }
     },
-    inheritAttrs: false,
     computed: {
-        ...mapGetters({
-            getContentItem: 'getContentItem'
-        })
-    },
-    props: {
-        id: {
-            type: Number
+        cardTitle() {
+            return contentUtil.getContentTitle(this.contentItem);
         },
-        contentSection: {
-            type: String
+        contentItem() {
+            return this.formData
         }
     },
     methods: {
-        hookEvents() {
-            this.eventBus.$on('open:displayContentModal', (contentId) => {
-                this.contentItem = this.getContentItem(contentId);
-                this.modal$.show();
-            });
-        },
         formatDate(dateVal) {
-            return dataUtil.formatDate(dateVal, {dateFormat: this.dateFormat, isReturnNull: true});
+            return dataUtil.formatDate(dateVal, {dateFormat: dataUtil.shorthandDateFormat, isReturnNull: true});
         }
     },
 }

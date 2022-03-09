@@ -9,10 +9,13 @@ class Layout {
     }
 
     scrollTo(el$, isTop=false) {
-        let container = 'body';
+        let container = 'html, body';
         const modal = el$.parents('.modal');
         if (modal.length) {
-            container = `#${$(modal[0]).attr('id')} .modal-body`;
+            container = `#${$(modal[0]).attr('id')}`;
+            if (modal.find('.modal-dialog').hasClass('modal-dialog-scrollable')) {
+                container = `${container} .modal-body`;
+            }
         }
         $(container).animate({
             scrollTop: (isTop) ? 0 : el$.offset().top

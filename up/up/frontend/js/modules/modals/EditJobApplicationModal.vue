@@ -31,7 +31,7 @@
 <script>
 import BaseModal from "./BaseModal";
 import InputSelectize from "../inputs/InputSelectize";
-import {dateSerializer} from "../../utils/dateUtil";
+import dateUtil from "../../utils/dateUtil";
 import dayjs from "dayjs/esm";
 import dataUtil from "../../utils/data";
 
@@ -58,6 +58,9 @@ export default {
                 return false;
             }
             const userProject = this.initData.userProjects.find((up) => up.id === this.formData.userProjectId);
+            if (!userProject) {
+                return false;
+            }
             return this.allowedProjectIds.includes(userProject.customProject.id);
         },
         isShowWithdraw() {
@@ -69,7 +72,10 @@ export default {
     },
     methods: {
         processFormData() {
-            return dataUtil.pick(this.formData, ['id', 'userProjectId', 'submissionDateTime', 'withdrawDateTime']);
+            return Object.assign(
+                {userId: this.initData.user.id},
+                dataUtil.pick(this.formData, ['id', 'userProjectId', 'submissionDateTime', 'withdrawDateTime'])
+            );
         },
         processRawData(applicationData) {
             const applicationProjectSel = this.$refs.applicationProject.elSel;
@@ -97,13 +103,13 @@ export default {
             return applicationData;
         },
         submitApp (e) {
-            this.formData.submissionDateTime = dateSerializer.serializeDateTime(dayjs());
+            this.formData.submissionDateTime = dateUtil.serializeDateTime(dayjs());
             this.formData.withdrawDateTime = null;
             this.saveChange(e);
         },
         withdrawApp(e) {
             this.formData.submissionDateTime = null;
-            this.formData.withdrawDateTime = dateSerializer.serializeDateTime(dayjs());
+            this.formData.withdrawDateTime = dateUtil.serializeDateTime(dayjs());
             this.saveChange(e);
         }
     },

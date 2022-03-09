@@ -1,20 +1,14 @@
-import {Popover} from "bootstrap";
 import {TOOLTIPS} from "./definitions";
 import {createStore, mapState} from "vuex";
+import CustomPopover, {createPopoverChain} from "./utils/popoverCustom";
 import dataUtil from './utils/data'
-import globalData, {USER_BITS} from './globalData';
+import globalData, {SEVERITY, USER_BITS} from './globalData';
 import layout from "./utils/layout";
 import mitt from "mitt";  // https://github.com/developit/mitt
 import Modal from "bootstrap/js/dist/modal";
 import pluralize from 'pluralize';
 
 
-const severity = {
-    SUCCESS: 'success',
-    WARN: 'warn',
-    DANGER: 'danger',
-    INFO: 'info'
-};
 let newElUid = 0;
 const eventBus = mitt();
 
@@ -43,12 +37,14 @@ const store = createStore({
                 this.commit('clearSuccessAlerts');
             }, 5000);
 
-            // If modal is open, scroll to the top, otherwise scroll to the top of the page
-            const modal$ = $('.modal.show .modal-content');
-            if (modal$.length) {
-                layout.scrollTo(modal$, true);
-            } else {
-                layout.scrollTo($('#vue-container'));
+            if ([SEVERITY.DANGER, SEVERITY.WARN].includes(alert.type)) {
+                // If modal is open, scroll to the top, otherwise scroll to the top of the page
+                const modal$ = $('.modal.show .modal-content');
+                if (modal$.length) {
+                    layout.scrollTo(modal$, true);
+                } else {
+                    layout.scrollTo($('#vue-container'));
+                }
             }
         },
         clearAlert(state, alertId) {
@@ -58,7 +54,7 @@ const store = createStore({
             state.alerts = [];
         },
         clearSuccessAlerts(state) {
-            state.alerts = state.alerts.filter((alert) => alert.alertType !== severity.SUCCESS);
+            state.alerts = state.alerts.filter((alert) => alert.alertType !== SEVERITY.SUCCESS);
         }
     }
 });
@@ -73,14 +69,18 @@ const ajaxRequestMixin = {
         return {
             apiUrl: '/api/v1/',
             crudUrl: null,
-            initDataKey: null,  // The key to access the data structure to be updated after CRUD operation
+            initDataKey: null,  // The key to access the data structure to be updated after CRUD operation. To update all initData, leave blank
             isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
+            updateDeleteMethod: null, // Set to PUT or POST if not sending a delete ID response from ajax request
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
+            mediaFields: new Set(),  // Fields that must be processed as files or media. Can access nested fields using dot notation
+            childForms: [],  // If any modals are used with "contentOnly" they must be added here so they can be cleared correctly
             isAjaxModal: false,
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
             pageRedirect: null,  // Page to redirect to after succesful ajax request
-            successAlertType: severity.SUCCESS
+            successAlertType: SEVERITY.SUCCESS,
+            confirmDelete: true  // If false a window confirmation will not be required to delete
         }
     },
     methods: {
@@ -93,7 +93,11 @@ const ajaxRequestMixin = {
                 });
                 if (this.isUpdateData) {
                     if (method === 'DELETE') {
-                        this.updateInitDataDelete(data)
+                        if (this.updateDeleteMethod) {
+                            this.updateInitData(data, this.updateDeleteMethod);
+                        } else {
+                            this.updateInitDataDelete(data);
+                        }
                     } else {
                         this.updateInitData(data, method === 'PUT');
                     }
@@ -124,7 +128,7 @@ const ajaxRequestMixin = {
                 const updateObject = this.getUpdateObject(dataKey);  // Object in memory to be updated
                 // Response data contains more than one data object to be mapped to in memory data
                 if (dataUtil.isObject(newData) && dataKey in newData) {
-                    this.initData[dataKey] = newData[dataKey];
+                    dataUtil.updateObjectInPlace(this.initData[dataKey], newData[dataKey]);
                 } else if (Array.isArray(updateObject)) {
                     if (isPut) {
                         const item = updateObject.find((item) => item.id === newData.id);
@@ -133,7 +137,7 @@ const ajaxRequestMixin = {
                         updateObject.push(newData);
                     }
                 } else {
-                    this.initData = newData;
+                    dataUtil.updateObjectInPlace(this.initData, newData);
                 }
             });
             this.afterUpdateInitData();
@@ -154,11 +158,16 @@ const ajaxRequestMixin = {
 
             const updateList = this.getUpdateObject(this.initDataKey[0]);
             dataUtil.removeItemFromList(updateList, (item) => item.id === deleteId);
+            this.afterDeleteInitData();
+
+        },
+        afterDeleteInitData() {
+            // subclass
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
             store.commit('addAlert', {
                 message: this.getFailureMessage(errorThrown, xhr),
-                alertType: severity.DANGER
+                alertType: SEVERITY.DANGER
             });
             eventBus.emit('ajaxFailure', {xhr, textStatus, errorThrown});
         },
@@ -186,14 +195,19 @@ const ajaxRequestMixin = {
         },
         hasRequiredFormFields(formData) {
             return Object.entries(this.requiredFields).reduce((hasRequired, [field, domSel]) => {
-                if (!formData[field]) {
+                if (!dataUtil.get(formData, field)) {
                     this.addPopover($(domSel),
-                        {severity: severity.WARN, content: 'Required field', isOnce: true}
+                        {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;
                 }
                 return hasRequired & true
             }, true);
+        },
+        getAndCheckData() {
+            const formData = this.processFormData();
+            const isGoodData = this.isGoodFormData(formData);
+            return {formData, isGoodData};
         },
         readAndSubmitForm() {
             const formData = this.processFormData();
@@ -201,33 +215,49 @@ const ajaxRequestMixin = {
                 return false;
             }
             return this.submitAjaxRequest(
-                this.getAjaxFormData(formData, this.mediaFields),
+                this.getAjaxFormData(formData),
                 {method: (formData.id) ? 'PUT' : 'POST'}
             )
         },
-        getAjaxFormData(data, mediaFields) {
+        /**
+         * Transforms an object into form data. Splits media data (files, images, videos) into separate fields so they
+         * can be processed differently
+         * @param data {Object}
+         * @returns {FormData}
+         */
+        getAjaxFormData(data) {
             const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(dataUtil.omit(data, mediaFields || [])));
-            (mediaFields || []).forEach((field) => {
-                if (Array.isArray(data[field])) {
-                    data[field].forEach((file) => {
-                        ajaxData.append(field, file);
+            ajaxData.append('data', JSON.stringify(dataUtil.omit(data, this.mediaFields)));
+            this.mediaFields.forEach((field) => {
+                const val = dataUtil.get(data, field);
+                if (!val) {
+                    return;
+                }
+                const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
+                    if (idx !== 0) {
+                        fieldPart = dataUtil.capitalize(fieldPart);
+                    }
+                    return finalField + fieldPart;
+                }, ''); // If field uses dot notation, we need to use the last subfield
+                if (Array.isArray(val)) {
+                    val.forEach((file) => {
+                        ajaxData.append(finalField, file);
                     })
                 } else {
-                    ajaxData.append(field, data[field]);
+                    ajaxData.append(finalField, val);
                 }
             });
             return ajaxData;
         },
         saveChange(e, allowDefault = false) {
-            if (!allowDefault) {
+            if (e && !allowDefault) {
                 e.preventDefault();
             }
-            this.isAjaxModal = Boolean($(e.currentTarget).parents('.modal').length);
+            this.isAjaxModal = (e) ? Boolean($(e.currentTarget).parents('.modal').length) : false;
             return this.readAndSubmitForm();
         },
         deleteObject(e) {
-            this.isAjaxModal = Boolean($(e.currentTarget).parents('.modal').length);
+            this.isAjaxModal = (e) ? Boolean($(e.currentTarget).parents('.modal').length) : false;
             const deleteData = this.getDeleteObjectData();
             if (!deleteData) {
                 eventBus.emit('failure:delete', 'No selection');
@@ -255,7 +285,7 @@ const ajaxRequestMixin = {
         submitAjaxRequest(requestData, requestCfg = {}) {
             const overrides = Object.assign(requestCfg, this.getAjaxCfgOverride());
             const method = overrides.method || 'PUT';
-            if (method === 'DELETE' && this.getDeleteConfirmationMessage()) {
+            if (method === 'DELETE' && this.confirmDelete && this.getDeleteConfirmationMessage()) {
                 if (!window.confirm(this.getDeleteConfirmationMessage())) {
                     return;
                 }
@@ -289,6 +319,12 @@ const globalVarsMixin = {
             newElUid++;
             return newElUid.toString();
         },
+        isSelf(userId) {
+            return this.globalData.uproveUser.id === userId;
+        },
+        log(val) {
+            console.log(val);  // Easy way to debug Vue html code
+        },
         getSkillLevelNumbersFromBits(skillLevelBits) {
             return Object.keys(this.globalData.SKILL_LEVEL).filter((level) => parseInt(level) & skillLevelBits);
         },
@@ -300,8 +336,12 @@ const globalVarsMixin = {
                 return levels;
             }, []);
         },
-        redirectUrl(url) {
-            window.location.replace(url);
+        redirectUrl(url, isNewTab=false) {
+            if (isNewTab) {
+                window.open(url, '_blank');
+            } else {
+                window.location.replace(url);
+            }
         },
         pluralize(word, count) {
             return pluralize(word, count, true);
@@ -351,37 +391,40 @@ const modalsMixin = {
         }
     },
     methods: {
-        clearSelectizeElements() {
-            Object.values(this.$refs).forEach((ref) => {
-                if (ref && ref.elSel) {
-                    ref.elSel.clear(true);
-                }
-            });
+        initForm() {
+            this.formData = this.getEmptyFormData();
+            eventBus.emit('formClear');  // Clear all non-reactive elements
         },
         processRawData(rawData) {
             // subclass
             return rawData;
         },
-        setEmptyFormData() {
+        getEmptyFormData() {
             // subclass
-            this.formData = {};
+            return {};
         },
         setFormFields() {
             // subclass - use for form fields that don't have a v-model property (mainly selectize fields)
+        },
+        setFormData(rawData) {
+            if (rawData) {
+                const rawDataCopy = (rawData) ? dataUtil.deepCopy(rawData) : rawData;  // Copy data so we don't mutate original
+                this.formData = this.processRawData(rawDataCopy);
+                this.setFormFields();
+            }
         }
     },
     mounted() {
         eventBus.on(`open:${this.modalName}`, (rawData) => {
             this.modal$ = Modal.getOrCreateInstance($(`#${this.modalName}`), {backdrop: 'static'});
-            const rawDataCopy = (rawData) ? dataUtil.deepCopy(rawData) : rawData;  // Copy data so we don't mutate original
             store.commit('clearAllAlerts');
-            this.setEmptyFormData();
-            this.clearSelectizeElements();
+            this.initForm();
             this.modal$.show();
-            if (rawDataCopy) {
-                this.formData = this.processRawData(rawDataCopy);
-                this.setFormFields();
-            }
+            this.setFormData(rawData);
+        });
+        eventBus.on(`open:${this.modalName}:content`, (rawData) => {
+            this.initForm();
+            this.setFormData(rawData);
         });
     }
 }
@@ -389,31 +432,25 @@ const modalsMixin = {
 
 const popoverMixin = {
     methods: {
-        addPopover(el$, {content, severity, isOnce = false}) {
-            let container = 'body';
-            const modal = el$.parents('.modal');
-            if (modal.length) {
-                container = `#${$(modal[0]).attr('id')}`;
-            }
-            const template = `<div class="popover ${severity}" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>`
-            const popover = new Popover(el$, {
-                container,
-                content,
-                template,
-                placement: 'auto'
-            });
-            layout.scrollTo(el$);
-            el$.focus();
-            popover.show();
-            if (isOnce) {
-                setTimeout(() => {
-                    $(container).one('click', () => {
-                        popover.dispose();
-                    });
-                }, 1);
-            }
+        addPopover(el$, popoverCfg = {}) {
+            return new CustomPopover(el$, popoverCfg);
+        },
+        createPopoverChain
+    }
+}
+
+const filterMixin = {
+    data() {
+        return {
+            filter: {}
+        }
+    },
+    methods: {
+        setFilter(val, filterName, queryParamName=null) {
+            this.filter[filterName] = val;
+            dataUtil.setQueryParams([{key: queryParamName || filterName, val}]);
         }
     }
 }
 
-export {ajaxRequestMixin, globalVarsMixin, modalsMixin, popoverMixin, store, severity};
+export {ajaxRequestMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, store};

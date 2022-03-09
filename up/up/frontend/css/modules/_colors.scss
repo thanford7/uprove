@@ -198,3 +198,215 @@ $color-green: rgb(115, 201, 170);
         }
     }
 }
+
+.-color-hover- {
+    &yellow:hover {
+        background-color: $color-yellow !important;
+    }
+    &yellow {
+        &__light:hover {
+            background-color: adjust-color($color-yellow, $alpha: -0.7) !important;
+        }
+
+        &-text:hover {
+            color: $color-yellow !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-yellow !important;
+            }
+        }
+    }
+    &orange:hover {
+        background-color: $color-orange !important;
+    }
+    &orange {
+        &__light:hover {
+            background-color: adjust-color($color-orange, $alpha: -0.7) !important;
+        }
+
+        &-text:hover {
+            color: $color-orange !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-orange !important;
+            }
+        }
+    }
+    &blue:hover {
+        background-color: $color-blue !important;
+    }
+    &blue {
+        &__light:hover {
+            background-color: adjust-color($color-blue, $alpha: -0.7) !important;
+        }
+
+        &-text:hover {
+            color: $color-blue !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-blue !important;
+            }
+        }
+    }
+    &darkblue:hover {
+        background-color: $color-darkblue !important;
+    }
+    &darkblue {
+        &__light:hover {
+            background-color: adjust-color($color-darkblue, $alpha: -0.7) !important;
+        }
+
+        &-text:hover {
+            color: $color-darkblue !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-darkblue !important;
+            }
+        }
+    }
+    &teal:hover {
+        background-color: $color-teal !important;
+    }
+    &teal {
+        &__light:hover {
+            background-color: adjust-color($color-teal, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-teal !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-teal !important;
+            }
+        }
+    }
+    &lightblue:hover {
+        background-color: $color-lightblue !important;
+    }
+    &lightblue {
+        &__light:hover {
+            background-color: adjust-color($color-lightblue, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-lightblue !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-lightblue !important;
+            }
+        }
+    }
+    &lightgrey:hover {
+        background-color: $color-lightgrey !important;
+    }
+    &lightgrey {
+        &__light:hover {
+            background-color: adjust-color($color-lightgrey, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-lightgrey !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-lightgrey !important;
+            }
+        }
+    }
+    &moderategrey:hover {
+        background-color: $color-moderategrey !important;
+    }
+    &moderategrey {
+        &__light:hover {
+            background-color: adjust-color($color-moderategrey, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-moderategrey !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-moderategrey !important;
+            }
+        }
+    }
+    &darkgrey:hover {
+        background-color: $color-darkgrey !important;
+    }
+    &darkgrey {
+        &__light:hover {
+            background-color: adjust-color($color-darkgrey, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-darkgrey !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-darkgrey !important;
+            }
+        }
+    }
+    &white:hover {
+        background-color: $color-white !important;
+    }
+    &white {
+        &-text:hover {
+            color: $color-white !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-white !important;
+            }
+        }
+    }
+    &green:hover {
+        background-color: $color-green !important;
+    }
+    &green {
+        &__light:hover {
+            background-color: adjust-color($color-green, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-green !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-green !important;
+            }
+        }
+    }
+    &red:hover {
+        background-color: $color-red !important;
+    }
+    &red {
+        &__light:hover {
+            background-color: adjust-color($color-red, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-red !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-red !important;
+            }
+        }
+    }
+    &black:hover {
+        background-color: $color-black !important;
+    }
+    &black {
+        &__light:hover {
+            background-color: adjust-color($color-black, $alpha: -0.7) !important;
+        }
+        &-text:hover {
+            color: $color-black !important;
+        }
+        &-fa:hover {
+            path {
+                fill: $color-black !important;
+            }
+        }
+    }
+}

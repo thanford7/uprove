@@ -5,6 +5,16 @@
         :isLargeDisplay="true"
         :isScrollable="true"
     >
+        <template v-slot:headerHtml>
+            &nbsp;
+            <span v-if="formData.evaluationCriteria && formData.evaluationCriteria.length"
+                  class="badge rounded-pill"
+                  :class="`bg-${getBadgeColor({score: formData.evaluationScorePct})}`"
+                  style="font-size: 1em;"
+            >
+                {{formData.evaluationScorePct}}%
+            </span>
+        </template>
         <div class="row">
             <div :class="(isShowEvaluation) ? 'col-md-6' : 'col'">
                 <div v-if="!isEmptyString(formData.projectNotes)" class="mb-3">
@@ -39,25 +49,69 @@
                     </a>
                 </div>
                 <div v-if="isAddEvaluation">
-                    <label class="form-label">Evaluation Guide</label>
-                    <div v-for="criterion in evaluationCriteriaTemplate" class="form-check">
-                        <InputCheckBox
-                            :elId="`criterion-${criterion.id}`"
-                            :label="criterion.criterion"
-                            @click="criterion.value = !criterion.value"
-                        />
+                    <div>
+                        <span class="-text-bold">Evaluation Guide&nbsp;</span>
+                        <span
+                            class="badge rounded-pill"
+                            :class="`bg-${getBadgeColor({evalCriteria: evals})}`"
+                        >{{getEvaluationScore(evaluationCriteriaTemplate)}}%</span>
+                    </div>
+                    <div class="row mt-2 mb-2">
+                        <div class="col-4 col-md-6 col-lg-5">
+                            <div class="-sub-text">0 = Unaddressed</div>
+                            <div class="-sub-text">1 = Poorly addressed</div>
+                        </div>
+                        <div class="col-4 col-md-6 col-lg-5">
+                            <div class="-sub-text">2 = Addressed</div>
+                            <div class="-sub-text">3 = Excellent</div>
+                        </div>
+                    </div>
+                    <div v-for="criterion in evaluationCriteriaTemplate" class="row mb-2">
+                        <div class="col-2 col-md-3 col-lg-2">
+                            <input type="number"
+                               class="form-control form-control-sm"
+                               placeholder="0" min="0" max="3"
+                               style="display: inline-block; width: fit-content;"
+                               @change="criterion.value = parseInt($event.target.value)"
+                            >
+                        </div>
+                        <div class="col-10 col-md-9 col-lg-10">
+                            {{criterion.criterion}}
+                        </div>
                     </div>
                 </div>
                 <div v-for="evals in formData.evaluationsByUserId">
-                    <div class="-text-bold">{{getEvaluatorLabel(evals[0])}}</div>
-                    <div v-for="evaluation in evals" class="form-check">
-                        <InputCheckBox
-                            :elId="`eval-${evaluation.id}`"
-                            :label="evaluation.evaluationCriterion.criterion"
-                            :isChecked="evaluation.value"
-                            :isDisabled="!isEvaluatorSelf(evaluation)"
-                            @click="evaluation.value = $event"
-                        />
+                    <div>
+                        <span class="-text-bold">{{getEvaluatorLabel(evals[0])}}&nbsp;</span>
+                        <span
+                            class="badge rounded-pill"
+                            :class="`bg-${getBadgeColor({evalCriteria: evals})}`"
+                        >{{getEvaluationScore(evals)}}%</span>
+                    </div>
+                    <div class="row mt-2 mb-2">
+                        <div class="col-4 col-md-6 col-lg-5">
+                            <div class="-sub-text">0 = Unaddressed</div>
+                            <div class="-sub-text">1 = Poorly addressed</div>
+                        </div>
+                        <div class="col-4 col-md-6 col-lg-5">
+                            <div class="-sub-text">2 = Addressed</div>
+                            <div class="-sub-text">3 = Excellent</div>
+                        </div>
+                    </div>
+                    <div v-for="evaluation in evals" class="row mb-2">
+                        <div class="col-2 col-md-3 col-lg-2">
+                            <input type="number"
+                               class="form-control form-control-sm"
+                               placeholder="0" min="0" max="3"
+                               style="display: inline-block; width: fit-content;"
+                               :value="evaluation.value"
+                               :disabled="!isEvaluatorSelf(evaluation)"
+                               @change="evaluation.value = parseInt($event.target.value)"
+                            >
+                        </div>
+                        <div class="col-10 col-md-9 col-lg-10">
+                            {{evaluation.evaluationCriterion.criterion}}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -84,12 +138,14 @@ import FileDisplay from "../components/FileDisplay";
 import formChecker from '../../utils/form';
 import InfoToolTip from "../components/InfoToolTip";
 import InputCheckBox from "../inputs/InputCheckBox";
+import InputSelectize from "../inputs/InputSelectize";
+import userProjectUtil from "../../utils/userProject";
 
 export default {
     name: "ViewCandidateApplicationModal",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, FileDisplay, InfoToolTip, InputCheckBox},
+    components: {BaseModal, FileDisplay, InfoToolTip, InputCheckBox, InputSelectize},
     computed: {
         evaluationCriteriaTemplate() {
             if (!this.formData || dataUtil.isEmpty(this.formData)) {
@@ -117,8 +173,11 @@ export default {
         }
     },
     methods: {
+        getBadgeColor: userProjectUtil.getBadgeColor,
+        getEvaluationScore: userProjectUtil.getEvaluationScore,
         isEmpty: dataUtil.isEmpty,
         isEmptyString: formChecker.isEmptyWysiwyg,
+        parseInt: parseInt,
         getModalTitle() {
             if (!this.formData || this.isEmpty(this.formData)) {
                 return '';

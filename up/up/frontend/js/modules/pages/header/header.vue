@@ -6,13 +6,19 @@
         <div class="navbar-collapse collapse justify-content-end" id="uprove-navbar">
             <ul class="navbar-nav nav justify-content-end">
                 <li v-if="isSuperUser || isCandidate" :class="getHighlightClass('candidateDashboard')">
-                    <a class="nav-link nav-link-tight" href="/candidateDashboard">Home</a>
+                    <a class="nav-link nav-link-tight" href="/candidateDashboard">{{(isEmployer) ? 'Candidate Dashboard' : 'Dashboard'}}</a>
+                </li>
+                <li v-if="globalData.uproveUser && globalData.uproveUser.defaultProfileId" :class="getHighlightClass('profile')">
+                    <a class="nav-link nav-link-tight" :href="`/profile/${globalData.uproveUser.defaultProfileId}/`">Profile</a>
                 </li>
                 <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
-                    <a class="nav-link nav-link-tight" href="/employerDashboard">Employer Dashboard</a>
+                    <a class="nav-link nav-link-tight" href="/employerDashboard">{{(isCandidate) ? 'Employer Dashboard' : 'Dashboard'}}</a>
                 </li>
                 <li class="nav-item" :class="getHighlightClass('projects')">
                     <a class="nav-link nav-link-tight" href="/projects">Projects</a>
+                </li>
+                <li v-if="isSuperUser" class="nav-item" :class="getHighlightClass('candidate-board')">
+                    <a class="nav-link nav-link-tight" href="/candidate-board">Candidate Board</a>
                 </li>
                 <li v-if="isSuperUser" class="nav-item" :class="getHighlightClass('admin')">
                     <a class="nav-link nav-link-tight" href="/admin">Admin</a>
@@ -28,12 +34,12 @@
                             <i class="fas fa-user-circle fa-lg"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
-                            <a
-                                class="dropdown-item"
-                               :href="`/account-settings/${globalData.uproveUser.id}/`"
-                            >
-                                Account settings
-                            </a>
+<!--                            <a-->
+<!--                                class="dropdown-item"-->
+<!--                               :href="`/account-settings/${globalData.uproveUser.id}/`"-->
+<!--                            >-->
+<!--                                Account settings-->
+<!--                            </a>-->
                             <a class="dropdown-item" href="#"
                                @click="submitAjaxRequest(null, {method: 'POST', url: globalData.API_URL + 'logout/'})">Log
                                 out</a>
@@ -45,10 +51,10 @@
                         <a class="nav-link nav-link-tight" href="#" @click="eventBus.emit('open:signInModal')">Sign in</a>
                     </li>
                     <template v-else>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Account
-                                settings</a>
-                        </li>
+<!--                        <li class="nav-item">-->
+<!--                            <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Account-->
+<!--                                settings</a>-->
+<!--                        </li>-->
                         <li class="nav-item">
                             <a class="nav-link nav-link-tight" :href="`/account-settings/${globalData.uproveUser.id}/`">Log out</a>
                         </li>

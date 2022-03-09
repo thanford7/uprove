@@ -1,9 +1,23 @@
 from datetime import date
+from enum import Enum
 from operator import itemgetter
 
 from upapp.models import *
 from upapp.utils.dataUtil import getFileNameFromUrl
 from upapp.utils.htmlTruncate import truncate
+
+
+# Keep in sync with CONTENT_TYPES in globalData.js
+class ContentTypes(Enum):
+    EXISTING = 'existing'
+    EDUCATION = 'education'
+    CERTIFICATION = 'certification'
+    EXPERIENCE = 'experience'
+    PROJECT = 'project'
+    CUSTOM = 'custom'
+    VIDEO = 'video'
+    FILE = 'file'
+    IMAGE = 'image'
 
 
 def getDateTimeFormatOrNone(val):
@@ -20,17 +34,36 @@ def serializeAuditFields(obj):
     }
 
 
+def _addSerializedUserAssets(dataDict, user):
+    dataDict[ContentTypes.EDUCATION.value] = [getSerializedUserEducation(e) for e in user.education.all()]
+    dataDict[ContentTypes.CERTIFICATION.value] = [getSerializedUserCertification(e) for e in user.certification.all()]
+    dataDict[ContentTypes.EXPERIENCE.value] = [getSerializedUserExperience(e) for e in user.experience.all()]
+    dataDict[ContentTypes.CUSTOM.value] = [getSerializedUserContentItem(ci) for ci in user.contentItem.all()]
+    dataDict[ContentTypes.PROJECT.value] = [getSerializedUserProject(up) for up in user.userProject.all()]
+    dataDict['videos'] = [getSerializedUserVideo(v) for v in user.video.all()]
+    dataDict['files'] = [getSerializedUserFile(f) for f in user.file.all()]
+    dataDict['images'] = [getSerializedUserImage(i) for i in user.image.all()]
+
+
 def serializeGenericItem(item):
-    if item.contentType == 'UserVideo':
+    if not item.contentObject:
+        return None
+    if isinstance(item.contentObject, UserVideo):
         return getSerializedUserVideo(item.contentObject)
-    if item.contentType == 'UserFile':
+    if isinstance(item.contentObject, UserFile):
         return getSerializedUserFile(item.contentObject)
-    if item.contentType == 'UserImage':
+    if isinstance(item.contentObject, UserImage):
         return getSerializedUserImage(item.contentObject)
-    if item.contentType == 'UserEducation':
+    if isinstance(item.contentObject, UserEducation):
         return getSerializedUserEducation(item.contentObject)
-    if item.contentType == 'UserExperience':
+    if isinstance(item.contentObject, UserCertification):
+        return getSerializedUserCertification(item.contentObject)
+    if isinstance(item.contentObject, UserExperience):
         return getSerializedUserExperience(item.contentObject)
+    if isinstance(item.contentObject, UserContentItem):
+        return getSerializedUserContentItem(item.contentObject)
+    if isinstance(item.contentObject, UserProject):
+        return getSerializedUserProject(item.contentObject)
     raise ValueError(f'Unknown content type: {item.contentType}')
 
 
@@ -44,6 +77,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'birthDate': getDateTimeFormatOrNone(user.birthDate),
         'email': user.email,
         'profileImage': profileImage,
+        'defaultProfileId': next((p.id for p in user.profile.all() if p.isPrimary), None),
         'employerId': user.employer_id,
         'inviteEmployerId': user.inviteEmployer_id,
         'userTypeBits': user.userTypeBits,
@@ -52,35 +86,43 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'isSuperUser': user.djangoUser.is_superuser,
         'isDemo': user.isDemo,
         'isAuthenticated': user.djangoUser.is_authenticated,
+        'skills': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_SKILL)],
+        'interests': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_INTEREST)],
         **serializeAuditFields(user)
     }
 
     if isIncludeAssets:
         serializedUser['profiles'] = [getSerializedUserProfile(p) for p in user.profile.all()]
-        serializedUser['education'] = [getSerializedUserEducation(e) for e in user.education.all()]
-        serializedUser['experience'] = [getSerializedUserExperience(e) for e in user.experience.all()]
-        serializedUser['content'] = [getSerializedUserContentItem(ci) for ci in user.contentItem.all()]
-        serializedUser['videos'] = [getSerializedUserVideo(v) for v in user.video.all()]
-        serializedUser['files'] = [getSerializedUserFile(f) for f in user.file.all()]
-        serializedUser['images'] = [getSerializedUserImage(i) for i in user.image.all()]
-        serializedUser['tags'] = [getSerializedUserTag(t) for t in user.tag.all()]
+        _addSerializedUserAssets(serializedUser, user)
 
     return serializedUser
 
 
-def getSerializedUserProfile(userProfile: UserProfile):
-    return {
+def getSerializedUserProfile(userProfile: UserProfile, isOwner=None):
+    serializedProfile = {
+        'id': userProfile.id,
         'profileName': userProfile.profileName,
         'makePublic': userProfile.makePublic,
-        'profilePicture': getSerializedUserImage(userProfile.profilePicture),
-        'sections': [getSerializedUserProfileSection(ps) for ps in userProfile.section.all()],
-        **getSerializedUser(userProfile.user),
+        'isOwner': isOwner,
+        'profilePicture': getSerializedUserImage(userProfile.profilePicture) if userProfile.profilePicture else None,
+        'sections': sorted(
+            [getSerializedUserProfileSection(ps) for ps in userProfile.section.all()],
+            key=itemgetter('sectionOrder')
+        ),
+        'user': getSerializedUser(userProfile.user),
         **serializeAuditFields(userProfile)
     }
+
+    if isOwner:
+        serializedProfile['assets'] = {}
+        _addSerializedUserAssets(serializedProfile['assets'], userProfile.user)
+
+    return serializedProfile
 
 
 def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
     return {
+        'id': userProfileSection.id,
         'title': userProfileSection.title,
         'description': userProfileSection.description,
         'sectionOrder': userProfileSection.sectionOrder,
@@ -102,6 +144,7 @@ def getSerializedUserProfileSectionItem(userProfileSectionItem: UserProfileSecti
 def getSerializedUserEducation(userEducation: UserEducation):
     return {
         'id': userEducation.id,
+        'type': ContentTypes.EDUCATION.value,
         'school': getSerializedOrganization(userEducation.school),
         'degree': userEducation.degree,
         'degreeSubject': userEducation.degreeSubject,
@@ -112,9 +155,23 @@ def getSerializedUserEducation(userEducation: UserEducation):
     }
 
 
+def getSerializedUserCertification(userCertification: UserCertification):
+    return {
+        'id': userCertification.id,
+        'type': ContentTypes.CERTIFICATION.value,
+        'organization': getSerializedOrganization(userCertification.organization),
+        'hasExpiration': userCertification.hasExpiration,
+        'title': userCertification.title,
+        'issueDate': getDateTimeFormatOrNone(userCertification.issueDate),
+        'expirationDate': getDateTimeFormatOrNone(userCertification.expirationDate),
+        **serializeAuditFields(userCertification)
+    }
+
+
 def getSerializedUserExperience(userExperience: UserExperience):
     return {
         'id': userExperience.id,
+        'type': ContentTypes.EXPERIENCE.value,
         'organization': getSerializedOrganization(userExperience.organization),
         'positionTitle': userExperience.positionTitle,
         'employmentType': userExperience.employmentType,
@@ -128,6 +185,7 @@ def getSerializedUserExperience(userExperience: UserExperience):
 def getSerializedUserContentItem(userContentItem: UserContentItem):
     return {
         'id': userContentItem.id,
+        'type': ContentTypes.CUSTOM.value,
         'title': userContentItem.title,
         'sections': sorted([getSerializedUserContentItemSection(cis) for cis in userContentItem.section.all()], key=itemgetter('contentOrder')),
         **serializeAuditFields(userContentItem)
@@ -146,6 +204,7 @@ def getSerializedUserContentItemSection(userContentItemSection: UserContentItemS
 def getSerializedUserVideo(userVideo: UserVideo):
     return {
         'id': userVideo.id,
+        'type': ContentTypes.VIDEO.value,
         'title': userVideo.title,
         'video': userVideo.video.url,
         **serializeAuditFields(userVideo)
@@ -155,8 +214,10 @@ def getSerializedUserVideo(userVideo: UserVideo):
 def getSerializedUserFile(userFile: UserFile):
     return {
         'id': userFile.id,
+        'type': ContentTypes.FILE.value,
         'title': userFile.title,
         'file': userFile.file.url,
+        'fileName': userFile.file.name.split('/')[-1],
         **serializeAuditFields(userFile)
     }
 
@@ -164,6 +225,7 @@ def getSerializedUserFile(userFile: UserFile):
 def getSerializedUserImage(userImage: UserImage):
     return {
         'id': userImage.id,
+        'type': ContentTypes.IMAGE.value,
         'title': userImage.title,
         'image': userImage.image.url,
         **serializeAuditFields(userImage)
@@ -173,11 +235,21 @@ def getSerializedUserImage(userImage: UserImage):
 def getSerializedUserTag(userTag: UserTag):
     return {
         'id': userTag.id,
-        'tagType': userTag.tagType,
-        'title': userTag.title,
-        'description': userTag.description,
-        'skillLevelNum': userTag.skillLevel,
+        'tagType': userTag.tag.type,
+        'tagId': userTag.tag.id,
+        'title': userTag.tag.title,
+        'description': userTag.description or userTag.tag.description,
+        'skillLevelBit': userTag.skillLevelBit,
         **serializeAuditFields(userTag)
+    }
+
+
+def getSerializedTag(tag: Tag):
+    return {
+        'id': tag.id,
+        'title': tag.title,
+        'type': tag.type,
+        'description': tag.description
     }
 
 
@@ -186,7 +258,7 @@ def getSerializedOrganization(organization: Organization):
         'id': organization.id,
         'name': organization.name,
         'orgType': organization.orgType,
-        'logo': organization.logo.url if organization.logo else None
+        'logo': organization.logo.url if organization.logo else None,
     }
 
 
@@ -329,7 +401,14 @@ def getSerializedJobTemplate(template: JobTemplate):
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False, isEmployer=False):
     val = {
         'id': jobApplication.id,
-        'userProject': getSerializedUserProject(jobApplication.userProject, isEmployer=isEmployer),
+        'user': {
+            'id': jobApplication.user.id,
+            'firstName': jobApplication.user.firstName,
+            'middleName': jobApplication.user.middleName,
+            'lastName': jobApplication.user.lastName,
+            'email': jobApplication.user.email
+        },
+        'userProject': getSerializedUserProject(jobApplication.userProject, isEmployer=isEmployer) if jobApplication.userProject else None,
         'inviteDateTime': getDateTimeFormatOrNone(jobApplication.inviteDateTime),
         'submissionDateTime': getDateTimeFormatOrNone(jobApplication.submissionDateTime),
         'approveDateTime': getDateTimeFormatOrNone(jobApplication.approveDateTime),
@@ -370,8 +449,18 @@ def getSerializedUserProjectEvaluationCriterion(criterion: UserProjectEvaluation
 
 
 def getSerializedUserProject(userProject: UserProject, isEmployer=False):
+    from upapp.apis.user import isUserProjectLocked, getDaysUntilProjectUnlock
+
+    isLocked = isUserProjectLocked(userProject)
     baseData = {
         'id': userProject.id,
+        'type': ContentTypes.PROJECT.value,
+        'status': userProject.status,
+        'statusChangeDateTime': getDateTimeFormatOrNone(userProject.statusChangeDateTime),
+        'isLocked': isLocked,
+        'isHidden': userProject.isHidden,
+        'daysUntilUnlock': getDaysUntilProjectUnlock(userProject) if isLocked else None,
+        'jobApplicationCount': userProject.jobApplication.all().count(),
         'user': {
             'id': userProject.user.id,
             'firstName': userProject.user.firstName,
@@ -385,6 +474,13 @@ def getSerializedUserProject(userProject: UserProject, isEmployer=False):
             'skills': [getSerializedSkill(s) for s in userProject.customProject.skills.all()],
             'projectId': userProject.customProject.project_id,
             'projectTitle': userProject.customProject.project.title,
+            'projectImage': getattr(userProject.customProject.project.image, 'url', None),
+            'projectDescription': userProject.customProject.project.description,
+            'projectBackground': userProject.customProject.project.background,
+            'projectInstructions': next(
+                (pi.instructions for pi in userProject.customProject.project.projectInstructions.all() if pi.skillLevelBit & userProject.customProject.skillLevelBit),
+                None
+            ),
             'role': userProject.customProject.project.role.name,
         },
         'projectNotes': userProject.projectNotes,

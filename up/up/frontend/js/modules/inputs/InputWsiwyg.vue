@@ -269,6 +269,9 @@ export default {
                 this.emitValue();
             },
         });
+        this.eventBus.on('formClear', () => {
+            this.editor.commands.clearContent();
+        });
     },
 
     beforeDestroy() {

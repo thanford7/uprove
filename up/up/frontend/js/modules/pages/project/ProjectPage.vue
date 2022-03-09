@@ -1,7 +1,6 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <div class="row mt-3 mb-3" :class="(isMobile) ? 'mobile-top' : ''">
+    <BasePage>
+        <div class="row" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-8 card-custom">
                 <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.role}}</span></h1>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
@@ -73,17 +72,17 @@
                                 :isParseAsBits="true"
                                 placeholder="Career level" :cfg="projectSkillLevelCfg" @selected="formData.skillLevelBit = $event"
                             />
-                            <InputSelectize
+                            <SkillsSelectize
                                 ref="skills"
-                                elId="skills"
-                                :isParseAsInt="true"
-                                placeholder="Skills" :cfg="skillsCfg" @selected="formData.skillIds = $event"
+                                :skills="initData.project.skills"
+                                :cfg="{isMulti: true, projectId: initData.project.id, placeholder: 'Skills'}"
+                                @selected="formData.skillIds = $event"
                             />
                             <template v-if="isEmployer">
                                 <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Link project to {{pluralize('job position', (formData.jobIds || []).length)}}</button>
                             </template>
                             <template v-else>
-                                <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Save project to profile</button>
+                                <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Save project to dashboard</button>
                             </template>
                         </template>
                     </AccordionItem>
@@ -127,13 +126,13 @@
                 </div>
             </template>
         </div>
-        <EditUserModal/>
-        <EmployerRequestInfoModal/>
-    </div>
+    </BasePage>
+    <EditUserModal/>
+    <EmployerRequestInfoModal/>
 </template>
 
 <script>
-import {severity} from "../../../vueMixins";
+import {SEVERITY} from "../../../globalData";
 import AccordionItem from "../../components/AccordionItem";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
@@ -147,16 +146,20 @@ import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import skillSelectize from "../../selectizeCfgs/skill";
+import SkillsSelectize from "../../inputs/SkillsSelectize";
+import BasePage from "../BasePage";
 
 export default {
     name: "ProjectPage.vue",
     components: {
+        BasePage,
         AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CollapseDiv, EditUserModal,
-        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize
+        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize, SkillsSelectize
     },
     data() {
         return {
             crudUrl: null,  // Set on mounted
+            pageRedirect: null, // Set on mounted
             isUpdateData: true,
             initDataKey: null,
             requiredFields: {
@@ -202,10 +205,6 @@ export default {
                 options: dataUtil.sortBy(this.initData.jobs.map((j) => ({value: j.id, text: j.jobTitle})), 'text')
             };
         },
-        skillsCfg() {
-            const proj = this.initData.project;
-            return skillSelectize.getSkillCfg(proj.skills, {isMulti: true, projectId: proj.id});
-        },
         projectSkillLevelCfg() {
             const options = this.getSkillLevelNumbersFromBits(this.initData.project.skillLevelBits).map((sBit) => {
                 return {
@@ -247,11 +246,11 @@ export default {
         },
         isGoodFormFields(formData) {
             if(this.isEmployer && (!formData.jobIds || !formData.jobIds.length)) {
-                this.addPopover($(this.$refs.employerJobs.targetEl), {content: 'At least one job is required', severity: severity.WARN, isOnce: true});
+                this.addPopover($(this.$refs.employerJobs.targetEl), {content: 'At least one job is required', severity: SEVERITY.WARN, isOnce: true});
                 return false;
             }
             if(!formData.skillIds || !formData.skillIds.length) {
-                this.addPopover($(this.$refs.skills.targetEl), {content: 'At least one skill is required', severity: severity.WARN, isOnce: true});
+                this.addPopover($(this.$refs.skills.targetEl), {content: 'At least one skill is required', severity: SEVERITY.WARN, isOnce: true});
                 return false;
             }
             return true;
@@ -300,12 +299,6 @@ export default {
         }
     },
     mounted() {
-        if (this.isEmployer) {
-            this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
-        }
-
-        this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';
-
         // Set skill levels from bits
         if (this.initData.jobs) {
             this.setJobSkillLevels(this.initData.jobs);
@@ -317,16 +310,61 @@ export default {
             skillLevelSelectize.setSkillLevels(this.initData.userProjects, true);
         }
 
-        this.crudUrl = (this.isEmployer) ? `job-project-link/${this.initData.project.id}/` : 'user-project/';
-        this.eventBus.on('ajaxSuccess', () => {
-            this.clearSelectizeElements()
-        });
-
         if (!initData.project.isLimited) {
+            this.requiredFields.skillLevelBit = this.$refs.projectSkillLevel.targetEl;
+            this.initDataKey = (this.isEmployer) ? 'jobs' : 'userProjects';
             const {skillLevel, skill} = dataUtil.getQueryParams();
-            this.$refs.skills.elSel.setValue(skill || skillSelectize.getDefaultSkills(this.initData.project.skills));
-            this.$refs.projectSkillLevel.elSel.setValue(skillLevel);
+            const defaultSkillLevel = (this.projectSkillLevelCfg.options.length === 1) ? this.projectSkillLevelCfg.options[0].value : null;
+            this.$refs.skills.setValue(skill || skillSelectize.getDefaultSkills(this.initData.project.skills));
+            this.$refs.projectSkillLevel.elSel.setValue(skillLevel || defaultSkillLevel);
         }
+
+        const popoverCfgs = [];
+        if (this.isEmployer) {
+            this.crudUrl = `job-project-link/${this.initData.project.id}/`;
+            if (!this.employerJobsCfg.options.length) {
+                popoverCfgs.push({
+                    el$: $(this.$refs.employerJobs.targetEl),
+                    content: 'You do not have any job positions. Go to your Employer Dashboard to create your first job position.',
+                });
+            } else {
+                popoverCfgs.push({
+                    el$: $(this.$refs.employerJobs.targetEl),
+                    content: 'Select one or more job positions where candidates can use this project to apply for the job.',
+                    clickTarget: this.$refs.employerJobs.targetEl
+                });
+            }
+            if (!this.$refs.projectSkillLevel.elSel.getValue()) {
+                popoverCfgs.push({
+                    el$: $(this.$refs.projectSkillLevel.targetEl),
+                    content: 'Choose your desired career level. The instructions for this project will change based on the selected level.',
+                    clickTarget: this.$refs.projectSkillLevel.targetEl,
+                    showEvent: {target$: $(this.$refs.employerJobs.targetEl), event: 'blur'}
+                });
+            }
+            popoverCfgs.push({
+                el$: $(this.$refs.skills.targetEl),
+                content: `These are the recommended skills based on common skills required for a ${this.initData.project.role} role. You can add or remove skills based on the type of role you are hiring for.`,
+                showEvent: {target$: $(this.$refs.projectSkillLevel.targetEl), event: 'blur'}
+            });
+        } else if (this.isCandidate) {
+            this.crudUrl = 'user-project/';
+            this.pageRedirect = `/candidateDashboard/${this.globalData.uproveUser.id}/`;
+            // Only add this info popover if the skill level is unset
+            if (!this.$refs.projectSkillLevel.elSel.getValue()) {
+                popoverCfgs.push({
+                    el$: $(this.$refs.projectSkillLevel.targetEl),
+                    content: 'Choose your desired career level to get started.',
+                    clickTarget: this.$refs.projectSkillLevel.targetEl
+                });
+            }
+            popoverCfgs.push({
+                el$: $(this.$refs.skills.targetEl),
+                content: 'These are the recommended skills based on employer interest. Adding skills will allow you to show off more of your talent, but will also increase the time to complete the project.',
+                showEvent: (popoverCfgs.length) ? {target$: $(this.$refs.projectSkillLevel.targetEl), event: 'blur'} : null
+            });
+        }
+        this.createPopoverChain(popoverCfgs, {severity: SEVERITY.INFO, isOnce: true});
     }
 }
 </script>

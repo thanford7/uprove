@@ -1,14 +1,15 @@
 <template>
-    <div class="container-lg">
-        <div class="row mt-4">
-            <h2>Error: {{initData.error}}</h2>
+    <BasePage :headerTitle="`Error: ${initData.error}`">
+        <div class="card-custom">
             <h4>{{initData.text}}</h4>
         </div>
-    </div>
+    </BasePage>
 </template>
 
 <script>
+import BasePage from "../BasePage";
 export default {
-    name: "ErrorsPage.vue"
+    name: "ErrorsPage.vue",
+    components: {BasePage}
 }
 </script>

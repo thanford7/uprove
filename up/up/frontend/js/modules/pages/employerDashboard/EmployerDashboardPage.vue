@@ -1,12 +1,5 @@
 <template>
-    <div class="container-lg">
-        <BannerAlert/>
-        <div class="row mt-3 mb-3">
-            <div class="align-items-center" style="display: flex">
-                <img v-if="initData.employer.logo" :src="initData.employer.logo" alt="" class="employer-logo">
-                <h2 style="display: inline-block; margin-bottom: 0">{{initData.employer.companyName}} Dashboard</h2>
-            </div>
-        </div>
+    <BasePage :headerTitle="`${initData.employer.companyName} Dashboard`" :headerImage="initData.employer.logo">
         <div class="row mb-3 justify-content-center">
             <div class="col-md-9 card-custom table-responsive-md">
                 <h3 style="display: inline-block">Job postings</h3>
@@ -64,11 +57,12 @@
                     :headers="[
                         [
                             {},
-                            {value: 'First name', sortFn: 'userProject.user.firstName'},
-                            {value: 'Last name', sortFn: 'userProject.user.lastName'},
+                            {value: 'First name', sortFn: 'user.firstName'},
+                            {value: 'Last name', sortFn: 'user.lastName'},
                             {value: 'Status', sortFn: getApplicationStatus},
                             {value: 'Job title', sortFn: 'job.jobTitle'},
                             {value: 'Project', sortFn: 'userProject.customProject.projectTitle'},
+                            {value: 'Project score', sortFn: 'userProject.evaluationScorePct'}
                         ]
                     ]"
                     emptyDataMessage="No job applications"
@@ -100,11 +94,12 @@
                                     </li>
                                 </HamburgerDropdown>
                             </td>
-                            <td>{{application.userProject.user.firstName}}</td>
-                            <td>{{application.userProject.user.lastName}}</td>
+                            <td>{{application.user.firstName}}</td>
+                            <td>{{application.user.lastName}}</td>
                             <td>{{getApplicationStatus(application)}}</td>
                             <td>{{application.job.jobTitle}}</td>
-                            <td>{{application.userProject.customProject.projectTitle}}</td>
+                            <td>{{application?.userProject?.customProject?.projectTitle || '-None-'}}</td>
+                            <td>{{(application?.userProject?.evaluationScorePct) ? `${application?.userProject?.evaluationScorePct}%` : 'None'}}</td>
                         </tr>
                     </template>
                 </Table>
@@ -155,24 +150,25 @@
                 </div>
             </div>
         </div>
-        <EditCustomProjectModal/>
-        <EditEmployerModal/>
-        <EditJobPostingModal/>
-        <InviteJobApplicantModal/>
-        <ViewCandidateApplicationModal
-            @approve="approveApplication($event)"
-            @decline="declineApplication($event)"
-        />
-    </div>
+    </BasePage>
+    <EditCustomProjectModal/>
+    <EditEmployerModal/>
+    <EditJobPostingModal/>
+    <InviteJobApplicantModal/>
+    <ViewCandidateApplicationModal
+        @approve="approveApplication($event)"
+        @decline="declineApplication($event)"
+    />
 </template>
 
 <script>
-import {dateSerializer} from "../../../utils/dateUtil";
+import dateUtil from "../../../utils/dateUtil";
 import dataUtil, {APPLICATION_STATUS} from "../../../utils/data";
 import dayjs from "dayjs/esm";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
+import BasePage from "../BasePage";
 import EditCustomProjectModal from "../../modals/EditCustomProjectModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
@@ -180,13 +176,15 @@ import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 import Table from "../../components/Table";
+import userProjectUtil from "../../../utils/userProject";
 import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        BannerAlert, BadgesSkillLevels, BadgesSkills, EditCustomProjectModal, EditEmployerModal, EditJobPostingModal,
-        HamburgerDropdown, InfoToolTip, InviteJobApplicantModal, Table, ViewCandidateApplicationModal
+        BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditCustomProjectModal, EditEmployerModal,
+        EditJobPostingModal, HamburgerDropdown, InfoToolTip, InviteJobApplicantModal,
+        Table, ViewCandidateApplicationModal
     },
     data() {
         return {
@@ -194,6 +192,37 @@ export default {
             applications: null,
             customProjects: null,
             sortKeysJobPostingTable: []
+        }
+    },
+    computed: {
+        applications() {
+            return this.initData.employer.jobs.reduce((applications, job) => {
+                return [...applications, ...job.applications.map((app) => {
+                    if (app.userProject) {
+                        app.userProject.evaluationScorePct = userProjectUtil.getEvaluationScore(app.userProject.evaluationCriteria);
+                    }
+                    app.job = {
+                        id: job.id,
+                        jobTitle: job.jobTitle
+                    };
+                    return app;
+                })];
+            }, []);
+        },
+        customProjects() {
+            const customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
+                job.allowedProjects.forEach((ap) => {
+                    if (ap.id in customProjects) {
+                        customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
+                    } else {
+                        ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
+                        ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
+                        customProjects[ap.id] = ap;
+                    }
+                });
+                return customProjects;
+            }, {});
+            return Object.values(customProjects);
         }
     },
     methods: {
@@ -213,7 +242,7 @@ export default {
         approveApplication(application) {
             const ajaxData = this.getAjaxFormData({
                 id: application.id,
-                approveDateTime: dateSerializer.serializeDateTime(dayjs())
+                approveDateTime: dateUtil.serializeDateTime(dayjs())
             });
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',
@@ -227,7 +256,7 @@ export default {
         declineApplication(application) {
             const ajaxData = this.getAjaxFormData({
                 id: application.id,
-                declineDateTime: dateSerializer.serializeDateTime(dayjs())
+                declineDateTime: dateUtil.serializeDateTime(dayjs())
             });
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',
@@ -239,30 +268,5 @@ export default {
             });
         }
     },
-    mounted() {
-        this.applications = this.initData.employer.jobs.reduce((applications, job) => {
-            return [...applications, ...job.applications.map((app) => {
-                app.job = {
-                    id: job.id,
-                    jobTitle: job.jobTitle
-                };
-                return app;
-            })];
-        }, []);
-
-        this.customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
-            job.allowedProjects.forEach((ap) => {
-                if (ap.id in customProjects) {
-                    customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
-                } else {
-                    ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
-                    ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
-                    customProjects[ap.id] = ap;
-                }
-            });
-            return customProjects;
-        }, {});
-        this.customProjects = Object.values(this.customProjects);
-    }
 }
 </script>

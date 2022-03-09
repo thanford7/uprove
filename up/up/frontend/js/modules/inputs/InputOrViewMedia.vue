@@ -5,8 +5,8 @@
             <img :src="currentItem" style="height: 40px;"><br>
             <a href="#" @click="toggleUpload(true)">Change {{itemLabel}}</a>
         </div>
-        <InputMedia v-if="isUpload" :elId="inputId" :mediaTypes="mediaTypes" @selected="$emit('selected', $event)"/>
-        <a v-if="!isNewUpload && isUpload" href="#" @click="toggleUpload(false)">Use existing {{itemLabel}}</a>
+        <InputMedia v-if="isUpload" :elId="inputId" :mediaTypes="mediaTypes" @selected="$emit('selectedMediaNew', $event)"/>
+        <a v-if="!isUploadDefault && !isNewUpload && isUpload" href="#" @click="toggleUpload(false)">Use existing {{itemLabel}}</a>
     </div>
 </template>
 
@@ -16,7 +16,16 @@ import InputMedia from "./InputMedia";
 
 export default {
     name: "InputOrViewMedia.vue",
-    props: ['inputId', 'mediaTypes', 'itemLabel', 'currentItem'],
+    props: {
+        inputId: String,
+        mediaTypes: Array,
+        itemLabel: String,
+        currentItem: [String, Object],
+        isUploadDefault: {
+            type: Boolean,
+            default: false
+        }
+    },
     components: {InputMedia},
     computed: {
         capitalizedItemLabel() {
@@ -41,6 +50,9 @@ export default {
             this.isUpload = isShown;
             $(`#${this.inputId}`).toggle(isShown);
         }
+    },
+    mounted() {
+        this.isUpload = this.isUploadDefault;
     }
 }
 </script>

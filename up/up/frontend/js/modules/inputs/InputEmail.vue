@@ -3,7 +3,7 @@
         type="email"
         class="form-control"
         pattern=".+@.+\..+"
-        :id="elId || _uid"
+        :id="elId"
         :placeholder="placeholder"
         :value="modelValue"
         @change="$emit('update:modelValue', $event.target.value)"

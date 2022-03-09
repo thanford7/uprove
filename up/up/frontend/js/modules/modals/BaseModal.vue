@@ -1,6 +1,7 @@
 <template>
     <div>
-        <div class="modal fade" :id="modalId" tabindex="-1" aria-hidden="true" @keydown="handleKeyPress">
+        <slot v-if="isContentOnly"/>
+        <div v-else class="modal fade" :id="modalId" tabindex="-1" aria-hidden="true" @keydown="handleKeyPress">
             <div
                 class="modal-dialog modal-dialog-centered"
                 :class="modalClasses"
@@ -20,9 +21,7 @@
                     </div>
                     <div v-if="!isFooterHidden" class="modal-footer">
                         <slot name="footer">
-                            <button v-if="isAllowDelete" type="button" class="btn btn-danger -pull-left" @click="$emit('deleteObject', $event)" title="Delete">
-                                <i class="fas fa-trash -color-white-fa"></i>
-                            </button>
+                            <ButtonDelete v-if="isAllowDelete" class="-pull-left" @click="$emit('deleteObject', $event)"/>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button v-if="!isReadOnly" @click="$emit('saveChange', $event)" type="button" class="btn btn-primary">{{primaryButtonText || 'Save changes'}}</button>
                         </slot>
@@ -30,14 +29,15 @@
                 </div>
             </div>
         </div>
-        <slot v-if="isContentOnly"/>
     </div>
 </template>
 <script>
 import BannerAlert from "../components/BannerAlert";
+import ButtonDelete from "../buttons/ButtonDelete";
+import Modal from "bootstrap/js/dist/modal";
 
 export default {
-    components: {BannerAlert},
+    components: {BannerAlert, ButtonDelete},
     props: [
         'modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable',
         'isFooterHidden', 'isLargeDisplay', 'isFullScreenDisplay', 'isAllowDelete', 'isContentOnly'
@@ -69,7 +69,22 @@ export default {
                 e.preventDefault();
                 this.$emit('saveChange', e);
             }
+        },
+        initModal() {
+            const modal$ = $(`#${this.modalName}`);
+            if (modal$.length) {
+                Modal.getOrCreateInstance(modal$, {backdrop: 'static'});
+            }
         }
+    },
+    mounted() {
+        this.initModal();
+        if (this.isContentOnly) {
+            this.eventBus.on('ajaxSuccess', this.initForm);
+        }
+    },
+    updated() {
+        this.initModal();
     }
 }
 </script>

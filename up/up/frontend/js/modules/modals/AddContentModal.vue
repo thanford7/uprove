@@ -1,137 +1,183 @@
 <template>
     <BaseModal
         :modalId="modalName"
-        modalTitle="Add content"
+        modalTitle="Add card"
         :isLargeDisplay="true"
         @saveChange="saveChange"
     >
-        <div>
-            <div>
-                <label for="selectContent" class="form-label">Existing content</label>
-                <ContentSelectize :contentSection="contentSection" :currentContentIds="contentSectionIds" @selected="selectedContentId = $event"/>
-            </div>
-            <div :class="(isNewItem) ? 'modal-body-banner modal-body-banner--top' : ''">
-                <label for="addContentType" class="form-label">New content</label>
-                <InputSelectize elId="addContentType" placeholder="Select content type" :cfg="addContentCfg" @selected="addContentType = $event"/>
-            </div>
+        <div class="btn-group mb-3" role="group">
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btn-existing" autocomplete="off" checked
+                   @change="toggleContentType($event, contentTypes.EXISTING)"
+            >
+            <label class="btn btn-outline-dark" for="btn-existing">
+                Existing content
+                <InfoToolTip :elId="getNewElUid()" content="Existing cards and projects that you have already created."/>
+            </label>
+
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btn-experience" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.EXPERIENCE)"
+            >
+            <label class="btn btn-outline-dark" for="btn-experience">Work experience</label>
+
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btn-education" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.EDUCATION)"
+            >
+            <label class="btn btn-outline-dark" for="btn-education">Education</label>
+
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btn-certification" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.CERTIFICATION)"
+            >
+            <label class="btn btn-outline-dark" for="btn-certification">
+                Credential
+                <InfoToolTip :elId="getNewElUid()" content="Add a license or certification."/>
+            </label>
+
+            <input type="radio" class="btn-check" name="btnradio"
+                   id="btn-custom" autocomplete="off"
+                   @change="toggleContentType($event, contentTypes.CUSTOM)"
+            >
+            <label class="btn btn-outline-dark" for="btn-custom">
+                Custom content
+                <InfoToolTip :elId="getNewElUid()" content="Add video, images, files, and descriptions to showcase anything. For example, it could be a project you created outside of the Uprove platform or research you have completed on a specific company."/>
+            </label>
         </div>
-        <div id="newItemForm" v-if="addContentType">
-            <MediaFormContent v-if="['video', 'project'].includes(addContentType)" :contentType="addContentType" :allowedBannerMediaTypes="allowedBannerMediaTypes" ref="formContentMedia"/>
-            <ExperienceFormContent v-if="addContentType === 'experience'" ref="formContentExperience"/>
+        <div v-if="addContentType === contentTypes.EXISTING">
+            <label class="form-label">Existing content</label>
+            <ContentSelectize
+                ref="contentExisting"
+                :assets="initData.assets"
+                @selectedContent="setContentValue"
+            />
         </div>
-        <div class="modal-body-banner modal-body-banner--bottom"><a id="newItemToggle" href="#" @click="toggleAddNewItem(!isNewItem)"><i class="fas fa-plus-circle"></i> Add new content</a></div>
+        <EditMediaModal
+            v-if="addContentType === contentTypes.CUSTOM"
+            :defaultContentType="addContentType"
+            :isContentOnly="true"
+            ref="contentMedia"
+        />
+        <EditEducationModal
+            v-if="addContentType === contentTypes.EDUCATION"
+            ref="contentEducation"
+            :isContentOnly="true"
+        />
+        <EditCertificationModal
+            v-if="addContentType === contentTypes.CERTIFICATION"
+            ref="contentCertification"
+            :isContentOnly="true"
+        />
+        <EditExperienceModal
+            v-if="addContentType === contentTypes.EXPERIENCE"
+            ref="contentExperience"
+            :isContentOnly="true"
+        />
     </BaseModal>
 </template>
 <script>
-import {mapGetters, mapState} from 'vuex';
+import {CONTENT_TYPES, SEVERITY} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import ContentSelectize from '../inputs/ContentSelectize.vue';
-import dataUtil from '../../utils/data';
-import ExperienceFormContent from './ExperienceFormContent.vue';
+import EditCertificationModal from "./EditCertificationModal";
+import EditEducationModal from "./EditEducationModal";
+import EditExperienceModal from "./EditExperienceModal";
+import EditMediaModal from "./EditMediaModal";
 import InputSelectize from '../inputs/InputSelectize.vue';
-import MediaFormContent from './MediaFormContent.vue';
-import Modal from 'bootstrap/js/dist/modal';
+import InfoToolTip from "../components/InfoToolTip";
+
 
 export default {
     extends: BaseModal,
-    components: {BaseModal, ContentSelectize, ExperienceFormContent, InputSelectize, MediaFormContent},
+    components: {
+        InfoToolTip,
+        BaseModal, ContentSelectize, EditCertificationModal, EditEducationModal, EditExperienceModal, EditMediaModal, InputSelectize},
     inheritAttrs: false,
     data() {
         return {
-            contentSection: null,  // Either highlights or section. The highlights section is at the top of the page and may restrict content types
-            contentSectionOrder: null, // For all "section" content sections, the contentSectionOrder is used to save updates to the appropriate section
             modalName: 'addContentModal',
-            selectedContentId: null,
-            isNewItem: false,
-            newItemToggle$: null,
-            selectContent$: null,
-            addContentSel$: null,
-            addContentCfg: {
-                maxItems: 1,
-                options: [
-                    {value: 'experience', text: 'Experience'},
-                    {value: 'project', text: 'Project'},
-                    {value: 'video', text: 'Video'},
-                ]
-            },
-            addContentType: null
-        }
-    },
-    computed: {
-        ...mapState({
-            eventBus: 'eventBus',
-            profile: 'profile',
-            crudUrl(state) {
-                return `${state.crudBase}${this.addContentType}`;
-            }
-        }),
-        ...mapGetters({
-            getLastContentType: 'getLastContentType'
-        }),
-        allowedBannerMediaTypes() {
-            return (this.addContentType === 'video') ? ['video'] : ['video', 'image'];
-        },
-        contentSectionIds() {
-            if (this.contentSectionOrder) {
-                return this.profile.sections[this.contentSectionOrder].ids
-            }
-            return [];
+            crudUrl: 'user-profile/content-item/',
+            isUpdateData: true,
+            mediaFields: new Set(),
+            addContentType: CONTENT_TYPES.EXISTING,
+            contentTypes: CONTENT_TYPES,
+            isGoodContentData: null
         }
     },
     methods: {
-        hookEvents() {
-            this.eventBus.$on('open:addContentModal', (contentSection, contentSectionOrder) => {
-                this.contentSection = contentSection;
-                this.contentSectionOrder = contentSectionOrder;
-                this.modal$.show();
-            });
-        },
-        readForm() {
-            return {}; // Form data is returned in getPreSaveChange
-        },
-        getPreSaveChange() {
-            let formContent;
-            if (['video', 'project'].includes(this.addContentType)) {
-                formContent = this.$refs.formContentMedia;
-            } else if (this.addContentType === 'experience') {
-                formContent = this.$refs.formContentExperience;
+        isGoodFormFields(formData) {
+            if (this.addContentType === this.contentTypes.EXISTING && !formData.existingContentId) {
+                this.addPopover($(this.$refs.contentExisting.$refs.sel.targetEl),
+                    {severity: SEVERITY.WARN, content: 'You must select a piece of content to add', isOnce: true}
+                );
+                return false;
             }
-            return formContent.getPreSaveChange().then((content) => {
-                if (addContentType === 'video' && content.media) {
-                    content.video = content.media;
-                }
-                return content;
-            });
+            return this.isGoodContentData;
         },
-        saveChange() {
-            if (!this.isNewItem && this.selectedContentId) {
-                this.$store.commit(`add${dataUtil.capitalize(this.contentSection)}Id`, {id: this.selectedContentId, sectionIdx: this.contentSectionOrder});
+        processFormData() {
+            const mainData = this.readForm();
+            let contentModal;
+            if ([CONTENT_TYPES.CUSTOM, CONTENT_TYPES.VIDEO].includes(this.addContentType)) {
+                contentModal = this.$refs.contentMedia;
+            } else if (this.addContentType === CONTENT_TYPES.EXPERIENCE) {
+                contentModal = this.$refs.contentExperience;
+            } else if (this.addContentType === CONTENT_TYPES.EDUCATION) {
+                contentModal = this.$refs.contentEducation;
+            } else if (this.addContentType === CONTENT_TYPES.CERTIFICATION) {
+                contentModal = this.$refs.contentCertification;
+            }
+
+            if (contentModal) {
+                const {formData: contentData, isGoodData} = contentModal.getAndCheckData();
+                this.isGoodContentData = isGoodData;
+                Object.assign(mainData, contentData);
+                this.mediaFields = new Set([...this.mediaFields, ...(contentModal.mediaFields || [])])
             } else {
-                this.$super(BaseModal).saveChange({method: 'POST'});
+                this.isGoodContentData = true;
             }
-        },
-        onSaveSuccess(newContentItem) {
-            this.eventBus.loadContent(['media', this.addContentType]).then(() => {
-                const lastContentItem = this.getLastContentType(this.addContentType);
-                this.$store.commit(`add${dataUtil.capitalize(this.contentSection)}Id`, {id: lastContentItem.ID});
+
+            return Object.assign(mainData, {
+                userId: this.initData.user.id,
+                type: this.addContentType,
             });
         },
-        toggleAddNewItem(isNewItem) {
-            this.isNewItem = isNewItem;
-            this.newItemToggle$.text((isNewItem) ? 'Select existing content' : 'Add new content');
-            this.selectContent$.toggle(!isNewItem);
-            this.addContentSel$.toggle(isNewItem);
-            $('#newItemForm').toggle(isNewItem);
+        setContentValue({contentType, id} = {}) {
+            this.formData.existingContentType = contentType;
+            this.formData.existingContentId = id;
         },
+        toggleContentType(e, contentType) {
+            if ($(e.currentTarget).prop('checked')) {
+                this.addContentType = contentType;
+            } else {
+                this.addContentType = null;
+            }
+
+            if (this.addContentType === this.contentTypes.CUSTOM) {
+                this.eventBus.emit('open:editMediaModal:content');
+            } else if (this.addContentType === this.contentTypes.EXPERIENCE) {
+                this.eventBus.emit('open:editExperienceModal:content');
+            } else if (this.addContentType === this.contentTypes.EDUCATION) {
+                this.eventBus.emit('open:editEducationModal:content');
+            } else if (this.addContentType === this.contentTypes.EDUCATION) {
+                this.eventBus.emit('open:editCertificationModal:content');
+            }
+        },
+        setFormRefs() {
+            this.childForms = [
+                this.$refs.contentCertification,
+                this.$refs.contentEducation,
+                this.$refs.contentExperience,
+                this.$refs.contentExisting,
+                this.$refs.contentMedia
+            ]
+        }
     },
     mounted() {
-        if(!this.modal$) {
-            this.modal$ = new Modal($('#addContentModal'));
-        }
-        this.addContentSel$ = $('#addContentType').parent();
-        this.selectContent$ = $('#selectContent').parent();
-        this.newItemToggle$ = $('#newItemToggle');
-        this.toggleAddNewItem(this.isNewItem);
+        this.setFormRefs();
     },
+    updated() {
+        this.setFormRefs();
+    }
 }
 </script>
