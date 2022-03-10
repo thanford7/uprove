@@ -36,7 +36,8 @@ class ProjectView(UproveAPIView):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        project = dataUtil.setObjectAttributes(Project(createdDateTime=timezone.now()), self.data, {
+        project = Project(createdDateTime=timezone.now())
+        dataUtil.setObjectAttributes(project, self.data, {
             'title': None,
             'image': None,
             'role_id': {'formName': 'roleId'},
