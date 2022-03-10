@@ -130,6 +130,19 @@
                     </template>
                 </Table>
             </div>
+            <div class="col-md-9 card-custom">
+                <h3>Resources</h3>
+                <div class="row">
+                    <div v-for="video in initData.user.videos" class="col-md-6 p-2">
+                        <div>
+                            <video controls>
+                              <source :src="video.video">
+                            </video>
+                        </div>
+                        <ButtonDelete @click="deleteVideo(video.id)"/>
+                    </div>
+                </div>
+            </div>
         </div>
     </BasePage>
     <EditJobApplicationModal/>
@@ -231,6 +244,14 @@ export default {
         },
         afterDeleteInitData() {
             this.resetAjaxData();
+        },
+        deleteVideo(videoId) {
+            this.crudUrl = 'user-video/';
+            this.initDataKey = 'user.videos';
+            this.formData = {id: videoId};
+            if (window.confirm('Are you sure you want to delete this video?')) {
+                this.deleteObject();
+            }
         },
         deleteProject(userProject) {
             this.crudUrl = 'user-project/';

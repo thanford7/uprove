@@ -20,6 +20,7 @@ imageio-ffmpeg==0.4.5
 inflect==5.4.0
 jmespath==0.10.0
 Markdown==3.3.4
+moviepy==1.0.3
 mysqlclient==2.0.3
 numpy==1.22.1
 opencv-python==4.5.5.62

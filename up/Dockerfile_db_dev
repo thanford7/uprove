@@ -2,4 +2,5 @@
 
 FROM postgres:14
 WORKDIR /up
-COPY ./db_backup/uprove_db.sql /docker-entrypoint-initdb.d/
+COPY ./db_backup/uprove.sql /docker-entrypoint-initdb.d/
+COPY ./db_backup/create_user.sh /docker-entrypoint-initdb.d/

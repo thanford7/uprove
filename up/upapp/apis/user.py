@@ -1,16 +1,20 @@
+import tempfile
 import urllib.request
 from email.mime.image import MIMEImage
 
+import ffmpeg as ffmpeg
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
+from django.core.files.base import File
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
-from django.db.models import Q, ProtectedError
+from django.db.models import Q
 from django.db.transaction import atomic
 from django.template import loader
 from django.templatetags.static import static
 from django.utils import crypto, timezone
+from moviepy.editor import clips_array, CompositeVideoClip, VideoFileClip
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -52,19 +56,72 @@ def getDaysUntilProjectUnlock(userProject):
 
 
 class UserVideoView(UproveAPIView):
+
+    @atomic
     def post(self, request):
         rawAvVideo = self.data.get('avVideo')
         rawScreenVideo = self.data.get('screenVideo')
         if not any([rawAvVideo, rawScreenVideo]):
             return Response(status=status.HTTP_400_BAD_REQUEST, data='At least one video is required')
 
-        # TODO: Process video data
-        userVideo = self.createUserVideo(self.user, self.data)
+        # Write videos to temporary directory which gets deleted after exiting "with" statement
+        with tempfile.TemporaryDirectory() as tmpDirectory:
+            avVideo = open(f'{tmpDirectory}/avVideo.webm', 'wb+')
+            for chunk in rawAvVideo.chunks():
+                avVideo.write(chunk)
+            avVideo.seek(0)
+            outputName = f'{tmpDirectory}/outputAvVideo.webm'
+            (
+                ffmpeg
+                .input(avVideo.name)
+                .output(outputName, f='webm', video_bitrate='40M', r=25)
+                .run()
+            )
+            avClip = VideoFileClip(outputName)
+            # avClip.resize(0.2)
+            avVideo.close()
 
-        return Response(status=status.HTTP_200_OK, data=getSerializedUserVideo(userVideo))
+            screenVideo = open(f'{tmpDirectory}/screenVideo.webm', 'wb+')
+            for chunk in rawScreenVideo.chunks():
+                screenVideo.write(chunk)
+            screenVideo.seek(0)
+            outputName = f'{tmpDirectory}/outputScreenVideo.webm'
+            (
+                ffmpeg
+                .input(screenVideo.name)
+                .output(outputName, f='webm', video_bitrate='40M', r=25)
+                .run()
+            )
+            screenClip = VideoFileClip(outputName)
+            screenVideo.close()
 
-    def put(self, request, videoId):
-        pass
+            combinedClip = clips_array([[screenClip, avClip]])
+            # combinedClip = CompositeVideoClip([avClip.set_position('right', 'bottom'), screenClip])
+            outputName = f'{tmpDirectory}/outputCombinedVideo.webm'
+            combinedClip.write_videofile(outputName)
+            with open(outputName, 'rb') as video:
+                userVideo = UserVideo(
+                    user=self.user,
+                    video=File(video),
+                    title=self.data.get('title') or 'Combined video',
+                    createdDateTime=timezone.now(),
+                    modifiedDateTime=timezone.now()
+                )
+                userVideo.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        videoId = self.data.get('id')
+        if not videoId:
+            return Response('A video ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        video = self.getVideo(videoId)
+        if not security.isSelf(video.user_id, user=self.user):
+            return Response('You are not permitted to delete this video', status=status.HTTP_401_UNAUTHORIZED)
+
+        video.delete()
+        return Response(status=status.HTTP_200_OK, data=videoId)
 
     @staticmethod
     def getVideo(videoId):
@@ -75,11 +132,11 @@ class UserVideoView(UproveAPIView):
 
     @staticmethod
     @atomic
-    def createUserVideo(user, data):
+    def createUserVideo(user, data, videoKey='video'):
         video = UserVideo(
             user=user,
-            video=data['video'],
-            title=data.get('title') or data['video'].name,
+            video=data[videoKey],
+            title=data.get('title') or data[videoKey].name,
             createdDateTime=timezone.now(),
             modifiedDateTime=timezone.now()
         )

@@ -19,7 +19,7 @@ services:
        dockerfile: Dockerfile_backend_dev
      command: bash -c "python manage.py collectstatic --noinput --clear && python manage.py runserver 0.0.0.0:8080"
      environment:
-       IS_DOCKER: true
+       IS_DOCKER: 1
      volumes:
        - ./up:/up
      depends_on:

@@ -32,6 +32,7 @@
 
 <script>
 import InputSelectize from "../inputs/InputSelectize";
+
 export default {
     name: "CustomVideo",
     props: ['elId'],
@@ -97,14 +98,22 @@ export default {
                 video$[0].play();
 
                 // Create video recorder
-                this[recorderStr] = new MediaRecorder(stream);
+                this[recorderStr] = new MediaRecorder(stream, {mimeType: 'video/webm'});
+                if (this[recorderStr].hasOwnProperty('setCaptureRate')) {
+                    console.log('Here');
+                    this[recorderStr].setCaptureRate(60);
+                }
+                if (this[recorderStr].hasOwnProperty('setVideoFrameRate')) {
+                    console.log('Here');
+                    this[recorderStr].setVideoFrameRate(60);
+                }
                 this[recorderStr].ondataavailable = (e) => {
                     chunks.push(e.data);
                 }
 
                 // Show the recorded video with playback options
                 this[recorderStr].onstop = (e) => {
-                    const blob = new Blob(chunks, {type: 'video/mp4'});
+                    const blob = new Blob(chunks, {type: 'video/webm'});
                     this.formData[formField] = blob;
                     video$.prop('srcObject', null);  // Remove the live stream
                     video$.prop('src', URL.createObjectURL(blob));  // Add the recorded video

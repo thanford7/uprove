@@ -82,6 +82,7 @@
                 />
             </div>
         </div>
+        <CustomVideo/>
     </BasePage>
     <EditEmployerModal/>
     <EditRoleModal/>
@@ -93,6 +94,7 @@
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
+import CustomVideo from "../../components/CustomVideo";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditRoleModal from "../../modals/EditRoleModal";
 import EditJobTemplateModal from "../../modals/EditJobTemplateModal";
@@ -107,7 +109,7 @@ import BasePage from "../BasePage";
 export default {
     name: "AdminPage.vue",
     components: {
-        BasePage,
+        BasePage, CustomVideo,
         SkillsSelectize,
         BannerAlert, EditEmployerModal, EditRoleModal, EditProjectModal, EditJobTemplateModal,
         EditSkillModal, EditUserModal, InputSelectize
