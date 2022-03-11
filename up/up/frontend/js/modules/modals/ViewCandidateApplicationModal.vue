@@ -7,13 +7,20 @@
     >
         <template v-slot:headerHtml>
             &nbsp;
-            <span v-if="formData.evaluationCriteria && formData.evaluationCriteria.length"
-                  class="badge rounded-pill"
-                  :class="`bg-${getBadgeColor({score: formData.evaluationScorePct})}`"
-                  style="font-size: 1em;"
+            <InfoToolTip
+                :elId="getNewElUid()"
+                :content="getEvalPopoverHtml()"
+                :isHtmlContent="true"
+                :isExcludeInfoCircle="true"
             >
-                {{formData.evaluationScorePct}}%
-            </span>
+                <span v-if="formData.evaluationCriteria && formData.evaluationCriteria.length"
+                      class="badge rounded-pill"
+                      :class="`bg-${getBadgeColor({score: formData.evaluationScorePct})}`"
+                      style="font-size: 1em;"
+                >
+                    {{formData.evaluationScorePct}}%
+                </span>
+            </InfoToolTip>
         </template>
         <div class="row">
             <div :class="(isShowEvaluation) ? 'col-md-6' : 'col'">
@@ -175,6 +182,7 @@ export default {
     methods: {
         getBadgeColor: userProjectUtil.getBadgeColor,
         getEvaluationScore: userProjectUtil.getEvaluationScore,
+        getEvalPopoverHtml: userProjectUtil.getEvalPopoverHtml,
         isEmpty: dataUtil.isEmpty,
         isEmptyString: formChecker.isEmptyWysiwyg,
         parseInt: parseInt,

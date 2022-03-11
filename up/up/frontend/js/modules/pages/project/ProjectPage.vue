@@ -25,7 +25,12 @@
                     </div>
                     <div v-else class="-sub-text pb-2">Select career level to view instructions</div>
                 </CollapseDiv>
-                <CollapseDiv v-if="isLoggedIn && isEmployer && evaluationCriteria" :elId="getNewElUid()" class="-border-bottom--light mb-2">
+                <CollapseDiv
+                    v-if="isLoggedIn && isEmployer && evaluationCriteria"
+                    :elId="getNewElUid()"
+                    :isClosed="true"
+                    class="-border-bottom--light mb-2"
+                >
                     <template v-slot:header>
                         <h3>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h3>
                     </template>
