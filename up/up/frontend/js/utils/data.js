@@ -266,6 +266,10 @@ class DataUtil {
         return [Object, Array].includes((obj || {}).constructor) && !Object.entries((obj || {})).length;
     }
 
+    isEmptyOrNil(val) {
+        return this.isNil(val) || this.isEmpty(val);
+    }
+
     isObject(val) {
         return (
             typeof val === 'object' &&

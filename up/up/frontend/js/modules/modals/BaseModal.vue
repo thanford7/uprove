@@ -35,6 +35,7 @@
 import BannerAlert from "../components/BannerAlert";
 import ButtonDelete from "../buttons/ButtonDelete";
 import Modal from "bootstrap/js/dist/modal";
+import dataUtil from "../../utils/data";
 
 export default {
     components: {BannerAlert, ButtonDelete},
@@ -74,6 +75,9 @@ export default {
             const modal$ = $(`#${this.modalName}`);
             if (modal$.length) {
                 Modal.getOrCreateInstance(modal$, {backdrop: 'static'});
+                modal$[0].addEventListener('hidden.bs.modal', (e) => {
+                    this.eventBus.emit('formClear');  // Clear all non-reactive elements
+                });
             }
         }
     },
@@ -82,6 +86,12 @@ export default {
         if (this.isContentOnly) {
             this.eventBus.on('ajaxSuccess', this.initForm);
         }
+        this.eventBus.on('injectFormData', ([modalName, injectFn, dataTargetPath]) => {
+            if (this.modalName === modalName && this.formData) {
+                const target = dataUtil.get(this.formData, dataTargetPath);
+                injectFn(target);
+            }
+        });
     },
     updated() {
         this.initModal();

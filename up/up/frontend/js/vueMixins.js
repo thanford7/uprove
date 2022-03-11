@@ -69,7 +69,11 @@ const ajaxRequestMixin = {
         return {
             apiUrl: '/api/v1/',
             crudUrl: null,
-            initDataKey: null,  // The key to access the data structure to be updated after CRUD operation. To update all initData, leave blank
+            // The key to access the data structure to be updated after CRUD operation
+            // To update all initData, leave blank
+            // Can be single item or array
+            // Each item can be a path string or a function to get the data to be updated
+            initDataKey: null,
             isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
             updateDeleteMethod: null, // Set to PUT or POST if not sending a delete ID response from ajax request
             formData: {},  // Use for modals
@@ -103,7 +107,7 @@ const ajaxRequestMixin = {
                     }
                 }
                 this.formData = {};
-                if (this.isAjaxModal) {
+                if (this.isAjaxModal && this.modal$) {
                     this.modal$.hide();
                 }
 
@@ -125,7 +129,8 @@ const ajaxRequestMixin = {
                 this.initDataKey = [this.initDataKey];
             }
             this.initDataKey.forEach((dataKey) => {
-                const updateObject = this.getUpdateObject(dataKey);  // Object in memory to be updated
+                // Object in memory to be updated
+                const updateObject = (typeof dataKey === 'function') ? dataKey() : this.getUpdateObject(dataKey);
                 // Response data contains more than one data object to be mapped to in memory data
                 if (dataUtil.isObject(newData) && dataKey in newData) {
                     dataUtil.updateObjectInPlace(this.initData[dataKey], newData[dataKey]);
@@ -140,9 +145,9 @@ const ajaxRequestMixin = {
                     dataUtil.updateObjectInPlace(this.initData, newData);
                 }
             });
-            this.afterUpdateInitData();
+            this.afterUpdateInitData(newData);
         },
-        afterUpdateInitData() {
+        afterUpdateInitData(newData) {
             // subclass
         },
         updateInitDataDelete(deleteId) {
@@ -393,7 +398,6 @@ const modalsMixin = {
     methods: {
         initForm() {
             this.formData = this.getEmptyFormData();
-            eventBus.emit('formClear');  // Clear all non-reactive elements
         },
         processRawData(rawData) {
             // subclass

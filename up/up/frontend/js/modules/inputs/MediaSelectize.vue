@@ -22,13 +22,18 @@ export default {
         mediaTypes: {
             type: Array,
             required: true
+        },
+        assetsKey: {
+            type: String,
+            default: 'assets'
         }
     },
     computed: {
         cfg() {
             const optgroups = [];
-            const options = (this.initData.assets) ? this.mediaTypes.reduce((allMedia, mediaType) => {
-                const mediaItems = this.initData.assets[`${mediaType}s`];
+            const assets = dataUtil.get(this.initData, this.assetsKey);
+            const options = (assets) ? this.mediaTypes.reduce((allMedia, mediaType) => {
+                const mediaItems = assets[`${mediaType}s`];
                 if (!mediaItems || !mediaItems.length) {
                     return allMedia;
                 }

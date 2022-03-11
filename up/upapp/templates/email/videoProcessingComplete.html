@@ -1,0 +1,10 @@
+{% extends 'email/baseEmail.html' %}
+
+{% block body %}
+    <p style="text-align:left">
+        Video processing is complete. You can view your video at the
+        <a href="{{ protocol }}://{{ domain }}/{{ url }}" target="_blank">
+            {{ linkName }}
+        </a>
+    </p>
+{% endblock body %}

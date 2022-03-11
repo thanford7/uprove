@@ -19,7 +19,10 @@ export default {
             }
         }
     },
-    props: ['cfg', 'elId', 'isParseAsInt', 'isParseAsBits', 'placeholder', 'items'],
+    props: [
+        'cfg', 'elId', 'isParseAsInt', 'isParseAsBits', 'placeholder', 'items',
+        'isPreserveValue'  // Don't clear the selectize on form clear event
+    ],
     methods: {
         clear() {
             this.elSel.clear(true);
@@ -61,7 +64,9 @@ export default {
                 });
                 this.elSel.on('blur', () => { $(this.targetEl).trigger('blur'); });
                 this.eventBus.on('formClear', () => {
-                    this.clear();
+                    if (!this.isPreserveValue) {
+                        this.clear();
+                    }
                 });
             }
         }

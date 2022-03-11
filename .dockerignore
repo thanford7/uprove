@@ -1,5 +1,7 @@
 node_modules
 .env
 docker-compose*
+Dockerfile*
 *.crt
 db_backup
+secrets

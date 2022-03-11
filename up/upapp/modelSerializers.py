@@ -40,9 +40,9 @@ def _addSerializedUserAssets(dataDict, user):
     dataDict[ContentTypes.EXPERIENCE.value] = [getSerializedUserExperience(e) for e in user.experience.all()]
     dataDict[ContentTypes.CUSTOM.value] = [getSerializedUserContentItem(ci) for ci in user.contentItem.all()]
     dataDict[ContentTypes.PROJECT.value] = [getSerializedUserProject(up) for up in user.userProject.all()]
-    dataDict['videos'] = [getSerializedUserVideo(v) for v in user.video.all()]
-    dataDict['files'] = [getSerializedUserFile(f) for f in user.file.all()]
-    dataDict['images'] = [getSerializedUserImage(i) for i in user.image.all()]
+    dataDict['videos'] = [getSerializedUserVideo(v) for v in user.videos.all()]
+    dataDict['files'] = [getSerializedUserFile(f) for f in user.files.all()]
+    dataDict['images'] = [getSerializedUserImage(i) for i in user.images.all()]
 
 
 def serializeGenericItem(item):
@@ -68,7 +68,7 @@ def serializeGenericItem(item):
 
 
 def getSerializedUser(user: User, isIncludeAssets: bool=False):
-    profileImage = next((i.image.url for i in user.image.all() if i.isDefault), None)
+    profileImage = next((i.image.url for i in user.images.all() if i.isDefault), None)
     serializedUser = {
         'id': user.id,
         'firstName': user.firstName,

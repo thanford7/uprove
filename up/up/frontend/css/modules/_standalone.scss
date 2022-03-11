@@ -129,3 +129,8 @@
     text-decoration: underline;
     cursor: pointer;
 }
+
+.-border-rounded {
+    border: 1px solid colors.$color-darkgrey;
+    border-radius: 10px;
+}

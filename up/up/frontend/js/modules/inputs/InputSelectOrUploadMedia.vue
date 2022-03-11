@@ -4,6 +4,7 @@
             ref="existingSel"
             :currentVal="currentVal"
             :mediaTypes="mediaTypes"
+            :assetsKey="assetsKey"
             :isMultiUpload="isMultiUpload"
             :placeholder="`Select existing ${placeholderText}...`"
             @selectedMedia="$emit('selectedMediaExisting', $event)"
@@ -44,7 +45,11 @@ export default {
         },
         isMultiUpload: Boolean,
         placeholderDescription: String,
-        currentVal: [String, Number]
+        currentVal: [String, Number],
+        assetsKey: {
+            type: String,
+            default: 'assets'
+        }
     },
     components: {InputMedia, MediaSelectize},
     methods: {

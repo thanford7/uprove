@@ -5,3 +5,4 @@ node_modules
 /up/up/frontend/dist/*
 secrets
 db_backup
+media

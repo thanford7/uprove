@@ -6,6 +6,7 @@ import ffmpeg as ffmpeg
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.files.base import File
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
@@ -14,7 +15,7 @@ from django.db.transaction import atomic
 from django.template import loader
 from django.templatetags.static import static
 from django.utils import crypto, timezone
-from moviepy.editor import clips_array, CompositeVideoClip, VideoFileClip
+from moviepy.editor import clips_array, VideoFileClip
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -64,52 +65,26 @@ class UserVideoView(UproveAPIView):
         if not any([rawAvVideo, rawScreenVideo]):
             return Response(status=status.HTTP_400_BAD_REQUEST, data='At least one video is required')
 
-        # Write videos to temporary directory which gets deleted after exiting "with" statement
-        with tempfile.TemporaryDirectory() as tmpDirectory:
-            avVideo = open(f'{tmpDirectory}/avVideo.webm', 'wb+')
-            for chunk in rawAvVideo.chunks():
-                avVideo.write(chunk)
-            avVideo.seek(0)
-            outputName = f'{tmpDirectory}/outputAvVideo.webm'
-            (
-                ffmpeg
-                .input(avVideo.name)
-                .output(outputName, f='webm', video_bitrate='40M', r=25)
-                .run()
+        if rawAvVideo and rawScreenVideo:
+            userVideo = self.createCombinedUserVideo(self.user, self.data, rawAvVideo, rawScreenVideo)
+            self.setUserProjectVideo(userVideo)
+            # TODO: Send user an email if there is an error. Also send an email to Uprove support
+            EmailView.sendEmail(
+                'Uprove | Video processing complete',
+                [self.user.email],
+                djangoContext={
+                    'protocol': 'http' if settings.DEBUG else 'https',
+                    'domain': get_current_site(request).domain,
+                    'linkName': 'Dashboard page',
+                    'url': 'candidateDashboard/' if self.user.isCandidate else 'employerDashboard/'
+                },
+                djangoEmailBodyTemplate='email/videoProcessingComplete.html'
             )
-            avClip = VideoFileClip(outputName)
-            # avClip.resize(0.2)
-            avVideo.close()
-
-            screenVideo = open(f'{tmpDirectory}/screenVideo.webm', 'wb+')
-            for chunk in rawScreenVideo.chunks():
-                screenVideo.write(chunk)
-            screenVideo.seek(0)
-            outputName = f'{tmpDirectory}/outputScreenVideo.webm'
-            (
-                ffmpeg
-                .input(screenVideo.name)
-                .output(outputName, f='webm', video_bitrate='40M', r=25)
-                .run()
-            )
-            screenClip = VideoFileClip(outputName)
-            screenVideo.close()
-
-            combinedClip = clips_array([[screenClip, avClip]])
-            # combinedClip = CompositeVideoClip([avClip.set_position('right', 'bottom'), screenClip])
-            outputName = f'{tmpDirectory}/outputCombinedVideo.webm'
-            combinedClip.write_videofile(outputName)
-            with open(outputName, 'rb') as video:
-                userVideo = UserVideo(
-                    user=self.user,
-                    video=File(video),
-                    title=self.data.get('title') or 'Combined video',
-                    createdDateTime=timezone.now(),
-                    modifiedDateTime=timezone.now()
-                )
-                userVideo.save()
-
-        return Response(status=status.HTTP_200_OK)
+        else:
+            videoKey = 'avVideo' if rawAvVideo else 'screenVideo'
+            userVideo = self.createUserVideo(self.user, self.data, videoKey=videoKey)
+            self.setUserProjectVideo(userVideo)
+        return Response(status=status.HTTP_200_OK, data=getSerializedUserVideo(userVideo))
 
     def delete(self, request):
         videoId = self.data.get('id')
@@ -122,6 +97,11 @@ class UserVideoView(UproveAPIView):
 
         video.delete()
         return Response(status=status.HTTP_200_OK, data=videoId)
+
+    def setUserProjectVideo(self, userVideo):
+        if projectId := self.data.get('projectId'):
+            project = UserProjectView.getUserProjects(userProjectId=projectId)
+            project.videos.add(userVideo)
 
     @staticmethod
     def getVideo(videoId):
@@ -142,6 +122,54 @@ class UserVideoView(UproveAPIView):
         )
         video.save()
         return video
+
+    @staticmethod
+    @atomic
+    def createCombinedUserVideo(user, data, rawAvVideo, rawScreenVideo):
+        # Write videos to temporary directory which gets deleted after exiting "with" statement
+        with tempfile.TemporaryDirectory() as tmpDirectory:
+            avVideo = open(f'{tmpDirectory}/avVideo.webm', 'wb+')
+            for chunk in rawAvVideo.chunks():
+                avVideo.write(chunk)
+            avVideo.seek(0)
+            outputName = f'{tmpDirectory}/outputAvVideo.webm'
+            (
+                ffmpeg
+                    .input(avVideo.name)
+                    .output(outputName, f='webm', video_bitrate='40M', r=25)
+                    .run()
+            )
+            avClip = VideoFileClip(outputName)
+            # avClip.resize(0.2)
+            avVideo.close()
+
+            screenVideo = open(f'{tmpDirectory}/screenVideo.webm', 'wb+')
+            for chunk in rawScreenVideo.chunks():
+                screenVideo.write(chunk)
+            screenVideo.seek(0)
+            outputName = f'{tmpDirectory}/outputScreenVideo.webm'
+            (
+                ffmpeg
+                    .input(screenVideo.name)
+                    .output(outputName, f='webm', video_bitrate='40M', r=25)
+                    .run()
+            )
+            screenClip = VideoFileClip(outputName)
+            screenVideo.close()
+
+            combinedClip = clips_array([[screenClip, avClip]])
+            outputName = f'outputCombinedVideo_{timezone.now().isoformat()}.webm'
+            combinedClip.write_videofile(outputName)
+            with open(outputName, 'rb') as video:
+                userVideo = UserVideo(
+                    user=user,
+                    video=File(video),
+                    title=data.get('title') or 'Combined video',
+                    createdDateTime=timezone.now(),
+                    modifiedDateTime=timezone.now()
+                )
+                userVideo.save()
+        return userVideo
 
 
 class UserFileView(APIView):
@@ -330,9 +358,9 @@ class UserView(UproveAPIView):
                     'experience__organization',
                     'contentItem',
                     'contentItem__section',
-                    'video',
-                    'file',
-                    'image',
+                    'videos',
+                    'files',
+                    'images',
                     'userTag',
                     'userTag__tag',
                     'userProject',
@@ -363,9 +391,9 @@ class UserView(UproveAPIView):
                 'experience',
                 'contentItem',
                 'contentItem__section',
-                'video',
-                'file',
-                'image',
+                'videos',
+                'files',
+                'images',
                 'tag'
             ) \
                 .get(id=userId)
@@ -939,13 +967,14 @@ class UserProjectView(UproveAPIView):
         if isUserProjectLocked(project):
             return Response(f'Project is locked for another {dataUtil.pluralize("day", getDaysUntilProjectUnlock(project))}', status=status.HTTP_401_UNAUTHORIZED)
 
+        user = UserView.getUser(self.user.id)  # Grab the user with all associated data so we can get files without extra DB query
         isChanged = any([
             dataUtil.setObjectAttributes(project, self.data, {
                 'projectNotes': None,
             }),
-            self.addFiles(project, self.data, self.files, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
-            self.addFiles(project, self.data, self.files, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
-            self.addFiles(project, self.data, self.files, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
+            self.addFiles(project, user, self.data, self.files, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
+            self.addFiles(project, user, self.data, self.files, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
+            self.addFiles(project, user, self.data, self.files, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
         ])
 
         if isChanged:
@@ -989,23 +1018,28 @@ class UserProjectView(UproveAPIView):
         return createFileFn
 
     @staticmethod
-    def addFiles(project, data, fileData, fileDataKey, fileMetaDataKey, createObjFn):
+    def addFiles(project, user, data, fileData, fileDataKey, fileMetaDataKey, createObjFn):
         isChanged = False
         filesDict = {f.name: f for f in fileData.get(fileDataKey, [])}
         usedFileIds = []
-        existingFiles = getattr(project, fileDataKey)
-        existingFilesDict = {f.id: f for f in existingFiles.all()}
+        existingProjectFiles = getattr(project, fileDataKey)
+        existingProjectFilesDict = {f.id: f for f in existingProjectFiles.all()}
+        allFiles = getattr(user, fileDataKey)
+        allFilesDict = {f.id: f for f in allFiles.all()}
         for fileMetaData in data.get(fileMetaDataKey, []):
             # Add new files
             if fileData := filesDict[fileMetaData['fileKey']] if fileMetaData['fileKey'] else None:
                 file = createObjFn(project.user_id, fileData, fileMetaData)
-                existingFiles.add(file)
+                existingProjectFiles.add(file)
                 usedFileIds.append(file.id)
                 isChanged = True
             else:  # Update existing files
                 fileId = fileMetaData['id']
-                if not (file := existingFilesDict.get(fileId)):
-                    return Response(f'No current file exists with ID={fileId}', status=status.HTTP_400_BAD_REQUEST)
+
+                # User selected an existing file that is not currently associated with this project
+                if not (file := existingProjectFilesDict.get(fileId)):
+                    file = allFilesDict.get(fileId)
+                    existingProjectFiles.add(file)
                 isChanged = isChanged or dataUtil.setObjectAttributes(file, fileMetaData, {
                     'title': None,
                 })
@@ -1013,7 +1047,7 @@ class UserProjectView(UproveAPIView):
                 usedFileIds.append(file.id)
 
         # Remove files that are no longer included
-        for file in existingFilesDict.values():
+        for file in existingProjectFilesDict.values():
             if file.id not in usedFileIds:
                 project.files.remove(file)
                 isChanged = True
@@ -1058,11 +1092,12 @@ class UserProjectView(UproveAPIView):
         )
         project.save()
 
-        UserProjectView.addFiles(project, data, fileData, 'files', 'filesMetaData',
+        user = UserView.getUser(data['userId'])  # Grab the user with all associated data so we can get files without extra DB query
+        UserProjectView.addFiles(project, user, data, fileData, 'files', 'filesMetaData',
                                  UserProjectView.getCreateFileFn(UserFile, 'file'))
-        UserProjectView.addFiles(project, data, fileData, 'videos', 'videosMetaData',
+        UserProjectView.addFiles(project, user, data, fileData, 'videos', 'videosMetaData',
                                  UserProjectView.getCreateFileFn(UserVideo, 'video'))
-        UserProjectView.addFiles(project, data, fileData, 'images', 'imagesMetaData',
+        UserProjectView.addFiles(project, user, data, fileData, 'images', 'imagesMetaData',
                                  UserProjectView.getCreateFileFn(UserImage, 'image'))
 
         saveActivity(ActivityKey.CANDIDATE_CREATE_PROJECT, project.user_id)

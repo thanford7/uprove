@@ -145,12 +145,14 @@
             </div>
         </div>
     </BasePage>
+    <AddVideoRecordingModal/>
     <EditJobApplicationModal/>
     <EditUserProjectModal/>
 </template>
 
 <script>
 import {PROJECT_STATUSES} from '../../../globalData';
+import AddVideoRecordingModal from "../../modals/AddVideoRecordingModal";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
@@ -171,7 +173,7 @@ import BasePage from "../BasePage";
 export default {
     name: "CandidateDashboardPage",
     components: {
-        BasePage,
+        BasePage, AddVideoRecordingModal,
         BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, ButtonDelete, EditJobApplicationModal,
         EditUserProjectModal, HamburgerDropdown, InfoToolTip, PageHeader, Table
     },

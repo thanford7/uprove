@@ -192,7 +192,7 @@ class UserContentItemSection(models.Model):
 
 
 class UserVideo(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='video')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='videos')
     video = models.FileField(
         upload_to=getUserUploadLocation,
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_VIDEO)]
@@ -201,7 +201,7 @@ class UserVideo(AuditFields):
 
 
 class UserFile(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='file')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='files')
     file = models.FileField(
         upload_to=getUserUploadLocation,
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_FILE)]
@@ -210,7 +210,7 @@ class UserFile(AuditFields):
 
 
 class UserImage(AuditFields):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='image')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, related_name='images')
     image = models.ImageField(upload_to=getUserUploadLocation)
     title = models.CharField(max_length=100)
     isDefault = models.BooleanField(default=False)
