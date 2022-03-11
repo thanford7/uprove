@@ -54,7 +54,7 @@ class ProjectView(UproveAPIView):
             return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
         self.setInstructions(project, self.data.get('instructions'))
         self.setEvaluationCriteria(project, self.data.get('evaluationCriteria'))
-        self.setFiles(project, self.files['files'], self.data.get('filesMetaData', []), request)
+        self.setFiles(project, self.files.get('files', []), self.data.get('filesMetaData', []), request)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
 
@@ -84,7 +84,7 @@ class ProjectView(UproveAPIView):
                 SkillView.setProjectSkills(project, self.data.get('skills')),
                 self.setInstructions(project, self.data.get('instructions')),
                 self.setEvaluationCriteria(project, self.data.get('evaluationCriteria')),
-                self.setFiles(project, self.files['files'], self.data.get('filesMetaData', []), request)
+                self.setFiles(project, self.files.get('files', []), self.data.get('filesMetaData', []), request)
             ])
         except ValueError as e:
             return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())

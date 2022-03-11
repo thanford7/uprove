@@ -25,7 +25,7 @@ module.exports = function (env, argv) {
         output: {
             path: path.resolve(__dirname, 'up/frontend/dist/'),
             publicPath: '/static/',
-            filename: `[name].js`,
+            filename: `[name].[contenthash].js`,
             chunkFilename: '[name].[chunkhash].js',
         },
         plugins: [
