@@ -402,7 +402,7 @@ class UserView(UproveAPIView):
 
     @staticmethod
     def getUsers():
-        return User.objects.select_related('djangoUser').prefetch_related('image', 'profile').all()
+        return User.objects.select_related('djangoUser').prefetch_related('images', 'profile').all()
 
     @staticmethod
     def updateUser(user, data):
