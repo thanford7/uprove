@@ -55,6 +55,8 @@ urlpatterns = [
     re_path(apiPath + 'user-project/(?P<userProjectId>[0-9]+)?/?$', user.UserProjectView.as_view()),
     re_path(apiPath + 'user-project/status/?$', user.UserProjectStatusView.as_view()),
     re_path(apiPath + 'user-project-evaluation/$', employer.UserProjectEvaluationView.as_view()),
+    re_path(apiPath + 'user-file/$', user.UserFileView.as_view()),
+    re_path(apiPath + 'user-image/$', user.UserImageView.as_view()),
     re_path(apiPath + 'user-video/$', user.UserVideoView.as_view()),
 
     # Email

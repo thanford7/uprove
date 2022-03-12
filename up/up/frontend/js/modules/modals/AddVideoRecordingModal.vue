@@ -5,8 +5,12 @@
     >
         <CustomVideo :isModal="true"
                      :addFormData="{projectId: formData.id}"
-                     :targetInitDataKey="() => initData.userProjects.find((up) => up.id === formData.id).videos"
+                     :targetInitDataKey="[
+                         () => initData.userProjects.find((up) => up.id === formData.id).videos,
+                         'user.videos'
+                     ]"
                      :isUpdateProject="true"
+                     @videoComplete="formData.videos.push($event)"
         />
         <template v-slot:footer>
             <button type="button"

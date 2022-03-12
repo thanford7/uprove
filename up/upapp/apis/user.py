@@ -65,25 +65,20 @@ class UserVideoView(UproveAPIView):
         if not any([rawAvVideo, rawScreenVideo]):
             return Response(status=status.HTTP_400_BAD_REQUEST, data='At least one video is required')
 
-        if rawAvVideo and rawScreenVideo:
-            userVideo = self.createCombinedUserVideo(self.user, self.data, rawAvVideo, rawScreenVideo)
-            self.setUserProjectVideo(userVideo)
-            # TODO: Send user an email if there is an error. Also send an email to Uprove support
-            EmailView.sendEmail(
-                'Uprove | Video processing complete',
-                [self.user.email],
-                djangoContext={
-                    'protocol': 'http' if settings.DEBUG else 'https',
-                    'domain': get_current_site(request).domain,
-                    'linkName': 'Dashboard page',
-                    'url': 'candidateDashboard/' if self.user.isCandidate else 'employerDashboard/'
-                },
-                djangoEmailBodyTemplate='email/videoProcessingComplete.html'
-            )
-        else:
-            videoKey = 'avVideo' if rawAvVideo else 'screenVideo'
-            userVideo = self.createUserVideo(self.user, self.data, videoKey=videoKey)
-            self.setUserProjectVideo(userVideo)
+        userVideo = self.createCombinedUserVideo(self.user, self.data, rawAvVideo, rawScreenVideo)
+        self.setUserProjectVideo(userVideo)
+        # TODO: Send user an email if there is an error. Also send an email to Uprove support
+        EmailView.sendEmail(
+            'Uprove | Video processing complete',
+            [self.user.email],
+            djangoContext={
+                'protocol': 'http' if settings.DEBUG else 'https',
+                'domain': get_current_site(request).domain,
+                'linkName': 'Dashboard page',
+                'url': 'candidateDashboard/' if self.user.isCandidate else 'employerDashboard/'
+            },
+            djangoEmailBodyTemplate='email/videoProcessingComplete.html'
+        )
         return Response(status=status.HTTP_200_OK, data=getSerializedUserVideo(userVideo))
 
     def delete(self, request):
@@ -128,38 +123,44 @@ class UserVideoView(UproveAPIView):
     def createCombinedUserVideo(user, data, rawAvVideo, rawScreenVideo):
         # Write videos to temporary directory which gets deleted after exiting "with" statement
         with tempfile.TemporaryDirectory() as tmpDirectory:
-            avVideo = open(f'{tmpDirectory}/avVideo.webm', 'wb+')
-            for chunk in rawAvVideo.chunks():
-                avVideo.write(chunk)
-            avVideo.seek(0)
-            outputName = f'{tmpDirectory}/outputAvVideo.webm'
-            (
-                ffmpeg
-                    .input(avVideo.name)
-                    .output(outputName, f='webm', video_bitrate='40M', r=25)
-                    .run()
-            )
-            avClip = VideoFileClip(outputName)
-            # avClip.resize(0.2)
-            avVideo.close()
+            avVideo = None
+            screenVideo = None
+            if rawAvVideo:
+                avVideo = open(f'{tmpDirectory}/avVideo.webm', 'wb+')
+                for chunk in rawAvVideo.chunks():
+                    avVideo.write(chunk)
+                avVideo.seek(0)
+                outputName = f'{tmpDirectory}/outputAvVideo.webm'
+                (
+                    ffmpeg
+                        .input(avVideo.name)
+                        .output(outputName, f='webm', video_bitrate='40M', r=25)
+                        .run()
+                )
+                avClip = VideoFileClip(outputName)
+                # avClip.resize(0.2)
+                avVideo.close()
 
-            screenVideo = open(f'{tmpDirectory}/screenVideo.webm', 'wb+')
-            for chunk in rawScreenVideo.chunks():
-                screenVideo.write(chunk)
-            screenVideo.seek(0)
-            outputName = f'{tmpDirectory}/outputScreenVideo.webm'
-            (
-                ffmpeg
-                    .input(screenVideo.name)
-                    .output(outputName, f='webm', video_bitrate='40M', r=25)
-                    .run()
-            )
-            screenClip = VideoFileClip(outputName)
-            screenVideo.close()
+            if rawScreenVideo:
+                screenVideo = open(f'{tmpDirectory}/screenVideo.webm', 'wb+')
+                for chunk in rawScreenVideo.chunks():
+                    screenVideo.write(chunk)
+                screenVideo.seek(0)
+                outputName = f'{tmpDirectory}/outputScreenVideo.webm'
+                (
+                    ffmpeg
+                        .input(screenVideo.name)
+                        .output(outputName, f='webm', video_bitrate='40M', r=25)
+                        .run()
+                )
+                screenClip = VideoFileClip(outputName)
+                screenVideo.close()
 
-            combinedClip = clips_array([[screenClip, avClip]])
-            outputName = f'outputCombinedVideo_{timezone.now().isoformat()}.webm'
-            combinedClip.write_videofile(outputName)
+            if avVideo and screenVideo:
+                combinedClip = clips_array([[screenClip, avClip]])
+                outputName = f'outputCombinedVideo_{timezone.now().isoformat()}.webm'
+                combinedClip.write_videofile(outputName)
+
             with open(outputName, 'rb') as video:
                 userVideo = UserVideo(
                     user=user,
@@ -169,10 +170,23 @@ class UserVideoView(UproveAPIView):
                     modifiedDateTime=timezone.now()
                 )
                 userVideo.save()
+
         return userVideo
 
 
-class UserFileView(APIView):
+class UserFileView(UproveAPIView):
+
+    def delete(self, request):
+        fileId = self.data.get('id')
+        if not fileId:
+            return Response('A file ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        file = self.getFile(fileId)
+        if not security.isSelf(file.user_id, user=self.user):
+            return Response('You are not permitted to delete this file', status=status.HTTP_401_UNAUTHORIZED)
+
+        file.delete()
+        return Response(status=status.HTTP_200_OK, data=fileId)
 
     @staticmethod
     def getFile(fileId):
@@ -203,7 +217,19 @@ class UserFileView(APIView):
         return savedFiles
 
 
-class UserImageView(APIView):
+class UserImageView(UproveAPIView):
+
+    def delete(self, request):
+        imageId = self.data.get('id')
+        if not imageId:
+            return Response('An image ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        image = self.getImage(imageId)
+        if not security.isSelf(image.user_id, user=self.user):
+            return Response('You are not permitted to delete this image', status=status.HTTP_401_UNAUTHORIZED)
+
+        image.delete()
+        return Response(status=status.HTTP_200_OK, data=imageId)
 
     @staticmethod
     def getImage(imageId):

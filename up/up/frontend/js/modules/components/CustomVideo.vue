@@ -1,91 +1,106 @@
 <template>
-    <div class="row">
-        <div class="col">
-            <h6 style="display: inline-block;">Recording type</h6>&nbsp;
-            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" content="
-                <p>All content types will record audio. Differences between options are:</p>
-                <ul>
-                    <li>
-                        <code>Screen and video</code>: Records a screen, application, or browser tab while simultaneously
-                        recording a user facing video. After saving, the two videos will be combined into a single video with
-                        the two videos playing side by side. This option is ideal if you are showing a presentation and want
-                        to record yourself as well.
-                    </li>
-                    <li>
-                        <code>Video</code>: Records a user facing video. This option is ideal if you are recording yourself
-                        answering a question or discussing a project, but don't have any files to present.
-                    </li>
-                    <li>
-                        <code>Screen</code>: Records a user facing video. This option is ideal if you are recording yourself
-                        answering a question or discussing a project, but don't have any files to present.
-                    </li>
-                </ul>
-            "
-            />
-            <InputSelectize
-                ref="recordingType"
-                :elId="getNewElUid()"
-                :cfg="recordingTypeCfg"
-                :isPreserveValue="true"
-                @selected="recordingType = $event"
-            />
-        </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <h6>Audio capture device</h6>
-            <InputSelectize
-                ref="audioInput"
-                :elId="getNewElUid()"
-                :cfg="{maxItems: 1, valueField: 'deviceId', labelField: 'label'}"
-                :isPreserveValue="true"
-            />
-        </div>
-    </div>
-    <div class="row" :style="(recordingType !== TYPE_SCREEN) ? 'display: auto;' : 'display: none;'">
-        <div class="col">
-            <h6>Video capture device</h6>
-            <InputSelectize
-                ref="videoInput"
-                :elId="getNewElUid()"
-                :cfg="{maxItems: 1, valueField: 'deviceId', labelField: 'label'}"
-                :isPreserveValue="true"
-            />
-        </div>
-    </div>
-    <div class="row mb-3">
-        <span>
-            <button class="btn btn-sm -color-orange" :id="recordBtnId"><i class="fas fa-video"></i> Record video</button>
-            &nbsp;<button class="btn btn-sm -color-red" :id="stopBtnId"><i class="fas fa-stop"></i> Stop video</button>
-            &nbsp;<button class="btn btn-sm btn-primary" :id="saveBtnId" hidden @click="saveChangeWithBanner"><i class="fas fa-save"></i> Save video</button>
-        </span>
-    </div>
-    <div class="row">
-            <h4 v-if="recordingStartSeconds"
-                class="-color-white-text -color-darkblue -border-rounded"
-            >
-                Recording will start in {{pluralize('second', recordingStartSeconds)}}
-            </h4>
-        <div v-if="hasData" class="mb-2">
-            <h6>Video title</h6>
-            <input type="text" class="form-control" placeholder="Add a video title" v-model="formData.title">
-        </div>
-        <p v-if="recordingType === TYPE_SCREEN_VIDEO" class="-sub-text">
-            The video feed and screen feed will be combined into one video during post-processing (after you save the videos).
-        </p>
-        <div v-if="recordingType !== TYPE_SCREEN" :class="(isModal) ? 'col-12' : 'col-md-5'">
-            <h6>Video recording</h6>
-            <div v-if="!hasData" class="-color-moderategrey -color-white-text -border-rounded p2 text-center">
-                Recording will begin when you click the "Record video" button
+    <div>
+        <div class="row">
+            <div class="col">
+                <h6 style="display: inline-block;">Recording type</h6>&nbsp;
+                <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" content="
+                    <p>All content types will record audio. Differences between options are:</p>
+                    <ul>
+                        <li>
+                            <code>Screen and video</code>: Records a screen, application, or browser tab while simultaneously
+                            recording a user facing video. After saving, the two videos will be combined into a single video with
+                            the two videos playing side by side. This option is ideal if you are showing a presentation and want
+                            to record yourself as well.
+                        </li>
+                        <li>
+                            <code>Video</code>: Records a user facing video. This option is ideal if you are recording yourself
+                            answering a question or discussing a project, but don't have any files to present.
+                        </li>
+                        <li>
+                            <code>Screen</code>: Records a user facing video. This option is ideal if you are recording yourself
+                            answering a question or discussing a project, but don't have any files to present.
+                        </li>
+                    </ul>
+                "
+                />
+                <InputSelectize
+                    ref="recordingType"
+                    :elId="getNewElUid()"
+                    :cfg="recordingTypeCfg"
+                    :isPreserveValue="true"
+                    @selected="recordingType = $event"
+                />
             </div>
-            <video id="live-video" muted :height="(hasData) ? 300 : 0"></video>
         </div>
-        <div v-if="recordingType !== TYPE_VIDEO" :class="(isModal) ? 'col-12' : 'col-md-5'">
-            <h6>Screen recording</h6>
-            <div v-if="!hasData"  class="-color-moderategrey -color-white-text -border-rounded p2 text-center">
-                Recording will begin when you click the "Record video" button
+        <div class="row">
+            <div class="col">
+                <h6>Audio capture device</h6>
+                <InputSelectize
+                    ref="audioInput"
+                    :elId="getNewElUid()"
+                    :cfg="{maxItems: 1, valueField: 'deviceId', labelField: 'label'}"
+                    :isPreserveValue="true"
+                />
             </div>
-            <video id="live-screen" muted :height="(hasData) ? 300 : 0"></video>
+        </div>
+        <div class="row" :style="(recordingType !== TYPE_SCREEN) ? 'display: auto;' : 'display: none;'">
+            <div class="col">
+                <h6>Video capture device</h6>
+                <InputSelectize
+                    ref="videoInput"
+                    :elId="getNewElUid()"
+                    :cfg="{maxItems: 1, valueField: 'deviceId', labelField: 'label'}"
+                    :isPreserveValue="true"
+                />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <span>
+                <button class="btn btn-sm -color-orange -color-hover-white-text"
+                        :id="recordBtnId"
+                >
+                    <i class="fas fa-video"></i> Record video
+                </button>&nbsp;
+                <button class="btn btn-sm -color-red -color-hover-white-text"
+                         :id="stopBtnId"
+                >
+                    <i class="fas fa-stop"></i> Stop video
+                </button>&nbsp;
+                <button class="btn btn-sm btn-primary"
+                        :id="saveBtnId" hidden
+                        @click="saveChangeWithBanner"
+                >
+                    <i class="fas fa-save"></i> Save video
+                </button>
+            </span>
+        </div>
+        <div class="row">
+                <h4 v-if="recordingStartSeconds"
+                    class="-color-white-text -color-darkblue -border-rounded"
+                >
+                    Recording will start in {{pluralize('second', recordingStartSeconds)}}
+                </h4>
+            <div v-if="hasData" class="mb-2">
+                <h6>Video title</h6>
+                <input type="text" class="form-control" placeholder="Add a video title" v-model="formData.title">
+            </div>
+            <p v-if="recordingType === TYPE_SCREEN_VIDEO" class="-sub-text">
+                The video feed and screen feed will be combined into one video during post-processing (after you save the videos).
+            </p>
+            <div v-if="recordingType !== TYPE_SCREEN" :class="(isModal) ? 'col-12' : 'col-md-5'">
+                <h6>Video recording</h6>
+                <div v-if="!hasData" class="-color-moderategrey -color-white-text -border-rounded p2 text-center">
+                    Recording will begin when you click the "Record video" button
+                </div>
+                <video id="live-video" muted :height="(hasData) ? 300 : 0"></video>
+            </div>
+            <div v-if="recordingType !== TYPE_VIDEO" :class="(isModal) ? 'col-12' : 'col-md-5'">
+                <h6>Screen recording</h6>
+                <div v-if="!hasData"  class="-color-moderategrey -color-white-text -border-rounded p2 text-center">
+                    Recording will begin when you click the "Record video" button
+                </div>
+                <video id="live-screen" muted :height="(hasData) ? 300 : 0"></video>
+            </div>
         </div>
     </div>
 </template>
@@ -142,7 +157,9 @@ export default {
             avRecorder: null,
             liveAvStream: null,
             screenRecorder: null,
-            liveScreenStream: null
+            liveScreenStream: null,
+            audioRecorder: null,
+            liveAudioStream: null
         }
     },
     computed: {
@@ -159,6 +176,10 @@ export default {
     methods: {
         afterUpdateInitData(newVideo) {
             if (this.isUpdateProject) {
+                // Update the formData if the user hasn't navigated away from this modal
+                this.$emit('videoComplete', newVideo);
+
+                // Update the formData if the user has navigated away from this modal
                 this.eventBus.emit('injectFormData', [
                     'editUserProjectModal',
                     (target) => { target.push(newVideo); },
@@ -166,22 +187,23 @@ export default {
                 ]);
             }
         },
+        getSuccessMessage(video) {
+            return `Video processing complete for ${video.title}`;
+        },
         processFormData() {
             return Object.assign(this.readForm(), this.addFormData || {});
         },
         saveChangeWithBanner(val) {
-            if (this.recordingType === TYPE_SCREEN_VIDEO) {
-                let message = 'This video requires post-processing which can take a few minutes. ' +
-                'You can navigate away from this screen and we\'ll send you an email once the video is done processing.'
-                if (this.addFormData && 'projectId' in this.addFormData) {
-                    const userProject = this.initData.userProjects.find((up) => up.id === this.addFormData.projectId);
-                    message += ` The video will be added to your ${userProject.customProject.projectTitle} project automatically.`
-                }
-                store.commit('addAlert', {
-                    message,
-                    alertType: SEVERITY.INFO
-                });
+            let message = 'This video requires post-processing which can take a few minutes. ' +
+            'You can navigate away from this screen and we\'ll send you an email once the video is done processing.'
+            if (this.addFormData && 'projectId' in this.addFormData) {
+                const userProject = this.initData.userProjects.find((up) => up.id === this.addFormData.projectId);
+                message += ` The video will be added to your ${userProject.customProject.projectTitle} project automatically.`
             }
+            store.commit('addAlert', {
+                message,
+                alertType: SEVERITY.INFO
+            });
             this.saveChange(val);
         },
         setAjaxUpdate() {
@@ -202,16 +224,40 @@ export default {
                         facingMode: 'user'  // Prefer the front facing camera for mobile devices
                     }
                 });
-                recorders.push(['avRecorder', 'liveAvStream', avChunks, $('#live-video'), 'avVideo']);
+
+                recorders.push({
+                    recorderStr: 'avRecorder',
+                    streamStr: 'liveAvStream',
+                    chunks: avChunks,
+                    video$: $('#live-video'),
+                    formField: 'avVideo',
+                });
             }
 
             if (this.recordingType !== this.TYPE_VIDEO) {
                 const screenChunks = [];
                 this.liveScreenStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {cursor: 'always'},
-                    audio: this.recordingType === TYPE_SCREEN
+                    audio: false
                 });
-                recorders.push(['screenRecorder', 'liveScreenStream', screenChunks, $('#live-screen'), 'screenVideo']);
+
+                // getDisplayMedia does not support audio capture for most browsers (and only PC)
+                // If we are only recording screen capture, we need to create an additional stream for the audio
+                if (this.recordingType === TYPE_SCREEN) {
+                    this.liveAudioStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {deviceId: this.$refs.audioInput.elSel.getValue()},
+                        video: false
+                    });
+                }
+
+                recorders.push({
+                    recorderStr: 'screenRecorder',
+                    streamStr: 'liveScreenStream',
+                    chunks: screenChunks,
+                    video$: $('#live-screen'),
+                    formField: 'screenVideo',
+                    audioStreamStr: 'liveAudioStream'
+                });
             }
 
             // Pause to allow the user to get ready to record
@@ -224,8 +270,12 @@ export default {
 
             setTimeout(() => {
                 this.recordBtn$.prop('disabled', false);
-                recorders.forEach(([recorderStr, streamStr, chunks, video$, formField]) => {
-                    const stream = this[streamStr];
+                recorders.forEach(({recorderStr, streamStr, chunks, video$, formField, audioStreamStr}) => {
+                    let stream = this[streamStr];
+                    if (audioStreamStr) {
+                        stream = new MediaStream([...stream.getVideoTracks(), ...this[audioStreamStr].getAudioTracks()]);
+                    }
+
                     // Start showing the video feed on the screen
                     video$.prop('src', null);
                     video$.prop('controls', false);

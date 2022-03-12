@@ -18,10 +18,10 @@
                             <span
                                 v-if="userProject.files.length"
                                 class="fa-stack fa-stack-sm float-end"
-                                :title="`${pluralize('file', userProject.files.length)} uploaded`"
+                                :title="`${pluralize('file', getFileCount(userProject))} uploaded`"
                             >
                               <i class="fas fa-file fa-stack-2x"></i>
-                              <strong class="fa-stack-1x -color-white-text">{{userProject.files.length}}</strong>
+                              <strong class="fa-stack-1x -color-white-text">{{getFileCount(userProject)}}</strong>
                             </span>
                         </template>
                         <template v-slot:body>
@@ -73,7 +73,7 @@
                                         :disabled="userProject.isLocked"
                                         :title="getProjectLockedNote(userProject)"
                                     >
-                                        Upload project files
+                                        Edit project files
                                     </button>
                                     <span v-if="userProject.isLocked">
                                         &nbsp;
@@ -132,14 +132,45 @@
             </div>
             <div class="col-md-9 card-custom">
                 <h3>Resources</h3>
-                <div class="row">
-                    <div v-for="video in initData.user.videos" class="col-md-6 p-2">
+                <div v-if="initData.user.videos && initData.user.videos.length" class="row">
+                    <h4>Videos</h4>
+                    <div v-for="video in initData.user.videos"
+                         class="col-md-5 m-2 p-2 -hover-highlight-border"
+                         style="position: relative;"
+                    >
                         <div>
-                            <video controls>
-                              <source :src="video.video">
-                            </video>
+                            <h6>{{video.title}}</h6>
+                            <video controls :src="video.video"></video>
                         </div>
-                        <ButtonDelete @click="deleteVideo(video.id)"/>
+                        <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
+                                      :isSmall="true"
+                                      @click="deleteVideo(video.id)"
+                        />
+                    </div>
+                </div>
+                <div v-if="initData.user.images && initData.user.images.length" class="row">
+                    <h4>Images</h4>
+                    <div v-for="image in initData.user.images"
+                         class="col-md-5 m-2 p-2 -hover-highlight-border"
+                         style="position: relative;"
+                    >
+                        <div>
+                            <h6>{{image.title}}</h6>
+                            <img :src="image.image">
+                        </div>
+                        <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
+                                      :isSmall="true"
+                                      @click="deleteImage(image.id)"
+                        />
+                    </div>
+                </div>
+                <div v-if="initData.user.files && initData.user.files.length" class="row">
+                    <h4>Files</h4>
+                    <div v-for="file in initData.user.files" class="col-6 col-md-4 m-2 -hover-highlight-border">
+                        <div>
+                            <FileDisplay :file="file"/>
+                            <ButtonDelete :isSmall="true" @click="deleteFile(file.id)"/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -162,6 +193,7 @@ import CONTENT from "./CandidateDashboardContent";
 import dataUtil from "../../../utils/data";
 import EditJobApplicationModal from "../../modals/EditJobApplicationModal";
 import EditUserProjectModal from "../../modals/EditUserProjectModal";
+import FileDisplay from "../../components/FileDisplay";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
@@ -173,15 +205,15 @@ import BasePage from "../BasePage";
 export default {
     name: "CandidateDashboardPage",
     components: {
-        BasePage, AddVideoRecordingModal,
-        BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, ButtonDelete, EditJobApplicationModal,
-        EditUserProjectModal, HamburgerDropdown, InfoToolTip, PageHeader, Table
+        BasePage, AddVideoRecordingModal, BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, ButtonDelete,
+        EditJobApplicationModal, EditUserProjectModal, FileDisplay, HamburgerDropdown, InfoToolTip, PageHeader, Table
     },
     data() {
         return {
             isUpdateData: true,
             confirmDelete: false,  // Delete confirmation is done directly in this file
             initDataKey: null,  // Set when ajax method is called
+            customDeleteFn: null,  // Once files are deleted, they need to be removed from user projects as well
             CONTENT,
             projectStatuses: PROJECT_STATUSES
         }
@@ -239,19 +271,47 @@ export default {
         resetAjaxData() {
             this.crudUrl = null;
             this.initDataKey = null;
-            this.formData = {}
+            this.formData = {};
+            this.customDeleteFn = null;
         },
         afterUpdateInitData() {
             this.resetAjaxData()
         },
         afterDeleteInitData() {
+            if (this.customDeleteFn) {
+                this.customDeleteFn();
+            }
             this.resetAjaxData();
+        },
+        updateUserProjects(removeId, removeKey) {
+            this.initData.userProjects.forEach((up) => {
+                up[removeKey] = up[removeKey].filter((item) => item.id !== removeId);
+            });
         },
         deleteVideo(videoId) {
             this.crudUrl = 'user-video/';
             this.initDataKey = 'user.videos';
             this.formData = {id: videoId};
-            if (window.confirm('Are you sure you want to delete this video?')) {
+            this.customDeleteFn = () => this.updateUserProjects(videoId, 'videos');
+            if (window.confirm('Are you sure you want to delete this video? It will be permanently deleted and removed from any projects that reference it.')) {
+                this.deleteObject();
+            }
+        },
+        deleteImage(imageId) {
+            this.crudUrl = 'user-image/';
+            this.initDataKey = 'user.images';
+            this.formData = {id: imageId};
+            this.customDeleteFn = () => this.updateUserProjects(videoId, 'images');
+            if (window.confirm('Are you sure you want to delete this image? It will be permanently deleted and removed from any projects that reference it.')) {
+                this.deleteObject();
+            }
+        },
+        deleteFile(fileId) {
+            this.crudUrl = 'user-file/';
+            this.initDataKey = 'user.files';
+            this.formData = {id: fileId};
+            this.customDeleteFn = () => this.updateUserProjects(videoId, 'files');
+            if (window.confirm('Are you sure you want to delete this file? It will be permanently deleted and removed from any projects that reference it.')) {
                 this.deleteObject();
             }
         },
@@ -262,6 +322,9 @@ export default {
             if (window.confirm('Are you sure you want to delete this project? This will withdraw any job applications where you use this project.')) {
                 this.deleteObject();
             }
+        },
+        getFileCount(userProject) {
+            return userProject.videos.length + userProject.images.length + userProject.files.length;
         },
         toggleProjectComplete(userProject, e) {
             this.crudUrl = 'user-project/status/';

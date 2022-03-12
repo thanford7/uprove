@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+   app:
+     build:
+       context: ./up
+       dockerfile: Dockerfile_app_prod
+     command: npm run docker
+     volumes:
+       - ./up:/up
+       - /up/node_modules
+     depends_on:
+       - backend
+   backend:
+     build:
+       context: ./up
+       dockerfile: Dockerfile_backend
+     command: bash -c "python manage.py collectstatic --noinput --clear"
+     environment:
+       IS_DOCKER: 1
+     ports:
+       - "8080:8080"
