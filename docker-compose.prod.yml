@@ -15,7 +15,7 @@ services:
      build:
        context: ./up
        dockerfile: Dockerfile_backend
-     command: bash -c "python manage.py collectstatic --noinput --clear"
+     command: bash -c "python manage.py collectstatic --noinput --clear && gunicorn --worker-tmp-dir /dev/shm up.wsgi"
      environment:
        IS_DOCKER: 1
      ports:
