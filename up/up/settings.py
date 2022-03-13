@@ -46,7 +46,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# PREPEND_WWW = not DEBUG
+PREPEND_WWW = not DEBUG
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,0.0.0.0").split(",")
 CSRF_USE_SESSIONS = True
 
