@@ -1,9 +1,5 @@
 <template>
-    <BannerAlert/>
     <div class="row mb-3 ms-0 me-0">
-        <div class="col-12 -color-yellow text-center p-2">Are you a talented candidate looking for a job?
-            <a href="#" @click="redirectUrl('/sign-up/')">Create a profile now!</a>
-        </div>
         <div class="col-md-6 -color-teal position pt-3 -bg-clip-border">
             <div class="position__center-vertical p-md-5 p-2">
                 <h1 class="text-center"><strong>Skills based exercises and video presentations to assess a candidate's true talent</strong></h1>

@@ -1,0 +1,126 @@
+@use 'colors';
+
+$content-index: 1000;
+
+%background-image-shared {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: 0.75;
+    content: "";
+}
+
+#candidate-hero-banner {
+    position: relative;
+
+    .content {
+        position: relative;
+        min-height: 75vh;
+    }
+
+    &::before {
+        @extend %background-image-shared;
+        background-image: linear-gradient(
+            to right bottom,
+            adjust-color(colors.$color-darkblue, $alpha: -0.7),
+            adjust-color(colors.$color-lightgrey, $alpha: -0.7)
+        ),
+        url('img/background/bright_squares.png');
+        clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+    }
+}
+
+.overlap-bottom-side {
+    position: relative;
+    margin-top: -500px;
+    padding-top: 510px;
+
+    .content {
+        position: relative;
+        min-height: 75vh;
+    }
+}
+
+.overlap-final {
+    position: relative;
+    margin-top: -100px;
+    padding-top: 120px;
+    padding-bottom: 3rem;
+
+    .content {
+        position: relative;
+        min-height: 25vh;
+    }
+
+    &::before {
+        @extend %background-image-shared;
+        background-image: linear-gradient(
+            to right bottom,
+            adjust-color(colors.$color-lightgrey, $alpha: -0.7),
+            adjust-color(colors.$color-darkblue, $alpha: -0.7)
+        ),
+        url('img/background/bright_squares.png');
+        clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 100%);
+    }
+}
+
+#header-main {
+    font-weight: 900;
+    span {
+        display: block;
+        backface-visibility: hidden;
+    }
+}
+
+%animation-shared {
+    animation-duration: 0.6s;
+    animation-timing-function: ease-out;
+}
+
+#header-line-1, #header-line-3 {
+    animation-name: moveInLeft;
+    @extend %animation-shared;
+}
+
+#header-line-2 {
+    animation-name: moveInRight;
+    @extend %animation-shared;
+}
+
+#project-example {
+    box-shadow: 8px 6px 4px colors.$color-darkblue;
+}
+
+@keyframes moveInLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+
+    80% {
+        transform: translateX(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(0);
+    }
+}
+
+@keyframes moveInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+
+    80% {
+        transform: translateX(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(0);
+    }
+}

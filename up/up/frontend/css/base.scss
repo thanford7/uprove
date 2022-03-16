@@ -1,12 +1,13 @@
 @charset "UTF-8";
 @use 'modules/colors';
 @use 'modules/animations';
-@use 'modules/bootstrap';
+@use 'modules/bootstrap-custom';
 @use 'modules/elements';
 @use 'modules/employer-dashboard';
 @use 'modules/fa';
 @use 'modules/footer';
 @use 'modules/header';
+@use 'modules/homepage';
 @use 'modules/profile';
 @use 'modules/selectize';
 @use 'modules/standalone';
@@ -24,6 +25,12 @@ $fa-font-path: 'webfonts';
 
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
     @import "~bootstrap-ie11/scss/bootstrap-ie11.scss";
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {

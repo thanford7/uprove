@@ -1,16 +1,23 @@
 @use "colors";
 @import "bootstrap/scss/bootstrap-grid";
 
-#site-header {
-    box-shadow: 0 0 3px rgba(0, 0, 0, .2);
+.site-header {
+    box-shadow: 0 2px 2px colors.$color-lightgrey;
     background-color: colors.$color-white;
+    font-size: 16px;
 
     .navbar {
-        padding: 0 1rem;
+        padding: 1rem 4rem;
     }
 
     .nav-link {
         color: colors.$color-darkblue;
+    }
+
+    .navbar-nav {
+        li:hover {
+            font-weight: bold;
+        }
     }
 
     .logo {

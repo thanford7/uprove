@@ -42,6 +42,10 @@ export default {
                         {
                             title: 'Blog',
                             link: '/blog'
+                        },
+                        {
+                            title: 'Credits',
+                            link: '/credits'
                         }
                     ]
                 },

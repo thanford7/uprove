@@ -17,10 +17,6 @@
             <input type="text" class="form-control" placeholder="Required" id="userLName" v-model="formData.lastName">
         </div>
         <div class="mb-3">
-            <label for="birthDate" class="form-label">Birth Date (Optional) <InfoToolTip :content="infoBirthDate" :elId="getNewElUid()"/></label>
-            <input type="date" class="form-control" placeholder="Optional" id="birthDate" v-model="formData.birthDate">
-        </div>
-        <div class="mb-3">
             <label for="userEmail" class="form-label">Email</label>
             <InputEmail elId="userEmail" placeholder="Required" v-model="formData.email"/>
         </div>

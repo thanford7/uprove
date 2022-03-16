@@ -22,6 +22,7 @@ urlpatterns = [
     path('candidateOnboard/', views.candidateOnboard, name='candidateOnboard'),
     re_path('^candidate-project/(?P<userProjectId>[0-9]+)?/?$', views.candidateProject, name='candidateProject'),
     path('contact/', views.contact, name='contact'),
+    path('credits/', views.credits, name='credits'),
     re_path('^employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
     path('errors/', views.errors, name='errors'),
     path('job-posting/<int:jobId>/', views.jobPosting, name='jobPosting'),

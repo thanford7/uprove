@@ -4,7 +4,7 @@
             <div class="col-md-5 card-custom">
                 <h4>Candidate Sign Up</h4>
                 <EditUserModal ref="userSignUp" :isContentOnly="true"/>
-                <button @click="$refs['userSignUp'].saveChange($event)" type="button" class="btn btn-primary w-100">Create profile</button>
+                <button @click="$refs['userSignUp'].saveChange($event)" type="button" class="btn btn-primary w-100">Create account</button>
             </div>
             <div class="col-md-5 card-custom">
                 <h4>Employers Get Started</h4>

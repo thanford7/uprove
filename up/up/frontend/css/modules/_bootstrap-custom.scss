@@ -10,13 +10,24 @@ $accordion-button-bg: rgba(colors.$color-lightgrey, .4);
 $accordion-button-active-bg: colors.$color-darkblue;
 $accordion-button-active-color: colors.$color-white;
 
-$font-size-root: 14px;
+$font-size-root: 16px;
+$font-size-base: 1rem;
+$font-weight-bold: 600;
+
+$h1-font-size: $font-size-base * 3.5;
+$h2-font-size: $font-size-base * 3;
+$h3-font-size: $font-size-base * 2.5;
+$h4-font-size: $font-size-base * 2;
+$h5-font-size: $font-size-base * 1.5;
+$h6-font-size: $font-size-base;
+
+//$btn-border-radius: 20px;
+//$btn-border-radius-sm: 20px;
+//$btn-border-radius-lg: 20px;
 
 @import "bootstrap/scss/bootstrap";
 
 .modal {
-    z-index: 10000;
-
     .modal-body-banner {
         margin: auto -16px;
         padding-left: 16px;

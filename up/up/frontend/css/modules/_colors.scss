@@ -410,3 +410,12 @@ $color-green: rgb(115, 201, 170);
         }
     }
 }
+
+.-color-linear-text {
+    &-blue {
+        display: inline-block;
+        color: transparent;
+        background-image: linear-gradient(to right, $color-darkblue, $color-blue);
+        -webkit-background-clip: text;
+    }
+}

@@ -170,6 +170,10 @@ def contact(request):
     return render(request, 'contact.html', context={})
 
 
+def credits(request):
+    return render(request, 'credits.html')
+
+
 def employerDashboard(request, employerId=None):
     user = security.getSessionUser(request)
     if not user:

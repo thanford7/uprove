@@ -1,4 +1,11 @@
 @use 'colors';
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/mixins';
+
+body {
+    font-family: "Nunito", sans-serif;
+}
 
 h1,
 h2,
@@ -8,34 +15,6 @@ h5,
 h6 {
 	font-weight: 400;
 	line-height: 1.2;
-}
-
-h1 {
-	font-size: 30px;
-}
-
-h2 {
-	font-size: 27px;
-}
-
-h3 {
-	font-size: 24px;
-}
-
-h4 {
-	font-size: 20px;
-}
-
-h5 {
-	font-size: 18px;
-}
-
-h6 {
-	font-size: 16px;
-}
-
-p {
-    font-size: 14px;
 }
 
 a {
