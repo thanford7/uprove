@@ -25,6 +25,10 @@
     &--light {
         border-left: 1px solid colors.$color-lightgrey;
     }
+
+    &--blue {
+        border-left: 2px solid colors.$color-darkblue;
+    }
 }
 
 .-border-bottom {
@@ -172,5 +176,20 @@
     }
     &1000 {
         z-index: 1000;
+    }
+}
+
+.-max-height- {
+    &16 {
+        max-height: 16px;
+    }
+    &32 {
+        max-height: 32px;
+    }
+    &64 {
+        max-height: 64px;
+    }
+    &128 {
+        max-height: 128px;
     }
 }

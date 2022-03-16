@@ -1,38 +1,36 @@
 <template>
     <BasePage>
-        <div v-if="!isMobile" class="row mt-5 mb-3 justify-content-center">
+        <div class="row mt-3 mb-3 justify-content-center">
             <div class="col-md-5 card-custom">
-                <h4>Candidate Sign Up</h4>
+                <h5 class="fw-bold">Get started with Uprove</h5>
                 <EditUserModal ref="userSignUp" :isContentOnly="true"/>
                 <button @click="$refs['userSignUp'].saveChange($event)" type="button" class="btn btn-primary w-100">Create account</button>
             </div>
-            <div class="col-md-5 card-custom">
-                <h4>Employers Get Started</h4>
-                <EmployerRequestInfoModal ref="employerRequest" :isContentOnly="true"/>
-                <button @click="$refs['employerRequest'].saveChange($event)" type="button" class="btn btn-primary w-100 mt-3">Request demo</button>
-            </div>
-        </div>
-        <div v-else class="mt-3 mb-3">
-            <ul class="nav nav-tabs" id="mobileSignUp" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#mobileEmployerRequest" type="button"
-                            role="tab" aria-controls="home" aria-selected="true">Employers
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#mobileCandidateSignUp" type="button"
-                            role="tab" aria-controls="profile" aria-selected="false">Candidates
-                    </button>
-                </li>
-            </ul>
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="mobileEmployerRequest" role="tabpanel" aria-labelledby="home-tab">
-                    <EmployerRequestInfoModal ref="employerRequest" :isContentOnly="true"/>
-                    <button @click="$refs['employerRequest'].saveChange($event)" type="button" class="btn btn-primary w-100 mt-3">Request demo</button>
+            <div class="col-md-4 card-custom">
+                <h5 class="fw-bold">Sign up for free and take back control of your job search!</h5>
+                <div class="row mb-3">
+                    <div class="col-2 d-flex align-items-center">
+                        <img :src="globalData.STATIC_URL + 'img/icons/headhunter.png'" class="-max-height-32">
+                    </div>
+                    <div class="col-10">
+                        We save you time by finding jobs that are the best fit for you
+                    </div>
                 </div>
-                <div class="tab-pane fade" id="mobileCandidateSignUp" role="tabpanel" aria-labelledby="profile-tab">
-                    <EditUserModal ref="userSignUp" :isContentOnly="true"/>
-                    <button @click="$refs['userSignUp'].saveChange($event)" type="button" class="btn btn-primary w-100">Create profile</button>
+                <div class="row mb-3">
+                    <div class="col-2 d-flex align-items-center">
+                        <img :src="globalData.STATIC_URL + 'img/icons/approved.png'" class="-max-height-32">
+                    </div>
+                    <div class="col-10">
+                        We help you prove yourself by giving you real world projects that will show employers your skills
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-2 d-flex align-items-center">
+                        <img :src="globalData.STATIC_URL + 'img/icons/015-strong.png'" class="-max-height-32">
+                    </div>
+                    <div class="col-10">
+                        We give you the best shot at landing a job through interview prep and summarized data about employers
+                    </div>
                 </div>
             </div>
         </div>
