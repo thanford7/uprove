@@ -1,5 +1,5 @@
 <template>
-    <div id="employer-hero-banner" class="-z-40">
+    <div id="employer-hero-banner" class="-z-60">
         <div class="container-lg">
             <div class="content row align-items-center">
                 <div class="col-md-7 ps-md-5">
@@ -14,7 +14,7 @@
                             through real world business projects similar to the work you need them to do
                         </h5>
                         <div class="mt-4">
-                            <button type="button" class="btn btn-lg btn-primary button-interactive" @click="signUpWithContext">
+                            <button type="button" class="btn btn-lg btn-primary button-interactive" @click="eventBus.emit('open:employerRequestInfoModal')">
                                 Talk to a talent expert
                             </button>
                         </div>
@@ -32,11 +32,14 @@
             </div>
         </div>
     </div>
+    <EmployerRequestInfoModal/>
 </template>
 
 <script>
+import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 export default {
     name: "EmployersHeroBanner",
+    components: {EmployerRequestInfoModal},
     mounted() {
         const ghostDisappearSeconds = 10;
         [1, 2, 3, 4, 5].forEach((workerIdx) => {
