@@ -3,16 +3,18 @@
 @use 'modules/animations';
 @use 'modules/bootstrap-custom';
 @use 'modules/elements';
-@use 'modules/employer-dashboard';
 @use 'modules/fa';
 @use 'modules/footer';
 @use 'modules/header';
-@use 'modules/homepage';
-@use 'modules/profile';
 @use 'modules/selectize';
 @use 'modules/standalone';
 @use 'modules/text';
 @use 'modules/tiptap';
+
+@use 'pages/employer-dashboard';
+@use 'pages/employers';
+@use 'pages/homepage';
+@use 'pages/profile';
 
 @import "bootstrap/scss/bootstrap-grid";
 @import 'selectize/dist/css/selectize.css';

@@ -1,6 +1,4 @@
-@use 'colors';
-
-$content-index: 1000;
+@use '../modules/colors';
 
 %background-image-shared {
     position: absolute;
@@ -39,7 +37,7 @@ $content-index: 1000;
 
     .content {
         position: relative;
-        min-height: 75vh;
+        min-height: 50vh;
     }
 }
 

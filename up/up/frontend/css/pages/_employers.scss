@@ -1,0 +1,232 @@
+@use '../modules/colors';
+@import "bootstrap/scss/bootstrap-grid";
+
+%background-image-shared {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: 0.75;
+    content: "";
+}
+
+#employer-hero-banner {
+    position: relative;
+
+    .content {
+        position: relative;
+        min-height: 75vh;
+    }
+
+    &::before {
+        @extend %background-image-shared;
+        background-image: linear-gradient(
+                        to right bottom,
+                        adjust-color(colors.$color-orange, $alpha: -0.7),
+                        adjust-color(colors.$color-lightgrey, $alpha: -0.7)
+        ),
+        url('img/background/funky-lines.png');
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 80%);
+    }
+
+    .employer-search {
+        position: relative;
+        img.hidden {
+            visibility: hidden;
+        }
+        img:not(.hidden) {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateY(-50%) translateX(-50%);
+        }
+        img:not(.primary):not(.hidden) {
+            z-index: 99;
+            height: 10rem;
+        }
+        img.primary {
+            z-index: 200;
+            animation: 5.0s 10 alternate dissolve;
+        }
+        img.worker-1 {
+            animation: show1 10.0s;
+        }
+        img.worker-2 {
+            animation: show2 20.0s;
+        }
+        img.worker-3 {
+            animation: show3 30.0s;
+        }
+        img.worker-4 {
+            animation: show4 40.0s;
+        }
+        img.worker-5 {
+            animation: show5 50.0s;
+        }
+    }
+}
+
+@keyframes dissolve {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes show1 {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes show2 {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes show3 {
+    0% {
+        opacity: 0;
+    }
+
+    67% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes show4 {
+    0% {
+        opacity: 0;
+    }
+
+    75% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes show5 {
+    0% {
+        opacity: 0;
+    }
+
+    80% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.collage {
+    position: relative;
+
+    @include media-breakpoint-down(md) {
+        min-height: 50vh;
+    }
+
+    &:hover {
+        img:not(:hover) {
+            transform: scale(0.8);
+        }
+    }
+
+    img {
+        width: 60%;
+        position: absolute;
+        z-index: 100;
+        transition: all 0.2s;
+        border: 2px solid colors.$color-lightgrey;
+
+        &.not-sibling-hover {
+            transform: scale(0.8);
+        }
+
+        &:hover, &.sibling-hover {
+            border: 0.7rem solid colors.$color-blue;
+            transform: scale(1.08);
+            z-index: 101;
+        }
+
+        &:nth-child(1) {
+            left: 0;
+            top: 1rem;
+        }
+
+        &:nth-child(2) {
+            left: 40%;
+            top: 3rem;
+        }
+
+        &:nth-child(3) {
+            left: 15%;
+            top: 10rem;
+        }
+    }
+}
+
+@mixin headings {
+    h1, h2, h3,
+    h4, h5, h6 {
+        @content;
+    }
+}
+
+.employer-benefits {
+    .row {
+        &:hover, &.sibling-hover {
+            font-weight: bold;
+            @include headings {
+                color: colors.$color-darkblue;
+                font-weight: 600;
+            }
+        }
+    }
+}
+
+.overlap-final-employer {
+    position: relative;
+    padding-top: 10rem;
+    padding-bottom: 3rem;
+
+    .content {
+        position: relative;
+        min-height: 25vh;
+    }
+
+    &::before {
+        @extend %background-image-shared;
+        background-image: linear-gradient(
+            to left top,
+            adjust-color(colors.$color-orange, $alpha: -0.7),
+            adjust-color(colors.$color-lightgrey, $alpha: -0.7)
+        ),
+        url('img/background/funky-lines.png');
+        clip-path: polygon(0 0, 100% 20%, 100% 100%, 0 100%);
+    }
+}

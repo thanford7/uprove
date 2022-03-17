@@ -14,6 +14,9 @@
                 <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
                     <a class="nav-link nav-link-tight" href="/employerDashboard">{{(isCandidate) ? 'Employer Dashboard' : 'Dashboard'}}</a>
                 </li>
+                <li v-if="!isLoggedIn" class="nav-item" :class="getHighlightClass('employers')">
+                    <a class="nav-link nav-link-tight" href="/employers">For Employers</a>
+                </li>
                 <li class="nav-item" :class="getHighlightClass('projects')">
                     <a class="nav-link nav-link-tight" href="/projects">Projects</a>
                 </li>
