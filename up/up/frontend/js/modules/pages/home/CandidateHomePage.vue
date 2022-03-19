@@ -17,9 +17,7 @@
                                 if they came to you? We are the reverse Applicant Tracking System. We use keywords from
                                 your resume to uncover the jobs that you are most likely to get.
                             </p>
-                            <button id="lm-reverse-resume" class="btn btn-secondary btn--learn-more">
-                                Learn more
-                            </button>
+                            <LearnMore buttonId="lm-reverse-resume" interestType="Reverse resume"/>
                         </div>
                     </div>
                     <div class="col-md-5 mb-4 mt-3">
@@ -31,9 +29,7 @@
                                 or career switcher, getting your foot in the door is hard. Our real world projects help
                                 you demonstrate your skills and allow employers to see your true potential.
                             </p>
-                            <button id="lm-project" class="btn btn-secondary btn--learn-more">
-                                Learn more
-                            </button>
+                            <LearnMore buttonId="lm-project" interestType="Project"/>
                         </div>
                     </div>
                     <div class="col-md-5 mb-4 mt-3">
@@ -46,9 +42,7 @@
                                 bring your skills to light with text, images, and videos. There's a reason why coders
                                 and designers commonly have a project portfolio: it works!
                             </p>
-                            <button id="lm-portfolio" class="btn btn-secondary btn--learn-more">
-                                Learn more
-                            </button>
+                            <LearnMore buttonId="lm-portfolio" interestType="Portfolio"/>
                         </div>
                     </div>
                     <div class="col-md-5 mb-4 mt-3">
@@ -61,9 +55,7 @@
                                 be knowledgeable, and recommended questions to ask about the company which will make you
                                 look like a genius.
                             </p>
-                            <button id="lm-interview" class="btn btn-secondary btn--learn-more">
-                                Learn more
-                            </button>
+                            <LearnMore buttonId="lm-interview" interestType="Interview support"/>
                         </div>
                     </div>
                 </div>
@@ -94,12 +86,14 @@
 import BannerAlert from "../../components/BannerAlert";
 import dataUtil from "../../../utils/data";
 import EditUserModal from "../../modals/EditUserModal";
+import LearnMore from "./LearnMore";
 import OrderedList from '../../components/OrderedList.vue';
 
 export default {
     components: {
         BannerAlert,
         EditUserModal,
+        LearnMore,
         OrderedList
     },
     methods: {
