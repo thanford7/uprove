@@ -115,7 +115,7 @@ class EmailView(UproveAPIView):
             ))
 
             userSubject = 'Uprove | Thanks for your question'
-            userContent = '<p>Thank you for your question. Our support team will respond within 24 hours.</p>'
+            userContent = 'Thank you for your question. Our support team will respond within 24 hours.'
             userEmail = request.data['fromEmail']
         elif contactType == EmailView.TYPE_EMPLOYER_INTEREST:
             _saveEmployerInterest(request.data)
@@ -129,8 +129,8 @@ class EmailView(UproveAPIView):
             ))
 
             userSubject = 'Uprove | Thanks for your interest'
-            userContent = '<p>We are excited to explore how we can partner with you and show you the hidden talent you\'re missing.' \
-                          ' Our team will respond within 24 hours to find time to understand your challenges and demo the product.</p>'
+            userContent = 'We are excited to explore how we can partner with you and show you the hidden talent you\'re missing.' \
+                          ' Our team will respond within 24 hours to find time to understand your challenges and demo the product.'
             userEmail = request.data['fromEmail']
         elif contactType == EmailView.TYPE_CANDIDATE_SIGNUP:
             subject = 'New user signup!'
@@ -147,8 +147,8 @@ class EmailView(UproveAPIView):
                 ('Interest type', 'interestType')
             ))
             userSubject = 'Uprove | Thanks for your interest'
-            userContent = '<p>Thank you for your interest. One of our talent advocates will contact you within 24 hours to' \
-                          ' answer your questions and show you how we can help you land your next job!</p>'
+            userContent = 'Thank you for your interest. One of our talent advocates will contact you within 24 hours to' \
+                          ' answer your questions and show you how we can help you land your next job!'
             userEmail = request.data['email']
         else:
             logging.log(logging.ERROR, f'Unknown contact type of {contactType}')
@@ -162,8 +162,11 @@ class EmailView(UproveAPIView):
         )
 
         if userSubject:
-            response = EmailView.sendEmail(
-                userSubject, EmailView.SEND_EMAIL_ADDRESS, userEmail, htmlContent=userContent
+            EmailView.sendEmail(
+                userSubject,
+                [userEmail],
+                djangoContext={'bodyContent': userContent},
+                djangoEmailBodyTemplate='email/generalEmail.html'
             )
 
         return response
