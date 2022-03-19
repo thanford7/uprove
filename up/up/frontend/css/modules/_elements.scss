@@ -238,7 +238,7 @@ div.skewer-container {
             font-weight: bold;
         }
 
-        .btn--learn-more {
+        .learn-more {
             visibility: visible;
         }
     }
@@ -269,13 +269,12 @@ div.skewer-container {
         width: 90%;
     }
 
-    .btn--learn-more {
+    .learn-more {
         @include media-breakpoint-up(md) {
             visibility: hidden;
         }
         align-self: center;
         margin-top: auto;
-        width: 80%;
     }
 }
 

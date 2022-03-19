@@ -37,6 +37,7 @@ class EmailView(APIView):
     TYPE_CONTACT = 'CONTACT'
     TYPE_EMPLOYER_INTEREST = 'EMPLOYER_INTEREST'
     TYPE_CANDIDATE_SIGNUP = 'CANDIDATE_SIGNUP'
+    TYPE_CANDIDATE_INTEREST = 'CANDIDATE_INTEREST'
 
     SEND_EMAIL_ADDRESS = 'no_reply@uprove.co'  # Email address where all emails originate from
 
@@ -82,6 +83,11 @@ class EmailView(APIView):
             content = _generateEmailBody(request.data, (
                 ('First name', 'firstName'),
                 ('Last name', 'lastName'),
+                ('Email', 'email')
+            ))
+        elif contactType == EmailView.TYPE_CANDIDATE_INTEREST:
+            subject = 'New candidate interest!'
+            content = _generateEmailBody(request.data, (
                 ('Email', 'email')
             ))
         else:
