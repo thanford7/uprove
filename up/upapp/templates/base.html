@@ -7,6 +7,14 @@
         <title>{% block title %}Home{% endblock title %} | Uprove</title>
         <link rel="icon" type="image/png" href="{% static 'img/favicon.ico' %}">
 
+        <!-- Google Tag Manager -->
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-W7F3LZZ');</script>
+        <!-- End Google Tag Manager -->
+
         <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1">
         <meta name="description" content="Uprove is a project based hiring platform">
         <meta name="referrer" content="origin">
@@ -32,7 +40,11 @@
             gtag('config', 'G-YS8HV94MVL');
         </script>
     </head>
-    <body data-page="{% block baseClass %}BasePage{% endblock %}">
+    <body data-page="{% block baseClass %}BasePage{% endblock %}" class="{% block bodyClasses %}{% endblock %}">
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W7F3LZZ"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
         {% block navBar %}
             <header id="site-header" class="site-header">
                 <nav class="navbar navbar-expand-md container-lg"></nav>

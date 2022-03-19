@@ -8,7 +8,7 @@
             >
                 <div class="modal-content">
                     <div v-if="modalTitle" class="modal-header">
-                        <h4 class="modal-title">{{modalTitle}}</h4>
+                        <h5 class="modal-title">{{modalTitle}}</h5>
                         <slot name="headerHtml"></slot>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>

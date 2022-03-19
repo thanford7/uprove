@@ -2,7 +2,7 @@
     <div class="container-lg">
         <BannerAlert/>
         <slot name="header">
-            <PageHeader :title="headerTitle" :image="headerImage" :imageAlt="headerImageAlt"/>
+            <PageHeader v-if="headerTitle" :title="headerTitle" :image="headerImage" :imageAlt="headerImageAlt"/>
         </slot>
         <div class="row filter mb-3">
             <slot name="filter"></slot>

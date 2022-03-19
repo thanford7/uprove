@@ -419,3 +419,13 @@ $color-green: rgb(115, 201, 170);
         -webkit-background-clip: text;
     }
 }
+
+.-color-linear-background {
+    &-orange {
+        background-image: linear-gradient(to right, $color-orange, $color-white);
+    }
+
+    &-darkblue {
+        background-image: linear-gradient(to right, $color-darkblue, $color-white);
+    }
+}

@@ -1,0 +1,104 @@
+@use 'colors';
+@import "bootstrap/scss/bootstrap-grid";
+
+$card-radius: 10px;
+@mixin card {
+    background-color: colors.$color-white;
+    border: colors.$color-lightgrey 1px solid;
+    border-radius: $card-radius;
+    padding: 10px;
+    height: fit-content;
+}
+
+.sidebar {
+    @include card;
+}
+
+.card-custom {
+    @include card;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    @include media-breakpoint-up(md) {
+        margin: 20px;
+    }
+
+    &--shadow {
+        box-shadow: 0 0 5px colors.$color-moderategrey;
+    }
+}
+
+.card-pricing {
+    padding: 0;
+    perspective: 200rem;
+    -moz-perspective: 200rem;
+
+    &-flip:hover {
+        .card-side--front {
+            transform: rotateY(-180deg);
+        }
+
+        .card-side--back {
+            transform: rotateY(0);
+        }
+    }
+
+    .card-price {
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+        font-weight: bold;
+        :not(h2) {
+            color: colors.$color-moderategrey;
+        }
+    }
+
+    .card-side {
+        transition: all 1s ease;
+        float: left;
+        top: 0;
+        left: 0;
+        width: 100%;
+        backface-visibility: hidden;
+        box-shadow: 8px 6px 4px colors.$color-moderategrey;
+        border-radius: $card-radius;
+        overflow: hidden;
+
+        &__inner {
+            padding: 1rem 1rem 0.7rem 1rem;
+        }
+
+        &--front {
+            background-color: colors.$color-white;
+            .card-top {
+                border-bottom: 1px solid colors.$color-moderategrey;
+                color: colors.$color-moderategrey;
+
+                h5 {
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    letter-spacing: 0.3rem;
+                }
+            }
+
+            button {
+                width: 100%;
+                border-radius: 0 0 $card-radius $card-radius;
+                padding: 1rem;
+                color: colors.$color-white;
+
+                &:hover {
+                    color: colors.$color-black;
+                    filter: brightness(1.25);
+                }
+            }
+        }
+
+        &--back {
+            transform: rotateY(180deg);
+            color: colors.$color-white;
+
+            &-orange {
+                background-image: linear-gradient(to right bottom, colors.$color-orange, colors.$color-white);
+            }
+        }
+    }
+}

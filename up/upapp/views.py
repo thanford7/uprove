@@ -281,6 +281,13 @@ def signUp(request):
     return render(request, 'signUp.html')
 
 
+def signUpEmployer(request, type=None):
+    return render(request, 'signUpEmployer.html', context={
+        'data': dumps({'isStarter': type == 'prove'}),
+        'isStarter': type == 'prove'
+    })
+
+
 def termsOfService(request):
     return render(request, 'termsOfService.html', context={})
 

@@ -14,7 +14,7 @@
                             <div class="col-10">
                                 <h5>Discover hidden talent in seconds</h5>
                                 Easily find candidates by searching based on role (e.g. business analyst),
-                                skills (e.g. Excel), and experience level. Narrow down candidates based on their project
+                                skills (e.g. Excel), and comparable experience level. Narrow down candidates based on their project
                                 performance.
                             </div>
                         </div>
@@ -67,14 +67,74 @@
         <div class="overlap-final-employer -z-40">
             <div class="container-lg content">
                 <div class="row justify-content-center">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <CardPricing colorScheme="orange" :buttonClickFn="() => redirectUrl('/sign-up/employer/prove/')">
+                            <template v-slot:front-header>Prove it package</template>
+                            <template v-slot:front-header-explainer>
+                                No risk, just proving it. We can show you the hidden talent you are missing.
+                            </template>
+                            <template v-slot:front-price>
+                                <h2 class="-color-orange-text">$0/mo</h2>
+                                <h6>20% first year salary fee per hire</h6>
+                                <h6>No contract term</h6>
+                            </template>
+                            <template v-slot:front-details>
+                                <p><b>Everything you need</b></p>
+                                <ListFontAwesome
+                                    faClassesStr="fas fa-ghost"
+                                    faColor="orange"
+                                    :items="[
+                                        'Access to all projects',
+                                        'Access to all candidates',
+                                        'Dedicated talent expert',
+                                        'Unlimited job postings',
+                                        'Applicant interview fast tracking'
+                                    ]"
+                                />
+                            </template>
+                            <template v-slot:front-btn-text>Get started with a talent expert</template>
+                        </CardPricing>
+                    </div>
+                    <div class="col-md-4">
+                        <CardPricing colorScheme="darkblue" :buttonClickFn="() => redirectUrl('/sign-up/employer/')">
+                            <template v-slot:front-header>Improve it package</template>
+                            <template v-slot:front-header-explainer>
+                                Partner with us and save immediately. Great for teams making more than one hire per month.
+                            </template>
+                            <template v-slot:front-price>
+                                <h2 class="-color-darkblue-text">Custom price/mo</h2>
+                                <h6>Reduced fee per hire</h6>
+                                <h6>Monthly contract</h6>
+                            </template>
+                            <template v-slot:front-details>
+                                <p><b>Everything you need and more</b></p>
+                                <ListFontAwesome
+                                    faClassesStr="fas fa-ghost"
+                                    faColor="darkblue"
+                                    :items="[
+                                        'Advanced analytics to track candidates',
+                                        'Customized projects',
+                                        'Promoted job posts'
+                                    ]"
+                                />
+                            </template>
+                            <template v-slot:front-btn-text>Talk to sales team</template>
+                        </CardPricing>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="container-lg content -overlap-top-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 card-custom card-custom--shadow -z-50">
                         <h3 class="fw-bold mb-4">
                             <span style="display: inline-block">Get started now to find</span>
                             <span class="-color-orange-text" style="display: inline-block">hidden talent</span>
                         </h3>
                         <BannerAlert/>
                         <EmployerRequestInfoModal ref="employerRequest" :isContentOnly="true"/>
-                        <button @click="$refs['employerRequest'].saveChange($event)" type="button" class="btn btn-primary button-interactive mt-3">Talk to a talent expert</button>
+                        <button @click="$refs['employerRequest'].saveChange($event)" type="button" class="btn btn-primary button-interactive mt-3 w-100">Talk to a talent expert</button>
                     </div>
                 </div>
             </div>
@@ -85,11 +145,13 @@
 <script>
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../BasePage";
+import CardPricing from "../../components/CardPricing";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
+import ListFontAwesome from "../../components/ListFontAwesome";
 
 export default {
     name: "EmployersPage",
-    components: {BannerAlert, BasePage, EmployerRequestInfoModal},
+    components: {BannerAlert, BasePage, CardPricing, EmployerRequestInfoModal, ListFontAwesome},
     methods: {
         toggleClass(target, notTarget, isOn) {
             target.toggleClass('sibling-hover', isOn);

@@ -2,11 +2,14 @@
     <BasePage>
         <div class="row" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-8 card-custom">
-                <h1>{{initData.project.title}} <span class="badge -color-darkblue">{{initData.project.role}}</span></h1>
+                <h4 style="margin-left: -2rem; margin-top: -1.5rem;" class="me-2">
+                    <span class="badge -color-darkblue">{{initData.project.role}}</span>
+                </h4>
+                <h4>{{initData.project.title}}</h4>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
                 <CollapseDiv :elId="getNewElUid()" :class="(initData.project.isLimited) ? '' : '-border-bottom--light mb-2'">
                     <template v-slot:header>
-                        <h3>Project brief</h3>
+                        <h4>Project brief</h4>
                     </template>
                     <div v-html="initData.project.background"></div>
                     <div v-if="initData.project.isLimited">
@@ -15,7 +18,7 @@
                 </CollapseDiv>
                 <CollapseDiv v-if="isLoggedIn" :elId="getNewElUid()" class="-border-bottom--light mb-2">
                     <template v-slot:header>
-                        <h3>Instructions</h3>
+                        <h4>Instructions</h4>
                     </template>
                     <div v-if="formData.skillLevelBit" class="pb-2">
                         <div v-html="projectInstructions"></div>
@@ -32,7 +35,7 @@
                     class="-border-bottom--light mb-2"
                 >
                     <template v-slot:header>
-                        <h3>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h3>
+                        <h4>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h4>
                     </template>
                     <ul>
                         <li v-for="criterion in evaluationCriteria">{{criterion.criterion}}</li>
@@ -40,7 +43,7 @@
                 </CollapseDiv>
                 <CollapseDiv v-if="projectFiles.length">
                     <template v-slot:header>
-                        <h3>Files</h3>
+                        <h4>Files</h4>
                     </template>
                     <div v-for="file in projectFiles">
                         <FileDisplay :file="file" :isIncludeDescription="true" :isIncludeSkillLevels="true"/>

@@ -14,7 +14,7 @@
                             through real world business projects similar to the work you need them to do
                         </h5>
                         <div class="mt-4">
-                            <button type="button" class="btn btn-lg btn-primary button-interactive" @click="eventBus.emit('open:employerRequestInfoModal')">
+                            <button type="button" class="btn btn-lg btn-primary button-interactive" @click="redirectUrl('/sign-up/employer/prove/')">
                                 Talk to a talent expert
                             </button>
                         </div>
@@ -32,14 +32,11 @@
             </div>
         </div>
     </div>
-    <EmployerRequestInfoModal/>
 </template>
 
 <script>
-import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 export default {
     name: "EmployersHeroBanner",
-    components: {EmployerRequestInfoModal},
     mounted() {
         const ghostDisappearSeconds = 10;
         [1, 2, 3, 4, 5].forEach((workerIdx) => {

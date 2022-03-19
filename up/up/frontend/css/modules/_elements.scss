@@ -136,71 +136,6 @@ div {
     }
 }
 
-@mixin card {
-    background-color: colors.$color-white;
-    border: colors.$color-lightgrey 1px solid;
-    border-radius: 10px;
-    padding: 10px;
-    height: fit-content;
-}
-
-.sidebar {
-    @include card;
-}
-
-.card-custom {
-    @include card;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    @include media-breakpoint-up(md) {
-        margin: 20px;
-    }
-}
-
-.chevron-hz {
-    padding-top: 10px;
-    padding-bottom: 10px;
-
-    &.chevron-hz-start {
-        clip-path: polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%);
-        padding-right: 30px;
-    }
-
-    &.chevron-hz-middle {
-        clip-path: polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%, 20% 50%, 0 0);
-        margin-left: -40px;
-        padding-left: 70px;
-        padding-right: 50px;
-    }
-
-    &.chevron-hz-end {
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 20% 50%, 0 0);
-        margin-left: -40px;
-        padding-left: 70px;
-    }
-}
-
-.chevron-vt {
-    width: 25%;
-    height: 100%;
-    display: inline-block;
-    margin-right: 20px;
-
-    &.chevron-vt-start {
-        clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
-    }
-
-    &.chevron-vt-middle {
-        clip-path: polygon(0 0, 50% 20%, 100% 0, 100% 80%, 50% 100%, 0 80%);
-    }
-
-    &-text {
-        width: 60%;
-        vertical-align: top;
-        display: inline-block;
-    }
-}
-
 div.circle {
     border-radius: 100%;
     width: 60px;
@@ -291,6 +226,8 @@ div.skewer-container {
     box-shadow: 4px 3px 2px colors.$color-darkblue;
     transition: all 0.2s;
     min-height: 40vh;
+    display: flex;
+    flex-direction: column;
 
     &:hover {
         box-shadow: 8px 6px 4px colors.$color-darkblue;
@@ -300,10 +237,15 @@ div.skewer-container {
             background-color: colors.$color-orange;
             font-weight: bold;
         }
+
+        .btn--learn-more {
+            visibility: visible;
+        }
     }
 
     > img {
         margin-bottom: 0.5rem;
+        align-self: center;
     }
 
     .header {
@@ -325,6 +267,15 @@ div.skewer-container {
         text-transform: uppercase;
         padding: 5px;
         width: 90%;
+    }
+
+    .btn--learn-more {
+        @include media-breakpoint-up(md) {
+            visibility: hidden;
+        }
+        align-self: center;
+        margin-top: auto;
+        width: 80%;
     }
 }
 

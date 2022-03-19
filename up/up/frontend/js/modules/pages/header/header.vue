@@ -14,6 +14,9 @@
                 <li v-if="isSuperUser || isEmployer" :class="getHighlightClass('employerDashboard')">
                     <a class="nav-link nav-link-tight" href="/employerDashboard">{{(isCandidate) ? 'Employer Dashboard' : 'Dashboard'}}</a>
                 </li>
+                <li v-if="!isLoggedIn && getIsCurrentUrl('employers')" class="nav-item">
+                    <a class="nav-link nav-link-tight" href="/">For Candidates</a>
+                </li>
                 <li v-if="!isLoggedIn" class="nav-item" :class="getHighlightClass('employers')">
                     <a class="nav-link nav-link-tight" href="/employers">For Employers</a>
                 </li>
@@ -64,9 +67,6 @@
                     </template>
                 </template>
             </ul>
-            <li v-if="!isLoggedIn" class="d-flex">
-                <button @click="signUpWithContext" type="button" class="btn btn-primary">Sign up</button>
-            </li>
         </div>
         <div class="justify-content-end align-items-center" style="margin-left: auto;">
             <button class="navbar-toggler ms-2 mb-1 mt-1" type="button" data-bs-toggle="collapse"
@@ -106,12 +106,14 @@ export default {
             }
             return '/';
         },
+        getIsCurrentUrl(url) {
+            return window.location.pathname.toLowerCase().includes(url.toLowerCase());
+        },
         getHighlightClass(url) {
             if (!window.location) {
                 return '';
-            }
-            const isCurrentUrl = window.location.pathname.toLowerCase().includes(url.toLowerCase());
-            if (isCurrentUrl) {
+            };
+            if (this.getIsCurrentUrl(url)) {
                 if (this.isMobile) {
                     return '-text-bold';
                 }

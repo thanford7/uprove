@@ -8,28 +8,32 @@
             </div>
             <div class="col-md-4 card-custom">
                 <h5 class="fw-bold">Sign up for free and take back control of your job search!</h5>
-                <div class="row mb-3">
+                <div class="row mb-3 mt-3">
                     <div class="col-2 d-flex align-items-center">
                         <img :src="globalData.STATIC_URL + 'img/icons/headhunter.png'" class="-max-height-32">
                     </div>
                     <div class="col-10">
-                        We save you time by finding jobs that are the best fit for you
+                        We save you time by finding
+                        <span class="-color-orange-text"><b>jobs that are the best fit for you</b></span>
                     </div>
                 </div>
-                <div class="row mb-3">
+                <div class="row mb-3 mt-3">
                     <div class="col-2 d-flex align-items-center">
                         <img :src="globalData.STATIC_URL + 'img/icons/approved.png'" class="-max-height-32">
                     </div>
                     <div class="col-10">
-                        We help you prove yourself by giving you real world projects that will show employers your skills
+                        We help you prove yourself by giving you real world projects that will
+                        <span class="fw-bold -color-orange-text"><b>showcase your skills to employers</b></span>
                     </div>
                 </div>
-                <div class="row mb-3">
+                <div class="row mb-3 mt-3">
                     <div class="col-2 d-flex align-items-center">
                         <img :src="globalData.STATIC_URL + 'img/icons/015-strong.png'" class="-max-height-32">
                     </div>
                     <div class="col-10">
-                        We give you the best shot at landing a job through interview prep and summarized data about employers
+                        We give you the best shot at landing a job through
+                        <span class="fw-bold -color-orange-text"><b>interview prep</b></span>
+                        and summarized data about employers
                     </div>
                 </div>
             </div>
@@ -39,11 +43,10 @@
 
 <script>
 import EditUserModal from "../../modals/EditUserModal";
-import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import BasePage from "../BasePage";
 
 export default {
     name: "SignUpPage",
-    components: {BasePage, EditUserModal, EmployerRequestInfoModal},
+    components: {BasePage, EditUserModal},
 }
 </script>

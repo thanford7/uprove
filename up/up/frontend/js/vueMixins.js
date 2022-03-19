@@ -325,6 +325,9 @@ const globalVarsMixin = {
         log(val) {
             console.log(val);  // Easy way to debug Vue html code
         },
+        trackAndDoAction() {
+
+        },
         getSkillLevelNumbersFromBits(skillLevelBits) {
             return Object.keys(this.globalData.SKILL_LEVEL).filter((level) => parseInt(level) & skillLevelBits);
         },
@@ -340,7 +343,7 @@ const globalVarsMixin = {
             if (isNewTab) {
                 window.open(url, '_blank');
             } else {
-                window.location.replace(url);
+                window.location = url;
             }
         },
         pluralize(word, count) {
