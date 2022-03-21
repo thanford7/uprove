@@ -218,10 +218,10 @@ AWS_DEFAULT_ACL = 'public-read'
 AWS_IS_GZIPPED = True
 
 USE_LOCAL = env('USE_LOCAL', cast=bool, default=False)
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 if USE_LOCAL:
     logger.info('Using local static storage')
     STATIC_URL = '/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
     DEFAULT_FILE_STORAGE = 'up.customStorage.OverwriteStorage'
     MEDIA_URL = '/media/'

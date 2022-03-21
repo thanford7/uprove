@@ -43,7 +43,6 @@ export default {
         },
     },
     mounted() {
-        console.log(`#${this.$refs.email.elId}`);
         this.requiredFields.email = `#${this.$refs.email.elId}`;
     }
 }
