@@ -11,10 +11,10 @@ from django.template import loader
 from django.templatetags.static import static
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from sendgrid import SendGridAPIClient, Attachment, ContentId, Disposition, FileType, FileName, FileContent
 from sendgrid.helpers.mail import Mail
 
+from upapp.apis import UproveAPIView
 from upapp.models import EmployerInterest
 
 
@@ -34,19 +34,21 @@ def sendSgEmail(message: Mail):
         return False
 
 
-class EmailView(APIView):
+class EmailView(UproveAPIView):
     permission_classes = [AllowAny]
 
     TYPE_CONTACT = 'CONTACT'
     TYPE_EMPLOYER_INTEREST = 'EMPLOYER_INTEREST'
     TYPE_CANDIDATE_SIGNUP = 'CANDIDATE_SIGNUP'
+    TYPE_CANDIDATE_INTEREST = 'CANDIDATE_INTEREST'
 
     SEND_EMAIL_ADDRESS = 'no_reply@uprove.co'  # Email address where all emails originate from
 
     EMAIL_ROUTES = {
         TYPE_CONTACT: 'info@uprove.co',
         TYPE_EMPLOYER_INTEREST: 'sales@uprove.co',
-        TYPE_CANDIDATE_SIGNUP: 'community@uprove.co'
+        TYPE_CANDIDATE_SIGNUP: 'community@uprove.co',
+        TYPE_CANDIDATE_INTEREST: 'info@uprove.co'
     }
 
     def post(self, request, contactType=None):
@@ -100,6 +102,9 @@ class EmailView(APIView):
     @staticmethod
     def sendFormattedEmail(request, contactType=None):
         contactType = contactType or request.data['type']
+        userSubject = None
+        userContent = None
+        userEmail = None
         if contactType == EmailView.TYPE_CONTACT:
             subject = 'New question or request for help'
             content = _generateEmailBody(request.data, (
@@ -108,6 +113,10 @@ class EmailView(APIView):
                 ('Company', 'company'),
                 ('Message', 'message')
             ))
+
+            userSubject = 'Uprove | Thanks for your question'
+            userContent = 'Thank you for your question. Our support team will respond within 24 hours.'
+            userEmail = request.data['fromEmail']
         elif contactType == EmailView.TYPE_EMPLOYER_INTEREST:
             _saveEmployerInterest(request.data)
             subject = 'New employer interest!'
@@ -118,6 +127,11 @@ class EmailView(APIView):
                 ('Company', 'companyName'),
                 ('Note', 'note')
             ))
+
+            userSubject = 'Uprove | Thanks for your interest'
+            userContent = 'We are excited to explore how we can partner with you and show you the hidden talent you\'re missing.' \
+                          ' Our team will respond within 24 hours to find time to understand your challenges and demo the product.'
+            userEmail = request.data['fromEmail']
         elif contactType == EmailView.TYPE_CANDIDATE_SIGNUP:
             subject = 'New user signup!'
             content = _generateEmailBody(request.data, (
@@ -125,13 +139,38 @@ class EmailView(APIView):
                 ('Last name', 'lastName'),
                 ('Email', 'email')
             ))
+            userEmail = request.data['email']
+        elif contactType == EmailView.TYPE_CANDIDATE_INTEREST:
+            subject = 'New candidate interest!'
+            content = _generateEmailBody(request.data, (
+                ('Email', 'email'),
+                ('Interest type', 'interestType')
+            ))
+            userSubject = 'Uprove | Thanks for your interest'
+            userContent = 'Thank you for your interest. One of our talent advocates will contact you within 24 hours to' \
+                          ' answer your questions and show you how we can help you land your next job!'
+            userEmail = request.data['email']
         else:
             logging.log(logging.ERROR, f'Unknown contact type of {contactType}')
             return Response(status=HTTPStatus.BAD_REQUEST)
 
-        return EmailView.sendEmail(
+        if not userEmail:
+            return Response('An email address is required', status=HTTPStatus.BAD_REQUEST)
+
+        response = EmailView.sendEmail(
             subject, EmailView.SEND_EMAIL_ADDRESS, EmailView.EMAIL_ROUTES[contactType], htmlContent=content
         )
+
+        if userSubject:
+            EmailView.sendEmail(
+                userSubject,
+                [userEmail],
+                djangoContext={'bodyContent': userContent},
+                djangoEmailBodyTemplate='email/generalEmail.html'
+            )
+
+        return response
+
 
 def _generateEmailBody(data: dict, emailRows: tuple):
     return '<table>' + ''.join((_generateEmailTableRow(data, *row) for row in emailRows)) + '</table>'

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up{% endblock title %}
+{% block baseClass %}SignUpEmployerPage{% endblock %}
+{% block bodyClasses %}
+    {% if isStarter %}
+        -color-orange__light
+    {% else %}
+        -color-darkblue__light
+    {% endif %}
+{% endblock %}

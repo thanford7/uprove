@@ -1,17 +1,22 @@
 @charset "UTF-8";
 @use 'modules/colors';
 @use 'modules/animations';
-@use 'modules/bootstrap';
+@use 'modules/bootstrap-custom';
+@use 'modules/cards';
 @use 'modules/elements';
-@use 'modules/employer-dashboard';
 @use 'modules/fa';
 @use 'modules/footer';
 @use 'modules/header';
-@use 'modules/profile';
+@use 'modules/lists';
 @use 'modules/selectize';
 @use 'modules/standalone';
 @use 'modules/text';
 @use 'modules/tiptap';
+
+@use 'pages/employer-dashboard';
+@use 'pages/employers';
+@use 'pages/homepage';
+@use 'pages/profile';
 
 @import "bootstrap/scss/bootstrap-grid";
 @import 'selectize/dist/css/selectize.css';
@@ -24,6 +29,12 @@ $fa-font-path: 'webfonts';
 
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
     @import "~bootstrap-ie11/scss/bootstrap-ie11.scss";
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {

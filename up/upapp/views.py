@@ -73,7 +73,7 @@ def blog(request, blogId=None):
         } for user in adminUsers]
 
     if blogId:
-        return render(request, 'blogSingle.html', {'data': dumps(data)})
+        return render(request, 'blogSingle.html', context={'data': dumps(data), 'title': data['blog']['title']})
 
     return render(request, 'blog.html', {'data': dumps(data)})
 
@@ -170,6 +170,10 @@ def contact(request):
     return render(request, 'contact.html', context={})
 
 
+def credits(request):
+    return render(request, 'credits.html')
+
+
 def employerDashboard(request, employerId=None):
     user = security.getSessionUser(request)
     if not user:
@@ -191,6 +195,10 @@ def employerDashboard(request, employerId=None):
         ],
         'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()]
     })})
+
+
+def employers(request):
+    return render(request, 'employers.html')
 
 
 def errors(request):
@@ -271,6 +279,13 @@ def projects(request):
 
 def signUp(request):
     return render(request, 'signUp.html')
+
+
+def signUpEmployer(request, type=None):
+    return render(request, 'signUpEmployer.html', context={
+        'data': dumps({'isStarter': type == 'prove'}),
+        'isStarter': type == 'prove'
+    })
 
 
 def termsOfService(request):

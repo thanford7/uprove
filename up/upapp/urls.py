@@ -22,7 +22,9 @@ urlpatterns = [
     path('candidateOnboard/', views.candidateOnboard, name='candidateOnboard'),
     re_path('^candidate-project/(?P<userProjectId>[0-9]+)?/?$', views.candidateProject, name='candidateProject'),
     path('contact/', views.contact, name='contact'),
+    path('credits/', views.credits, name='credits'),
     re_path('^employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
+    path('employers/', views.employers, name='employers'),
     path('errors/', views.errors, name='errors'),
     path('job-posting/<int:jobId>/', views.jobPosting, name='jobPosting'),
     path('login-page/', views.login, name='loginPage'),
@@ -32,6 +34,7 @@ urlpatterns = [
     path('project/<int:projectId>/', views.project, name='project'),
     re_path('^projects/$', views.projects, name='projects'),
     path('sign-up/', views.signUp, name='signUp'),
+    re_path('^sign-up/employer/(?P<type>[a-z]+)?/?$', views.signUpEmployer, name='signUpEmployer'),
     path('terms-of-service/', views.termsOfService, name='termsOfService'),
 
     # APIs
