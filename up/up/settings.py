@@ -35,6 +35,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', cast=bool, default=False)
 IS_DOCKER = env('IS_DOCKER', cast=bool, default=False)
+IS_DEV = env('IS_DEV', cast=bool, default=True)
 
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logger = logging.getLogger()
@@ -227,7 +228,7 @@ if USE_LOCAL:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     logger.info('Using S3 static storage')
-    AWS_LOCATION = 'static-files'
+    AWS_LOCATION = 'static-files-dev' if IS_DEV else 'static-files'
     STATIC_URL = f'https://{AWS_S3_ENDPOINT_URL}/{AWS_LOCATION}/'
     logger.info(f'Static URL: {STATIC_URL}')
     STATICFILES_STORAGE = 'up.customStorage.S3ManifestStaticStorageWithLog'

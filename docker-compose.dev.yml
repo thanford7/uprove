@@ -18,6 +18,7 @@ services:
      command: bash -c "python manage.py collectstatic --noinput --clear && python manage.py runserver 0.0.0.0:8080"
      environment:
        IS_DOCKER: 1
+       IS_DEV: 1
      volumes:
        - ./up:/up
      depends_on:

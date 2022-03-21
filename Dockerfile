@@ -31,6 +31,5 @@ ENV DB_PASSWORD=$DB_PASSWORD
 ENV SENDGRID_API_KEY=$SENDGRID_API_KEY
 
 RUN npm run prod
-RUN python manage.py collectstatic --noinput --clear
 CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "up.wsgi"]
 EXPOSE $PORT
