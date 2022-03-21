@@ -5,7 +5,7 @@ services:
      build:
        context: ./up
        dockerfile: Dockerfile_app_dev
-     command: npm run docker
+     command: npm run prod
      volumes:
        - ./up:/up
        - /up/node_modules
