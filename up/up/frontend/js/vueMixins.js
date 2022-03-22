@@ -402,6 +402,9 @@ const modalsMixin = {
         initForm() {
             this.formData = this.getEmptyFormData();
         },
+        onModalOpen() {
+            // subclass
+        },
         processRawData(rawData) {
             // subclass
             return rawData;
@@ -428,6 +431,7 @@ const modalsMixin = {
             this.initForm();
             this.modal$.show();
             this.setFormData(rawData);
+            this.onModalOpen();
         });
         eventBus.on(`open:${this.modalName}:content`, (rawData) => {
             this.initForm();

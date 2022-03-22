@@ -74,7 +74,7 @@
                         <button @click="$refs['userSignUp'].saveChange($event)" type="button"
                                 class="btn btn-primary button-interactive"
                         >
-                            Create account
+                            Create account - It's free
                         </button>
                     </div>
                 </div>

@@ -203,7 +203,7 @@ div.skewer-container {
 
 .button-interactive {
     transition: all 0.2s;
-    text-transform: uppercase;
+    font-weight: bold;
 
     &:hover {
         transform: translateY(-3px);

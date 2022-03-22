@@ -15,7 +15,7 @@
                         </h5>
                         <div class="mt-4">
                             <button type="button" class="btn btn-lg btn-primary button-interactive" @click="signUpWithContext">
-                                Create account
+                                Create account - It's free
                             </button>
                         </div>
                     </div>

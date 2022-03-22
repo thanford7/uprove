@@ -3,7 +3,8 @@
         :modalId="modalName"
         modalTitle="Record a new video"
     >
-        <CustomVideo :isModal="true"
+        <CustomVideo ref="customVideo"
+                     :isModal="true"
                      :addFormData="{projectId: formData.id}"
                      :targetInitDataKey="[
                          () => initData.userProjects.find((up) => up.id === formData.id).videos,
@@ -33,6 +34,11 @@ export default {
     extends: BaseModal,
     inheritAttrs: false,
     components: {BaseModal, CustomVideo},
+    methods: {
+        onModalOpen() {
+            this.$refs.customVideo.setMediaDevices();
+        },
+    },
     data() {
         return {
             modalName: 'addVideoRecordingModal',

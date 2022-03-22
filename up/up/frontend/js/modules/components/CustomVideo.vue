@@ -1,5 +1,6 @@
 <template>
     <div>
+        <div v-if="isUserAllowedInput">
         <div class="row">
             <div class="col">
                 <h6 style="display: inline-block;">Recording type</h6>&nbsp;
@@ -103,6 +104,13 @@
             </div>
         </div>
     </div>
+        <div v-else>
+            You must allow video and audio input to record a video. Click the button below to update access permissions.
+            <button class="btn btn-secondary" @click="setMediaDevices">
+                Request access
+            </button>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -149,6 +157,8 @@ export default {
             TYPE_VIDEO,
             TYPE_SCREEN,
             recordingType: TYPE_SCREEN_VIDEO,
+            isUserAllowedInput: true,  // Need to check whether use has allowed camera and audio capture
+            isMediaError: false,
             recordingStartSeconds: null,
             recordBtn$: null,
             stopBtn$: null,
@@ -174,6 +184,16 @@ export default {
         },
     },
     methods: {
+        addMediaError(mediaType) {
+            this.isMediaError = true;
+            const message = `Something is preventing media capture for the ${mediaType}. Please make sure no other
+            applications are running screen share or video share and try again. If the problem persists, try quiting and
+            reopening your web browser.`
+            store.commit('addAlert', {
+                message,
+                alertType: SEVERITY.DANGER
+            });
+        },
         afterUpdateInitData(newVideo) {
             if (this.isUpdateProject) {
                 // Update the formData if the user hasn't navigated away from this modal
@@ -211,19 +231,24 @@ export default {
             this.isUpdateData = Boolean(this.initDataKey);
         },
         async startRecording() {
+            this.isMediaError = false;
             const recorders = [];
             this.hasData = true;
 
             if (this.recordingType !== this.TYPE_SCREEN) {
                 // get video & audio stream from user
                 const avChunks = [];
-                this.liveAvStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {deviceId: this.$refs.audioInput.elSel.getValue()},
-                    video: {
-                        deviceId: this.$refs.videoInput.elSel.getValue(),
-                        facingMode: 'user'  // Prefer the front facing camera for mobile devices
-                    }
-                });
+                try {
+                    this.liveAvStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {deviceId: this.$refs.audioInput.elSel.getValue()},
+                        video: {
+                            deviceId: this.$refs.videoInput.elSel.getValue(),
+                            facingMode: 'user'  // Prefer the front facing camera for mobile devices
+                        }
+                    });
+                } catch (e) {
+                    this.addMediaError('video');
+                }
 
                 recorders.push({
                     recorderStr: 'avRecorder',
@@ -236,18 +261,26 @@ export default {
 
             if (this.recordingType !== this.TYPE_VIDEO) {
                 const screenChunks = [];
-                this.liveScreenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {cursor: 'always'},
-                    audio: false
-                });
+                try {
+                    this.liveScreenStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: {cursor: 'always'},
+                        audio: false
+                    });
+                } catch (e) {
+                    this.addMediaError('screen');
+                }
 
                 // getDisplayMedia does not support audio capture for most browsers (and only PC)
                 // If we are only recording screen capture, we need to create an additional stream for the audio
                 if (this.recordingType === TYPE_SCREEN) {
-                    this.liveAudioStream = await navigator.mediaDevices.getUserMedia({
-                        audio: {deviceId: this.$refs.audioInput.elSel.getValue()},
-                        video: false
-                    });
+                    try {
+                        this.liveAudioStream = await navigator.mediaDevices.getUserMedia({
+                            audio: {deviceId: this.$refs.audioInput.elSel.getValue()},
+                            video: false
+                        });
+                    } catch (e) {
+                        this.addMediaError('audio');
+                    }
                 }
 
                 recorders.push({
@@ -260,11 +293,19 @@ export default {
                 });
             }
 
+            if (this.isMediaError) {
+                this.stopRecording();
+                return;
+            }
+
             // Pause to allow the user to get ready to record
             this.recordingStartSeconds = RECORDING_WAIT_SECONDS;
             for (let i = 1; i <= RECORDING_WAIT_SECONDS; i++) {
                 setTimeout(() => {
-                    this.recordingStartSeconds--;
+                    // If user stops recording before the end of countdown, we don't want to continue to decrement
+                    if (this.recordingStartSeconds > 0) {
+                        this.recordingStartSeconds--;
+                    }
                 }, i * 1000);
             }
 
@@ -272,8 +313,9 @@ export default {
                 this.recordBtn$.prop('disabled', false);
                 recorders.forEach(({recorderStr, streamStr, chunks, video$, formField, audioStreamStr}) => {
                     let stream = this[streamStr];
-                    if (audioStreamStr) {
-                        stream = new MediaStream([...stream.getVideoTracks(), ...this[audioStreamStr].getAudioTracks()]);
+                    const audioStream = this[audioStreamStr];
+                    if (audioStream) {
+                        stream = new MediaStream([...stream.getVideoTracks(), ...audioStream.getAudioTracks()]);
                     }
 
                     // Start showing the video feed on the screen
@@ -309,6 +351,7 @@ export default {
             }, RECORDING_WAIT_SECONDS * 1000)
         },
         stopRecording() {
+            this.recordingStartSeconds = 0;
             this.recordBtn$.prop('disabled', false);
             this.stopBtn$.prop('disabled', true);
             this.saveBtn$.prop('hidden', false);
@@ -333,6 +376,71 @@ export default {
 
                 video$.stop();
             })
+        },
+        async setMediaDevices() {
+            const devices = await this.getMediaAccess();
+            if (!devices) {
+                return;
+            }
+
+            const audioInputDevices = [];
+            let audioInputDefault, videoInputDefault;
+            const videoInputDevices = [];
+            devices.forEach(({kind, label, deviceId}) => {
+                if (kind === 'audioinput') {
+                    if (deviceId === 'default') {
+                        audioInputDefault = label;
+                    } else {
+                        audioInputDevices.push({deviceId, label});
+                    }
+                }
+                if (kind === 'videoinput') {
+                    if (deviceId === 'default') {
+                        videoInputDefault = label;
+                    } else {
+                        videoInputDevices.push({deviceId, label});
+                    }
+                }
+            });
+
+            // Create selectize for audio input
+            if (audioInputDevices?.length) {
+                this.$refs.audioInput.elSel.addOption(audioInputDevices);
+                this.$refs.audioInput.elSel.refreshOptions(false);
+                const defaultAudioId = (audioInputDefault) ?
+                    audioInputDevices.find((device) => audioInputDefault.includes(device.label))?.deviceId :
+                    audioInputDevices[0].deviceId;
+                this.$refs.audioInput.elSel.addItem(defaultAudioId);
+            }
+
+            // Create selectize for video input
+            if (videoInputDevices?.length) {
+                this.$refs.videoInput.elSel.addOption(videoInputDevices);
+                this.$refs.videoInput.elSel.refreshOptions(false);
+                const defaultVideoId = (videoInputDefault) ?
+                    videoInputDevices.find((device) => videoInputDefault.includes(device.label))?.deviceId :
+                    videoInputDevices[0].deviceId;
+                this.$refs.videoInput.elSel.addItem(defaultVideoId);
+            }
+        },
+        async getMediaAccess() {
+            let devices = await navigator.mediaDevices.enumerateDevices();
+            const getIsAccessAllowed = (devices) => {
+                return devices.reduce((isAllowed, {deviceId}) => {
+                    isAllowed = isAllowed || (deviceId && deviceId.length);
+                    return isAllowed;
+                }, false);
+            }
+            let isAccessAllowed = getIsAccessAllowed(devices);
+
+            // If user hasn't granted permission to use computer devices we can request access using getUserMedia
+            if (!isAccessAllowed) {
+                await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+                devices = await navigator.mediaDevices.enumerateDevices();
+                isAccessAllowed = getIsAccessAllowed(devices);
+            }
+            this.isUserAllowedInput = isAccessAllowed;
+            return (isAccessAllowed) ? devices : null;
         }
     },
     mounted() {
@@ -342,48 +450,6 @@ export default {
         this.saveBtn$ = $(`#${this.saveBtnId}`);
         this.recordBtn$.on('click', this.startRecording);
         this.stopBtn$.on('click', this.stopRecording);
-        navigator.mediaDevices.enumerateDevices()
-            .then((devices) => {
-                const audioInputDevices = [];
-                let audioInputDefault, videoInputDefault;
-                const videoInputDevices = [];
-                devices.forEach(({kind, label, deviceId}) => {
-                    if (kind === 'audioinput') {
-                        if (deviceId === 'default') {
-                            audioInputDefault = label;
-                        } else {
-                            audioInputDevices.push({deviceId, label});
-                        }
-                    }
-                    if (kind === 'videoinput') {
-                        if (deviceId === 'default') {
-                            videoInputDefault = label;
-                        } else {
-                            videoInputDevices.push({deviceId, label});
-                        }
-                    }
-                });
-
-                // Create selectize for audio input
-                if (audioInputDevices?.length) {
-                    this.$refs.audioInput.elSel.addOption(audioInputDevices);
-                    this.$refs.audioInput.elSel.refreshOptions(false);
-                    const defaultAudioId = (audioInputDefault) ?
-                        audioInputDevices.find((device) => audioInputDefault.includes(device.label))?.deviceId :
-                        audioInputDevices[0].deviceId;
-                    this.$refs.audioInput.elSel.addItem(defaultAudioId);
-                }
-
-                // Create selectize for video input
-                if (videoInputDevices?.length) {
-                    this.$refs.videoInput.elSel.addOption(videoInputDevices);
-                    this.$refs.videoInput.elSel.refreshOptions(false);
-                    const defaultVideoId = (videoInputDefault) ?
-                        videoInputDevices.find((device) => videoInputDefault.includes(device.label))?.deviceId :
-                        videoInputDevices[0].deviceId;
-                    this.$refs.videoInput.elSel.addItem(defaultVideoId);
-                }
-            });
     },
     updated() {
         this.setAjaxUpdate();
