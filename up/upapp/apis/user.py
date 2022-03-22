@@ -384,9 +384,9 @@ class UserView(UproveAPIView):
                     'experience__organization',
                     'contentItem',
                     'contentItem__section',
-                    'videos',
-                    'files',
-                    'images',
+                    'video',
+                    'file',
+                    'image',
                     'userTag',
                     'userTag__tag',
                     'userProject',
@@ -417,9 +417,9 @@ class UserView(UproveAPIView):
                 'experience',
                 'contentItem',
                 'contentItem__section',
-                'videos',
-                'files',
-                'images',
+                'video',
+                'file',
+                'image',
                 'tag'
             ) \
                 .get(id=userId)
@@ -428,7 +428,7 @@ class UserView(UproveAPIView):
 
     @staticmethod
     def getUsers():
-        return User.objects.select_related('djangoUser').prefetch_related('images', 'profile').all()
+        return User.objects.select_related('djangoUser').prefetch_related('image', 'profile').all()
 
     @staticmethod
     def updateUser(user, data):

@@ -30,16 +30,18 @@
                     />
                 </span>
             </h5>
-            <ContentMedia 
-                v-if="item.type === contentTypes.CUSTOM"
-                :contentItem="item"
-                @contentUpdated="adjustCardHeight"
-            />
-            <ContentCertification v-if="item.type === contentTypes.CERTIFICATION" :contentItem="item"/>
-            <ContentEducation v-if="item.type === contentTypes.EDUCATION" :contentItem="item"/>
-            <ContentExperience v-if="item.type === contentTypes.EXPERIENCE" :contentItem="item"/>
-            <ContentProject v-if="item.type === contentTypes.PROJECT" :contentItem="item"/>
-            <ViewMoreLink v-if="isHeightExceeded || item.type === contentTypes.PROJECT" @click="eventBus.emit('open:displayContentModal', this.item)"/>
+            <template v-if="item">
+                <ContentMedia
+                    v-if="item.type === contentTypes.CUSTOM"
+                    :contentItem="item"
+                    @contentUpdated="adjustCardHeight"
+                />
+                <ContentCertification v-if="item.type === contentTypes.CERTIFICATION" :contentItem="item"/>
+                <ContentEducation v-if="item.type === contentTypes.EDUCATION" :contentItem="item"/>
+                <ContentExperience v-if="item.type === contentTypes.EXPERIENCE" :contentItem="item"/>
+                <ContentProject v-if="item.type === contentTypes.PROJECT" :contentItem="item"/>
+                <ViewMoreLink v-if="isHeightExceeded || item.type === contentTypes.PROJECT" @click="eventBus.emit('open:displayContentModal', item)"/>
+            </template>
         </div>
     </div>
 </template>

@@ -2,7 +2,7 @@
     <BasePage headerTitle="Dashboard" :headerImage="initData.user.profileImage">
         <div class="row mb-3 justify-content-center">
             <div class="col-md-9 card-custom table-responsive-md">
-                <h3 style="display: inline-block">Projects</h3>
+                <h4 style="display: inline-block">Projects</h4>
                 <div class="row justify-content-center mt-2">
                     <BaseCard
                         v-for="userProject in initData.userProjects"
@@ -93,8 +93,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-9 card-custom table-responsive-md">
-                <h3>Applications</h3>
+            <div v-if="initData.jobApplications && initData.jobApplications.length" class="col-md-9 card-custom table-responsive-md">
+                <h4>Applications</h4>
                 <Table
                     class="mt-3"
                     :data="initData.jobApplications"
@@ -131,9 +131,9 @@
                 </Table>
             </div>
             <div class="col-md-9 card-custom">
-                <h3>Resources</h3>
+                <h4>Resources</h4>
                 <div v-if="initData.user.videos && initData.user.videos.length" class="row">
-                    <h4>Videos</h4>
+                    <h5>Videos</h5>
                     <div v-for="video in initData.user.videos"
                          class="col-md-5 m-2 p-2 -hover-highlight-border"
                          style="position: relative;"
@@ -149,7 +149,7 @@
                     </div>
                 </div>
                 <div v-if="initData.user.images && initData.user.images.length" class="row">
-                    <h4>Images</h4>
+                    <h5>Images</h5>
                     <div v-for="image in initData.user.images"
                          class="col-md-5 m-2 p-2 -hover-highlight-border"
                          style="position: relative;"
@@ -165,7 +165,7 @@
                     </div>
                 </div>
                 <div v-if="initData.user.files && initData.user.files.length" class="row">
-                    <h4>Files</h4>
+                    <h5>Files</h5>
                     <div v-for="file in initData.user.files" class="col-6 col-md-4 m-2 -hover-highlight-border">
                         <div>
                             <FileDisplay :file="file"/>
