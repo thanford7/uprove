@@ -17,29 +17,6 @@ class DataUtil {
     dateFormat = 'MM/DD/YYYY';
     shorthandDateFormat = 'MMM YYYY';
 
-    parseIdString(val, separator = ',') {
-        if (typeof val !== 'string') {
-            return [val];
-        }
-        return val.split(separator);
-    }
-
-    unescapeHTML(str) {
-        return str.replace(/\&([^;]+);/g, (entity, entityCode) => {
-            let match;
-
-            if (entityCode in escapeChars) {
-                return escapeChars[entityCode];
-            } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
-                return String.fromCharCode(parseInt(match[1], 16));
-            } else if (match = entityCode.match(/^#(\d+)$/)) {
-                return String.fromCharCode(~~match[1]);
-            } else {
-                return entity;
-            }
-        });
-    }
-
     formatDate(dateVal, {dateFormat, isReturnNull = false} = {}) {
         if (!dateVal && isReturnNull) {
             return null;

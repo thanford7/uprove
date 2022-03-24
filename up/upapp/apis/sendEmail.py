@@ -158,7 +158,7 @@ class EmailView(UproveAPIView):
             return Response('An email address is required', status=HTTPStatus.BAD_REQUEST)
 
         response = EmailView.sendEmail(
-            subject, EmailView.SEND_EMAIL_ADDRESS, EmailView.EMAIL_ROUTES[contactType], htmlContent=content
+            subject, EmailView.EMAIL_ROUTES[contactType], htmlContent=content
         )
 
         if userSubject:
