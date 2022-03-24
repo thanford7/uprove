@@ -998,9 +998,9 @@ class UserProjectView(UproveAPIView):
             dataUtil.setObjectAttributes(project, self.data, {
                 'projectNotes': None,
             }),
-            self.addFiles(project, user, self.data, self.files, 'files', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
-            self.addFiles(project, user, self.data, self.files, 'videos', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
-            self.addFiles(project, user, self.data, self.files, 'images', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
+            self.addFiles(project, user, self.data, self.files, 'file', 'filesMetaData', self.getCreateFileFn(UserFile, 'file')),
+            self.addFiles(project, user, self.data, self.files, 'video', 'videosMetaData', self.getCreateFileFn(UserVideo, 'video')),
+            self.addFiles(project, user, self.data, self.files, 'image', 'imagesMetaData', self.getCreateFileFn(UserImage, 'image')),
         ])
 
         if isChanged:
@@ -1048,7 +1048,7 @@ class UserProjectView(UproveAPIView):
         isChanged = False
         filesDict = {f.name: f for f in fileData.get(fileDataKey, [])}
         usedFileIds = []
-        existingProjectFiles = getattr(project, fileDataKey)
+        existingProjectFiles = getattr(project, fileDataKey + 's')   # Need to pluralize the data key
         existingProjectFilesDict = {f.id: f for f in existingProjectFiles.all()}
         allFiles = getattr(user, fileDataKey)
         allFilesDict = {f.id: f for f in allFiles.all()}
@@ -1119,11 +1119,11 @@ class UserProjectView(UproveAPIView):
         project.save()
 
         user = UserView.getUser(data['userId'])  # Grab the user with all associated data so we can get files without extra DB query
-        UserProjectView.addFiles(project, user, data, fileData, 'files', 'filesMetaData',
+        UserProjectView.addFiles(project, user, data, fileData, 'file', 'filesMetaData',
                                  UserProjectView.getCreateFileFn(UserFile, 'file'))
-        UserProjectView.addFiles(project, user, data, fileData, 'videos', 'videosMetaData',
+        UserProjectView.addFiles(project, user, data, fileData, 'video', 'videosMetaData',
                                  UserProjectView.getCreateFileFn(UserVideo, 'video'))
-        UserProjectView.addFiles(project, user, data, fileData, 'images', 'imagesMetaData',
+        UserProjectView.addFiles(project, user, data, fileData, 'image', 'imagesMetaData',
                                  UserProjectView.getCreateFileFn(UserImage, 'image'))
 
         saveActivity(ActivityKey.CANDIDATE_CREATE_PROJECT, project.user_id)
