@@ -183,7 +183,7 @@ def employerDashboard(request, employerId=None):
     if not employerId:
         return _getErrorPage(request, HTTPStatus.BAD_REQUEST, 'An employer ID is required')
 
-    if not security.isPermittedEmployer(request, employerId):
+    if not (security.isPermittedEmployer(request, employerId) or security.isPermittedAdmin(request, user)):
         return _getUnauthorizedPage(request)
 
     return render(request, 'employerDashboard.html', context={'data': dumps({
