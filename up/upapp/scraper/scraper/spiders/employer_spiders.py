@@ -33,7 +33,7 @@ class Barn2DoorSpider(scrapy.Spider):
             location=summaryHtml.xpath('.//li[@class="location"]/span/text()').get(),
             jobDepartment=summaryHtml.xpath('.//li[@class="department"]/span/text()').get(),
             jobDescription=sanitizer.sanitize(response.xpath('//div[@class="description"]').get()),
-            isFullTime=summaryHtml.xpath('.//li[@class="type"]/span/text()').get() == 'Full-Time',
+            isFullTime=summaryHtml.xpath('.//li[@class="type"]/span/text()').get() == '%LABEL_POSITION_TYPE_FULL_TIME%',
         )
 
 
