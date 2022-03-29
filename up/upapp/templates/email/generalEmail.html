@@ -3,3 +3,13 @@
 {% block body %}
     {{ bodyContent }}
 {% endblock body %}
+
+{% block finalMessage %}
+    {% if isInternal %}
+    {% else %}
+    <p style="text-align:left">If you did not make this request, please ignore this email.</p>
+    <p style="text-align:left">Sincerely,</p>
+    <p style="text-align:left">Uprove Team</p>
+    <p style="text-align:left">Questions or need help? Email us at {{ supportEmail }}</p>
+    {% endif %}
+{% endblock finalMessage %}

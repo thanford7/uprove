@@ -55,10 +55,15 @@
                 </td>
             </tr>
 			<tr>
-				<td align="left" bgcolor="#ffffff" style="padding:30px">
+				<td align="left" bgcolor="#ffffff" style="padding: 30px 30px 10px 30px;">
                     {% block body %}{% endblock body %}
 				</td>
 			</tr>
+            <tr>
+                <td align="left" bgcolor="#ffffff" style="padding-left:30px;">
+                    {% block finalMessage %}{% endblock finalMessage %}
+				</td>
+            </tr>
 		</table>
     </body>
 </html>

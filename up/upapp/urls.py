@@ -37,6 +37,9 @@ urlpatterns = [
     re_path('^sign-up/employer/(?P<type>[a-z]+)?/?$', views.signUpEmployer, name='signUpEmployer'),
     path('terms-of-service/', views.termsOfService, name='termsOfService'),
 
+    # Sales views
+    path('mentor/', views.salesMentor, name="salesMentor"),
+
     # APIs
     re_path(apiPath + 'account-employer/(?P<employerId>[0-9]+)?/?$', employer.EmployerView.as_view()),
     re_path(apiPath + 'account-user/(?P<userId>[0-9]+)?/?$', user.UserView.as_view()),
@@ -61,6 +64,7 @@ urlpatterns = [
     re_path(apiPath + 'user-file/$', user.UserFileView.as_view()),
     re_path(apiPath + 'user-image/$', user.UserImageView.as_view()),
     re_path(apiPath + 'user-video/$', user.UserVideoView.as_view()),
+    re_path(apiPath + 'waitlist/$', user.WaitlistView.as_view()),
 
     # Email
     path(apiPath + 'email/', sendEmail.EmailView.as_view()),

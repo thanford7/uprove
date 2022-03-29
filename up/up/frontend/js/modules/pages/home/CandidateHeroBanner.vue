@@ -5,8 +5,8 @@
                 <div class="col-md-7 ps-md-5">
                     <div class="p-4">
                         <h1 id="header-main">
-                            <span id="header-line-1">Real world business projects to</span>
-                            <span id="header-line-2" class="-color-orange-text" style="letter-spacing: 0.5rem;">prove your skills</span>
+                            <span id="header-line-1">Real world business projects to&nbsp;</span>
+                            <span id="header-line-2" class="-color-orange-text" style="letter-spacing: 0.5rem;">prove your skills&nbsp;</span>
                             <span id="header-line-3">to employers</span>
                         </h1>
                         <h5 class="mt-4">

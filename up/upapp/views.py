@@ -232,6 +232,10 @@ def login(request):
     return render(request, 'login.html')
 
 
+def salesMentor(request):
+    return render(request, 'sales/sales-mentor.html')
+
+
 def privacy(request):
     return render(request, 'privacy.html', context={})
 

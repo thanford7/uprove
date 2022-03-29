@@ -13,7 +13,7 @@ __all__ = (
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
-    'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag'
+    'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist'
 )
 
 
@@ -455,3 +455,12 @@ class UserActivity(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
+
+
+class Waitlist(models.Model):
+    class WaitlistType(Enum):
+        MENTOR = 'mentor'
+
+    email = models.EmailField()
+    waitlistType = models.CharField(max_length=100)
+    signUpDateTime = models.DateTimeField()
