@@ -35,7 +35,7 @@ const store = createStore({
             state.alerts.push({...alert, id: state.alertCount});
             setTimeout(() => {
                 this.commit('clearSuccessAlerts');
-            }, 5000);
+            }, 10000);
 
             if ([SEVERITY.DANGER, SEVERITY.WARN].includes(alert.type)) {
                 // If modal is open, scroll to the top, otherwise scroll to the top of the page

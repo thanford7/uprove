@@ -1378,15 +1378,9 @@ class WaitlistView(UproveAPIView):
             'Uprove | Thanks for your interest in a hiring coach',
             [email],
             djangoContext={
-                'bodyContent': '''
-                    We are excited to find the perfect hiring coach for you and help you land your dream job! We will
-                    reach out within 3 weeks to provide more details and understand the role, industry, and experience
-                    level which is appropriate for your job search. In the meantime, here's a link to our free Udemy 
-                    course on how to land any job: https://www.udemy.com/course/how-to-land-any-job/?couponCode=2E2CB9DBAED4FA7B0A38
-                ''',
                 'supportEmail': EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
             },
-            djangoEmailBodyTemplate='email/generalEmail.html'
+            djangoEmailBodyTemplate='email/waitlistEmail.html'
         )
 
         EmailView.sendEmail(

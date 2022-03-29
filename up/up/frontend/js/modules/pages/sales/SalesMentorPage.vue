@@ -1,5 +1,9 @@
 <template>
     <div>
+        <p class="alert fade show alert-warning -color-darkblue-text text-center sticky-top mb-0" role="alert">
+            Sign up by April 8th and we'll send you a link to our free course, <b>"How to Land Any Job"</b><br/>
+            Time remaining: {{offerTimeRemaining}}
+        </p>
         <div class="-color-white">
             <div class="container-lg">
                 <div class="row pt-4 pb-4">
@@ -31,10 +35,6 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="alert fade show alert-warning mt-2 -color-darkblue-text" role="alert">
-                                Sign up by April 8th and we'll send you a link to our free course on
-                                how to land any job
-                            </div>
                         </div>
                     </div>
                     <div class="col-md-5 pb-3 -bg-clip-border ps-0 pe-0 d-flex align-items-center">
@@ -45,7 +45,7 @@
                 </div>
             </div>
         </div>
-        <div class="container-lg pt-5 pb-3">
+        <div class="container-lg pt-5 pb-3 ps-md-5 pe-md-6">
             <div class="row">
                 <h3 class="-color-darkblue-text">How it works</h3>
                 <p>We match you with an experienced hiring manager from companies similar to the ones you are applying to</p>
@@ -142,10 +142,6 @@
                             Join waitlist
                         </button>
                     </div>
-                    <div class="alert fade show alert-warning mt-2 -color-darkblue-text" role="alert">
-                        Sign up by April 8th and we'll send you a link to our free course on
-                        how to land any job
-                    </div>
                 </div>
             </div>
         </div>
@@ -163,7 +159,9 @@ export default {
     components: {BannerAlert, InputEmail},
     data() {
         return {
-            formData: {}
+            formData: {},
+            offerTimeRemaining: null,
+            offerEndDateTime: '2022-04-08 23:59'
         }
     },
     methods: {
@@ -171,7 +169,8 @@ export default {
             return {method: 'POST'};
         },
         getSuccessMessage() {
-            return 'Thanks for your interest! We added you to the waitlist and sent an email confirmation.';
+            return 'Thanks for your interest! We added you to the waitlist and sent an email confirmation. If you don\'t' +
+                ' see it, please check your spam folder.';
         },
         saveWaitlist() {
             const ajaxData = this.getAjaxFormData({
@@ -183,6 +182,9 @@ export default {
                 url: this.apiUrl + 'waitlist/',
             });
         }
+    },
+    mounted() {
+        this.offerTimeRemaining = dateUtil.getTimeRemaining(this.offerEndDateTime);
     }
 }
 </script>
