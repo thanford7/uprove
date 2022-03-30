@@ -1,6 +1,6 @@
 <template>
     <BasePage
-        :headerTitle="`${initData.job.jobTitle} position`"
+        :headerTitle="initData.job.jobTitle"
         :headerImage="initData.employer.logo"
         :headerImageAlt="initData.employer.companyName"
     >

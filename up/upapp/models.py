@@ -364,6 +364,7 @@ class EmployerJob(AuditFields):
     employer = models.ForeignKey(Employer, on_delete=models.PROTECT, related_name='employerJob')
     jobTitle = models.CharField(max_length=100)
     jobDescription = models.TextField()
+    jobDepartment = models.CharField(max_length=50, null=True)
     allowedProjects = models.ManyToManyField(CustomProject, related_name='employerJobProjects')
     openDate = models.DateField(null=True)
     pauseDate = models.DateField(null=True)
@@ -371,6 +372,12 @@ class EmployerJob(AuditFields):
     salaryFloor = models.FloatField(null=True)
     salaryCeiling = models.FloatField(null=True)
     salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
+    applicationUrl = models.CharField(max_length=500, null=True)
+    location = models.CharField(max_length=100, null=True)
+    isScraped = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('employer', 'jobTitle', 'location')
 
 
 class JobTemplate(models.Model):
