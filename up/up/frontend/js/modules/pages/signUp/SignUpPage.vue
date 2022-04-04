@@ -43,7 +43,7 @@
 
 <script>
 import EditUserModal from "../../modals/EditUserModal";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "SignUpPage",

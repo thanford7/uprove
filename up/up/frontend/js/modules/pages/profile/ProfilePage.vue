@@ -70,7 +70,7 @@ import EditMediaModal from '../../modals/EditMediaModal.vue';
 import InfoToolTip from "../../components/InfoToolTip";
 import ProgressPill from "../../components/ProgressPill";
 import EditUserProjectModal from "../../modals/EditUserProjectModal";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     data() {

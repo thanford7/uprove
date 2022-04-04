@@ -22,6 +22,10 @@ $card-radius: 10px;
         margin: 20px;
     }
 
+    &.filter {
+        margin-bottom: 8px;
+    }
+
     &--shadow {
         box-shadow: 0 0 5px colors.$color-moderategrey;
     }

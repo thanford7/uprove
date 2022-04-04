@@ -168,7 +168,7 @@ import dayjs from "dayjs/esm";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 import EditCustomProjectModal from "../../modals/EditCustomProjectModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";

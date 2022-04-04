@@ -27,7 +27,7 @@
 
 <script>
 import EditBlogModal from "../../modals/EditBlogModal";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 export default {
     name: "BlogSinglePage",
     components: {BasePage, EditBlogModal},

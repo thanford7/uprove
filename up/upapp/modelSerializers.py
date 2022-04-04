@@ -372,15 +372,22 @@ def getSerializedEmployerCustomProjectCriterion(criterion: EmployerCustomProject
 def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
     baseFields = {
         'id': employerJob.id,
+        'employerId': employerJob.employer_id,
         'jobTitle': employerJob.jobTitle,
+        'role': employerJob.role,
         'jobDescription': employerJob.jobDescription,
         'allowedProjects': [getSerializedCustomProject(ep) for ep in employerJob.allowedProjects.all()],
         'salaryFloor': employerJob.salaryFloor,
         'salaryCeiling': employerJob.salaryCeiling,
         'salaryUnit': employerJob.salaryUnit,
-        'openDate': employerJob.openDate.isoformat() if employerJob.openDate else None,
-        'pauseDate': employerJob.pauseDate.isoformat() if employerJob.pauseDate else None,
-        'closeDate': employerJob.closeDate.isoformat() if employerJob.closeDate else None,
+        'openDate': getDateTimeFormatOrNone(employerJob.openDate),
+        'pauseDate': getDateTimeFormatOrNone(employerJob.pauseDate),
+        'closeDate': getDateTimeFormatOrNone(employerJob.closeDate),
+        'isRemote': employerJob.isRemote,
+        'city': employerJob.city,
+        'state': employerJob.state,
+        'country': employerJob.country,
+        'region': employerJob.region
     }
     employerFields = {
         'applications': [getSerializedJobApplication(app, isEmployer=True) for app in employerJob.jobApplication.all()],

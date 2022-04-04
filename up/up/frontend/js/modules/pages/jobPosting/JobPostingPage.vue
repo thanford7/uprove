@@ -99,7 +99,7 @@ import InputSelectize from "../../inputs/InputSelectize";
 import PageHeader from "../../components/PageHeader";
 import SubmitHelpModal from "../../modals/SubmitHelpModal";
 import dataUtil from "../../../utils/data";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "JobPostingPage.vue",

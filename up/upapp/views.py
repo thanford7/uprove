@@ -1,9 +1,10 @@
 from http import HTTPStatus
 from json import dumps
 
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from upapp import security
 from upapp.modelSerializers import *
@@ -11,7 +12,7 @@ from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
-from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView, isUserProjectLocked
+from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import EmployerCustomProjectCriterion, Role, Skill
 from upapp.viewsAuth import getLoginRedirectUrl
 
@@ -203,6 +204,30 @@ def employers(request):
 
 def errors(request):
     return render(request, 'errors.html', context={})
+
+
+def jobs(request):
+    user = security.getSessionUser(request)
+    if not user or not security.isPermittedSessionUser(user=user):
+        return _getUnauthorizedPage(request)
+
+    permittedCountries = ['USA', 'UK', 'Canada']
+    isOpen = Q(openDate__lte=timezone.now().date()) & (Q(closeDate__isnull=True) | Q(closeDate__gt=timezone.now().date()))
+    isPermittedCountry = Q(country__isnull=True) | Q(country__in=permittedCountries)
+    jobs = EmployerJob.objects.filter(isOpen).filter(isPermittedCountry).filter(role__isnull=False)
+    employers = Employer.objects.filter(isDemo=False)
+    return render(request, 'jobs.html', context={'data': dumps({
+        'jobs': [getSerializedEmployerJob(job) for job in jobs],
+        'employers': {e.id: {
+            'id': e.id,
+            'companyName': e.companyName,
+            'logo': e.logo.url if e.logo else None,
+            'description': e.description,
+        } for e in employers},
+        'states': list({job.state for job in jobs}),
+        'countries': permittedCountries,
+        'roles': list({job.role for job in jobs})
+    })})
 
 
 def jobPosting(request, jobId):

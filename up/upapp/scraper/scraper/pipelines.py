@@ -6,8 +6,8 @@
 
 # useful for handling different item types with a single interface
 from django.utils import timezone
-from itemadapter import ItemAdapter
 
+from scraper.utils.normalize import normalizeLocations
 from upapp.models import Employer, EmployerJob
 
 
@@ -27,12 +27,15 @@ class ScraperPipeline:
     def close_spider(self, spider):
         # Set the close date of a job if it no longer exists on the employers job page
         for employerData in self.employers.values():
-            if employerData['employer'] not in self.scrapedEmployers:
+            if employerData['employer'].companyName not in self.scrapedEmployers:
                 continue
             for jobKey, job in employerData['jobs'].items():
                 if jobKey not in employerData['foundJobs']:
                     job.closeDate = timezone.now().date()
                     job.save()
+
+        # Update location attributes (e.g. city)
+        normalizeLocations()
 
         if driver := getattr(spider, 'driver', None):
             driver.close()

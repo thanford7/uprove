@@ -4,20 +4,52 @@ from twisted.internet import reactor
 
 from spiders.employer_spiders import *
 
+defaultSettings = get_project_settings()
+defaultRunner = CrawlerRunner(defaultSettings)
 
-# process = CrawlerProcess(get_project_settings())
-runner = CrawlerRunner(get_project_settings())
-spidersToCrawl = [
+
+def addCrawlers(runner, spiders):
+    if not spiders:
+        return
+    for spider in spiders:
+        runner.crawl(spider)
+
+    d = runner.join()
+    d.addBoth(lambda _: reactor.stop())
+
+
+defaultSpiders = [
     Barn2DoorSpider,
-    # ZoomoSpider
+    BounteousSpider,
+    BlockRenovationSpider,
+    ComplyAdvantageSpider,
+    GradleSpider,
+    HavenlySpider,
+    CoverGeniusSpider,
+    CurologySpider,
+    DISQOSpider,
+    FlorenceHealthcareSpider,
+    FLYRLabsSpider,
+    FountainSpider,
+    HiveSpider,
+    IroncladSpider,
+    JerrySpider,
+    KandjiSpider,
+    KindbodySpider,
+    LeapSpider,
+    LiberisSpider,
+    LinkSquaresSpider,
+    MediaflySpider,
+    MolocoSpider,
+    NomadHealthSpider,
+    OnnaSpider,
+    OutschoolSpider,
+    PilotSpider,
+    ProdegeSpider,
+    QuartetHealthSpider,
+    QuipSpider,
+    ZoomoSpider
 ]
 
-for spider in spidersToCrawl:
-    # process.crawl(spider)
-    runner.crawl(spider)
-
-d = runner.join()
-d.addBoth(lambda _: reactor.stop())
-
-# process.start()
+addCrawlers(defaultRunner, defaultSpiders)
 reactor.run()

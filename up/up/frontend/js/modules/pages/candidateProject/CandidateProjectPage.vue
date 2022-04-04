@@ -34,7 +34,7 @@ import FileDisplay from "../../components/FileDisplay";
 import PageHeader from "../../components/PageHeader";
 import ProjectDetailAccordion from "../../components/ProjectDetailAccordion";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "CandidateProjectPage",

@@ -144,7 +144,7 @@
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 import CardPricing from "../../components/CardPricing";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
 import ListFontAwesome from "../../components/ListFontAwesome";

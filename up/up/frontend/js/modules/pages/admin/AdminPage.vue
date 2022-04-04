@@ -102,7 +102,7 @@ import EditUserModal from "../../modals/EditUserModal";
 import InputSelectize from "../../inputs/InputSelectize";
 import skillSelectize from "../../selectizeCfgs/skill";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "AdminPage.vue",

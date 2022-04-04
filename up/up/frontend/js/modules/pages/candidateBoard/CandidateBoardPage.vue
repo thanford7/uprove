@@ -1,28 +1,35 @@
 <template>
-    <BasePage headerTitle="Candidate board">
+    <BasePage>
         <template v-slot:filter>
-            <div class="col-md-3">
-                <RolesSelectize
-                    ref="role"
-                    placeholder="Roles: All"
-                    :roles="initData.roles"
-                    @selected="setFilter($event, 'roles', 'role')"
-                />
-            </div>
-            <div class="col-md-3">
-                <SkillsSelectize
-                    ref="skills"
-                    :skills="initData.skills"
-                    @selected="setSkills($event)"
-                />
-            </div>
-            <div class="col-md-3">
-                <SkillLevelsSelectize
-                    ref="projectSkillLevels"
-                    placeholder="Experience Levels: All"
-                    @selected="setFilter($event, 'skillLevelBits', 'level')"
-                />
-            </div>
+            <BaseFilter>
+                <div class="col-12">
+                    <h6>Search candidates</h6>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-md filter-item">
+                        <RolesSelectize
+                            ref="role"
+                            placeholder="Roles: All"
+                            :roles="initData.roles"
+                            @selected="setFilter($event, 'roles', 'role')"
+                        />
+                    </div>
+                    <div class="col-12 col-md filter-item">
+                        <SkillsSelectize
+                            ref="skills"
+                            :skills="initData.skills"
+                            @selected="setSkills($event)"
+                        />
+                    </div>
+                    <div class="col-12 col-md filter-item">
+                        <SkillLevelsSelectize
+                            ref="projectSkillLevels"
+                            placeholder="Experience Levels: All"
+                            @selected="setFilter($event, 'skillLevelBits', 'level')"
+                        />
+                    </div>
+                </div>
+            </BaseFilter>
         </template>
         <div class="row mb-3">
             <div class="card-custom">
@@ -86,7 +93,8 @@
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
-import BasePage from "../BasePage";
+import BaseFilter from "../base/BaseFilter";
+import BasePage from "../base/BasePage";
 import dataUtil from "../../../utils/data";
 import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
@@ -100,7 +108,7 @@ import userProjectUtil from "../../../utils/userProject";
 export default {
     name: "CandidateBoardPage",
     components: {
-        BasePage, BadgesSkillLevels, BadgesSkills, BannerAlert, InfoToolTip, PageHeader,
+        BaseFilter, BasePage, BadgesSkillLevels, BadgesSkills, BannerAlert, InfoToolTip, PageHeader,
         RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
     },
     data() {

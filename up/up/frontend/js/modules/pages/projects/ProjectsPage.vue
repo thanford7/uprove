@@ -1,28 +1,30 @@
 <template>
     <BasePage headerTitle="Projects">
         <template v-slot:filter>
-            <div class="col-md-3">
-                <RolesSelectize
-                    ref="role"
-                    placeholder="Roles: All"
-                    :roles="initData.roles"
-                    @selected="setFilter($event, 'roles', 'role')"
-                />
-            </div>
-            <div class="col-md-3">
-                <SkillsSelectize
-                    ref="skills"
-                    :skills="initData.skills"
-                    @selected="setSkills($event)"
-                />
-            </div>
-            <div class="col-md-3">
-                <SkillLevelsSelectize
-                    ref="projectSkillLevels"
-                    placeholder="Experience Levels: All"
-                    @selected="setFilter($event, 'skillLevelBits', 'level')"
-                />
-            </div>
+            <BaseFilter>
+                <div class="col-md-3">
+                    <RolesSelectize
+                        ref="role"
+                        placeholder="Roles: All"
+                        :roles="initData.roles"
+                        @selected="setFilter($event, 'roles', 'role')"
+                    />
+                </div>
+                <div class="col-md-3">
+                    <SkillsSelectize
+                        ref="skills"
+                        :skills="initData.skills"
+                        @selected="setSkills($event)"
+                    />
+                </div>
+                <div class="col-md-3">
+                    <SkillLevelsSelectize
+                        ref="projectSkillLevels"
+                        placeholder="Experience Levels: All"
+                        @selected="setFilter($event, 'skillLevelBits', 'level')"
+                    />
+                </div>
+            </BaseFilter>
         </template>
         <div class="row justify-content-center">
             <template v-for="project in filteredProjects">
@@ -35,17 +37,18 @@
 
 <script>
 import dataUtil from "../../../utils/data";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 import ProjectCard from "../../components/ProjectCard";
 import RolesSelectize from "../../inputs/RolesSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import PageHeader from "../../components/PageHeader";
+import BaseFilter from "../base/BaseFilter";
 
 export default {
     name: "ProjectsPage.vue",
-    components: {BasePage, PageHeader, ProjectCard, RolesSelectize, SkillLevelsSelectize, SkillsSelectize},
+    components: {BaseFilter, BasePage, PageHeader, ProjectCard, RolesSelectize, SkillLevelsSelectize, SkillsSelectize},
     data() {
         return {
             filter: {}
