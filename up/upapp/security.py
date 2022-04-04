@@ -37,6 +37,8 @@ def isSelf(userId, request=None, user=None):
 
 
 def isPermittedEmployer(request, employerId):
+    if not employerId:
+        return False
     if user := getSessionUser(request):
         return user.employer_id == intOrNone(employerId)
     return False

@@ -2,7 +2,7 @@
     <BasePage :headerTitle="pageHeader">
         <div class="row">
             <CandidateSideBar :user="initData.user" :profilePicture="initData.user.profileImage"/>
-            <div class="col-md-8 card-custom">
+            <div class="col-md-7 card-custom">
                 <div>
                     <BadgesSkillLevels :skillLevels="initData.userProject.customProject.skillLevels"/>
                     <BadgesSkills :skills="initData.userProject.customProject.skills"/>
@@ -20,8 +20,14 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-2 card-custom">
+                <button class="btn btn-secondary"
+                @click="eventBus.emit('open:viewCandidateApplicationModal', {userProject: initData.userProject})"
+                >Rate project</button>
+            </div>
         </div>
     </BasePage>
+    <ViewCandidateApplicationModal initDataKeyOverride="userProject"/>
 </template>
 
 <script>
@@ -34,6 +40,7 @@ import FileDisplay from "../../components/FileDisplay";
 import PageHeader from "../../components/PageHeader";
 import ProjectDetailAccordion from "../../components/ProjectDetailAccordion";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
+import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 import BasePage from "../BasePage";
 
 export default {
@@ -41,7 +48,7 @@ export default {
     components: {
         BasePage,
         BadgesSkillLevels, BadgesSkills, BannerAlert, CandidateSideBar,
-        FileDisplay, PageHeader, ProjectDetailAccordion
+        FileDisplay, PageHeader, ProjectDetailAccordion, ViewCandidateApplicationModal
     },
     data() {
         return {

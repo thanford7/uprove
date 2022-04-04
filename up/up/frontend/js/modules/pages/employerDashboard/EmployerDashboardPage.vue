@@ -76,7 +76,7 @@
                                     </li>
                                     <li
                                         v-if="getApplicationStatus(application) !== APPLICATION_STATUS.NOT_SUBMITTED"
-                                        @click="eventBus.emit('open:viewCandidateApplicationModal', application)"
+                                        @click="eventBus.emit('open:viewCandidateApplicationModal', {application})"
                                     >
                                         <a class="dropdown-item" href="#">
                                             <i class="far fa-eye"></i> Quick view application

@@ -125,12 +125,14 @@
         </div>
         <template v-slot:footer>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="$emit('approve', formData.application)">
-                <i class="far fa-thumbs-up -color-green-text"></i> Approve <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
-            </button>
-            <button @click="$emit('decline', formData.application)" data-bs-dismiss="modal" type="button" class="btn btn-secondary">
-                <i class="far fa-thumbs-down -color-red-text"></i> Decline <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerDecline"/>
-            </button>
+            <template v-if="formData.application">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="$emit('approve', formData.application)">
+                    <i class="far fa-thumbs-up -color-green-text"></i> Approve <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
+                </button>
+                <button @click="$emit('decline', formData.application)" data-bs-dismiss="modal" type="button" class="btn btn-secondary">
+                    <i class="far fa-thumbs-down -color-red-text"></i> Decline <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerDecline"/>
+                </button>
+            </template>
             <button v-if="isAddEvaluation || hasEvaluated" @click="saveChange" type="button" class="btn btn-primary">
                 Save evaluation
             </button>
@@ -152,6 +154,7 @@ export default {
     name: "ViewCandidateApplicationModal",
     extends: BaseModal,
     inheritAttrs: false,
+    props: ['initDataKeyOverride'],
     components: {BaseModal, FileDisplay, InfoToolTip, InputCheckBox, InputSelectize},
     computed: {
         evaluationCriteriaTemplate() {
@@ -160,6 +163,9 @@ export default {
             }
             const allEvalCriteria = this.initData.projects.find((p) => p.id === this.formData.customProject.projectId).evaluationCriteria;
             const selectedEvalCriteria = this.initData.customProjectEvaluationCriteria.filter((ec) => ec.customProjectId === this.formData.customProject.id);
+            if (!selectedEvalCriteria || !selectedEvalCriteria.length) {
+                return allEvalCriteria;
+            }
             return selectedEvalCriteria.map((criterion) => allEvalCriteria.find((ec) => criterion.evaluationCriterionId === ec.id));
         },
         isShowEvaluation() {
@@ -173,7 +179,7 @@ export default {
         return {
             modalName: 'viewCandidateApplicationModal',
             crudUrl: 'user-project-evaluation/',
-            initDataKey: 'employer',
+            initDataKey: this.initDataKeyOverride || 'employer',
             isUpdateData: true,
             hasEvaluated: false,  // Whether the current user has submitted an evaluation
             isAddEvaluation: false
@@ -200,11 +206,14 @@ export default {
             const evaluatorName = (this.isEvaluatorSelf(evalItem)) ? 'you' : `${evaluator.firstName} ${evaluator.lastName}`;
             return `Evaluation completed by ${evaluatorName}`;
         },
-        processRawData(application) {
+        processRawData({application, userProject}) {
             this.hasEvaluated = false;  // Reset when modal is opened
-            const userProject = application.userProject;
+            userProject = userProject || application.userProject;
             this.isAddEvaluation = !userProject.evaluationCriteria.length;  // Add the evaluation template if no evaluation has been completed
-            userProject.application = dataUtil.omit(application, ['userProject']);
+
+            if (application) {
+                userProject.application = dataUtil.omit(application, ['userProject']);
+            }
             const project = this.initData.projects.find((p) => p.id === userProject.customProject.projectId);
             userProject.evaluationCriteria.forEach((ec) => {
                 ec.evaluationCriterion = project.evaluationCriteria.find((c) => c.id === ec.evaluationCriterionId);
@@ -214,13 +223,14 @@ export default {
             Object.values(userProject.evaluationsByUserId).forEach((evalCriteria) => {
                 dataUtil.sortBy(evalCriteria, ['evaluationCriterion.category', 'evaluationCriterionId'], true);
             });
+            userProject.evaluationScorePct = userProjectUtil.getEvaluationScore(userProject.evaluationCriteria);
             return userProject;
         },
         processFormData() {
             return {
                 userProjectId: this.formData.id,
                 evaluatorId: this.globalData.uproveUser.id,
-                employerId: this.initData.employer.id,
+                employerId: this.initData?.employer?.id,
                 evaluationCriteria: (this.hasEvaluated) ? this.formData.evaluationsByUserId[this.globalData.uproveUser.id] : this.evaluationCriteriaTemplate
             }
         },

@@ -105,7 +105,19 @@ WSGI_APPLICATION = 'up.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-if DEBUG is True or env('DB') == 'local':
+if env('DB') == 'dev':
+    logger.info('CURRENTLY IN DEBUG MODE')
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'defaultdb',
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': 'db-postgresql-nyc3-30775-do-user-9892554-0.b.db.ondigitalocean.com',
+            'PORT': 25060
+        }
+    }
+elif DEBUG is True or env('DB') == 'local':
     logger.info('CURRENTLY IN DEBUG MODE')
     DATABASES = {
         'default': {

@@ -435,7 +435,7 @@ def getSerializedUserProjectEvaluationCriterion(criterion: UserProjectEvaluation
         'employer': {
             'id': criterion.employer_id,
             'companyName': criterion.employer.companyName
-        },
+        } if criterion.employer_id else None,
         'evaluator': {
             'id': criterion.evaluator_id,
             'firstName': criterion.evaluator.firstName,

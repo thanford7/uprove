@@ -10,7 +10,8 @@ from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView, SkillView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
-    getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject
+    getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject, \
+    getSerializedUserProject
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -396,7 +397,7 @@ class UserProjectEvaluationView(UproveAPIView):
 
     @atomic
     def put(self, request):
-        employerId = self.data['employerId']
+        employerId = self.data.get('employerId')
         if not any([self.isAdmin, security.isPermittedEmployer(request, employerId)]):
             return Response('You are not permitted to evaluate this project', status=status.HTTP_401_UNAUTHORIZED)
 
@@ -422,9 +423,18 @@ class UserProjectEvaluationView(UproveAPIView):
                     modifiedDateTime=timezone.now()
                 ).save()
 
-        return Response(status=status.HTTP_200_OK, data={
-            'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), isEmployer=True)
-        })
+        if employerId:
+            data = {
+                'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), isEmployer=True)
+            }
+        else:
+            from upapp.apis.user import UserProjectView  # Avoid circular import
+            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
+            data = {
+                'userProject': getSerializedUserProject(userProject, isEmployer=True)
+            }
+
+        return Response(status=status.HTTP_200_OK, data=data)
 
 
 class OrganizationView(UproveAPIView):

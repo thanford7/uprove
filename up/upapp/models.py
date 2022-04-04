@@ -401,7 +401,7 @@ class UserJobApplication(models.Model):
 
 class UserProjectEvaluationCriterion(AuditFields):
     userProject = models.ForeignKey('UserProject', on_delete=models.CASCADE, related_name='userProjectEvaluationCriterion')
-    employer = models.ForeignKey('Employer', on_delete=models.CASCADE)
+    employer = models.ForeignKey('Employer', on_delete=models.CASCADE, null=True)
     evaluator = models.ForeignKey('User', on_delete=models.CASCADE)
     evaluationCriterion = models.ForeignKey(ProjectEvaluationCriterion, on_delete=models.CASCADE)
     value = models.SmallIntegerField(default=0)

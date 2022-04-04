@@ -162,7 +162,17 @@ def candidateProject(request, userProjectId=None):
     userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
     return render(request, 'candidateProject.html', context={'data': dumps({
         'user': getSerializedUser(UserView.getUser(userProject.user_id), isIncludeAssets=True),
-        'userProject': getSerializedUserProject(userProject)
+        'userProject': getSerializedUserProject(userProject, isEmployer=True),
+        'projects': [getSerializedProject(
+            userProject.customProject.project,
+            isIncludeDetails=True,
+            isAdmin=user.isAdmin,
+            evaluationEmployerId=None if user.isAdmin else user.employer_id
+        )],
+        'customProjectEvaluationCriteria': [
+            getSerializedEmployerCustomProjectCriterion(ec)
+            for ec in EmployerCustomProjectCriterion.objects.filter(employer_id=user.employer_id)
+        ],
     })})
 
 
