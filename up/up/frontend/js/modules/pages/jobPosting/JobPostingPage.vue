@@ -5,48 +5,13 @@
         :headerImageAlt="initData.employer.companyName"
     >
         <div class="row mb-3 justify-content-center" :class="(isMobile) ? 'mobile-top' : ''">
-            <div :id="accordionElId" class="col-md-9 accordion">
-                <AccordionItem :accordionElId="accordionElId" :elId="getNewElUid()">
-                    <template v-slot:header>
-                        Company Profile
-                    </template>
-                    <template v-slot:body>
-                        <div v-html="initData.employer.description"></div>
-                    </template>
-                </AccordionItem>
-                <AccordionItem :accordionElId="accordionElId" :elId="getNewElUid()">
-                    <template v-slot:header>
-                        Job Description
-                    </template>
-                    <template v-slot:body>
-                        <span v-html="initData.job.jobDescription"></span>
-                    </template>
-                </AccordionItem>
-                <template v-for="(ap, idx) in initData.job.allowedProjects">
-                    <AccordionItem :ref="`accordionItem-${ap.id}`" :accordionElId="accordionElId" :elId="getNewElUid()" :isOpen="true">
-                        <template v-slot:header>
-                            Project Option {{idx + 1}}: {{getProject(ap).title}}
-                        </template>
-                        <template v-slot:body>
-                            <h5 class="-text-bold">Description</h5>
-                            <p v-html="getProject(ap).description" class="-border-bottom--light"></p>
-                            <h5 class="-text-bold">Background</h5>
-                            <p v-html="getProject(ap).background" class="-border-bottom--light"></p>
-                            <div class="mb-3" :class="(getProjectFiles(ap).length) ? '-border-bottom--light' : ''">
-                                <h5 class="-text-bold">Instructions</h5>
-                                <p v-html="getProjectInstructions(ap)"></p>
-                                <ul v-if="getSkillInstructions(ap)" class="pb-2">
-                                    <li v-for="i in getSkillInstructions(ap)">{{i}}</li>
-                                </ul>
-                            </div>
-                            <template v-if="getProjectFiles(ap).length">
-                                <h5 class="-text-bold">Files</h5>
-                                <FileDisplay v-for="file in getProjectFiles(ap)" :file="file"/>
-                            </template>
-                        </template>
-                    </AccordionItem>
-                </template>
-            </div>
+            <JobPosting
+                ref="jobPosting"
+                class="col-md-9"
+                :employer="initData.employer"
+                :job="initData.job"
+                :customProjectId="formData.customProjectId"
+            />
             <div class="col-md-3 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
                 <h5 class="-text-bold">Applicant instructions</h5>
                 <ol class="-border-bottom--light mb-3 pb-3">
@@ -66,7 +31,7 @@
                     <li>
                         Read project description, background, and instructions
                     </li>
-                    <li v-if="hasFiles">
+                    <li v-if="$refs?.jobPosting?.hasFiles">
                         Download project files
                     </li>
                     <li v-if="!hasProjectSaved">
@@ -96,6 +61,7 @@ import AccordionItem from "../../components/AccordionItem";
 import BannerAlert from "../../components/BannerAlert";
 import FileDisplay from "../../components/FileDisplay";
 import InputSelectize from "../../inputs/InputSelectize";
+import JobPosting from "./JobPosting";
 import PageHeader from "../../components/PageHeader";
 import SubmitHelpModal from "../../modals/SubmitHelpModal";
 import dataUtil from "../../../utils/data";
@@ -103,7 +69,7 @@ import BasePage from "../base/BasePage";
 
 export default {
     name: "JobPostingPage.vue",
-    components: {BasePage, AccordionItem, BannerAlert, FileDisplay, InputSelectize, PageHeader, SubmitHelpModal},
+    components: {BasePage, AccordionItem, BannerAlert, FileDisplay, InputSelectize, JobPosting, PageHeader, SubmitHelpModal},
     data() {
         return {
             accordionElId: `accordion-${this.getNewElUid()}`,
@@ -122,36 +88,11 @@ export default {
                 options: this.initData.job.allowedProjects.map((ap) => ({value: ap.id, text: ap.projectTitle}))
             }
         },
-        hasFiles() {
-            const customProjects = this.initData.job.allowedProjects.filter((cp) => !this.formData.customProjectId || cp.id === this.formData.customProjectId);
-            return customProjects.reduce((hasFiles, ap) => {
-                return hasFiles || this.getProjectFiles(ap).length;
-            }, false);
-        },
         hasProjectSaved() {
             return initData.userProjects && initData.userProjects.length;
         }
     },
     methods: {
-        getProject(customProject) {
-            return this.initData.projects[customProject.projectId];
-        },
-        getProjectInstructions(customProject) {
-            const project = this.getProject(customProject);
-            return project.instructions.find((i) => i.skillLevelBit === customProject.skillLevelBit).instructions
-        },
-        getSkillInstructions(customProject) {
-            return customProject.skills.reduce((instructions, skill) => {
-                if (skill.instruction) {
-                    instructions.push(skill.instruction);
-                }
-                return instructions;
-            }, []);
-        },
-        getProjectFiles(customProject) {
-            const project = this.getProject(customProject);
-            return project.files.filter((f) => f.skillLevelBits & customProject.skillLevelBit)
-        },
         processFormData() {
             return Object.assign(this.readForm(), {
                 'userId': this.globalData.uproveUser.id,
@@ -166,7 +107,7 @@ export default {
             if (!customProjectId) {
                 return;
             }
-            const accordionItem = this.$refs[`accordionItem-${customProjectId}`];
+            const accordionItem = this.$refs.jobPosting.$refs[`accordionItem-${customProjectId}`];
             $(`#${accordionItem.accordionElId}`).find('.accordion-header').each((idx, el) => {
                 const isShown = $(el).prop('id') === accordionItem.headerElId;
                 const accordionButton = $(el).find('button.accordion-button');

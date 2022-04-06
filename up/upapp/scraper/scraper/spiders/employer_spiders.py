@@ -426,6 +426,26 @@ class DISQOSpider(LeverSpider):
     start_urls = ['https://jobs.lever.co/disqo']
 
 
+class AttentiveSpider(LeverSpider):
+    companyName = 'Attentive'
+    name = 'attentive'
+    start_urls = ['https://www.attentivemobile.com/careers']
+
+    html = None
+    driver = None
+
+    def __init__(self):
+        self.driver = getSelenium()
+        self.driver.get('https://www.attentivemobile.com/careers')
+        self.html = getWebElementHtml(self.driver, getWebElementWait(self.driver, '#lever-jobs-container'))
+        super().__init__()
+
+    def parse(self, response):
+        resp = Selector(text=self.html)
+        jobs = resp.xpath('//li[@class="lever-job"]//a')
+        yield from response.follow_all(jobs, callback=self.parseJob)
+
+
 class CurologySpider(LeverSpider):
     companyName = 'Curology'
     name = 'curology'

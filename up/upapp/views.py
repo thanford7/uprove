@@ -14,6 +14,7 @@ from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import EmployerCustomProjectCriterion, Role, Skill
+from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP
 from upapp.viewsAuth import getLoginRedirectUrl
 
 
@@ -211,22 +212,38 @@ def jobs(request):
     if not user or not security.isPermittedSessionUser(user=user):
         return _getUnauthorizedPage(request)
 
-    permittedCountries = ['USA', 'UK', 'Canada']
-    isOpen = Q(openDate__lte=timezone.now().date()) & (Q(closeDate__isnull=True) | Q(closeDate__gt=timezone.now().date()))
-    isPermittedCountry = Q(country__isnull=True) | Q(country__in=permittedCountries)
-    jobs = EmployerJob.objects.filter(isOpen).filter(isPermittedCountry).filter(role__isnull=False)
+    jobs = EmployerJob.objects.filter(JobPostingView.getEmployerJobFilter())
     employers = Employer.objects.filter(isDemo=False)
+    projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)]
+    roles = list({job.role for job in jobs})
+    projectIdsByRole = {}
+    projectRoleIdsByRole = {}
+    for role in roles:
+        acceptedProjectTypes = ROLE_PROJECT_MAP[role]
+        projectIdsByRole[role] = []
+        projectRoleIdsByRole[role] = set()
+        for project in projects:
+            if project['role'].lower() in acceptedProjectTypes:
+                projectIdsByRole[role].append(project['id'])
+                projectRoleIdsByRole[role].add(project['roleId'])
+
     return render(request, 'jobs.html', context={'data': dumps({
-        'jobs': [getSerializedEmployerJob(job) for job in jobs],
+        'jobs': [{
+            **getSerializedEmployerJob(job),
+            'projectIds': projectIdsByRole[job.role],
+            'projectRoleIds': list(projectRoleIdsByRole[job.role])
+        } for job in jobs],
         'employers': {e.id: {
             'id': e.id,
             'companyName': e.companyName,
             'logo': e.logo.url if e.logo else None,
             'description': e.description,
+            'glassDoorUrl': e.glassDoorUrl
         } for e in employers},
         'states': list({job.state for job in jobs}),
-        'countries': permittedCountries,
-        'roles': list({job.role for job in jobs})
+        'countries': JobPostingView.permittedCountries,
+        'roles': roles,
+        'projects': projects
     })})
 
 

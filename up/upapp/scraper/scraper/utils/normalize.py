@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 import django
-from geodict import LOCATIONS
+from scraper.utils.geodict import LOCATIONS
 
 sys.path.append(Path(__file__).resolve().parent.parent.parent.parent.parent.as_posix())
 os.environ['DJANGO_SETTINGS_MODULE'] = 'up.settings'
@@ -12,8 +12,22 @@ django.setup()
 from upapp.models import EmployerJob
 
 locationUpdateFields = ['isRemote', 'city', 'state', 'country', 'region']
-ROLES_REGEX = {
-    '^product.'
+ROLE_PROJECT_MAP = {
+    'Product management leader': ['product management'],
+    'Product manager': ['product management'],
+    'Product marketing management leader': ['market research', 'product marketing'],
+    'Product marketing manager': ['market research', 'product marketing'],
+    'Project management leader': ['project management'],
+    'Project manager': ['project management'],
+    'Account manager': [],
+    'Strategy and operations leader': ['business analysis', 'operations management'],
+    'Business analyst': ['business analysis', 'operations management'],
+    'Data analytics leader': [],
+    'Data analyst': [],
+    'Data engineering manager': [],
+    'Data engineer': [],
+    'Customer success leader': ['customer experience', 'customer success'],
+    'Customer success manager': ['customer experience', 'customer success']
 }
 
 
@@ -119,4 +133,4 @@ def normalizeJobTitles():
     EmployerJob.objects.bulk_update(nonNormalizedJobs, ['role'], 500)
 
 # normalizeLocations()
-normalizeJobTitles()
+# normalizeJobTitles()

@@ -336,13 +336,18 @@ def getSerializedSkill(skill: Skill):
 
 
 def getSerializedEmployer(employer: Employer, isEmployer=False):
+    from upapp.apis.employer import JobPostingView  # Avoid circular import
     baseFields = {
         'id': employer.id,
         'companyName': employer.companyName,
         'logo': employer.logo.url if employer.logo else None,
         'description': employer.description,
+        'glassDoorUrl': employer.glassDoorUrl,
         'isDemo': employer.isDemo,
-        'jobs': [getSerializedEmployerJob(ej, isEmployer=isEmployer) for ej in employer.employerJob.all()],
+        'jobs': [
+            getSerializedEmployerJob(ej, isEmployer=isEmployer)
+            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True))
+        ],
     }
     employerFields = {
         **serializeAuditFields(employer)
@@ -387,7 +392,8 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
         'city': employerJob.city,
         'state': employerJob.state,
         'country': employerJob.country,
-        'region': employerJob.region
+        'region': employerJob.region,
+        'applicationUrl': employerJob.applicationUrl
     }
     employerFields = {
         'applications': [getSerializedJobApplication(app, isEmployer=True) for app in employerJob.jobApplication.all()],

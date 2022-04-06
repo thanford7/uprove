@@ -338,6 +338,7 @@ class Employer(AuditFields):
     companyName = models.CharField(max_length=150, unique=True)
     logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
     description = models.TextField(null=True)
+    glassDoorUrl = models.CharField(max_length=200, null=True)
     isDemo = models.BooleanField(default=False)
 
 

@@ -63,6 +63,24 @@ class DataUtil {
         return paramDict;
     }
 
+    getUrlWithParams(params, path) {
+        if (!('URLSearchParams' in window)) {
+            return;
+        }
+        const searchParams = new URLSearchParams(window.location.search);
+        params.forEach(({key, val}) => {
+            searchParams.delete(key);  // Remove existing
+            const vals = (Array.isArray(val)) ? val : [val];
+            vals.forEach((v) => {
+                if (!this.isNil(val)) {
+                    searchParams.append(key, v);
+                }
+            });  // Add new values
+        });
+        const targetPath = path || window.location.pathname;
+        return targetPath + '?' + searchParams.toString();
+    }
+
     /**
      * Update query params and optionally redirect to a new page
      * @param params {Array}: Array of dicts with key: val pairs. The key represents the name of the query param and
@@ -70,24 +88,14 @@ class DataUtil {
      * @param path {null|string}: Optional path if directing to a new page
      */
     setQueryParams(params, path = null) {
-        if ('URLSearchParams' in window) {
-            const searchParams = new URLSearchParams(window.location.search);
-            params.forEach(({key, val}) => {
-                searchParams.delete(key);  // Remove existing
-                const vals = (Array.isArray(val)) ? val : [val];
-                vals.forEach((v) => {
-                    if(!this.isNil(val)) {
-                        searchParams.append(key, v);
-                    }
-                });  // Add new values
-            });
-            const targetPath = path || window.location.pathname;
-            const newRelativePathQuery = targetPath + '?' + searchParams.toString();
-            if (path) {
-                window.location.href = newRelativePathQuery;  // Redirect to new page
-            } else {
-                history.pushState(null, '', newRelativePathQuery); // Add to view state
-            }
+        const newRelativePathQuery = this.getUrlWithParams(params, path);
+        if (!newRelativePathQuery) {
+            return;
+        }
+        if (path) {
+            window.location.href = newRelativePathQuery;  // Redirect to new page
+        } else {
+            history.pushState(null, '', newRelativePathQuery); // Add to view state
         }
     }
 

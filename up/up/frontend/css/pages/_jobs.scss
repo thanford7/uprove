@@ -3,5 +3,16 @@
 .jobs {
     .logo {
         max-width: 75%;
+        max-height: 100px;
     }
+
+    .job-role {
+        width: fit-content;
+        margin-top: -10px;
+    }
+}
+
+.job-description {
+    max-height: 40vh;
+    overflow-y: scroll;
 }

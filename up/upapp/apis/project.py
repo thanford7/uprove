@@ -22,13 +22,13 @@ logger = logging.getLogger()
 class ProjectView(UproveAPIView):
 
     def get(self, request, projectId=None):
-        projectId = projectId or self.data['id']
+        projectId = projectId or self.data.get('id')
         isPermittedSessionUser = security.isPermittedSessionUser(request)
         employerId = self.user.employer_id if self.user else None
         if projectId:
             return Response(getSerializedProject(self.getProject(projectId), isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId), status=status.HTTP_200_OK)
 
-        employerId = self.data.get('employerId')
+        employerId = int(self.data.get('employerId')[0])
         return Response([getSerializedProject(p, isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId) for p in self.getProjects(employerId=employerId)])
 
     @atomic

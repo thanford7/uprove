@@ -20,6 +20,9 @@
                 <li v-if="!isLoggedIn" class="nav-item" :class="getHighlightClass('employers')">
                     <a class="nav-link nav-link-tight" href="/employers">For Employers</a>
                 </li>
+                <li v-if="isSuperUser || isEmployer" class="nav-item" :class="getHighlightClass('jobs')">
+                    <a class="nav-link nav-link-tight" href="/jobs">Jobs</a>
+                </li>
                 <li class="nav-item" :class="getHighlightClass('projects')">
                     <a class="nav-link nav-link-tight" href="/projects">Projects</a>
                 </li>

@@ -37,6 +37,7 @@ class EmployerView(APIView):
                 companyName=data['companyName'],
                 logo=data.get('logo'),
                 description=data.get('description'),
+                glassDoorUrl=data.get('glassDoorUrl'),
                 isDemo=data.get('isDemo') or False,
                 modifiedDateTime=timezone.now(),
                 createdDateTime=timezone.now()
@@ -62,6 +63,7 @@ class EmployerView(APIView):
                 'companyName': None,
                 'logo': None,
                 'description': None,
+                'glassDoorUrl': None,
                 'isDemo': {'isProtectExisting': True}
             })
             employer.save()
@@ -108,6 +110,7 @@ class EmployerView(APIView):
 
 class JobPostingView(APIView):
     authentication_classes = (authentication.SessionAuthentication,)
+    permittedCountries = ['USA', 'UK', 'Canada']
 
     @atomic
     def post(self, request):
@@ -207,6 +210,16 @@ class JobPostingView(APIView):
             return jobs[0]
 
         return jobs
+
+    @staticmethod
+    def getEmployerJobFilter(isIncludeClosed=False):
+        filter = Q()
+        if not isIncludeClosed:
+            filter &= Q(openDate__lte=timezone.now().date()) & (
+                        Q(closeDate__isnull=True) | Q(closeDate__gt=timezone.now().date()))
+        filter &= Q(country__isnull=True) | Q(country__in=JobPostingView.permittedCountries)
+        filter &= Q(role__isnull=False)
+        return filter
 
     @staticmethod
     def getCustomProjects(asDict=True):

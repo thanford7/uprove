@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="form-check">
         <input class="form-check-input" type="checkbox"
                :checked="(isChecked) ? true : null"
                :id="elId" @click="$emit('click', $event.target.checked)"
