@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 import django
-from scraper.utils.geodict import LOCATIONS
+from upapp.scraper.scraper.utils.geodict import LOCATIONS
 
 sys.path.append(Path(__file__).resolve().parent.parent.parent.parent.parent.as_posix())
 os.environ['DJANGO_SETTINGS_MODULE'] = 'up.settings'
