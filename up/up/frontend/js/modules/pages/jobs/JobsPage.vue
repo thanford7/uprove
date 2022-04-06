@@ -33,6 +33,16 @@
                             @selected="updateFilters($event, 'states')"
                         />
                     </div>
+                    <div v-if="isShowStateSel" class="col-12 col-md filter-item">
+                        <InputSelectize
+                            ref="employers"
+                            :elId="getNewElUid()"
+                            :cfg="employerCfg"
+                            :isParseAsInt="true"
+                            placeholder="All employers"
+                            @selected="updateFilters($event, 'employers')"
+                        />
+                    </div>
                     <div class="col-12 col-md filter-item d-flex align-items-center">
                         <InputCheckBox
                             label="Remote work"
@@ -47,17 +57,18 @@
             <div class="p-0" :class="(selectedJob) ? 'col-md-6' : 'col-md-12'">
                 <div v-for="job in pageJobs" class="card-custom card-custom--no-side-margin">
                     <div class="row mb-2">
-                        <div class="job-role -color-darkblue -color-white-text">{{job.role}}</div>
+                        <div class="job-role -color-darkblue -color-white-text">{{ job.role }}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-2 d-flex align-items-center justify-content-center">
-                            <img v-if="getEmployer(job.employerId).logo" :src="getEmployer(job.employerId).logo" class="logo">
+                            <img v-if="getEmployer(job.employerId).logo" :src="getEmployer(job.employerId).logo"
+                                 class="logo">
                             <i v-else class="far fa-building fa-4x"></i>
                         </div>
                         <div class="col-md-7">
-                            <a href="#" @click="showJobDetails($event, job)"><h5>{{job.jobTitle}}</h5></a>
-                            <h6>{{getEmployer(job.employerId).companyName}}</h6>
-                            <h6>{{getLocationStr(job)}}</h6>
+                            <a href="#" @click="showJobDetails($event, job)"><h5>{{ job.jobTitle }}</h5></a>
+                            <h6>{{ getEmployer(job.employerId).companyName }}</h6>
+                            <h6>{{ getLocationStr(job) }}</h6>
                         </div>
                         <div v-if="!selectedJob" class="col-md-3 -border-left--light -text-medium">
                             <JobHelpLinks :job="job" :employer="getEmployer(job.employerId)"/>
@@ -74,18 +85,21 @@
                     :isJobDescriptionOpen="true"
                 >
                     <template v-slot:top>
-                        <AccordionItem :accordionElId="$refs.jobPosting.accordionElId" :elId="getNewElUid()" :isOpen="true">
+                        <AccordionItem :accordionElId="$refs.jobPosting.accordionElId" :elId="getNewElUid()"
+                                       :isOpen="true">
                             <template v-slot:header>
                                 Overview
                             </template>
                             <template v-slot:body>
                                 <div class="row">
                                     <div class="col-9">
-                                        <h5>{{selectedJob.jobTitle}}</h5>
-                                        <h6>{{getEmployer(selectedJob.employerId).companyName}} | {{getLocationStr(selectedJob)}}</h6>
+                                        <h5>{{ selectedJob.jobTitle }}</h5>
+                                        <h6>{{ getEmployer(selectedJob.employerId).companyName }} |
+                                            {{ getLocationStr(selectedJob) }}</h6>
                                     </div>
                                     <div class="col-3">
-                                        <a class="btn btn-primary" :href="selectedJob.applicationUrl" target="_blank" title="This will take you to the company's job application page">
+                                        <a class="btn btn-primary" :href="selectedJob.applicationUrl" target="_blank"
+                                           title="This will take you to the company's job application page">
                                             Apply <i class="fas fa-external-link-alt -color-white-text"></i>
                                         </a>
                                     </div>
@@ -124,13 +138,15 @@ export default {
     components: {
         JobHelpLinks,
         ListFontAwesome,
-        JobPosting, AccordionItem, BaseFilter, BasePage, InputCheckBox, InputSelectize, Pagination},
+        JobPosting, AccordionItem, BaseFilter, BasePage, InputCheckBox, InputSelectize, Pagination
+    },
     data() {
         return {
             filter: {
                 roles: [],
                 countries: [],
                 states: [],
+                employers: [],
                 isRemote: null
             },
             jobPaginationIdx: 0,
@@ -147,7 +163,7 @@ export default {
                 maxItems: null,
                 plugins: ['remove_button'],
                 options: this.initData.roles.map((r) => ({value: r}))
-            }
+            };
         },
         countryCfg() {
             return {
@@ -157,7 +173,17 @@ export default {
                 maxItems: null,
                 plugins: ['remove_button'],
                 options: this.initData.countries.map((c) => ({value: c}))
-            }
+            };
+        },
+        employerCfg() {
+            return {
+                valueField: 'id',
+                labelField: 'companyName',
+                sortField: 'companyName',
+                maxItems: null,
+                plugins: ['remove_button'],
+                options: Object.values(this.initData.employers)
+            };
         },
         stateCfg() {
             return {
@@ -167,13 +193,9 @@ export default {
                 maxItems: null,
                 plugins: ['remove_button'],
                 options: this.initData.states.map((s) => ({value: s}))
-            }
+            };
         },
         jobs() {
-            const pagination = this.$refs.jobsPagination;
-            if (pagination) {
-                pagination.reset(); // Reset page counts
-            }
             return this.initData.jobs.filter((j) => {
                 if (this.filter.roles?.length && !this.filter.roles.includes(j.role)) {
                     return false;
@@ -182,6 +204,9 @@ export default {
                     return false;
                 }
                 if (this.filter.states?.length && !this.filter.states.includes(j.state)) {
+                    return false;
+                }
+                if (this.filter.employers?.length && !this.filter.employers.includes(j.employerId)) {
                     return false;
                 }
                 if (this.filter.isRemote && !j.isRemote) {
@@ -237,22 +262,32 @@ export default {
             }
 
             // Update the available options based on other filters
-            const options = {roles: new Set(), countries: new Set(), states: new Set()};
+            const options = {roles: new Set(), countries: new Set(), employers: new Set(), states: new Set()};
             this.jobs.forEach((job) => {
                 options.roles.add(job.role);
                 options.states.add(job.state);
                 options.countries.add(job.country);
+                options.employers.add(this.initData.employers[job.employerId])
             });
-            ['roles', 'countries', 'states'].forEach((ref) => {
+            ['roles', 'countries', 'employers', 'states'].forEach((ref) => {
                 // Don't update options for the current selectize. Otherwise all other options will be removed.
                 if (ref === filterKey && val && val.length) {
                     return;
                 }
                 const sel = this.$refs[ref];
                 if (sel) {
-                    sel.resetOptions(Array.from(options[ref]).map((o) => ({value: o})));
+                    let selOptions = Array.from(options[ref]);
+                    if (ref !== 'employers') {
+                        selOptions = selOptions.map((o) => ({value: o}));
+                    }
+                    sel.resetOptions(selOptions);
                 }
             });
+
+            const pagination = this.$refs.jobsPagination;
+            if (pagination) {
+                pagination.reset(); // Reset page counts
+            }
         }
     },
     mounted() {
@@ -260,6 +295,7 @@ export default {
         this.$refs.roles.elSel.setValue(queryParams.roles);
         this.$refs.states.elSel.setValue(queryParams.states);
         this.$refs.countries.elSel.setValue(queryParams.countries);
+        this.$refs.employers.elSel.setValue(queryParams.employers);
         this.filter.isRemote = queryParams.isRemote === 'true';
     }
 }
