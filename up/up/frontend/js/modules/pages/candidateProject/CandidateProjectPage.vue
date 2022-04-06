@@ -41,7 +41,7 @@ import PageHeader from "../../components/PageHeader";
 import ProjectDetailAccordion from "../../components/ProjectDetailAccordion";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "CandidateProjectPage",

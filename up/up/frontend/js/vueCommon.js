@@ -1,5 +1,13 @@
 import {createApp} from 'vue';
-import {ajaxRequestMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, store} from './vueMixins';
+import {
+    ajaxRequestMixin,
+    dataLoaderMixin,
+    filterMixin,
+    globalVarsMixin,
+    modalsMixin,
+    popoverMixin,
+    store
+} from './vueMixins';
 import Vue3Sanitize from "vue-3-sanitize";
 
 const initVue = (mainComponent, el) => {
@@ -10,7 +18,8 @@ const initVue = (mainComponent, el) => {
         .mixin(ajaxRequestMixin)
         .mixin(globalVarsMixin)
         .mixin(modalsMixin)
-        .mixin(filterMixin);
+        .mixin(filterMixin)
+        .mixin(dataLoaderMixin);
 
     vueComponent.mount(el);
     return vueComponent

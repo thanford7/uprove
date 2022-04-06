@@ -12,7 +12,7 @@
 <script>
 import BannerAlert from "../../components/BannerAlert";
 import SubmitHelpModal from "../../modals/SubmitHelpModal";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: 'ContactPage.vue',

@@ -44,7 +44,7 @@
 import BannerAlert from "../../components/BannerAlert";
 import dataUtil from "../../../utils/data";
 import PageHeader from "../../components/PageHeader";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "CandidateOnboardPage",

@@ -21,7 +21,7 @@
 <script>
 import dataUtil from "../../../utils/data";
 import InputEmail from "../../inputs/InputEmail";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "LoginPage.vue",

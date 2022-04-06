@@ -31,7 +31,7 @@
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 import PageHeader from "../../components/PageHeader";
 import $ from "jquery";
 

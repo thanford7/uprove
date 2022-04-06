@@ -5,9 +5,6 @@
 
 body {
     font-family: "Nunito", sans-serif;
-}
-
-p {
     font-size: 20px;
 }
 
@@ -78,6 +75,10 @@ blockquote {
     }
 }
 
+.form-check, .form-item {
+    font-size: 1rem;
+}
+
 .-sub-text {
     font-size: 0.8rem;
     color: colors.$color-moderategrey
@@ -88,7 +89,7 @@ blockquote {
         font-size: 0.9rem;
     }
     &small {
-        font-size: 0.6rem;
+        font-size: 0.75rem;
     }
     &bold {
         font-weight: bold;

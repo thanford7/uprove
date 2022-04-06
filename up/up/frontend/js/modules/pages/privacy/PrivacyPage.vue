@@ -481,7 +481,7 @@
 </template>
 
 <script>
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 export default {
     name: "PrivacyPage.vue",
     components: {BasePage}

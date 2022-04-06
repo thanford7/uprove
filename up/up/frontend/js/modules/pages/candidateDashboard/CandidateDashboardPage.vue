@@ -200,7 +200,7 @@ import PageHeader from "../../components/PageHeader";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import Table from "../../components/Table";
 import userProjectUtil from "../../../utils/userProject";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "CandidateDashboardPage",

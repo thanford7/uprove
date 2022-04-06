@@ -33,6 +33,23 @@ export default {
             }
             return parseInt(val);
         },
+        parseSelVal() {
+            let val = this.elSel.getValue();
+            if (this.isParseAsInt || this.isParseAsBits) {
+                val = this.parseInteger(val);
+            }
+            if (this.isParseAsBits && Array.isArray(val)) {
+                val = dataUtil.sum(val);
+            }
+            // Make sure null values and empty arrays are not included
+            if (Array.isArray(val)) {
+                val = val.filter((v) => !dataUtil.isNil(v));
+                if (!val.length) {
+                    val = null;
+                }
+            }
+            return val;
+        },
         initSelectize() {
             const el$ = $(`#${this.elId}`);
             if (!this.elSel && el$.length) {
@@ -46,21 +63,7 @@ export default {
                 this.targetEl = el$.next('.selectize-control').find('.selectize-input')[0];
 
                 this.elSel.on('change', () => {
-                    let val = this.elSel.getValue();
-                    if (this.isParseAsInt || this.isParseAsBits) {
-                        val = this.parseInteger(val);
-                    }
-                    if (this.isParseAsBits && Array.isArray(val)) {
-                        val = dataUtil.sum(val);
-                    }
-                    // Make sure null values and empty arrays are not included
-                    if (Array.isArray(val)) {
-                        val = val.filter((v) => !dataUtil.isNil(v));
-                        if (!val.length) {
-                            val = null;
-                        }
-                    }
-                    this.$emit('selected', val);
+                    this.$emit('selected', this.parseSelVal());
                 });
                 this.elSel.on('blur', () => { $(this.targetEl).trigger('blur'); });
                 this.eventBus.on('formClear', () => {
@@ -69,7 +72,25 @@ export default {
                     }
                 });
             }
-        }
+        },
+        resetOptions(options) {
+            let currentItems = this.elSel.getValue();
+            currentItems = (Array.isArray(currentItems)) ? currentItems : [currentItems];
+            this.elSel.clearOptions(true);
+            this.elSel.addOption(options);
+            this.elSel.refreshOptions(false);
+
+            // Try resetting selected values if they are still available options
+            currentItems.forEach((i) => {
+                this.elSel.addItem(i, true);
+            });
+
+            let newItems = this.elSel.getValue();
+            newItems = (Array.isArray(newItems)) ? newItems : [newItems];
+            if (!dataUtil.isArraysEqual(currentItems, newItems)) {
+                this.$emit('selected', this.parseSelVal());
+            }
+        },
     },
     mounted() {
         this.initSelectize();

@@ -338,6 +338,7 @@ class Employer(AuditFields):
     companyName = models.CharField(max_length=150, unique=True)
     logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
     description = models.TextField(null=True)
+    glassDoorUrl = models.CharField(max_length=200, null=True)
     isDemo = models.BooleanField(default=False)
 
 
@@ -374,6 +375,17 @@ class EmployerJob(AuditFields):
     salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
     applicationUrl = models.CharField(max_length=500, null=True)
     location = models.CharField(max_length=100, null=True)
+
+    # Normalized from the raw location text
+    isRemote = models.BooleanField(null=True)
+    city = models.CharField(max_length=50, null=True)
+    state = models.CharField(max_length=50, null=True)
+    country = models.CharField(max_length=50, null=True)
+    region = models.CharField(max_length=200, null=True)
+
+    # Normalized from jobTitle
+    role = models.CharField(max_length=50, null=True)
+
     isScraped = models.BooleanField(default=False)
 
     class Meta:

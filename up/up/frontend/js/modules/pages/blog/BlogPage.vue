@@ -46,7 +46,7 @@
 <script>
 import dataUtil from "../../../utils/data";
 import EditBlogModal from "../../modals/EditBlogModal";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "BlogPage.vue",

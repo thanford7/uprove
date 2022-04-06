@@ -336,13 +336,18 @@ def getSerializedSkill(skill: Skill):
 
 
 def getSerializedEmployer(employer: Employer, isEmployer=False):
+    from upapp.apis.employer import JobPostingView  # Avoid circular import
     baseFields = {
         'id': employer.id,
         'companyName': employer.companyName,
         'logo': employer.logo.url if employer.logo else None,
         'description': employer.description,
+        'glassDoorUrl': employer.glassDoorUrl,
         'isDemo': employer.isDemo,
-        'jobs': [getSerializedEmployerJob(ej, isEmployer=isEmployer) for ej in employer.employerJob.all()],
+        'jobs': [
+            getSerializedEmployerJob(ej, isEmployer=isEmployer)
+            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True))
+        ],
     }
     employerFields = {
         **serializeAuditFields(employer)
@@ -372,15 +377,23 @@ def getSerializedEmployerCustomProjectCriterion(criterion: EmployerCustomProject
 def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
     baseFields = {
         'id': employerJob.id,
+        'employerId': employerJob.employer_id,
         'jobTitle': employerJob.jobTitle,
+        'role': employerJob.role,
         'jobDescription': employerJob.jobDescription,
         'allowedProjects': [getSerializedCustomProject(ep) for ep in employerJob.allowedProjects.all()],
         'salaryFloor': employerJob.salaryFloor,
         'salaryCeiling': employerJob.salaryCeiling,
         'salaryUnit': employerJob.salaryUnit,
-        'openDate': employerJob.openDate.isoformat() if employerJob.openDate else None,
-        'pauseDate': employerJob.pauseDate.isoformat() if employerJob.pauseDate else None,
-        'closeDate': employerJob.closeDate.isoformat() if employerJob.closeDate else None,
+        'openDate': getDateTimeFormatOrNone(employerJob.openDate),
+        'pauseDate': getDateTimeFormatOrNone(employerJob.pauseDate),
+        'closeDate': getDateTimeFormatOrNone(employerJob.closeDate),
+        'isRemote': employerJob.isRemote,
+        'city': employerJob.city,
+        'state': employerJob.state,
+        'country': employerJob.country,
+        'region': employerJob.region,
+        'applicationUrl': employerJob.applicationUrl
     }
     employerFields = {
         'applications': [getSerializedJobApplication(app, isEmployer=True) for app in employerJob.jobApplication.all()],

@@ -4,8 +4,34 @@
     font-size: 1rem;
 }
 
-.selectize-dropdown-content > div {
-    padding: 6px;
+.selectize-dropdown {
+    z-index: 101;
+    border-top-width: 0;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-color: colors.$color-darkblue;
+}
+
+.selectize-input {
+    line-height: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid colors.$color-moderategrey;
+
+    &.dropdown-active {
+        border-radius: 0.5rem;
+        border: 1px solid colors.$color-darkblue;
+        box-shadow: 0 0 2px colors.$color-darkblue;
+    }
+}
+
+.selectize-dropdown-content {
+    padding-top: 0.5rem;
+
+    > div {
+        padding: 0.5rem;
+        line-height: 1rem;
+    }
 }
 
 .selectize-dropdown .optgroup .optgroup-header {

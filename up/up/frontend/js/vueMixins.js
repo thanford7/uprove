@@ -322,7 +322,7 @@ const globalVarsMixin = {
     methods: {
         getNewElUid() {
             newElUid++;
-            return newElUid.toString();
+            return `s-${newElUid}`;
         },
         isSelf(userId) {
             return this.globalData.uproveUser.id === userId;
@@ -351,8 +351,8 @@ const globalVarsMixin = {
                 window.location = url;
             }
         },
-        pluralize(word, count) {
-            return pluralize(word, count, true);
+        pluralize(word, count, includeWord=true) {
+            return pluralize(word, count, includeWord);
         }
     },
     computed: {
@@ -464,4 +464,47 @@ const filterMixin = {
     }
 }
 
-export {ajaxRequestMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, store};
+const loadCache = {};
+const dataLoaderMixin = {
+    data() {
+        return {
+            cData: {},
+            isLoading: false,
+            loadRoutes: [],  // Each route: {route: <>, dataKey: ''}
+            loadCache
+        }
+    },
+    methods: {
+        async loadData(loadRoutes) {
+            this.isLoading = true;
+            const requests = (loadRoutes || this.loadRoutes).map((r) => {
+                const data = this.loadCache[r.route];
+                // If we have data in the cache, return an empty promise (all requests must be a deferred)
+                if (data) {
+                    this.setData(r, data);
+                    return new Promise(() => true);
+                }
+                return $.ajax({
+                    url: this.apiUrl + r.route,
+                    method: 'GET',
+                    mode: 'same-origin',
+                    headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
+                    contentType: false,
+                    processData: false,
+                    success: (data) => this.setData(r, data),
+                    error: this.onSaveFailure
+                });
+            });
+
+            await Promise.all(requests);
+            this.isLoading = false;
+            return true;
+        },
+        setData(route, data) {
+            this.cData[route.dataKey] = data;
+            this.loadCache[route.route] = data;
+        }
+    }
+}
+
+export {ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, store};

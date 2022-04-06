@@ -126,14 +126,8 @@ div {
     }
 }
 
-.row.filter {
+.row .filter {
     border-bottom: scale-color(colors.$color-lightgrey, $lightness: 70%) 1px solid;
-    justify-content: center;
-    align-items: center;
-
-    div {
-        margin-top: 5px;
-    }
 }
 
 div.circle {

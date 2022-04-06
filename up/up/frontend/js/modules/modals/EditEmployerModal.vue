@@ -25,6 +25,10 @@
             <label for="employerDescription" class="form-label">Company description</label>
             <InputWsiwyg v-model="formData.description" elId="employerDescription" placeholder="Add description..."/>
         </div>
+        <div class="mb-3">
+            <label for="glassdoorUrl" class="form-label">Glassdoor URL</label>
+            <input type="text" class="form-control" placeholder="Optional" id="glassdoorUrl" v-model="formData.glassDoorUrl">
+        </div>
         <div v-if="isAdmin" class="form-check">
             <InputCheckBox
                 elId="employerIsDemo"

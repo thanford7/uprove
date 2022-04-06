@@ -16,7 +16,7 @@
 
 <script>
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "SignUpEmployerPage",

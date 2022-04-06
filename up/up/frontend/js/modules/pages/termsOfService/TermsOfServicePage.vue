@@ -220,7 +220,7 @@
 </template>
 
 <script>
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 export default {
     name: "TermsOfServicePage.vue",
     components: {BasePage}

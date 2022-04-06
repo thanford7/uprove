@@ -1,9 +1,10 @@
 from http import HTTPStatus
 from json import dumps
 
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from upapp import security
 from upapp.modelSerializers import *
@@ -11,8 +12,9 @@ from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
-from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView, isUserProjectLocked
+from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import EmployerCustomProjectCriterion, Role, Skill
+from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP
 from upapp.viewsAuth import getLoginRedirectUrl
 
 
@@ -213,6 +215,46 @@ def employers(request):
 
 def errors(request):
     return render(request, 'errors.html', context={})
+
+
+def jobs(request):
+    user = security.getSessionUser(request)
+    if not user or not security.isPermittedSessionUser(user=user):
+        return _getUnauthorizedPage(request)
+
+    jobs = EmployerJob.objects.filter(JobPostingView.getEmployerJobFilter())
+    employers = Employer.objects.filter(isDemo=False)
+    projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)]
+    roles = list({job.role for job in jobs})
+    projectIdsByRole = {}
+    projectRoleIdsByRole = {}
+    for role in roles:
+        acceptedProjectTypes = ROLE_PROJECT_MAP[role]
+        projectIdsByRole[role] = []
+        projectRoleIdsByRole[role] = set()
+        for project in projects:
+            if project['role'].lower() in acceptedProjectTypes:
+                projectIdsByRole[role].append(project['id'])
+                projectRoleIdsByRole[role].add(project['roleId'])
+
+    return render(request, 'jobs.html', context={'data': dumps({
+        'jobs': [{
+            **getSerializedEmployerJob(job),
+            'projectIds': projectIdsByRole[job.role],
+            'projectRoleIds': list(projectRoleIdsByRole[job.role])
+        } for job in jobs],
+        'employers': {e.id: {
+            'id': e.id,
+            'companyName': e.companyName,
+            'logo': e.logo.url if e.logo else None,
+            'description': e.description,
+            'glassDoorUrl': e.glassDoorUrl
+        } for e in employers},
+        'states': list({job.state for job in jobs}),
+        'countries': JobPostingView.permittedCountries,
+        'roles': roles,
+        'projects': projects
+    })})
 
 
 def jobPosting(request, jobId):

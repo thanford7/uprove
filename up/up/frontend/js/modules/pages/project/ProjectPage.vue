@@ -155,7 +155,7 @@ import InputSelectize from "../../inputs/InputSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import skillSelectize from "../../selectizeCfgs/skill";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
-import BasePage from "../BasePage";
+import BasePage from "../base/BasePage";
 
 export default {
     name: "ProjectPage.vue",

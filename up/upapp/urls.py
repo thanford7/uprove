@@ -26,6 +26,7 @@ urlpatterns = [
     re_path('^employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
     path('employers/', views.employers, name='employers'),
     path('errors/', views.errors, name='errors'),
+    path('jobs/', views.jobs, name='jobs'),
     path('job-posting/<int:jobId>/', views.jobPosting, name='jobPosting'),
     path('login-page/', views.login, name='loginPage'),
     path('privacy/', views.privacy, name='privacy'),
