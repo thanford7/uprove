@@ -13,7 +13,8 @@ __all__ = (
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
-    'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist'
+    'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
+    'CompanySize', 'Country', 'State', 'RoleTitle'
 )
 
 
@@ -74,6 +75,12 @@ class User(AuditFields):
     employer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True)
     inviteEmployer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True, related_name='inviteEmployer')
     isDemo = models.BooleanField(default=False)
+
+    preferenceCompanySizes = models.ManyToManyField('CompanySize', null=True)
+    preferenceRoles = models.ManyToManyField('RoleTitle', null=True)
+    preferenceRemote = models.SmallIntegerField(default=4)  # 1 = Non-remote, 2 = Remote, 4 = Either
+    preferenceCountry = models.ManyToManyField('Country', null=True)
+    preferenceState = models.ManyToManyField('State', null=True)
 
     @property
     def isEmployer(self):
@@ -483,3 +490,20 @@ class Waitlist(models.Model):
     email = models.EmailField()
     waitlistType = models.CharField(max_length=100)
     signUpDateTime = models.DateTimeField()
+
+
+# Job preference criteria
+class CompanySize(models.Model):
+    companySize = models.CharField(max_length=25, unique=True)
+
+
+class RoleTitle(models.Model):
+    roleTitle = models.CharField(max_length=75, unique=True)
+
+
+class Country(models.Model):
+    countryName = models.CharField(max_length=50, unique=True)
+
+
+class State(models.Model):
+    stateName = models.CharField(max_length=50, unique=True)

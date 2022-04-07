@@ -149,7 +149,8 @@ def candidateOnboard(request):
 
     return render(request, 'candidateOnboard.html', context={'data': dumps({
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
-        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
+        'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()]
     })})
 
 
