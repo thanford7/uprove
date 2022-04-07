@@ -18,7 +18,7 @@
             </div>
             <div class="row mb-3 mt-3 justify-content-center">
                 <div class="card-custom col-md-8">
-                    <div class="row justify-content-center ps-4 pe-4">
+                    <div class="form-container ps-4 pe-4">
                         <template v-if="progressIdx === 0">
                             <h5 class="mb-4 text-center">Select the company employee sizes you're interested in</h5>
                             <div class="btn-group" role="group">
@@ -33,25 +33,30 @@
                             </div>
                         </template>
                         <template v-if="progressIdx === 1">
-                            <h5 class="mb-4 text-center"></h5>
-                            <div class="btn-group" role="group">
-                                <button
-                                    v-for="c in initData.companySizes"
-                                    type="button"
-                                    class="btn btn-outline-dark outline"
-                                    @click="toggleSelection($event, c.id, 'companySizes')"
-                                >
-                                    {{c.companySize}}
-                                </button>
-                            </div>
+                            <h5 class="mb-4 text-center">Select the roles you're interested in</h5>
+                            <button
+                                v-for="r in initData.roleTitles"
+                                type="button"
+                                class="btn btn-outline-dark outline me-1 mb-1"
+                                @click="toggleSelection($event, r.id, 'roleTitles')"
+                            >
+                                {{r.roleTitle}}
+                            </button>
                         </template>
                     </div>
                     <div class="row mt-4 pt-2 -border-top--light">
                         <div class="col">
-                            <div v-if="progressIdx !== 0" class="btn btn-secondary" @click="progressIdx--">
+                            <div v-if="progressIdx !== 0" class="btn btn-secondary" @click="progress(-1)">
                                 <i class="fas fa-arrow-left"></i> Back
                             </div>
-                            <div class="btn btn-primary float-end" @click="progressIdx++">
+                            <div
+                                v-if="progressIdx === progressSteps - 1"
+                                class="btn btn-primary float-end"
+                                @click="saveChange"
+                            >
+                                Finish
+                            </div>
+                            <div v-else class="btn btn-primary float-end" @click="progress(1)">
                                 Next <i class="fas fa-arrow-right -color-white-text"></i>
                             </div>
                         </div>
@@ -62,10 +67,10 @@
 </template>
 
 <script>
-import BannerAlert from "../../components/BannerAlert";
-import dataUtil from "../../../utils/data";
-import PageHeader from "../../components/PageHeader";
-import BasePage from "../base/BasePage";
+import {SEVERITY} from '../../../globalData';
+import BannerAlert from '../../components/BannerAlert';
+import PageHeader from '../../components/PageHeader';
+import BasePage from '../base/BasePage';
 
 export default {
     name: "CandidateOnboardPage",
@@ -74,19 +79,34 @@ export default {
         return {
             progressIdx: 0,
             progressSteps: 5,
-            companySizes: []
+            progressItems: ['companySizes', 'roleTitles'],
+            formData: {
+                companySizes: [],
+                roleTitles: []
+            },
+            pageRedirect: 'candidateDashboard/'
         }
     },
     methods: {
+        progress(change) {
+            const formField = this.formData[this.progressItems[this.progressIdx]]
+            if (change > 0 && (!formField || !formField.length)) {
+                this.addPopover($('.form-container'),
+                    {severity: SEVERITY.WARN, content: 'Please select at least one option', isOnce: true}
+                );
+                return;
+            }
+            this.progressIdx += change;
+        },
         toggleSelection(e, newId, dataKey) {
-            const initialLength = this[dataKey].length;
+            const initialLength = this.formData[dataKey].length;
 
             // Remove the ID if it's already in the list
-            this[dataKey] = this[dataKey].filter((id) => id !== newId);
+            this.formData[dataKey] = this.formData[dataKey].filter((id) => id !== newId);
 
             // Add the ID if it's new
-            if (initialLength === this[dataKey].length) {
-                this[dataKey].push(newId);
+            if (initialLength === this.formData[dataKey].length) {
+                this.formData[dataKey].push(newId);
             }
 
             // Toggle the button on/off

@@ -1,10 +1,9 @@
 from http import HTTPStatus
 from json import dumps
 
-from django.db.models import F, Q
+from django.db.models import F
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.utils import timezone
 
 from upapp import security
 from upapp.modelSerializers import *
@@ -150,7 +149,11 @@ def candidateOnboard(request):
     return render(request, 'candidateOnboard.html', context={'data': dumps({
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
-        'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()]
+        'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
+        'roleTitles': sorted(
+            [{'id': j.id, 'roleTitle': j.roleTitle} for j in RoleTitle.objects.all()],
+            key=lambda x: x['roleTitle']
+        )
     })})
 
 
