@@ -105,30 +105,44 @@ WSGI_APPLICATION = 'up.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-if env('DB') == 'dev':
+if DEBUG is True:
     logger.info('CURRENTLY IN DEBUG MODE')
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'defaultdb',
-            'USER': env('DB_USER'),
-            'PASSWORD': env('DB_PASSWORD'),
-            'HOST': 'db-postgresql-nyc3-30775-do-user-9892554-0.b.db.ondigitalocean.com',
-            'PORT': 25060
+    if env('DB') == 'local':
+        logger.info('Using local')
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': 'uprove',
+                'USER': env('DB_USER'),
+                'PASSWORD': env('DB_PASSWORD'),
+                'HOST': 'db' if IS_DOCKER else 'localhost',
+                'PORT': 5432
+            }
         }
-    }
-elif DEBUG is True or env('DB') == 'local':
-    logger.info('CURRENTLY IN DEBUG MODE')
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'uprove',
-            'USER': env('DB_USER'),
-            'PASSWORD': env('DB_PASSWORD'),
-            'HOST': 'db' if IS_DOCKER else 'localhost',
-            'PORT': 5432
+    elif env('DB') == 'dev':
+        logger.info('Using dev db')
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': 'defaultdb',
+                'USER': env('DB_DEV_USER'),
+                'PASSWORD': env('DB_DEV_PASSWORD'),
+                'HOST': 'db-postgresql-nyc3-30775-do-user-9892554-0.b.db.ondigitalocean.com',
+                'PORT': 25060
+            }
         }
-    }
+    elif env('DB') == 'prod':
+        logger.info('Using prod db')
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': 'db',
+                'USER': env('DB_PROD_USER'),
+                'PASSWORD': env('DB_PROD_PASSWORD'),
+                'HOST': 'app-28bfbbdf-5450-4caa-8d8a-72df00331a57-do-user-9892554-0.b.db.ondigitalocean.com',
+                'PORT': 25060
+            }
+        }
 elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
     logger.info('CURRENTLY IN PRODUCTION MODE')
     if os.getenv("DATABASE_URL", None) is None:
