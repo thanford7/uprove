@@ -504,7 +504,7 @@ class PreferencesView(UproveAPIView):
                 key=lambda x: x['roleTitle']
             ),
             'countries': sorted(
-                [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.all()],
+                [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.filter(countryName__in=JobPostingView.permittedCountries)],
                 key=lambda x: x['countryName']
             )
         }
