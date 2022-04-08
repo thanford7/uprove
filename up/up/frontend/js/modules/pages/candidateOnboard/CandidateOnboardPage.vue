@@ -21,15 +21,17 @@
                     <div class="form-container ps-4 pe-4">
                         <template v-if="progressIdx === 0">
                             <h5 class="mb-4 text-center">Select the company employee sizes you're interested in</h5>
-                            <div class="btn-group" role="group">
-                                <button
-                                    v-for="c in initData.companySizes"
-                                    type="button"
-                                    class="btn btn-outline-dark outline"
-                                    @click="toggleSelection($event, c.id, 'companySizes')"
-                                >
-                                    {{c.companySize}}
-                                </button>
+                            <div class="d-flex justify-content-center">
+                                <div class="btn-group" role="group">
+                                    <button
+                                        v-for="c in initData.companySizes"
+                                        type="button"
+                                        class="btn btn-outline-dark outline"
+                                        @click="toggleSelection($event, c.id, 'companySizes')"
+                                    >
+                                        {{c.companySize}}
+                                    </button>
+                                </div>
                             </div>
                         </template>
                         <template v-if="progressIdx === 1">
@@ -42,6 +44,47 @@
                             >
                                 {{r.roleTitle}}
                             </button>
+                        </template>
+                        <template v-if="progressIdx === 2">
+                            <h5 class="mb-4 text-center">Select the countries you want to work in</h5>
+                            <div class="d-flex justify-content-center">
+                                <button
+                                    v-for="c in initData.countries"
+                                    type="button"
+                                    class="btn btn-outline-dark outline me-1 mb-1"
+                                    @click="toggleSelection($event, c.id, 'countries')"
+                                >
+                                    {{c.countryName}}
+                                </button>
+                            </div>
+                        </template>
+                        <template v-if="progressIdx === 3">
+                            <h5 class="mb-4 text-center">What are your preferences on working remotely?</h5>
+                            <div class="d-flex justify-content-center">
+                                <div class="btn-group" role="group">
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-dark outline"
+                                        @click="toggleValue($event, 2, 'remote')"
+                                    >
+                                        Remote only
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-dark outline"
+                                        @click="toggleValue($event, 1, 'remote')"
+                                    >
+                                        In person only
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-dark outline"
+                                        @click="toggleValue($event, 3, 'remote')"
+                                    >
+                                        Either
+                                    </button>
+                                </div>
+                            </div>
                         </template>
                     </div>
                     <div class="row mt-4 pt-2 -border-top--light">
@@ -77,17 +120,23 @@ export default {
     components: {BasePage, BannerAlert, PageHeader},
     data() {
         return {
+            crudUrl: 'user-preferences/',
             progressIdx: 0,
-            progressSteps: 5,
-            progressItems: ['companySizes', 'roleTitles'],
+            progressSteps: 4,
+            progressItems: ['companySizes', 'roleTitles', 'countries', 'remote'],
             formData: {
                 companySizes: [],
-                roleTitles: []
+                roleTitles: [],
+                countries: [],
+                remote: null
             },
-            pageRedirect: 'candidateDashboard/'
+            pageRedirect: '/candidateDashboard/'
         }
     },
     methods: {
+        getAjaxCfgOverride() {
+            return {method: 'PUT'};
+        },
         progress(change) {
             const formField = this.formData[this.progressItems[this.progressIdx]]
             if (change > 0 && (!formField || !formField.length)) {
@@ -118,6 +167,15 @@ export default {
             }
             targetEl$.toggleClass('btn-info');
         },
+        toggleValue(e, value, dataKey) {
+            this.formData[dataKey] = value;
+
+            const btn$ = $(e.currentTarget);
+            btn$.addClass('btn-info');
+            const btnGroup$ = btn$.siblings('.btn');
+            btnGroup$.removeClass('btn-info');
+            btnGroup$.addClass('btn-outline-dark');
+        }
     }
 }
 </script>

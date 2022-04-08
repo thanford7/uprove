@@ -4,6 +4,11 @@ const USER_BITS = {
     ADMIN: 4
 }
 
+const REMOTE_BITS = {
+    NON_REMOTE: 1,
+    REMOTE: 2
+}
+
 const PROJECT_EVAL_CUTOFFS = [
     {cutoff: 50, color: 'danger'},
     {cutoff: 80, color: 'warning'},
@@ -118,4 +123,4 @@ const globalDataGetter = () => {
 const globalData = globalDataGetter();
 
 export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROJECT_EVAL_CUTOFFS,
-    PROJECT_STATUSES, SEVERITY, TAG_TYPES, USER_BITS};
+    PROJECT_STATUSES, REMOTE_BITS, SEVERITY, TAG_TYPES, USER_BITS};

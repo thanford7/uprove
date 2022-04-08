@@ -75,6 +75,7 @@ const ajaxRequestMixin = {
             // Each item can be a path string or a function to get the data to be updated
             initDataKey: null,
             isUpdateData: false,  // If true, initData will be updated on successful CRUD operation
+            isHardRefresh: false,
             updateDeleteMethod: null, // Set to PUT or POST if not sending a delete ID response from ajax request
             formData: {},  // Use for modals
             requiredFields: {}, // <formData field name>: <form DOM id>
@@ -95,7 +96,7 @@ const ajaxRequestMixin = {
                     message: this.getSuccessMessage(data, method),
                     alertType: this.successAlertType
                 });
-                if (this.isUpdateData) {
+                if (this.isUpdateData && !this.isHardRefresh) {
                     if (method === 'DELETE') {
                         if (this.updateDeleteMethod) {
                             this.updateInitData(data, this.updateDeleteMethod);
@@ -111,9 +112,13 @@ const ajaxRequestMixin = {
                     this.modal$.hide();
                 }
 
-                const redirect = data.pageRedirect || this.pageRedirect;
-                if (redirect) {
-                    window.location.href = redirect;
+                if (this.isHardRefresh) {
+                    window.location.reload();
+                } else {
+                    const redirect = data.pageRedirect || this.pageRedirect;
+                    if (redirect) {
+                        window.location.href = redirect;
+                    }
                 }
             }
         },

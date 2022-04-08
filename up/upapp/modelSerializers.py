@@ -88,6 +88,12 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'isAuthenticated': user.djangoUser.is_authenticated,
         'skills': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_SKILL)],
         'interests': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_INTEREST)],
+        'preferences': {
+            'companySizes': [{'id': p.id, 'companySize': p.companySize} for p in user.preferenceCompanySizes.all()],
+            'roles': [{'id': p.id, 'roleTitle': p.roleTitle} for p in user.preferenceRoles.all()],
+            'countries': [{'id': p.id, 'countryName': p.countryName} for p in user.preferenceCountry.all()],
+            'remoteBits': user.preferenceRemoteBits
+        },
         **serializeAuditFields(user)
     }
 
@@ -342,6 +348,8 @@ def getSerializedEmployer(employer: Employer, isEmployer=False):
         'companyName': employer.companyName,
         'logo': employer.logo.url if employer.logo else None,
         'description': employer.description,
+        'companySize': employer.companySize.companySize if employer.companySize else None,
+        'companySizeId': employer.companySize.id if employer.companySize else None,
         'glassDoorUrl': employer.glassDoorUrl,
         'isDemo': employer.isDemo,
         'jobs': [
@@ -378,8 +386,13 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
     baseFields = {
         'id': employerJob.id,
         'employerId': employerJob.employer_id,
+        'companyName': employerJob.employer.companyName,
+        'employerLogo': employerJob.employer.logo.url if employerJob.employer.logo else None,
+        'companySize': employerJob.employer.companySize.companySize if employerJob.employer.companySize else None,
+        'companySizeId': employerJob.employer.companySize.id if employerJob.employer.companySize else None,
         'jobTitle': employerJob.jobTitle,
-        'role': employerJob.role,
+        'role': employerJob.role.roleTitle if employerJob.role else None,
+        'roleId': employerJob.role.id if employerJob.role else None,
         'jobDescription': employerJob.jobDescription,
         'allowedProjects': [getSerializedCustomProject(ep) for ep in employerJob.allowedProjects.all()],
         'salaryFloor': employerJob.salaryFloor,
@@ -390,8 +403,10 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
         'closeDate': getDateTimeFormatOrNone(employerJob.closeDate),
         'isRemote': employerJob.isRemote,
         'city': employerJob.city,
-        'state': employerJob.state,
-        'country': employerJob.country,
+        'state': employerJob.state.stateName if employerJob.state else None,
+        'stateId': employerJob.state.id if employerJob.state else None,
+        'country': employerJob.country.countryName if employerJob.country else None,
+        'countryId': employerJob.country.id if employerJob.country else None,
         'region': employerJob.region,
         'applicationUrl': employerJob.applicationUrl
     }
