@@ -6,34 +6,47 @@
                     <h6>Search jobs</h6>
                 </div>
                 <div class="row">
-                    <div class="col-12 col-md filter-item">
+                    <div class="col-12 col-md-3 filter-item">
                         <InputSelectize
                             ref="roles"
                             :elId="getNewElUid()"
                             :cfg="roleCfg"
+                            :isParseAsInt="true"
                             placeholder="All roles"
                             @selected="updateFilters($event, 'roles')"
                         />
                     </div>
-                    <div class="col-12 col-md filter-item">
+                    <div class="col-12 col-md-3 filter-item">
                         <InputSelectize
                             ref="countries"
                             :elId="getNewElUid()"
                             :cfg="countryCfg"
+                            :isParseAsInt="true"
                             placeholder="All countries"
                             @selected="updateFilters($event, 'countries')"
                         />
                     </div>
-                    <div v-if="isShowStateSel" class="col-12 col-md filter-item">
+                    <div class="col-12 col-md-3 filter-item">
                         <InputSelectize
                             ref="states"
                             :elId="getNewElUid()"
                             :cfg="stateCfg"
+                            :isParseAsInt="true"
                             placeholder="All states"
                             @selected="updateFilters($event, 'states')"
                         />
                     </div>
-                    <div v-if="isShowStateSel" class="col-12 col-md filter-item">
+                    <div class="col-12 col-md-3 filter-item">
+                        <InputSelectize
+                            ref="companySize"
+                            :elId="getNewElUid()"
+                            :cfg="companySizeCfg"
+                            :isParseAsInt="true"
+                            placeholder="All sizes"
+                            @selected="updateFilters($event, 'companySizes')"
+                        />
+                    </div>
+                    <div class="col-12 col-md-3 filter-item">
                         <InputSelectize
                             ref="employers"
                             :elId="getNewElUid()"
@@ -43,7 +56,7 @@
                             @selected="updateFilters($event, 'employers')"
                         />
                     </div>
-                    <div class="col-12 col-md filter-item d-flex align-items-center">
+                    <div class="col-12 col-md-3 filter-item d-flex align-items-center">
                         <InputCheckBox
                             label="Remote work"
                             @click="updateFilters($event, 'isRemote')"
@@ -61,7 +74,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-2 d-flex align-items-center justify-content-center">
-                            <img v-if="getEmployer(job.employerId).logo" :src="getEmployer(job.employerId).logo"
+                            <img v-if="job.employerLogo" :src="job.employerLogo"
                                  class="logo">
                             <i v-else class="far fa-building fa-4x"></i>
                         </div>
@@ -98,10 +111,7 @@
                                             {{ getLocationStr(selectedJob) }}</h6>
                                     </div>
                                     <div class="col-3">
-                                        <a class="btn btn-primary" :href="selectedJob.applicationUrl" target="_blank"
-                                           title="This will take you to the company's job application page">
-                                            Apply <i class="fas fa-external-link-alt -color-white-text"></i>
-                                        </a>
+                                        <JobApplyBtn :applicationUrl="selectedJob.applicationUrl"/>
                                     </div>
                                 </div>
                                 <JobHelpLinks :job="selectedJob" :employer="getEmployer(selectedJob.employerId)"/>
@@ -122,23 +132,26 @@
 </template>
 
 <script>
+import {REMOTE_BITS, SEVERITY} from '../../../globalData';
 import AccordionItem from "../../components/AccordionItem";
 import BaseFilter from "../base/BaseFilter";
 import BasePage from "../base/BasePage";
 import dataUtil from "../../../utils/data";
 import InputCheckBox from "../../inputs/InputCheckBox";
 import InputSelectize from "../../inputs/InputSelectize";
+import JobApplyBtn from "./JobApplyBtn";
 import JobPosting from "../jobPosting/JobPosting";
 import Pagination from "../../components/Pagination";
 import ListFontAwesome from "../../components/ListFontAwesome";
 import JobHelpLinks from "./JobHelpLinks";
+import jobUtil from "../../../utils/jobs";
 
 export default {
     name: "JobsPage",
     components: {
         JobHelpLinks,
         ListFontAwesome,
-        JobPosting, AccordionItem, BaseFilter, BasePage, InputCheckBox, InputSelectize, Pagination
+        JobPosting, AccordionItem, BaseFilter, BasePage, InputCheckBox, InputSelectize, JobApplyBtn, Pagination
     },
     data() {
         return {
@@ -151,28 +164,38 @@ export default {
             },
             jobPaginationIdx: 0,
             jobsPerPage: 25,
-            selectedJob: null
+            selectedJob: null,
         }
     },
     computed: {
         roleCfg() {
             return {
-                valueField: 'value',
-                labelField: 'value',
-                sortField: 'value',
+                valueField: 'id',
+                labelField: 'roleTitle',
+                sortField: 'roleTitle',
                 maxItems: null,
                 plugins: ['remove_button'],
-                options: this.initData.roles.map((r) => ({value: r}))
+                options: this.initData.roles
+            };
+        },
+        companySizeCfg() {
+            return {
+                valueField: 'id',
+                labelField: 'companySize',
+                sortField: 'id',
+                maxItems: null,
+                plugins: ['remove_button'],
+                options: this.initData.companySizes
             };
         },
         countryCfg() {
             return {
-                valueField: 'value',
-                labelField: 'value',
-                sortField: 'value',
+                valueField: 'id',
+                labelField: 'countryName',
+                sortField: 'countryName',
                 maxItems: null,
                 plugins: ['remove_button'],
-                options: this.initData.countries.map((c) => ({value: c}))
+                options: this.initData.countries
             };
         },
         employerCfg() {
@@ -187,26 +210,29 @@ export default {
         },
         stateCfg() {
             return {
-                valueField: 'value',
-                labelField: 'value',
-                sortField: 'value',
+                valueField: 'id',
+                labelField: 'stateName',
+                sortField: 'stateName',
                 maxItems: null,
                 plugins: ['remove_button'],
-                options: this.initData.states.map((s) => ({value: s}))
+                options: this.initData.states
             };
         },
         jobs() {
             return this.initData.jobs.filter((j) => {
-                if (this.filter.roles?.length && !this.filter.roles.includes(j.role)) {
+                if (this.filter.roles?.length && !this.filter.roles.includes(j.roleId)) {
                     return false;
                 }
-                if (this.filter.countries?.length && !this.filter.countries.includes(j.country)) {
+                if (this.filter.countries?.length && !this.filter.countries.includes(j.countryId)) {
                     return false;
                 }
-                if (this.filter.states?.length && !this.filter.states.includes(j.state)) {
+                if (this.filter.states?.length && !this.filter.states.includes(j.stateId)) {
                     return false;
                 }
                 if (this.filter.employers?.length && !this.filter.employers.includes(j.employerId)) {
+                    return false;
+                }
+                if (this.filter.companySizes?.length && !this.filter.companySizes.includes(j.companySizeId)) {
                     return false;
                 }
                 if (this.filter.isRemote && !j.isRemote) {
@@ -218,37 +244,12 @@ export default {
         pageJobs() {
             return this.jobs.slice(this.jobPaginationIdx, this.jobPaginationIdx + this.jobsPerPage + 1);
         },
-        isShowStateSel() {
-            return (
-                !this.filter.isRemote
-                && (
-                    !this.filter?.countries?.length
-                    || this.filter.countries.filter((country) => ['USA', 'Canada'].includes(country)).length
-                )
-            );
-        }
     },
     methods: {
         getQueryParams: dataUtil.getQueryParams,
+        getLocationStr: jobUtil.getLocationStr,
         getEmployer(employerId) {
             return this.initData['employers'][employerId];
-        },
-        getLocationStr(job) {
-            if (job.isRemote) {
-                return `Remote: ${job.region || 'Anywhere'}`;
-            }
-            return ['city', 'state', 'country'].reduce((locationStr, locationPart) => {
-                const locationPartStr = dataUtil.get(job, locationPart);
-                if (!locationPartStr) {
-                    return locationStr;
-                }
-                if (locationStr === '') {
-                    locationStr = locationPartStr;
-                } else {
-                    locationStr += `, ${locationPartStr}`;
-                }
-                return locationStr
-            }, '');
         },
         showJobDetails(e, job) {
             e.preventDefault();
@@ -257,16 +258,19 @@ export default {
         },
         updateFilters(val, filterKey) {
             this.setFilter(val, filterKey);
-            if (!this.isShowStateSel) {
-                this.setFilter(null, 'states');
-            }
 
             // Update the available options based on other filters
             const options = {roles: new Set(), countries: new Set(), employers: new Set(), states: new Set()};
             this.jobs.forEach((job) => {
-                options.roles.add(job.role);
-                options.states.add(job.state);
-                options.countries.add(job.country);
+                if (job.roleId) {
+                    options.roles.add(this.initData.roles.find((r) => r.id === job.roleId));
+                }
+                if (job.stateId) {
+                    options.states.add(this.initData.states.find((s) => s.id === job.stateId));
+                }
+                if (job.countryId) {
+                    options.countries.add(this.initData.countries.find((c) => c.id === job.countryId));
+                }
                 options.employers.add(this.initData.employers[job.employerId])
             });
             ['roles', 'countries', 'employers', 'states'].forEach((ref) => {
@@ -276,11 +280,7 @@ export default {
                 }
                 const sel = this.$refs[ref];
                 if (sel) {
-                    let selOptions = Array.from(options[ref]);
-                    if (ref !== 'employers') {
-                        selOptions = selOptions.map((o) => ({value: o}));
-                    }
-                    sel.resetOptions(selOptions);
+                    sel.resetOptions(Array.from(options[ref]));
                 }
             });
 
@@ -288,15 +288,28 @@ export default {
             if (pagination) {
                 pagination.reset(); // Reset page counts
             }
+        },
+        hasUserPreferences() {
+            return Object.values(this.initData.preferences).reduce((hasPreference, p) => {
+                hasPreference = hasPreference || ((Array.isArray(p)) ? p.length : Boolean(p));
+                return hasPreference;
+            }, false);
         }
     },
     mounted() {
-        const queryParams = dataUtil.getQueryParams();
+        let queryParams = dataUtil.getQueryParams();
+        if (dataUtil.isEmpty(queryParams) && this.hasUserPreferences()) {
+            queryParams = this.initData.preferences;
+            this.addPopover($('.filter'),
+                {severity: SEVERITY.INFO, content: 'Filters set based on the your default job preferences', isOnce: true}
+            );
+        }
         this.$refs.roles.elSel.setValue(queryParams.roles);
         this.$refs.states.elSel.setValue(queryParams.states);
         this.$refs.countries.elSel.setValue(queryParams.countries);
         this.$refs.employers.elSel.setValue(queryParams.employers);
-        this.filter.isRemote = queryParams.isRemote === 'true';
+        this.$refs.companySize.elSel.setValue(queryParams.companySizes);
+        this.filter.isRemote = queryParams.isRemote === 'true' || queryParams.remoteBits === REMOTE_BITS.REMOTE;
     }
 }
 </script>

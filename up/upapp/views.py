@@ -1,10 +1,9 @@
 from http import HTTPStatus
 from json import dumps
 
-from django.db.models import F, Q
+from django.db.models import F
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.utils import timezone
 
 from upapp import security
 from upapp.modelSerializers import *
@@ -12,9 +11,8 @@ from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
-from upapp.apis.user import UserJobApplicationView, UserView, UserProfileView, UserProjectView
+from upapp.apis.user import PreferencesView, UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import EmployerCustomProjectCriterion, Role, Skill
-from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP
 from upapp.viewsAuth import getLoginRedirectUrl
 
 
@@ -51,7 +49,8 @@ def admin(request):
         'users': [getSerializedUser(u) for u in UserView.getUsers()],
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
-        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()]
+        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
+        'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
     })})
 
 
@@ -149,7 +148,8 @@ def candidateOnboard(request):
 
     return render(request, 'candidateOnboard.html', context={'data': dumps({
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
-        'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
+        **PreferencesView.getPreferenceOptions()
     })})
 
 
@@ -222,26 +222,17 @@ def jobs(request):
     if not user or not security.isPermittedSessionUser(user=user):
         return _getUnauthorizedPage(request)
 
-    jobs = EmployerJob.objects.filter(JobPostingView.getEmployerJobFilter())
+    user = UserView.getUser(user.id)  # Refetch to get all related objects
+    jobs = JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter())
     employers = Employer.objects.filter(isDemo=False)
     projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)]
-    roles = list({job.role for job in jobs})
-    projectIdsByRole = {}
-    projectRoleIdsByRole = {}
-    for role in roles:
-        acceptedProjectTypes = ROLE_PROJECT_MAP[role]
-        projectIdsByRole[role] = []
-        projectRoleIdsByRole[role] = set()
-        for project in projects:
-            if project['role'].lower() in acceptedProjectTypes:
-                projectIdsByRole[role].append(project['id'])
-                projectRoleIdsByRole[role].add(project['roleId'])
+    projectIdsByRole, projectRoleIdsByRole = JobPostingView.getProjectRoleMaps()
 
     return render(request, 'jobs.html', context={'data': dumps({
         'jobs': [{
             **getSerializedEmployerJob(job),
-            'projectIds': projectIdsByRole[job.role],
-            'projectRoleIds': list(projectRoleIdsByRole[job.role])
+            'projectIds': projectIdsByRole[job.role.roleTitle],
+            'projectRoleIds': list(projectRoleIdsByRole[job.role.roleTitle])
         } for job in jobs],
         'employers': {e.id: {
             'id': e.id,
@@ -250,10 +241,17 @@ def jobs(request):
             'description': e.description,
             'glassDoorUrl': e.glassDoorUrl
         } for e in employers},
-        'states': list({job.state for job in jobs}),
-        'countries': JobPostingView.permittedCountries,
-        'roles': roles,
-        'projects': projects
+        'preferences': {
+            'companySizes': [v.id for v in user.preferenceCompanySizes.all()],
+            'roles': [v.id for v in user.preferenceRoles.all()],
+            'remoteBits': user.preferenceRemoteBits,
+            'countries': [v.id for v in user.preferenceCountry.all()],
+        },
+        'states': [{'id': s.id, 'stateName': s.stateName} for s in State.objects.all()],
+        'countries': [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.filter(countryName__in=JobPostingView.permittedCountries)],
+        'roles': [{'id': r.id, 'roleTitle': r.roleTitle} for r in RoleTitle.objects.all()],
+        'projects': projects,
+        'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
     })})
 
 
@@ -263,8 +261,13 @@ def jobPosting(request, jobId):
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
     user = security.getSessionUser(request)
     employerId = user.employer_id if isEmployer else None
+    projectIdsByRole, _ = JobPostingView.getProjectRoleMaps()
+    recommendedProjects = ProjectView.getProjects(projectIds=projectIdsByRole[job.role.roleTitle])
     data = {
-        'job': getSerializedEmployerJob(job, isEmployer=isEmployer),
+        'job': {
+            **getSerializedEmployerJob(job, isEmployer=isEmployer),
+            'projects': [getSerializedProject(p, isIncludeDetails=True) for p in recommendedProjects],
+        },
         'employer': getSerializedEmployer(EmployerView.getEmployer(job.employer_id), isEmployer=isEmployer),
         'projects': {p.id: getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in projects},
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
@@ -308,8 +311,17 @@ def profiles(request, userId):
 def project(request, projectId):
     user = security.getSessionUser(request)
     employerId = user.employer_id if user else None
+    jobMapByRole = JobPostingView.getJobMapByRole()
+    project = ProjectView.getProject(projectId)
     baseData = {
-        'project': getSerializedProject(ProjectView.getProject(projectId), isIncludeDetails=security.isPermittedSessionUser(request), evaluationEmployerId=employerId),
+        'project': {
+            **getSerializedProject(
+                project,
+                isIncludeDetails=security.isPermittedSessionUser(request),
+                evaluationEmployerId=employerId
+            ),
+            'jobs': jobMapByRole[project.role.name.lower()]
+        },
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     }
@@ -326,8 +338,13 @@ def project(request, projectId):
 
 
 def projects(request):
+    jobMapByRole = JobPostingView.getJobMapByRole()
+
     return render(request, 'projects.html', context={'data': dumps({
-        'projects': [getSerializedProject(p) for p in ProjectView.getProjects()],
+        'projects': [{
+            **getSerializedProject(p),
+            'jobs': jobMapByRole[p.role.name.lower()]
+        } for p in ProjectView.getProjects()],
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})

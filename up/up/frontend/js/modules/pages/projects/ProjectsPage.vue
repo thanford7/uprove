@@ -43,7 +43,7 @@
 <script>
 import dataUtil from "../../../utils/data";
 import BasePage from "../base/BasePage";
-import ProjectCard from "../../components/ProjectCard";
+import ProjectCard from "./ProjectCard";
 import RolesSelectize from "../../inputs/RolesSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";

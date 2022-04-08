@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.utils import timezone
@@ -12,6 +14,7 @@ from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
     getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject, \
     getSerializedUserProject
+from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -38,6 +41,7 @@ class EmployerView(APIView):
                 companyName=data['companyName'],
                 logo=data.get('logo'),
                 description=data.get('description'),
+                companySize_id=data.get('companySizeId'),
                 glassDoorUrl=data.get('glassDoorUrl'),
                 isDemo=data.get('isDemo') or False,
                 modifiedDateTime=timezone.now(),
@@ -62,8 +66,9 @@ class EmployerView(APIView):
         try:
             dataUtil.setObjectAttributes(employer, request.data, {
                 'companyName': None,
-                'logo': None,
+                'logo': {'isProtectExisting': True},
                 'description': None,
+                'companySize_id': {'formName': 'companySizeId'},
                 'glassDoorUrl': None,
                 'isDemo': {'isProtectExisting': True}
             })
@@ -183,27 +188,37 @@ class JobPostingView(APIView):
         return Response(status=status.HTTP_200_OK, data=jobId)
 
     @staticmethod
-    def getEmployerJobs(jobId=None, employerId=None):
-        jobFilter = Q()
+    def getEmployerJobs(jobId=None, employerId=None, jobFilter=None):
+        jobFilter = jobFilter or Q()
         if jobId:
             jobFilter &= Q(id=jobId)
         if employerId:
             jobFilter &= Q(employer_id=employerId)
 
-        jobs = EmployerJob.objects.prefetch_related(
-            'allowedProjects',
-            'allowedProjects__skills',
-            'jobApplication',
-            'jobApplication__userProject',
-            'jobApplication__userProject__user',
-            'jobApplication__userProject__customProject',
-            'jobApplication__userProject__customProject__project',
-            'jobApplication__userProject__customProject__project__role',
-            'jobApplication__userProject__customProject__skills',
-            'jobApplication__userProject__files',
-            'jobApplication__userProject__videos',
-            'jobApplication__userProject__images',
-        ).filter(jobFilter)
+        jobs = EmployerJob.objects\
+            .select_related(
+                'state',
+                'country',
+                'role',
+                'employer',
+                'employer__companySize'
+            )\
+            .prefetch_related(
+                'allowedProjects',
+                'allowedProjects__skills',
+                'jobApplication',
+                'jobApplication__userProject',
+                'jobApplication__userProject__user',
+                'jobApplication__userProject__customProject',
+                'jobApplication__userProject__customProject__project',
+                'jobApplication__userProject__customProject__project__role',
+                'jobApplication__userProject__customProject__skills',
+                'jobApplication__userProject__files',
+                'jobApplication__userProject__videos',
+                'jobApplication__userProject__images',
+            )\
+            .filter(jobFilter)\
+            .order_by('-openDate')
 
         if jobId:
             if not jobs:
@@ -217,10 +232,48 @@ class JobPostingView(APIView):
         filter = Q()
         if not isIncludeClosed:
             filter &= Q(openDate__lte=timezone.now().date()) & (
-                        Q(closeDate__isnull=True) | Q(closeDate__gt=timezone.now().date()))
-        filter &= Q(country__isnull=True) | Q(country__in=JobPostingView.permittedCountries)
+                Q(closeDate__isnull=True) | Q(closeDate__gt=timezone.now().date())
+            ) & (
+                Q(pauseDate__isnull=True) | Q(pauseDate__gt=timezone.now().date())
+            )
+        filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
         filter &= Q(role__isnull=False)
         return filter
+
+    @staticmethod
+    def getJobMapByRole():
+        jobCountByRoleTitle = defaultdict(int)
+        for job in JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter()):
+            jobCountByRoleTitle[job.role.roleTitle] += 1
+
+        roleTitleIds = {r.roleTitle: r.id for r in RoleTitle.objects.all()}
+        jobMapByRole = defaultdict(lambda: {'roleTitleIds': [], 'jobCount': 0})
+        for roleTitle, roles in ROLE_PROJECT_MAP.items():
+            for role in roles:
+                roleTitleId = roleTitleIds[roleTitle]
+                if roleTitleId not in jobMapByRole[role]['roleTitleIds']:
+                    jobMapByRole[role]['roleTitleIds'].append(roleTitleIds[roleTitle])
+                    jobMapByRole[role]['jobCount'] += jobCountByRoleTitle[roleTitle]
+
+        return jobMapByRole
+
+    @staticmethod
+    def getProjectRoleMaps():
+        projects = [getSerializedProject(p, isIncludeDetails=True) for p in
+                    ProjectView.getProjects(isIgnoreEmployerId=True)]
+        roles = [r.roleTitle for r in RoleTitle.objects.all()]
+        projectIdsByRole = {}
+        projectRoleIdsByRole = {}
+        for role in roles:
+            acceptedProjectTypes = ROLE_PROJECT_MAP[role]
+            projectIdsByRole[role] = []
+            projectRoleIdsByRole[role] = set()
+            for project in projects:
+                if project['role'].lower() in acceptedProjectTypes:
+                    projectIdsByRole[role].append(project['id'])
+                    projectRoleIdsByRole[role].add(project['roleId'])
+
+        return projectIdsByRole, projectRoleIdsByRole
 
     @staticmethod
     def getCustomProjects(asDict=True):

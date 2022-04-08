@@ -26,6 +26,23 @@
             <InputWsiwyg v-model="formData.description" elId="employerDescription" placeholder="Add description..."/>
         </div>
         <div class="mb-3">
+            <label for="companySize" class="form-label">Company size</label>
+            <InputSelectize
+                ref="companySize"
+                :elId="getNewElUid()"
+                :cfg="{
+                    valueField: 'id',
+                    labelField: 'companySize',
+                    maxItems: 1,
+                    options: initData.companySizes,
+                }"
+                :isParseAsInt="true"
+                :items="formData.companySizeId"
+                placeholder="Optional"
+                @selected="formData.companySizeId = $event"
+            />
+        </div>
+        <div class="mb-3">
             <label for="glassdoorUrl" class="form-label">Glassdoor URL</label>
             <input type="text" class="form-control" placeholder="Optional" id="glassdoorUrl" v-model="formData.glassDoorUrl">
         </div>
@@ -46,13 +63,14 @@ import {CONTENT_TYPES} from '../../globalData';
 import BaseModal from "./BaseModal";
 import InputCheckBox from "../inputs/InputCheckBox";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
+import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 
 export default {
     name: "EditEmployerModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InputCheckBox, InputOrViewMedia, InputWsiwyg},
+    components: {BaseModal, InputCheckBox, InputOrViewMedia, InputSelectize, InputWsiwyg},
     data() {
         return {
             modalName: 'editEmployerModal',

@@ -13,7 +13,8 @@ __all__ = (
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
-    'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist'
+    'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
+    'CompanySize', 'Country', 'State', 'RoleTitle'
 )
 
 
@@ -64,6 +65,9 @@ class User(AuditFields):
     USER_TYPE_EMPLOYER = 0x2
     USER_TYPE_ADMIN = 0x4
 
+    REMOTE_PREF_NO = 0x1
+    REMOTE_PREF_YES = 0x2
+
     djangoUser = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, editable=False)
     firstName = models.CharField(max_length=20)
     middleName = models.CharField(max_length=20, null=True)
@@ -74,6 +78,21 @@ class User(AuditFields):
     employer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True)
     inviteEmployer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True, related_name='inviteEmployer')
     isDemo = models.BooleanField(default=False)
+
+    preferenceCompanySizes = models.ManyToManyField('CompanySize')
+    preferenceRoles = models.ManyToManyField('RoleTitle')
+    preferenceRemoteBits = models.SmallIntegerField(default=3)  # 1 = Non-remote, 2 = Remote
+    preferenceCountry = models.ManyToManyField('Country')
+    preferenceState = models.ManyToManyField('State')
+
+    @property
+    def hasPreferences(self):
+        return any((
+            self.preferenceCompanySizes.all(),
+            self.preferenceRoles.all(),
+            self.preferenceCountry.all(),
+            self.preferenceState.all()
+       ))
 
     @property
     def isEmployer(self):
@@ -338,6 +357,7 @@ class Employer(AuditFields):
     companyName = models.CharField(max_length=150, unique=True)
     logo = models.ImageField(upload_to=getUploadLocation('logos'), null=True)
     description = models.TextField(null=True)
+    companySize = models.ForeignKey('CompanySize', null=True, on_delete=models.SET_NULL)
     glassDoorUrl = models.CharField(max_length=200, null=True)
     isDemo = models.BooleanField(default=False)
 
@@ -379,12 +399,12 @@ class EmployerJob(AuditFields):
     # Normalized from the raw location text
     isRemote = models.BooleanField(null=True)
     city = models.CharField(max_length=50, null=True)
-    state = models.CharField(max_length=50, null=True)
-    country = models.CharField(max_length=50, null=True)
+    state = models.ForeignKey('State', null=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey('Country', null=True, on_delete=models.SET_NULL)
     region = models.CharField(max_length=200, null=True)
 
     # Normalized from jobTitle
-    role = models.CharField(max_length=50, null=True)
+    role = models.ForeignKey('RoleTitle', null=True, on_delete=models.SET_NULL)
 
     isScraped = models.BooleanField(default=False)
 
@@ -483,3 +503,20 @@ class Waitlist(models.Model):
     email = models.EmailField()
     waitlistType = models.CharField(max_length=100)
     signUpDateTime = models.DateTimeField()
+
+
+# Job preference criteria
+class CompanySize(models.Model):
+    companySize = models.CharField(max_length=25, unique=True)
+
+
+class RoleTitle(models.Model):
+    roleTitle = models.CharField(max_length=75, unique=True)
+
+
+class Country(models.Model):
+    countryName = models.CharField(max_length=50, unique=True)
+
+
+class State(models.Model):
+    stateName = models.CharField(max_length=50, unique=True)

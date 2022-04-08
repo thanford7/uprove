@@ -1,104 +1,111 @@
 <template>
-    <BasePage headerTitle="Dashboard" :headerImage="initData.user.profileImage">
+    <BasePage>
         <div class="row mb-3 justify-content-center">
-            <div class="col-md-9 card-custom table-responsive-md">
-                <h4 style="display: inline-block">Projects</h4>
-                <div class="row justify-content-center mt-2">
-                    <BaseCard
-                        v-for="userProject in initData.userProjects"
-                        :cardItem="userProject"
-                        :elId="getNewElUid()"
-                        :isShowViewMoreLink="false"
-                    >
-                        <template v-slot:outer>
-                            <div class="badge badge-top -color-darkblue">{{userProject.customProject.role}}</div>
-                        </template>
-                        <template v-slot:header>
-                            {{userProject.customProject.projectTitle}}
-                            <span
-                                v-if="userProject.files.length"
-                                class="fa-stack fa-stack-sm float-end"
-                                :title="`${pluralize('file', getFileCount(userProject))} uploaded`"
-                            >
-                              <i class="fas fa-file fa-stack-2x"></i>
-                              <strong class="fa-stack-1x -color-white-text">{{getFileCount(userProject)}}</strong>
-                            </span>
-                        </template>
-                        <template v-slot:body>
-                            <div class="mb-1 pb-1 -border-bottom--light">
-                                <div class="text-label text-label-sm">CAREER LEVELS</div>
-                                <BadgesSkillLevels :skillLevels="userProject.customProject.skillLevels"/>
-                            </div>
-                            <div class="mb-1 pb-1 -border-bottom--light">
-                                <div class="text-label text-label-sm">SKILLS</div>
-                                <BadgesSkills :skills="userProject.customProject.skills"/>
-                            </div>
-                            <div>
-                                <a :href="`/project/${userProject.customProject.projectId}/?${getCustomProjectQueryParams(userProject.customProject)}`" target="_blank">
-                                    <i class="fas fa-external-link-alt"></i>
-                                    View project instructions
-                                </a>
-                            </div>
-                            <div>
-                                <div
-                                    class="form-check form-switch mt-2"
-                                    :title="getProjectCompleteLockedNote(userProject)"
+            <div class="col-md-8">
+                <div class="card-custom table-responsive-md">
+                    <h4 style="display: inline-block">Projects</h4>
+                    <div class="row justify-content-center mt-2">
+                        <BaseCard
+                            v-for="userProject in initData.userProjects"
+                            :cardItem="userProject"
+                            :elId="getNewElUid()"
+                            :isShowViewMoreLink="false"
+                        >
+                            <template v-slot:outer>
+                                <div class="badge badge-top -color-darkblue">{{ userProject.customProject.role }}</div>
+                            </template>
+                            <template v-slot:header>
+                                {{ userProject.customProject.projectTitle }}
+                                <span
+                                    v-if="userProject.files.length"
+                                    class="fa-stack fa-stack-sm float-end"
+                                    :title="`${pluralize('file', getFileCount(userProject))} uploaded`"
                                 >
-                                  <input class="form-check-input" type="checkbox" id="projectStatus"
-                                         :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
-                                         @change="toggleProjectComplete(userProject, $event)"
-                                    :disabled="userProject.isLocked || !userProject.files.length"
-                                  >
-                                  <label class="form-check-label" for="projectStatus">
-                                      <span v-if="userProject.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
-                                      <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="CONTENT.draftStatusInfo + CONTENT.completeStatusInfo"/>
-                                      Project complete
-                                  </label>
+                              <i class="fas fa-file fa-stack-2x"></i>
+                              <strong class="fa-stack-1x -color-white-text">{{ getFileCount(userProject) }}</strong>
+                            </span>
+                            </template>
+                            <template v-slot:body>
+                                <div class="mb-1 pb-1 -border-bottom--light">
+                                    <div class="text-label text-label-sm">CAREER LEVELS</div>
+                                    <BadgesSkillLevels :skillLevels="userProject.customProject.skillLevels"/>
                                 </div>
-                                <div class="form-check form-switch mt-2">
-                                  <input class="form-check-input" type="checkbox" id="projectHidden"
-                                         :checked="userProject.isHidden"
-                                         @change="toggleProjectHidden(userProject, $event)"
-                                  >
-                                  <label class="form-check-label" for="projectHidden">
-                                      <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="CONTENT.hiddenStatusInfo"/>
-                                      Project hidden
-                                  </label>
+                                <div class="mb-1 pb-1 -border-bottom--light">
+                                    <div class="text-label text-label-sm">SKILLS</div>
+                                    <BadgesSkills :skills="userProject.customProject.skills"/>
                                 </div>
-                                <div class="mt-2">
-                                    <button
-                                        class="btn btn-primary btn-sm"
-                                        :class="(userProject.isLocked) ? 'w-75' : 'w-100'"
-                                        @click="eventBus.emit('open:editUserProjectModal', userProject)"
-                                        :disabled="userProject.isLocked"
-                                        :title="getProjectLockedNote(userProject)"
+                                <div>
+                                    <a :href="`/project/${userProject.customProject.projectId}/?${getCustomProjectQueryParams(userProject.customProject)}`"
+                                       target="_blank">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        View project instructions
+                                    </a>
+                                </div>
+                                <div>
+                                    <div
+                                        class="form-check form-switch mt-2"
+                                        :title="getProjectCompleteLockedNote(userProject)"
                                     >
-                                        Edit project files
-                                    </button>
-                                    <span v-if="userProject.isLocked">
+                                        <input class="form-check-input" type="checkbox" id="projectStatus"
+                                               :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
+                                               @change="toggleProjectComplete(userProject, $event)"
+                                               :disabled="userProject.isLocked || !userProject.files.length"
+                                        >
+                                        <label class="form-check-label" for="projectStatus">
+                                            <span v-if="userProject.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
+                                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
+                                                         :content="CONTENT.draftStatusInfo + CONTENT.completeStatusInfo"/>
+                                            Project complete
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="projectHidden"
+                                               :checked="userProject.isHidden"
+                                               @change="toggleProjectHidden(userProject, $event)"
+                                        >
+                                        <label class="form-check-label" for="projectHidden">
+                                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
+                                                         :content="CONTENT.hiddenStatusInfo"/>
+                                            Project hidden
+                                        </label>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button
+                                            class="btn btn-primary btn-sm"
+                                            :class="(userProject.isLocked) ? 'w-75' : 'w-100'"
+                                            @click="eventBus.emit('open:editUserProjectModal', userProject)"
+                                            :disabled="userProject.isLocked"
+                                            :title="getProjectLockedNote(userProject)"
+                                        >
+                                            Edit project files
+                                        </button>
+                                        <span v-if="userProject.isLocked">
                                         &nbsp;
                                         <ButtonDelete
                                             class="btn-sm"
                                             @click="deleteProject(userProject)"
                                         />
                                     </span>
+                                    </div>
                                 </div>
-                            </div>
-                        </template>
-                    </BaseCard>
-                    <div v-if="!initData.userProjects.length">
-                        <a href="/candidateOnboard/">
-                            Find a project to get started
-                        </a>
+                            </template>
+                        </BaseCard>
+                        <div v-if="!initData.userProjects.length">
+                            <a href="/candidateOnboard/">
+                                Find a project to get started
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div v-if="initData.jobApplications && initData.jobApplications.length" class="col-md-9 card-custom table-responsive-md">
-                <h4>Applications</h4>
-                <Table
-                    class="mt-3"
-                    :data="initData.jobApplications"
-                    :headers="[
+                <div
+                    v-if="initData.jobApplications && initData.jobApplications.length"
+                    class="card-custom table-responsive-md"
+                >
+                    <h4>Applications</h4>
+                    <Table
+                        class="mt-3"
+                        :data="initData.jobApplications"
+                        :headers="[
                         [
                             {},
                             {value: 'Employer', sortFn: 'job.employer'},
@@ -107,70 +114,99 @@
                             {value: 'Status', sortFn: getApplicationStatus},
                         ]
                     ]"
-                    emptyDataMessage="No job applications"
-                >
-                    <template v-slot:body>
-                        <tr v-for="jobApplication in initData.jobApplications" class="hover-menu">
-                            <td>
-                                <HamburgerDropdown :elId="getNewElUid()">
-                                    <li @click="eventBus.emit('open:editJobApplicationModal', jobApplication)">
-                                        <a class="dropdown-item" href="#"><i class="fas fa-pencil-alt"></i> Edit application</a>
-                                    </li>
-                                </HamburgerDropdown>
-                            </td>
-                            <td>{{jobApplication.job.employer}}</td>
-                            <td><a :href="`/job-posting/${jobApplication.job.id}/`">{{jobApplication.job.jobTitle}}</a></td>
-                            <td>
-                                <a :href="`/project/${jobApplication.userProject.customProject.projectId}/?${getCustomProjectQueryParams(jobApplication.userProject.customProject)}`">
-                                    {{jobApplication.userProject.customProject.projectTitle}}
-                                </a>
-                            </td>
-                            <td>{{getApplicationStatus(jobApplication)}}</td>
-                        </tr>
-                    </template>
-                </Table>
+                        emptyDataMessage="No job applications"
+                    >
+                        <template v-slot:body>
+                            <tr v-for="jobApplication in initData.jobApplications" class="hover-menu">
+                                <td>
+                                    <HamburgerDropdown :elId="getNewElUid()">
+                                        <li @click="eventBus.emit('open:editJobApplicationModal', jobApplication)">
+                                            <a class="dropdown-item" href="#"><i class="fas fa-pencil-alt"></i> Edit
+                                                application</a>
+                                        </li>
+                                    </HamburgerDropdown>
+                                </td>
+                                <td>{{ jobApplication.job.employer }}</td>
+                                <td><a
+                                    :href="`/job-posting/${jobApplication.job.id}/`">{{ jobApplication.job.jobTitle }}</a>
+                                </td>
+                                <td>
+                                    <a :href="`/project/${jobApplication.userProject.customProject.projectId}/?${getCustomProjectQueryParams(jobApplication.userProject.customProject)}`">
+                                        {{ jobApplication.userProject.customProject.projectTitle }}
+                                    </a>
+                                </td>
+                                <td>{{ getApplicationStatus(jobApplication) }}</td>
+                            </tr>
+                        </template>
+                    </Table>
+                </div>
+                <div class="card-custom">
+                    <h4>Resources</h4>
+                    <div v-if="initData.user.videos && initData.user.videos.length" class="row">
+                        <h5>Videos</h5>
+                        <div v-for="video in initData.user.videos"
+                             class="col-md-5 m-2 p-2 -hover-highlight-border"
+                             style="position: relative;"
+                        >
+                            <div>
+                                <h6>{{ video.title }}</h6>
+                                <video controls :src="video.video"></video>
+                            </div>
+                            <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
+                                          :isSmall="true"
+                                          @click="deleteVideo(video.id)"
+                            />
+                        </div>
+                    </div>
+                    <div v-if="initData.user.images && initData.user.images.length" class="row">
+                        <h5>Images</h5>
+                        <div v-for="image in initData.user.images"
+                             class="col-md-5 m-2 p-2 -hover-highlight-border"
+                             style="position: relative;"
+                        >
+                            <div>
+                                <h6>{{ image.title }}</h6>
+                                <img :src="image.image">
+                            </div>
+                            <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
+                                          :isSmall="true"
+                                          @click="deleteImage(image.id)"
+                            />
+                        </div>
+                    </div>
+                    <div v-if="initData.user.files && initData.user.files.length" class="row">
+                        <h5>Files</h5>
+                        <div v-for="file in initData.user.files" class="col-6 col-md-4 m-2 -hover-highlight-border">
+                            <div>
+                                <FileDisplay :file="file"/>
+                                <ButtonDelete :isSmall="true" @click="deleteFile(file.id)"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-9 card-custom">
-                <h4>Resources</h4>
-                <div v-if="initData.user.videos && initData.user.videos.length" class="row">
-                    <h5>Videos</h5>
-                    <div v-for="video in initData.user.videos"
-                         class="col-md-5 m-2 p-2 -hover-highlight-border"
-                         style="position: relative;"
-                    >
-                        <div>
-                            <h6>{{video.title}}</h6>
-                            <video controls :src="video.video"></video>
+            <div class="col-md-4">
+                <div class="card-custom card-custom--no-side-margin">
+                    <h5 class="mb-3">Job suggestions</h5>
+                    <div v-for="job in cData.jobSuggestions" class="row">
+                        <div class="job-role -color-darkblue -color-white-text mb-2">{{job.role}}</div>
+                        <div class="col-3">
+                            <img v-if="job.employerLogo" :src="job.employerLogo" class="logo">
+                            <i v-else class="far fa-building fa-4x"></i>
                         </div>
-                        <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
-                                      :isSmall="true"
-                                      @click="deleteVideo(video.id)"
-                        />
+                        <div class="col-9">
+                            <h5><a :href="`/job-posting/${job.id}`">{{job.jobTitle}}</a></h5>
+                            <h6>{{job.companyName}}</h6>
+                            <h6>{{getLocationStr(job)}}</h6>
+                        </div>
                     </div>
-                </div>
-                <div v-if="initData.user.images && initData.user.images.length" class="row">
-                    <h5>Images</h5>
-                    <div v-for="image in initData.user.images"
-                         class="col-md-5 m-2 p-2 -hover-highlight-border"
-                         style="position: relative;"
-                    >
-                        <div>
-                            <h6>{{image.title}}</h6>
-                            <img :src="image.image">
-                        </div>
-                        <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
-                                      :isSmall="true"
-                                      @click="deleteImage(image.id)"
-                        />
-                    </div>
-                </div>
-                <div v-if="initData.user.files && initData.user.files.length" class="row">
-                    <h5>Files</h5>
-                    <div v-for="file in initData.user.files" class="col-6 col-md-4 m-2 -hover-highlight-border">
-                        <div>
-                            <FileDisplay :file="file"/>
-                            <ButtonDelete :isSmall="true" @click="deleteFile(file.id)"/>
-                        </div>
+                    <div v-if="!cData?.jobSuggestions?.length">
+                        No current job suggestions.
+                        <a href="#"
+                           @click="eventBus.emit('open:editJobPreferencesModal', initData.user.preferences)"
+                        >
+                            Update your job preferences
+                        </a> to find great matches!
                     </div>
                 </div>
             </div>
@@ -178,6 +214,7 @@
     </BasePage>
     <AddVideoRecordingModal/>
     <EditJobApplicationModal/>
+    <EditJobPreferencesModal/>
     <EditUserProjectModal/>
 </template>
 
@@ -192,6 +229,7 @@ import ButtonDelete from "../../buttons/ButtonDelete";
 import CONTENT from "./CandidateDashboardContent";
 import dataUtil from "../../../utils/data";
 import EditJobApplicationModal from "../../modals/EditJobApplicationModal";
+import EditJobPreferencesModal from "../../modals/EditJobPreferencesModal";
 import EditUserProjectModal from "../../modals/EditUserProjectModal";
 import FileDisplay from "../../components/FileDisplay";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
@@ -201,12 +239,13 @@ import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import Table from "../../components/Table";
 import userProjectUtil from "../../../utils/userProject";
 import BasePage from "../base/BasePage";
+import jobUtil from "../../../utils/jobs";
 
 export default {
     name: "CandidateDashboardPage",
     components: {
         BasePage, AddVideoRecordingModal, BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, ButtonDelete,
-        EditJobApplicationModal, EditUserProjectModal, FileDisplay, HamburgerDropdown, InfoToolTip, PageHeader, Table
+        EditJobApplicationModal, EditJobPreferencesModal, EditUserProjectModal, FileDisplay, HamburgerDropdown, InfoToolTip, PageHeader, Table
     },
     data() {
         return {
@@ -215,12 +254,14 @@ export default {
             initDataKey: null,  // Set when ajax method is called
             customDeleteFn: null,  // Once files are deleted, they need to be removed from user projects as well
             CONTENT,
-            projectStatuses: PROJECT_STATUSES
+            projectStatuses: PROJECT_STATUSES,
+            loadRoutes: [{route: 'user-job-rec/', dataKey: 'jobSuggestions'}]
         }
     },
     methods: {
         capitalize: dataUtil.capitalize,
         getApplicationStatus: dataUtil.getApplicationStatus,
+        getLocationStr: jobUtil.getLocationStr,
         getProjectLockedNote: userProjectUtil.getProjectLockedNote,
         getProjectCompleteLockedNote: userProjectUtil.getProjectCompleteLockedNote,
         getStartedApplications(project) {
@@ -360,6 +401,9 @@ export default {
         this.initData.userProjects.forEach((up) => {
             skillLevelSelectize.setSkillLevels([up.customProject], true);
         });
+    },
+    async created() {
+        await this.loadData();
     }
 }
 </script>

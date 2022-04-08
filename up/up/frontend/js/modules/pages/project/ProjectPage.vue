@@ -1,10 +1,11 @@
 <template>
     <BasePage>
-        <div class="row" :class="(isMobile) ? 'mobile-top' : ''">
+        <div class="row mt-4" :class="(isMobile) ? 'mobile-top' : ''">
             <div class="col-md-8 card-custom">
                 <h4 style="margin-left: -2rem; margin-top: -1.5rem;" class="me-2">
                     <span class="badge -color-darkblue">{{initData.project.role}}</span>
                 </h4>
+                <ProjectJobs :jobs="initData.project.jobs" class="mt-3 mb-2"/>
                 <h4>{{initData.project.title}}</h4>
                 <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
                 <CollapseDiv :elId="getNewElUid()" :class="(initData.project.isLimited) ? '' : '-border-bottom--light mb-2'">
@@ -155,6 +156,7 @@ import InputSelectize from "../../inputs/InputSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
 import skillSelectize from "../../selectizeCfgs/skill";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
+import ProjectJobs from "../projects/ProjectJobs";
 import BasePage from "../base/BasePage";
 
 export default {
@@ -162,7 +164,7 @@ export default {
     components: {
         BasePage,
         AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CollapseDiv, EditUserModal,
-        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize, SkillsSelectize
+        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize, ProjectJobs, SkillsSelectize
     },
     data() {
         return {

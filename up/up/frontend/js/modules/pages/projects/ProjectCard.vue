@@ -10,6 +10,7 @@
             {{cardItem.title}}
         </template>
         <template v-slot:body>
+            <ProjectJobs :jobs="cardItem.jobs" class="mb-2"/>
             <div class="mb-1 pb-1 -border-bottom--light">
                 <div class="text-label text-label-sm">CAREER LEVELS</div>
                 <BadgesSkillLevels :skillLevels="cardItem.skillLevels"/>
@@ -25,15 +26,16 @@
 </template>
 
 <script>
-import BadgesSkillLevels from "./BadgesSkillLevels";
-import BadgesSkills from "./BadgesSkills";
-import BaseCard from "./BaseCard";
-import ViewMoreLink from "./ViewMoreLink";
+import BadgesSkillLevels from "../../components/BadgesSkillLevels";
+import BadgesSkills from "../../components/BadgesSkills";
+import BaseCard from "../../components/BaseCard";
+import ProjectJobs from "./ProjectJobs";
+import ViewMoreLink from "../../components/ViewMoreLink";
 
 export default {
     name: "cardItemCard.vue",
     extends: BaseCard,
     inheritAttrs: false,
-    components: {BadgesSkillLevels, BadgesSkills, BaseCard, ViewMoreLink}
+    components: {BadgesSkillLevels, BadgesSkills, BaseCard, ProjectJobs, ViewMoreLink},
 }
 </script>

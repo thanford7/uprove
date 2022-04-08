@@ -30,7 +30,7 @@ from upapp.models import *
 from upapp.modelSerializers import ContentTypes, getSerializedUser, getSerializedJobApplication, \
     getSerializedUserProject, \
     getSerializedUserVideo, getSerializedUserProfile, getSerializedUserExperience, \
-    getSerializedUserEducation, getSerializedUserCertification, getSerializedUserContentItem
+    getSerializedUserEducation, getSerializedUserCertification, getSerializedUserContentItem, getSerializedEmployerJob
 from upapp.utils import dataUtil, dateUtil
 
 CONTENT_TYPE_MODELS = {
@@ -397,7 +397,11 @@ class UserView(UproveAPIView):
                     'userProject__customProject',
                     'userProject__customProject__skills',
                     'userProject__customProject__project',
-                    'userProject__customProject__project__role'
+                    'userProject__customProject__project__role',
+                    'preferenceCompanySizes',
+                    'preferenceRoles',
+                    'preferenceState',
+                    'preferenceCountry'
                 ) \
                 .get(id=userId)
         except User.DoesNotExist as e:
@@ -484,6 +488,52 @@ class UserView(UproveAPIView):
         saveActivity(ActivityKey.CREATE_ACCOUNT, user.id)
 
         return user, bool(password)
+
+
+class PreferencesView(UproveAPIView):
+
+    def get(self, request):
+        return Response(status=status.HTTP_200_OK, data=self.getPreferenceOptions())
+
+    @staticmethod
+    def getPreferenceOptions():
+        return {
+            'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
+            'roleTitles': sorted(
+                [{'id': j.id, 'roleTitle': j.roleTitle} for j in RoleTitle.objects.all()],
+                key=lambda x: x['roleTitle']
+            ),
+            'countries': sorted(
+                [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.all()],
+                key=lambda x: x['countryName']
+            )
+        }
+
+
+class UserPreferenceView(UproveAPIView):
+
+    def put(self, request):
+        if not security.isPermittedSessionUser(user=self.user):
+            return Response('You are not permitted to edit this user', status=status.HTTP_400_BAD_REQUEST)
+
+        user = UserView.getUser(self.user.id)
+        for attr, dataKey in (
+            ('preferenceCompanySizes', 'companySizes'),
+            ('preferenceRoles', 'roleTitles'),
+            ('preferenceCountry', 'countries')
+        ):
+            getattr(user, attr).remove()
+            for v in self.data[dataKey]:
+                getattr(user, attr).add(v)
+
+
+        isChanged = dataUtil.setObjectAttributes(user, self.data, {
+            'preferenceRemoteBits': {'formName': 'remote'},
+        })
+        if isChanged:
+            user.save()
+
+        return Response(status=status.HTTP_200_OK, data=getSerializedUser(UserView.getUser(self.user.id)))
 
 
 class UserProfileView(UproveAPIView):
@@ -1360,6 +1410,46 @@ class UserJobApplicationView(UproveAPIView):
             return userJobApplications[0]
 
         return userJobApplications
+
+
+class UserJobSuggestions(UproveAPIView):
+
+    def get(self, request):
+        if not self.user:
+            return Response('You do not have permission to view this data', status=status.HTTP_401_UNAUTHORIZED)
+
+        user = UserView.getUser(self.user.id)
+        jobSuggestions = self.getUserSuggestedJobs(user)
+        projectIdsByRole, projectRoleIdsByRole = JobPostingView.getProjectRoleMaps()
+        return Response(status=status.HTTP_200_OK, data=[{
+                **getSerializedEmployerJob(job),
+                'projectIds': projectIdsByRole[job.role.roleTitle],
+                'projectRoleIds': list(projectRoleIdsByRole[job.role.roleTitle])
+            } for job in jobSuggestions])
+
+    @staticmethod
+    def getUserSuggestedJobs(user, jobLimit=10):
+        if not user.hasPreferences:
+            return []
+        filter = JobPostingView.getEmployerJobFilter()
+        countryIds = [c.id for c in user.preferenceCountry.all()]
+        if not (user.preferenceRemoteBits & user.REMOTE_PREF_YES):
+            filter &= Q(country_id__in=countryIds)
+        else:
+            filter &= (
+                    Q(country_id__in=countryIds) |
+                    Q(country_id__isnull=True)
+            )
+
+        if user.preferenceRemoteBits == user.REMOTE_PREF_YES:
+            filter &= Q(isRemote=True)
+
+        companySizeIds = [c.id for c in user.preferenceCompanySizes.all()]
+        filter &= Q(employer__companySize_id__in=companySizeIds)
+
+        roleIds = [r.id for r in user.preferenceRoles.all()]
+        filter &= Q(role_id__in=roleIds)
+        return JobPostingView.getEmployerJobs(jobFilter=filter)[:jobLimit]
 
 
 class WaitlistView(UproveAPIView):

@@ -9,7 +9,7 @@ sys.path.append(Path(__file__).resolve().parent.parent.parent.parent.parent.as_p
 os.environ['DJANGO_SETTINGS_MODULE'] = 'up.settings'
 django.setup()
 
-from upapp.models import EmployerJob
+from upapp.models import Country, EmployerJob, RoleTitle, State
 
 locationUpdateFields = ['isRemote', 'city', 'state', 'country', 'region']
 ROLE_PROJECT_MAP = {
@@ -34,15 +34,33 @@ ROLE_PROJECT_MAP = {
 def normalizeLocations():
     nonNormalizedJobs = EmployerJob.objects.filter(
         isScraped=True,
-        location__isnull=False,
-        isRemote__isnull=True
+        location__isnull=False
     )
+
+    states = {s.stateName: s for s in State.objects.all()}
+    countries = {c.countryName: c for c in Country.objects.all()}
 
     for job in nonNormalizedJobs:
         if not (normalizedFields := LOCATIONS.get(job.location)):
             continue
 
+        stateStr = normalizedFields['state']
+        if stateStr and stateStr not in states:
+            newState = State(stateName=stateStr)
+            newState.save()
+            states[newState.stateName] = newState
+        job.state = states[stateStr] if stateStr else None
+
+        countryStr = normalizedFields['country']
+        if countryStr and countryStr not in countries:
+            newCountry = Country(countryName=countryStr)
+            newCountry.save()
+            countries[newCountry.countryName] = newCountry
+        job.country = countries[countryStr] if countryStr else None
+
         for updateField in locationUpdateFields:
+            if updateField in ['state', 'country']:
+                continue
             setattr(job, updateField, normalizedFields[updateField])
 
     EmployerJob.objects.bulk_update(nonNormalizedJobs, locationUpdateFields, 500)
@@ -53,6 +71,7 @@ def normalizeJobTitles():
         isScraped=True,
         # role__isnull=True
     )
+    roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
 
     for job in nonNormalizedJobs:
         if not job.jobTitle:
@@ -77,58 +96,58 @@ def normalizeJobTitles():
                 and ('engineer' not in jobTitle)
         ):
             if isLeadershipRole:
-                job.role = 'Product management leader'
+                job.role = roleTitles['Product management leader']
             else:
-                job.role = 'Product manager'
+                job.role = roleTitles['Product manager']
         elif ('product ' in jobTitle) and ('marketing' in jobTitle):
             if isLeadershipRole:
-                job.role = 'Product marketing management leader'
+                job.role = roleTitles['Product marketing management leader']
             else:
-                job.role = 'Product marketing manager'
+                job.role = roleTitles['Product marketing manager']
         elif ('project manager' in jobTitle) or ('program manager' in jobTitle):
             if isLeadershipRole:
-                job.role = 'Project management leader'
+                job.role = roleTitles['Project management leader']
             else:
-                job.role = 'Project manager'
+                job.role = roleTitles['Project manager']
         elif ('account manager' in jobTitle) or ('account executive' in jobTitle):
-            job.role = 'Account manager'
+            job.role = roleTitles['Account manager']
         elif ('data' not in jobTitle) and (
                 ('analyst' in jobTitle)
                 or ('strategy' in jobTitle)
                 or ('business operations' in jobTitle)
         ):
             if isManagerRole or isLeadershipRole:
-                job.role = 'Strategy and operations leader'
+                job.role = roleTitles['Strategy and operations leader']
             else:
-                job.role = 'Business analyst'
+                job.role = roleTitles['Business analyst']
         elif (
                 ('engineer' not in jobTitle)
                 and ('scien' not in jobTitle)
                 and (('data analyst' in jobTitle) or ('analytics' in jobTitle))
         ):
             if isManagerRole or isLeadershipRole:
-                job.role = 'Data analytics leader'
+                job.role = roleTitles['Data analytics leader']
             else:
-                job.role = 'Data analyst'
+                job.role = roleTitles['Data analyst']
         elif (
                 (('data' in jobTitle) or ('analytics' in jobTitle))
                 and ('engineer' in jobTitle)
                 and ('software engineer' not in jobTitle)
         ):
             if isManagerRole or isLeadershipRole:
-                job.role = 'Data engineering manager'
+                job.role = roleTitles['Data engineering manager']
             else:
-                job.role = 'Data engineer'
+                job.role = roleTitles['Data engineer']
         elif ('customer success' in jobTitle) or ('success manager' in jobTitle):
             if isLeadershipRole:
-                job.role = 'Customer success leader'
+                job.role = roleTitles['Customer success leader']
             else:
-                job.role = 'Customer success manager'
+                job.role = roleTitles['Customer success manager']
         elif ('operations' in jobTitle):
             if isLeadershipRole or isManagerRole:
-                job.role = 'Strategy and operations leader'
+                job.role = roleTitles['Strategy and operations leader']
             elif ('business' in jobTitle):
-                job.role = 'Business analyst'
+                job.role = roleTitles['Business analyst']
 
     EmployerJob.objects.bulk_update(nonNormalizedJobs, ['role'], 500)
 
