@@ -30,7 +30,7 @@ class ScraperPipeline:
             if employerData['employer'].companyName not in self.scrapedEmployers:
                 continue
             for jobKey, job in employerData['jobs'].items():
-                if jobKey not in employerData['foundJobs']:
+                if jobKey not in employerData['foundJobs'] and not job.closeDate:
                     job.closeDate = timezone.now().date()
                     job.save()
 
