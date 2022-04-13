@@ -45,6 +45,10 @@ pre {
 
 img {
 	border-style:none;
+
+    &.line-height {
+        height: 30px;
+    }
 }
 
 textarea {

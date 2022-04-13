@@ -64,6 +64,22 @@ $(window).on('resize', () => {
 });
 
 
+const getFailureMessage = (errorThrown, xhr) => {
+    const responseText = xhr.responseText;
+    return `${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
+}
+
+const makeAjaxRequest = (url, cfg) => {
+    return $.ajax(Object.assign({
+        url,
+        mode: 'same-origin',
+        headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
+        contentType: false,
+        processData: false,
+    }, cfg));
+};
+
+
 const ajaxRequestMixin = {
     data() {
         return {
@@ -184,7 +200,7 @@ const ajaxRequestMixin = {
         getFailureMessage(errorThrown, xhr) {
             // subclass
             const responseText = xhr.responseText;
-            return `${this.getFailureMessagePrepend()}${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
+            return `${this.getFailureMessagePrepend()}${getFailureMessage(errorThrown, xhr)}`;
         },
         getFailureMessagePrepend() {
             // subclass
@@ -300,14 +316,9 @@ const ajaxRequestMixin = {
                     return;
                 }
             }
-            return $.ajax(Object.assign({
-                url: this.apiUrl + this.crudUrl,
+            return makeAjaxRequest(this.apiUrl + this.crudUrl, Object.assign({
                 method,
-                mode: 'same-origin',
-                headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
                 data: requestData,
-                contentType: false,
-                processData: false,
                 success: this.onSaveSuccessFn(method),
                 error: this.onSaveFailure
             }, overrides));
@@ -475,7 +486,7 @@ const dataLoaderMixin = {
         return {
             cData: {},
             isLoading: false,
-            loadRoutes: [],  // Each route: {route: <>, dataKey: ''}
+            loadRoutes: [],  // Each route: {route: <>, dataKey: '', isNoCache: <boolean>}
             loadCache
         }
     },
@@ -489,13 +500,8 @@ const dataLoaderMixin = {
                     this.setData(r, data);
                     return new Promise(() => true);
                 }
-                return $.ajax({
-                    url: this.apiUrl + r.route,
+                return makeAjaxRequest(this.apiUrl + r.route, {
                     method: 'GET',
-                    mode: 'same-origin',
-                    headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
-                    contentType: false,
-                    processData: false,
                     success: (data) => this.setData(r, data),
                     error: this.onSaveFailure
                 });
@@ -505,11 +511,16 @@ const dataLoaderMixin = {
             this.isLoading = false;
             return true;
         },
-        setData(route, data) {
+        setData(route, data, isNoCache=false) {
             this.cData[route.dataKey] = data;
-            this.loadCache[route.route] = data;
+            if (!route.isNoCache) {
+                this.loadCache[route.route] = data;
+            }
         }
     }
 }
 
-export {ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, store};
+export {
+    ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin,
+    store, getFailureMessage, makeAjaxRequest
+};

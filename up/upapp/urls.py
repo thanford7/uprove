@@ -5,7 +5,7 @@ from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
-from upapp.apis import blog, employer, job, project, sendEmail, storage, tag, user
+from upapp.apis import blog, employer, job, lever, project, sendEmail, storage, tag, user
 from upapp.sitemaps import sitemaps
 
 apiPath = 'api/v1/'
@@ -81,6 +81,15 @@ urlpatterns = [
     path(apiPath + 'password-reset-generate/', viewsAuth.PasswordResetGenerateView.as_view(), name='passwordResetSend'),
     path('password-reset-complete/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='password-reset-complete'),
     path('login/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='login'),
+
+    # Lever
+    re_path('^integrate/?$', lever.leverIntegrate, name='leverIntegrate'),
+    path(apiPath + 'lever/logout/', lever.LeverLogOut.as_view()),
+    path(apiPath + 'lever/opportunities/', lever.LeverOpportunities.as_view()),
+    re_path(f'^{apiPath}lever/change/stage-change/(?P<employerId>[0-9]+)?/?$', lever.LeverChangeStage.as_view()),
+    re_path(f'^{apiPath}lever/change/archive/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),
+    re_path(f'^{apiPath}lever/change/hire/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),
+    re_path(f'^{apiPath}lever/change/delete/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),
 
     # Storage
     path(apiPath + 'user-storage/', storage.UserStorageView.as_view()),

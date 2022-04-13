@@ -40,6 +40,23 @@ class DataUtil {
         return (this.isNil(dateVal) && !isConvertNull) ? null : dayjs(dateVal);
     }
 
+    copyText(e) {
+        const target$ = $(e.currentTarget);
+        const copyTarget$ = target$.closest('div').find('.copy-target');
+        const text = copyTarget$.text() || copyTarget$.val();
+        const copyMsgId = this.getNewElUid();
+        navigator.clipboard.writeText(text).then(
+            () => {
+                target$.parent().append(`<span id="${copyMsgId}" class="-color-green-text -sub-text"> Copied successfully</span>`)
+            }, () => {
+                target$.parent().append('<span id="${copyMsgId}" class="-color-red-text -sub-text"> Copy failed. Please copy manually</span>')
+            }
+        );
+        setTimeout(() => {
+            $(`#${copyMsgId}`).remove()
+        }, 3000);
+    }
+
     getFileNameFromUrl(fileUrl) {
         const [fileName] = fileUrl.split('/').slice(-1);
         return fileName;

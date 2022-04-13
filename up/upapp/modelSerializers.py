@@ -358,7 +358,12 @@ def getSerializedEmployer(employer: Employer, isEmployer=False):
         ],
     }
     employerFields = {
-        **serializeAuditFields(employer)
+        **serializeAuditFields(employer),
+        'isLeverOn': employer.isLeverOn,
+        'leverHookStageChangeToken': employer.leverHookStageChangeToken,
+        'leverHookArchive': employer.leverHookArchive,
+        'leverHookHired': employer.leverHookHired,
+        'leverHookDeleted': employer.leverHookDeleted
     }
     return baseFields if not isEmployer else {**baseFields, **employerFields}
 

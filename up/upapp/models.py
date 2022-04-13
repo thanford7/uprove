@@ -361,6 +361,13 @@ class Employer(AuditFields):
     glassDoorUrl = models.CharField(max_length=200, null=True)
     isDemo = models.BooleanField(default=False)
 
+    # integrations
+    isLeverOn = models.BooleanField(default=False)
+    leverHookStageChangeToken = models.CharField(max_length=75, null=True)
+    leverHookArchive = models.CharField(max_length=75, null=True)
+    leverHookHired = models.CharField(max_length=75, null=True)
+    leverHookDeleted = models.CharField(max_length=75, null=True)
+
 
 class CustomProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='customProject')

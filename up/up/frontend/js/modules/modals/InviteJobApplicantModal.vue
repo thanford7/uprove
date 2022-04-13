@@ -31,6 +31,7 @@
 
 <script>
 import BaseModal from "./BaseModal";
+import dataUtil from "../../utils/data";
 
 export default {
     name: "InviteJobApplicantModal.vue",
@@ -49,21 +50,7 @@ export default {
         }
     },
     methods: {
-        copyText(e) {
-            const target$ = $(e.currentTarget);
-            const text = target$.closest('div').find('.copy-target').text();
-            const copyMsgId = this.getNewElUid();
-            navigator.clipboard.writeText(text).then(
-                () => {
-                    target$.closest('label').append(`<span id="${copyMsgId}" class="-color-green-text -sub-text"> Copied successfully</span>`)
-                }, () => {
-                    target$.closest('label').append('<span id="${copyMsgId}" class="-color-red-text -sub-text"> Copy failed. Please copy manually</span>')
-                }
-            );
-            setTimeout(() => {
-                $(`#${copyMsgId}`).remove()
-            }, 3000);
-        }
+        copyText: dataUtil.copyText
     }
 }
 </script>
