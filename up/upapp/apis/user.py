@@ -512,23 +512,24 @@ class PreferencesView(UproveAPIView):
 
 class UserPreferenceView(UproveAPIView):
 
+    @atomic
     def put(self, request):
         if not security.isPermittedSessionUser(user=self.user):
             return Response('You are not permitted to edit this user', status=status.HTTP_400_BAD_REQUEST)
 
         user = UserView.getUser(self.user.id)
-        for attr, dataKey in (
-            ('preferenceCompanySizes', 'companySizes'),
-            ('preferenceRoles', 'roleTitles'),
-            ('preferenceCountry', 'countries')
-        ):
-            getattr(user, attr).remove()
-            for v in self.data[dataKey]:
-                getattr(user, attr).add(v)
-
+        user.preferenceCompanySizes.clear()
+        user.preferenceRoles.clear()
+        user.preferenceCountry.clear()
+        for v in self.data['companySizes']:
+            user.preferenceCompanySizes.add(v)
+        for v in self.data['roleTitles']:
+            user.preferenceRoles.add(v)
+        for v in self.data['countries']:
+            user.preferenceCountry.add(v)
 
         isChanged = dataUtil.setObjectAttributes(user, self.data, {
-            'preferenceRemoteBits': {'formName': 'remote'},
+            'preferenceRemoteBits': {'formName': 'remote', 'propFunc': lambda x: x or User.REMOTE_PREF_DEFAULT},
         })
         if isChanged:
             user.save()

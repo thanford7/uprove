@@ -68,6 +68,8 @@ class User(AuditFields):
     REMOTE_PREF_NO = 0x1
     REMOTE_PREF_YES = 0x2
 
+    REMOTE_PREF_DEFAULT = 3
+
     djangoUser = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, editable=False)
     firstName = models.CharField(max_length=20)
     middleName = models.CharField(max_length=20, null=True)
@@ -81,7 +83,7 @@ class User(AuditFields):
 
     preferenceCompanySizes = models.ManyToManyField('CompanySize')
     preferenceRoles = models.ManyToManyField('RoleTitle')
-    preferenceRemoteBits = models.SmallIntegerField(default=3)  # 1 = Non-remote, 2 = Remote
+    preferenceRemoteBits = models.SmallIntegerField(default=REMOTE_PREF_DEFAULT)  # 1 = Non-remote, 2 = Remote
     preferenceCountry = models.ManyToManyField('Country')
     preferenceState = models.ManyToManyField('State')
 

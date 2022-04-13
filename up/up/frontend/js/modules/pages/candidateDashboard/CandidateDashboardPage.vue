@@ -200,7 +200,7 @@
                             <h6>{{getLocationStr(job)}}</h6>
                         </div>
                     </div>
-                    <div v-if="!cData?.jobSuggestions?.length">
+                    <div>
                         No current job suggestions.
                         <a href="#"
                            @click="eventBus.emit('open:editJobPreferencesModal', initData.user.preferences)"
