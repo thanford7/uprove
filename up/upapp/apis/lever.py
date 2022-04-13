@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from upapp import security
 from upapp.apis import UproveAPIView
 from upapp.models import Employer
+from upapp.utils import dataUtil
 
 RECORD_LIMIT = 20000
 
@@ -69,6 +70,29 @@ class LeverOpportunities(APIView):
             data += response.get('data', [])
 
         return Response(status=status.HTTP_200_OK, data=data)
+
+
+class LeverConfig(UproveAPIView):
+
+    def put(self, request, employerId=None):
+        if not employerId:
+            return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        if not security.isPermittedEmployer(request, employerId):
+            return Response('You are not permitted to make this change', status=status.HTTP_401_UNAUTHORIZED)
+
+        employer = Employer.objects.get(id=employerId)
+
+        isChanged = dataUtil.setObjectAttributes(employer, self.data, {
+            'leverHookStageChangeToken': {'isIgnoreExcluded': True},
+            'leverHookArchive': {'isIgnoreExcluded': True},
+            'leverHookHired': {'isIgnoreExcluded': True},
+            'leverHookDeleted': {'isIgnoreExcluded': True},
+        })
+        if isChanged:
+            employer.save()
+
+        return Response(status=status.HTTP_200_OK)
 
 
 class BaseLeverChange(APIView):

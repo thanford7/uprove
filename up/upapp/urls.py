@@ -90,6 +90,7 @@ urlpatterns = [
     re_path(f'^{apiPath}lever/change/archive/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),
     re_path(f'^{apiPath}lever/change/hire/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),
     re_path(f'^{apiPath}lever/change/delete/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),
+    re_path(f'^{apiPath}lever/config/(?P<employerId>[0-9]+)?/?$', lever.LeverConfig.as_view()),
 
     # Storage
     path(apiPath + 'user-storage/', storage.UserStorageView.as_view()),
