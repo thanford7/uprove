@@ -1,5 +1,6 @@
-import {getFailureMessage, makeAjaxRequest, store} from "../vueMixins";
+import {addErrorAlert, getAjaxFormData, getNewElUid, makeAjaxRequest, store} from "../vueMixins";
 import globalData, {SEVERITY} from "../globalData";
+import dataUtil from "./data";
 
 
 class LeverIntegration {
@@ -30,13 +31,37 @@ class LeverIntegration {
                     successHook();
                 }
             },
-            error: (xhr, textStatus, errorThrown) => {
-                store.commit('addAlert', {
-                    message: getFailureMessage(errorThrown, xhr),
-                    alertType: SEVERITY.DANGER
-                });
-            }
+            error: addErrorAlert
+        });
+    }
+
+    loadJobPostings() {
+        makeAjaxRequest(globalData.API_URL + 'lever/postings/', {
+            method: 'POST',
+            success: () => {
+                window.location.reload();
+            },
+            error: addErrorAlert
         })
+    }
+
+    saveToken(target$, employerId, modelName, modelValue) {
+        const msgTarget = $(target$.parent().find('span')[0]);
+        const tokenFn = () => {
+            makeAjaxRequest(globalData.API_URL + `lever/config/${employerId}/`, {
+                method: 'PUT',
+                data: getAjaxFormData({[modelName]: modelValue}),
+                success: () => {
+                    const msgId = getNewElUid();
+                    msgTarget.append(`<span id="${msgId}">&nbsp;<span class="badge -color-green -color-white-text -sub-text">Updated</span></span>`);
+                    setTimeout(() => {
+                        $(`#${msgId}`).remove()
+                    }, 3000);
+                },
+                error: addErrorAlert
+            });
+        };
+        dataUtil.debounce(tokenFn, 300)();
     }
 }
 

@@ -19,10 +19,18 @@
         </ul>
         <div class="tab-content" id="employerTabContent">
             <div class="tab-pane fade show active" id="job-openings" role="tabpanel">
-                <div class="table-responsive-md">
-                    <button type="button" class="btn btn-primary float-end" @click="eventBus.emit('open:editJobPostingModal')">
+                <div class="mb-2 d-flex justify-content-end">
+                    <button type="button" class="btn btn-primary me-2" @click="eventBus.emit('open:editJobPostingModal')">
                         Create job posting
                     </button>
+                    <button v-if="initData.employer.isLeverOn" type="button" class="btn btn-secondary" @click="loadLeverJobPostings">
+                        Pull from Lever
+                        <InfoToolTip :elId="getNewElUid()" content="Any job postings with the 'uprove' tag will be created
+                        and/or updated in Uprove.
+                        "/>
+                    </button>
+                </div>
+                <div class="table-responsive-md">
                     <Table
                         class="mt-3"
                         :data="initData.employer.jobs"
@@ -197,7 +205,7 @@
                     </div>
                     <div v-if="leverData.isLeverOn" class="row mt-3">
                         <h5>Webhooks</h5>
-                        <div class="-text-medium">
+                        <div class="-text-medium mb-3">
                             Webhooks allow us to automatically update candidate information and send Uprove assessments
                             to candidates based on changes in Lever. This means less clicks for you! Go to <code>Settings ->
                             Integrations and API -> Webhooks</code> to get and set the necessary fields described below. For
@@ -213,6 +221,11 @@
                                 </li>
                                 <li>Click the "Verify connection" button in Lever to confirm the webhook is working properly</li>
                             </ul>
+                            <div class="mt-2">
+                                A <span class="badge -color-moderategrey">uprove</span> tag must be added to all job postings
+                                and candidates that should receive a Uprove assessment. If the tag is added to a job posting,
+                                all candidates assigned to that job posting will automatically inherit that tag.
+                            </div>
                         </div>
                         <LeverWebhook
                             hookName="Candidate Stage Change"
@@ -225,7 +238,51 @@
                             :employer="initData.employer"
                             :leverData="leverData"
                             modelName="leverHookStageChangeToken"
-                        />
+                        >
+                            <div class="col-md-6">
+                                <span id="leverStageLabel" class="-text-medium">
+                                    Stage to send Uprove assessment
+                                    <InfoToolTip :elId="getNewElUid()" content="
+                                    When a candidate is moved to this stage and has the 'uprove' tag, a link will be
+                                    generated in the candidate's links which will allow you to select and send an
+                                    assessment to the candidate.
+                                    "/>
+                                </span>
+                                <InputSelectize
+                                    ref="leverStage"
+                                    :elId="getNewElUid()"
+                                    placeholder="Required"
+                                    :cfg="{
+                                        valueField: 'id',
+                                        labelField: 'text',
+                                        searchField: 'text',
+                                        maxItems: 1
+                                    }"
+                                    @selected="saveToken($event, 'leverTriggerStageKey', '#leverStageLabel')"
+                                />
+                            </div>
+                            <div class="col-md-6">
+                                <span id="leverStageCompleteLabel" class="-text-medium">
+                                    Stage after assessment complete
+                                    <InfoToolTip :elId="getNewElUid()" content="
+                                    When a candidate has completed an assessment they will automatically be moved to this
+                                    stage in Lever.
+                                    "/>
+                                </span>
+                                <InputSelectize
+                                    ref="leverStageComplete"
+                                    :elId="getNewElUid()"
+                                    placeholder="Optional"
+                                    :cfg="{
+                                        valueField: 'id',
+                                        labelField: 'text',
+                                        searchField: 'text',
+                                        maxItems: 1
+                                    }"
+                                    @selected="saveToken($event, 'leverCompleteStageKey', '#leverStageCompleteLabel')"
+                                />
+                            </div>
+                        </LeverWebhook>
                         <LeverWebhook
                             hookName="Candidate Archive State Change"
                             hookInfo="
@@ -235,6 +292,7 @@
                             :hookType="leverWebhookTypes.archive"
                             :employer="initData.employer"
                             :leverData="leverData"
+                            modelName="leverHookArchive"
                         />
                         <LeverWebhook
                             hookName="Candidate Hired"
@@ -245,6 +303,7 @@
                             :hookType="leverWebhookTypes.hire"
                             :employer="initData.employer"
                             :leverData="leverData"
+                            modelName="leverHookHired"
                         />
                         <LeverWebhook
                             hookName="Candidate Deleted"
@@ -255,6 +314,7 @@
                             :hookType="leverWebhookTypes.delete"
                             :employer="initData.employer"
                             :leverData="leverData"
+                            modelName="leverHookDeleted"
                         />
                     </div>
                 </div>
@@ -284,19 +344,21 @@ import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
+import InputSelectize from "../../inputs/InputSelectize";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 import leverIntegration from "../../../utils/leverIntegration";
 import Table from "../../components/Table";
 import userProjectUtil from "../../../utils/userProject";
 import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 import LeverWebhook from "./LeverWebhook";
+import {getAjaxFormData} from "../../../vueMixins";
 
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
         LeverWebhook,
         BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditCustomProjectModal, EditEmployerModal,
-        EditJobPostingModal, HamburgerDropdown, InfoToolTip, InviteJobApplicantModal,
+        EditJobPostingModal, HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal,
         Table, ViewCandidateApplicationModal
     },
     data() {
@@ -306,7 +368,7 @@ export default {
             customProjects: null,
             sortKeysJobPostingTable: [],
             leverData: {},
-            leverWebhookTypes: leverIntegration.TYPES
+            leverWebhookTypes: leverIntegration.TYPES,
         }
     },
     computed: {
@@ -351,6 +413,12 @@ export default {
                 });
             }
         },
+        saveToken(val, modelName, targetEl) {
+            leverIntegration.saveToken($(targetEl), this.initData.employer.id, modelName, val)
+        },
+        loadLeverJobPostings() {
+            leverIntegration.loadJobPostings();
+        },
         getJobStatus(job) {
             if (job.closeDate) {
                 return 'CLOSED';
@@ -364,10 +432,10 @@ export default {
             return 'DRAFT';
         },
         approveApplication(application) {
-            const ajaxData = this.getAjaxFormData({
+            const ajaxData = getAjaxFormData({
                 id: application.id,
                 approveDateTime: dateUtil.serializeDateTime(dayjs())
-            });
+            }, []);
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',
                 success: (data) => {
@@ -378,10 +446,10 @@ export default {
             });
         },
         declineApplication(application) {
-            const ajaxData = this.getAjaxFormData({
+            const ajaxData = getAjaxFormData({
                 id: application.id,
                 declineDateTime: dateUtil.serializeDateTime(dayjs())
-            });
+            }, []);
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'user-job-application/',
                 success: (data) => {
@@ -392,10 +460,15 @@ export default {
             });
         }
     },
-    mounted() {
+    async mounted() {
         this.leverData = dataUtil.pick(this.initData.employer, [
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);
+        await this.loadData([{route: 'lever/stages/', dataKey: 'leverStages'}]);
+        this.$refs.leverStage.resetOptions(this.cData.leverStages);
+        this.$refs.leverStage.elSel.setValue(this.initData.employer.leverTriggerStageKey, true);
+        this.$refs.leverStageComplete.resetOptions(this.cData.leverStages);
+        this.$refs.leverStageComplete.elSel.setValue(this.initData.employer.leverCompleteStageKey, true);
     }
 }
 </script>

@@ -153,6 +153,7 @@ import BannerAlert from "../../components/BannerAlert";
 import dateUtil from "../../../utils/dateUtil";
 import dayjs from "dayjs/esm";
 import InputEmail from "../../inputs/InputEmail";
+import {getAjaxFormData} from "../../../vueMixins";
 
 export default {
     name: "SalesMentorPage",
@@ -173,11 +174,11 @@ export default {
                 ' see it, please check your spam folder.';
         },
         saveWaitlist() {
-            const ajaxData = this.getAjaxFormData({
+            const ajaxData = getAjaxFormData({
                 email: this.formData.email,
                 waitlistType: 'mentor',
                 signUpDateTime: dateUtil.serializeDateTime(dayjs())
-            });
+            }, []);
             this.submitAjaxRequest(ajaxData, {
                 url: this.apiUrl + 'waitlist/',
             });

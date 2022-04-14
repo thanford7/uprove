@@ -361,8 +361,12 @@ class Employer(AuditFields):
     glassDoorUrl = models.CharField(max_length=200, null=True)
     isDemo = models.BooleanField(default=False)
 
-    # integrations
+    # Lever integration
     isLeverOn = models.BooleanField(default=False)
+    leverAccessToken = models.CharField(max_length=1400, null=True)
+    leverRefreshToken = models.CharField(max_length=1400, null=True)
+    leverTriggerStageKey = models.CharField(max_length=100, null=True)
+    leverCompleteStageKey = models.CharField(max_length=100, null=True)
     leverHookStageChangeToken = models.CharField(max_length=75, null=True)
     leverHookArchive = models.CharField(max_length=75, null=True)
     leverHookHired = models.CharField(max_length=75, null=True)
@@ -402,6 +406,10 @@ class EmployerJob(AuditFields):
     salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
     applicationUrl = models.CharField(max_length=500, null=True)
     location = models.CharField(max_length=100, null=True)
+    isInternal = models.BooleanField(default=False)  # If true, the job won't be displayed on the job board
+
+    # Lever integration
+    leverPostingKey = models.CharField(max_length=50, null=True)
 
     # Normalized from the raw location text
     isRemote = models.BooleanField(null=True)

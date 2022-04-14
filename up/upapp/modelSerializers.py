@@ -354,12 +354,14 @@ def getSerializedEmployer(employer: Employer, isEmployer=False):
         'isDemo': employer.isDemo,
         'jobs': [
             getSerializedEmployerJob(ej, isEmployer=isEmployer)
-            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True))
+            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=isEmployer))
         ],
     }
     employerFields = {
         **serializeAuditFields(employer),
         'isLeverOn': employer.isLeverOn,
+        'leverTriggerStageKey': employer.leverTriggerStageKey,
+        'leverCompleteStageKey': employer.leverCompleteStageKey,
         'leverHookStageChangeToken': employer.leverHookStageChangeToken,
         'leverHookArchive': employer.leverHookArchive,
         'leverHookHired': employer.leverHookHired,
@@ -413,10 +415,12 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
         'country': employerJob.country.countryName if employerJob.country else None,
         'countryId': employerJob.country.id if employerJob.country else None,
         'region': employerJob.region,
-        'applicationUrl': employerJob.applicationUrl
+        'applicationUrl': employerJob.applicationUrl,
+        'isInternal': employerJob.isInternal,
     }
     employerFields = {
         'applications': [getSerializedJobApplication(app, isEmployer=True) for app in employerJob.jobApplication.all()],
+        'leverPostingKey': employerJob.leverPostingKey,
         **serializeAuditFields(employerJob)
     }
 

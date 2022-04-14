@@ -2,20 +2,27 @@ import hashlib
 import hmac
 import os
 import requests
+from datetime import datetime, timedelta
 
+from django.db.models import Q
+from django.db.transaction import atomic
 from django.http import HttpResponseRedirect
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp import security
 from upapp.apis import UproveAPIView
-from upapp.models import Employer
+from upapp.apis.employer import JobPostingView
+from upapp.models import Employer, EmployerJob, RoleTitle
 from upapp.utils import dataUtil
 
 RECORD_LIMIT = 20000
-
+LEVER_UPROVE_TAG = 'uprove'
+LEVER_TIMESTAMP_START = datetime(1970, 1, 1, 0, 0, 0)
 
 def leverIntegrate(request):
     if request.GET.get('state') != os.getenv('LEVER_STATE'):
@@ -34,12 +41,12 @@ def leverIntegrate(request):
     if response.status_code != 200:
         raise ConnectionError()
 
-    employer.isLeverOn = True
-    employer.save()
-
     data = response.json()
-    request.session['leverAccessToken'] = data['access_token']
-    request.session['leverRefreshToken'] = data.get('refresh_token')
+
+    employer.isLeverOn = True
+    employer.leverAccessToken = data['access_token']
+    employer.leverRefreshToken = data.get('refresh_token')
+    employer.save()
 
     return HttpResponseRedirect('/employerDashboard/')
 
@@ -52,24 +59,94 @@ class LeverLogOut(UproveAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class LeverOpportunities(APIView):
+class LeverOpportunities(UproveAPIView):
 
-    def get(self, request):
-        hasNext = True
-        next = None
-        data = []
-        while hasNext and len(data) < RECORD_LIMIT:
-            response = getLeverRequestWithRefresh(
-                request,
-                f'{os.getenv("LEVER_BASE_URL")}opportunities',
-                {'responseType': 'json', 'offset': next},
-                headers={'Authorization': f'Bearer {request.session.get("leverAccessToken")}'},
-            ).json()
-            hasNext = response.get('hasNext')
-            next = response.get('next')
-            data += response.get('data', [])
+    def get(self, request, opportunityId=None):
+        if not self.user or not self.user.employer_id:
+            return Response('You must be logged in', status=status.HTTP_401_UNAUTHORIZED)
+        employer = Employer.objects.get(id=self.user.employer_id)
+        opportunities = getLeverItems('opportunities', employer, itemId=opportunityId)
+        return Response(status=status.HTTP_200_OK, data=opportunities)
 
-        return Response(status=status.HTTP_200_OK, data=data)
+
+class LeverPostings(UproveAPIView):
+
+    @atomic
+    def post(self, request):
+        if not self.user or not self.user.employer_id:
+            return Response('You must be logged in', status=status.HTTP_401_UNAUTHORIZED)
+        employer = Employer.objects.get(id=self.user.employer_id)
+        postings = getLeverItems('postings', employer)
+        currentLeverJobs = {
+            j.leverPostingKey: j for j in
+            JobPostingView.getEmployerJobs(employerId=self.user.employer_id, jobFilter=Q(leverPostingKey__isnull=False))
+        }
+        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
+
+        processedLeverKeys = []
+        for posting in postings:
+            if LEVER_UPROVE_TAG not in posting['tags']:
+                continue
+
+            leverPostingKey = posting['id']
+            processedLeverKeys.append(leverPostingKey)
+
+            if not (currentJob := currentLeverJobs.get(leverPostingKey)):
+                currentJob = EmployerJob(
+                    employer=employer,
+                    createdDateTime=timezone.now(),
+                    modifiedDateTime=timezone.now(),
+                    leverPostingKey=leverPostingKey
+                )
+                currentLeverJobs[leverPostingKey] = currentJob
+            isUpdated = dataUtil.setObjectAttributes(currentJob, posting, {
+                'jobTitle': {'formName': 'text'},
+            })
+            currentJob.role = normalizeJobTitle(currentJob.jobTitle, roleTitles)
+
+            jobLists = []
+            for jobList in posting['content']['lists']:
+                jobLists.append(f'<h5>{jobList["text"]}</h5>')
+                jobLists.append(f'<ul>{jobList["content"]}</ul>')
+            jobDescription = posting['content']['descriptionHtml'] + ''.join(jobLists) + posting['content']['closingHtml']
+            isUpdated = updateAndGetIsChanged(currentJob, 'jobDescription', jobDescription) or isUpdated
+
+            state = posting['state']
+            isConfidential = posting['confidentiality'] == 'confidential'
+            isUpdated = updateAndGetIsChanged(currentJob, 'isInternal', state == 'internal' or isConfidential) or isUpdated
+
+            closeDate = None
+            if state in ('closed', 'rejected'):
+                closeDate = currentJob.closeDate or getLeverDateTime(posting['updatedAt']).date()
+            isUpdated = updateAndGetIsChanged(currentJob, 'closeDate', closeDate) or isUpdated
+
+            openDate = currentJob.openDate or getLeverDateTime(posting['createdAt']).date()
+            if state in ('draft', 'pending'):
+                openDate = None
+            isUpdated = updateAndGetIsChanged(currentJob, 'openDate', openDate) or isUpdated
+
+            if isUpdated:
+                currentJob.modifiedDateTime = timezone.now()
+            currentJob.save()
+
+        # Close any jobs that are no longer in the Lever feed
+        for leverKey, job in currentLeverJobs.items():
+            if leverKey in processedLeverKeys or job.closeDate:
+                continue
+            job.closeDate = timezone.now().date()
+            job.modifiedDateTime = timezone.now()
+            job.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class LeverStages(UproveAPIView):
+
+    def get(self, request, stageId=None):
+        relativeUrl = f'stages/{stageId}' if stageId else 'stages'
+        employer = Employer.objects.get(id=self.user.employer_id)
+        response = getLeverRequestWithRefresh(employer, relativeUrl)
+        return Response(status=status.HTTP_200_OK, data=response.get('data', []))
 
 
 class LeverConfig(UproveAPIView):
@@ -84,6 +161,8 @@ class LeverConfig(UproveAPIView):
         employer = Employer.objects.get(id=employerId)
 
         isChanged = dataUtil.setObjectAttributes(employer, self.data, {
+            'leverTriggerStageKey': {'isIgnoreExcluded': True},
+            'leverCompleteStageKey': {'isIgnoreExcluded': True},
             'leverHookStageChangeToken': {'isIgnoreExcluded': True},
             'leverHookArchive': {'isIgnoreExcluded': True},
             'leverHookHired': {'isIgnoreExcluded': True},
@@ -98,14 +177,18 @@ class LeverConfig(UproveAPIView):
 class BaseLeverChange(APIView):
     parser_classes = [JSONParser]
 
-    def validateRequest(self, request, employerId=None):
+    def validateRequest(self, request, hookAttr, employerId=None):
         data = request.data
-        if (not employerId) or (not security.isPermittedEmployer(request, employerId)):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not employerId:
+            return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         employer = Employer.objects.get(id=employerId)
-        isAuthorizedRequest = validateLeverRequest(data, employer.leverHookArchive)
-        if not isAuthorizedRequest or not employerId or not security.isPermittedEmployer(request, employerId):
+        hookKey = getattr(employer, hookAttr)
+        if not hookKey:
+            return Response('The signature token for this webhook has not been configured', status=status.HTTP_400_BAD_REQUEST)
+
+        isAuthorizedRequest = validateLeverRequest(data, hookKey)
+        if not isAuthorizedRequest:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         return data
@@ -114,11 +197,15 @@ class BaseLeverChange(APIView):
 class LeverChangeStage(BaseLeverChange):
 
     def post(self, request, employerId=None):
-        data = self.validateRequest(request, employerId=employerId)
+        data = self.validateRequest(request, 'leverHookStageChangeToken', employerId=employerId)
         if isinstance(data, Response):
             return data
 
         # TODO: Parse the data
+        # fromStageId
+        # toStageId
+        # contactId
+        # opportunityId
 
         return Response(status=status.HTTP_200_OK)
 
@@ -126,7 +213,7 @@ class LeverChangeStage(BaseLeverChange):
 class LeverArchive(BaseLeverChange):
 
     def post(self, request, employerId=None):
-        data = self.validateRequest(request, employerId=employerId)
+        data = self.validateRequest(request, 'leverHookArchive', employerId=employerId)
         if isinstance(data, Response):
             return data
 
@@ -138,7 +225,7 @@ class LeverArchive(BaseLeverChange):
 class LeverHired(BaseLeverChange):
 
     def post(self, request, employerId=None):
-        data = self.validateRequest(request, employerId=employerId)
+        data = self.validateRequest(request, 'leverHookHired', employerId=employerId)
         if isinstance(data, Response):
             return data
 
@@ -150,7 +237,7 @@ class LeverHired(BaseLeverChange):
 class LeverDeleted(BaseLeverChange):
 
     def post(self, request, employerId=None):
-        data = self.validateRequest(request, employerId=employerId)
+        data = self.validateRequest(request, 'leverHookDeleted', employerId=employerId)
         if isinstance(data, Response):
             return data
 
@@ -159,8 +246,26 @@ class LeverDeleted(BaseLeverChange):
         return Response(status=status.HTTP_200_OK)
 
 
-def getLeverRequestWithRefresh(request, url, body, **kwargs):
-    response = requests.get(url, body, **kwargs)
+def getLeverItems(url, employer, itemId=None):
+    hasNext = True
+    next = None
+    data = []
+    relativeUrl = f'{url}/{itemId}' if itemId else url
+    while hasNext and len(data) < RECORD_LIMIT:
+        response = getLeverRequestWithRefresh(employer, relativeUrl, nextKey=next)
+        hasNext = response.get('hasNext')
+        next = response.get('next')
+        data += response.get('data', [])
+
+    return data
+
+
+def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None):
+    body = {'responseType': 'json'}
+    if nextKey:
+        body['offset'] = nextKey
+    url = f'{os.getenv("LEVER_BASE_URL")}{relativeUrl}'
+    response = requests.get(url, body, headers={'Authorization': f'Bearer {employer.leverAccessToken}'})
 
     # Update the access tokens if they have expired
     if response.status_code != 200:
@@ -168,18 +273,29 @@ def getLeverRequestWithRefresh(request, url, body, **kwargs):
             'client_id': os.getenv('LEVER_CLIENT_ID'),
             'client_secret': os.getenv('LEVER_CLIENT_SECRET'),
             'grant_type': 'refresh_token',
-            'refresh_token': request.session.get('leverRefreshToken')
+            'refresh_token': employer.leverRefreshToken
         })
 
         if response.status_code != 200:
             raise ConnectionError()
 
         data = response.json()
-        request.session['leverAccessToken'] = data['access_token']
-        request.session['leverRefreshToken'] = data.get('refresh_token')
-        response = requests.get(url, body, **kwargs)
+        employer.leverAccessToken = data['access_token']
+        employer.leverRefreshToken = data.get('refresh_token')
+        employer.save()
+        response = requests.get(url, body, headers={'Authorization': f'Bearer {employer.leverAccessToken}'})
 
-    return response
+    return response.json()
+
+
+def getLeverDateTime(timestamp):
+    return LEVER_TIMESTAMP_START + timedelta(milliseconds=timestamp)
+
+
+def updateAndGetIsChanged(obj, attr, newVal):
+    currentVal = getattr(obj, attr)
+    setattr(obj, attr, newVal)
+    return currentVal != getattr(obj, attr)
 
 
 def validateLeverRequest(requestData, signatureToken):

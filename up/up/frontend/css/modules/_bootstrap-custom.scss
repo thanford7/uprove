@@ -42,6 +42,10 @@ $spacers: (
 
 $btn-font-size: 1.0rem;
 
+$input-border-radius: 0.5rem;
+$input-border-radius-sm: 0.5rem;
+$input-border-radius-lg: 0.5rem;
+
 @import "bootstrap/scss/bootstrap";
 
 .modal {

@@ -158,6 +158,7 @@ import skillSelectize from "../../selectizeCfgs/skill";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import ProjectJobs from "../projects/ProjectJobs";
 import BasePage from "../base/BasePage";
+import {getAjaxFormData} from "../../../vueMixins";
 
 export default {
     name: "ProjectPage.vue",
@@ -276,11 +277,11 @@ export default {
             return idx === Object.values(targetObject).length - 1;
         },
         unlinkJob(customProject, job) {
-            const ajaxData = this.getAjaxFormData({
+            const ajaxData = getAjaxFormData({
                 jobId: job.id,
                 skillLevelBit: customProject.skillLevelBit,
                 skillIds: customProject.skillIds
-            })
+            }, [])
 
             this.submitAjaxRequest(ajaxData, {
                 method: 'DELETE',

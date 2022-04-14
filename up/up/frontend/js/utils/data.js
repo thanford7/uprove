@@ -196,6 +196,19 @@ class DataUtil {
         return (string) ? string.charAt(0).toUpperCase() + string.slice(1) : '';
     }
 
+    debounce(func, waitMS, immediate=false) {
+        let timeout;
+        return () => {
+            const args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function () {
+                timeout = null;
+                if (!immediate) func.apply(this, args);
+            }, waitMS);
+            if (immediate && !timeout) func.apply(this, args);
+        };
+    }
+
     /**
      * Delete an item from an object using a relative path string
      * @param obj {Object}

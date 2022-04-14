@@ -14,7 +14,7 @@ from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
     getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject, \
     getSerializedUserProject
-from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP
+from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP, normalizeJobTitle
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -124,9 +124,11 @@ class JobPostingView(APIView):
         if not security.isPermittedEmployer(request, data['employerId']):
             return Response('You do not have permission to post for this employer', status=status.HTTP_401_UNAUTHORIZED)
 
+        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
         employerJob = EmployerJob(
             employer_id=data['employerId'],
             jobTitle=data['jobTitle'],
+            role=normalizeJobTitle(data['jobTitle'], roleTitles),
             jobDescription=data['jobDescription'],
             openDate=dateUtil.deserializeDateTime(data.get('openDate'), dateUtil.FormatType.DATE, allowNone=True),
             salaryFloor=data.get('salaryFloor'),
@@ -153,6 +155,7 @@ class JobPostingView(APIView):
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         employerJob = self.getEmployerJobs(jobId=jobId)
+        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
         dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
         dataUtil.setObjectAttributes(employerJob, data, {
             'jobTitle': None,
@@ -164,6 +167,7 @@ class JobPostingView(APIView):
             'salaryCeiling': None,
             'salaryUnit': None
         })
+        employerJob.role = normalizeJobTitle(employerJob.jobTitle, roleTitles)
         employerJob.save()
 
         self.setCustomProjects(employerJob, data['allowedProjects'])
@@ -228,7 +232,7 @@ class JobPostingView(APIView):
         return jobs
 
     @staticmethod
-    def getEmployerJobFilter(isIncludeClosed=False):
+    def getEmployerJobFilter(isIncludeClosed=False, isEmployer=False):
         filter = Q()
         if not isIncludeClosed:
             filter &= Q(openDate__lte=timezone.now().date()) & (
@@ -236,8 +240,12 @@ class JobPostingView(APIView):
             ) & (
                 Q(pauseDate__isnull=True) | Q(pauseDate__gt=timezone.now().date())
             )
-        filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
-        filter &= Q(role__isnull=False)
+
+        if not isEmployer:
+            filter &= Q(isInternal=False)
+            filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
+            filter &= Q(role__isnull=False)
+
         return filter
 
     @staticmethod

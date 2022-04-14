@@ -66,90 +66,94 @@ def normalizeLocations():
     EmployerJob.objects.bulk_update(nonNormalizedJobs, locationUpdateFields, 500)
 
 
-def normalizeJobTitles():
-    nonNormalizedJobs = EmployerJob.objects.filter(
+def normalizeJobTitles(employerJobs=None):
+    nonNormalizedJobs = employerJobs or EmployerJob.objects.filter(
         isScraped=True,
         # role__isnull=True
     )
     roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
 
     for job in nonNormalizedJobs:
-        if not job.jobTitle:
-            continue
-        job.role = None
-        jobTitle = job.jobTitle.lower()
-        isManagerRole = 'manager' in jobTitle
-        isLeadershipRole = (
-                ('vp' in jobTitle)
-                or ('vice president' in jobTitle)
-                or ('director' in jobTitle)
-                or ('principal' in jobTitle)
-                or ('lead' in jobTitle)
-        )
-
-        if (
-                ('product ' in jobTitle)
-                and ('design' not in jobTitle)
-                and ('product marketing' not in jobTitle)
-                and ('product specialist' not in jobTitle)
-                and ('product analyst' not in jobTitle)
-                and ('engineer' not in jobTitle)
-        ):
-            if isLeadershipRole:
-                job.role = roleTitles['Product management leader']
-            else:
-                job.role = roleTitles['Product manager']
-        elif ('product ' in jobTitle) and ('marketing' in jobTitle):
-            if isLeadershipRole:
-                job.role = roleTitles['Product marketing management leader']
-            else:
-                job.role = roleTitles['Product marketing manager']
-        elif ('project manager' in jobTitle) or ('program manager' in jobTitle):
-            if isLeadershipRole:
-                job.role = roleTitles['Project management leader']
-            else:
-                job.role = roleTitles['Project manager']
-        elif ('account manager' in jobTitle) or ('account executive' in jobTitle):
-            job.role = roleTitles['Account manager']
-        elif ('data' not in jobTitle) and (
-                ('analyst' in jobTitle)
-                or ('strategy' in jobTitle)
-                or ('business operations' in jobTitle)
-        ):
-            if isManagerRole or isLeadershipRole:
-                job.role = roleTitles['Strategy and operations leader']
-            else:
-                job.role = roleTitles['Business analyst']
-        elif (
-                ('engineer' not in jobTitle)
-                and ('scien' not in jobTitle)
-                and (('data analyst' in jobTitle) or ('analytics' in jobTitle))
-        ):
-            if isManagerRole or isLeadershipRole:
-                job.role = roleTitles['Data analytics leader']
-            else:
-                job.role = roleTitles['Data analyst']
-        elif (
-                (('data' in jobTitle) or ('analytics' in jobTitle))
-                and ('engineer' in jobTitle)
-                and ('software engineer' not in jobTitle)
-        ):
-            if isManagerRole or isLeadershipRole:
-                job.role = roleTitles['Data engineering manager']
-            else:
-                job.role = roleTitles['Data engineer']
-        elif ('customer success' in jobTitle) or ('success manager' in jobTitle):
-            if isLeadershipRole:
-                job.role = roleTitles['Customer success leader']
-            else:
-                job.role = roleTitles['Customer success manager']
-        elif ('operations' in jobTitle):
-            if isLeadershipRole or isManagerRole:
-                job.role = roleTitles['Strategy and operations leader']
-            elif ('business' in jobTitle):
-                job.role = roleTitles['Business analyst']
+        job.role = normalizeJobTitle(job.jobTitle, roleTitles)
 
     EmployerJob.objects.bulk_update(nonNormalizedJobs, ['role'], 500)
+
+
+def normalizeJobTitle(jobTitle, roleTitles):
+    if not jobTitle:
+        return None
+    jobTitle = jobTitle.lower()
+    isManagerRole = 'manager' in jobTitle
+    isLeadershipRole = (
+            ('vp' in jobTitle)
+            or ('vice president' in jobTitle)
+            or ('director' in jobTitle)
+            or ('principal' in jobTitle)
+            or ('lead' in jobTitle)
+    )
+
+    if (
+            ('product ' in jobTitle)
+            and ('design' not in jobTitle)
+            and ('product marketing' not in jobTitle)
+            and ('product specialist' not in jobTitle)
+            and ('product analyst' not in jobTitle)
+            and ('engineer' not in jobTitle)
+    ):
+        if isLeadershipRole:
+            return roleTitles['Product management leader']
+        else:
+            return roleTitles['Product manager']
+    elif ('product ' in jobTitle) and ('marketing' in jobTitle):
+        if isLeadershipRole:
+            return roleTitles['Product marketing management leader']
+        else:
+            return roleTitles['Product marketing manager']
+    elif ('project manager' in jobTitle) or ('program manager' in jobTitle):
+        if isLeadershipRole:
+            return roleTitles['Project management leader']
+        else:
+            return roleTitles['Project manager']
+    elif ('account manager' in jobTitle) or ('account executive' in jobTitle):
+        return roleTitles['Account manager']
+    # TODO: Add market research analyst
+    elif ('data' not in jobTitle) and (
+            ('analyst' in jobTitle)
+            or ('strategy' in jobTitle)
+            or ('business operations' in jobTitle)
+    ):
+        if isManagerRole or isLeadershipRole:
+            return roleTitles['Strategy and operations leader']
+        else:
+            return roleTitles['Business analyst']
+    elif (
+            ('engineer' not in jobTitle)
+            and ('scien' not in jobTitle)
+            and (('data analyst' in jobTitle) or ('analytics' in jobTitle))
+    ):
+        if isManagerRole or isLeadershipRole:
+            return roleTitles['Data analytics leader']
+        else:
+            return roleTitles['Data analyst']
+    elif (
+            (('data' in jobTitle) or ('analytics' in jobTitle))
+            and ('engineer' in jobTitle)
+            and ('software engineer' not in jobTitle)
+    ):
+        if isManagerRole or isLeadershipRole:
+            return roleTitles['Data engineering manager']
+        else:
+            return roleTitles['Data engineer']
+    elif ('customer success' in jobTitle) or ('success manager' in jobTitle):
+        if isLeadershipRole:
+            return roleTitles['Customer success leader']
+        else:
+            return roleTitles['Customer success manager']
+    elif ('operations' in jobTitle):
+        if isLeadershipRole or isManagerRole:
+            return roleTitles['Strategy and operations leader']
+        elif ('business' in jobTitle):
+            return roleTitles['Business analyst']
 
 # normalizeLocations()
 # normalizeJobTitles()

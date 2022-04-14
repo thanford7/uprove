@@ -10,6 +10,7 @@
                 class="form-control"
                 placeholder="Required"
                 v-model="leverData[modelName]"
+                @input="saveToken($event)"
             >
         </div>
         <div class="col-md-6">
@@ -22,6 +23,7 @@
                 :value="getLeverWebhookUrl(hookType, employer.id)"
             >
         </div>
+        <slot></slot>
     </div>
 </template>
 
@@ -37,6 +39,9 @@ export default {
     methods: {
         copyText: dataUtil.copyText,
         getLeverWebhookUrl: leverIntegration.getWebhookUrl.bind(leverIntegration),
+        saveToken(e) {
+            leverIntegration.saveToken($(e.currentTarget), this.employer.id, this.modelName, this.leverData[this.modelName]);
+        }
     }
 }
 </script>

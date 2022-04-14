@@ -64,10 +64,50 @@ $(window).on('resize', () => {
 });
 
 
+/**
+ * Transforms an object into form data. Splits media data (files, images, videos) into separate fields so they
+ * can be processed differently
+ * @param data {Object}
+ * @param mediaFields {Array}
+ * @returns {FormData}
+ */
+const getAjaxFormData = (data, mediaFields=null) => {
+    const ajaxData = new FormData();
+    mediaFields = mediaFields || [];
+    ajaxData.append('data', JSON.stringify(dataUtil.omit(data, mediaFields)));
+    mediaFields.forEach((field) => {
+        const val = dataUtil.get(data, field);
+        if (!val) {
+            return;
+        }
+        const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
+            if (idx !== 0) {
+                fieldPart = dataUtil.capitalize(fieldPart);
+            }
+            return finalField + fieldPart;
+        }, ''); // If field uses dot notation, we need to use the last subfield
+        if (Array.isArray(val)) {
+            val.forEach((file) => {
+                ajaxData.append(finalField, file);
+            })
+        } else {
+            ajaxData.append(finalField, val);
+        }
+    });
+    return ajaxData;
+};
+
+
+const getNewElUid = () => {
+    newElUid++;
+    return `s-${newElUid}`;
+}
+
+
 const getFailureMessage = (errorThrown, xhr) => {
     const responseText = xhr.responseText;
     return `${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
-}
+};
 
 const makeAjaxRequest = (url, cfg) => {
     return $.ajax(Object.assign({
@@ -77,6 +117,13 @@ const makeAjaxRequest = (url, cfg) => {
         contentType: false,
         processData: false,
     }, cfg));
+};
+
+const addErrorAlert = (xhr, textStatus, errorThrown) => {
+    store.commit('addAlert', {
+        message: getFailureMessage(errorThrown, xhr),
+        alertType: SEVERITY.DANGER
+    });
 };
 
 
@@ -241,39 +288,9 @@ const ajaxRequestMixin = {
                 return false;
             }
             return this.submitAjaxRequest(
-                this.getAjaxFormData(formData),
+                getAjaxFormData(formData, this.mediaFields),
                 {method: (formData.id) ? 'PUT' : 'POST'}
             )
-        },
-        /**
-         * Transforms an object into form data. Splits media data (files, images, videos) into separate fields so they
-         * can be processed differently
-         * @param data {Object}
-         * @returns {FormData}
-         */
-        getAjaxFormData(data) {
-            const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(dataUtil.omit(data, this.mediaFields)));
-            this.mediaFields.forEach((field) => {
-                const val = dataUtil.get(data, field);
-                if (!val) {
-                    return;
-                }
-                const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
-                    if (idx !== 0) {
-                        fieldPart = dataUtil.capitalize(fieldPart);
-                    }
-                    return finalField + fieldPart;
-                }, ''); // If field uses dot notation, we need to use the last subfield
-                if (Array.isArray(val)) {
-                    val.forEach((file) => {
-                        ajaxData.append(finalField, file);
-                    })
-                } else {
-                    ajaxData.append(finalField, val);
-                }
-            });
-            return ajaxData;
         },
         saveChange(e, allowDefault = false) {
             if (e && !allowDefault) {
@@ -336,10 +353,7 @@ const globalVarsMixin = {
         }
     },
     methods: {
-        getNewElUid() {
-            newElUid++;
-            return `s-${newElUid}`;
-        },
+        getNewElUid,
         isSelf(userId) {
             return this.globalData.uproveUser.id === userId;
         },
@@ -522,5 +536,5 @@ const dataLoaderMixin = {
 
 export {
     ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin,
-    store, getFailureMessage, makeAjaxRequest
+    store, addErrorAlert, getAjaxFormData, getNewElUid, makeAjaxRequest
 };
