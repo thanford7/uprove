@@ -27,7 +27,8 @@ ROLE_PROJECT_MAP = {
     'Data engineering manager': [],
     'Data engineer': [],
     'Customer success leader': ['customer experience', 'customer success'],
-    'Customer success manager': ['customer experience', 'customer success']
+    'Customer success manager': ['customer experience', 'customer success'],
+    'Market research analyst': ['market research']
 }
 
 
