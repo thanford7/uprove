@@ -24,6 +24,7 @@ defaultSpiders = [
     BounteousSpider,
     BlockRenovationSpider,
     ComplyAdvantageSpider,
+    ExabeamSpider,
     GradleSpider,
     HavenlySpider,
     CoverGeniusSpider,

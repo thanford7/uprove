@@ -84,6 +84,7 @@ urlpatterns = [
 
     # Lever
     re_path('^integrate/?$', lever.leverIntegrate, name='leverIntegrate'),
+    re_path('^lever/customize-assessment/(?P<employerId>[0-9]+)/(?P<opportunityId>[\S]+)/?$', lever.leverCustomizeAssessment, name='leverCustomizeAssessment'),
     path(apiPath + 'lever/logout/', lever.LeverLogOut.as_view()),
     path(apiPath + 'lever/opportunities/', lever.LeverOpportunities.as_view()),
     path(apiPath + 'lever/postings/', lever.LeverPostings.as_view()),

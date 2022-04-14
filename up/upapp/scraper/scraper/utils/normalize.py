@@ -27,7 +27,8 @@ ROLE_PROJECT_MAP = {
     'Data engineering manager': [],
     'Data engineer': [],
     'Customer success leader': ['customer experience', 'customer success'],
-    'Customer success manager': ['customer experience', 'customer success']
+    'Customer success manager': ['customer experience', 'customer success'],
+    'Market research analyst': ['market research']
 }
 
 
@@ -116,7 +117,8 @@ def normalizeJobTitle(jobTitle, roleTitles):
             return roleTitles['Project manager']
     elif ('account manager' in jobTitle) or ('account executive' in jobTitle):
         return roleTitles['Account manager']
-    # TODO: Add market research analyst
+    elif ('market' in jobTitle) and (('research' in jobTitle) or ('analyst' in jobTitle)):
+        return roleTitles['Market research analyst']
     elif ('data' not in jobTitle) and (
             ('analyst' in jobTitle)
             or ('strategy' in jobTitle)

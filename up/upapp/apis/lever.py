@@ -1,12 +1,15 @@
 import hashlib
 import hmac
 import os
+from json import dumps
+
 import requests
 from datetime import datetime, timedelta
 
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -19,10 +22,12 @@ from upapp.apis import UproveAPIView
 from upapp.apis.employer import JobPostingView
 from upapp.models import Employer, EmployerJob, RoleTitle
 from upapp.utils import dataUtil
+from views import _getErrorPage
 
 RECORD_LIMIT = 20000
 LEVER_UPROVE_TAG = 'uprove'
 LEVER_TIMESTAMP_START = datetime(1970, 1, 1, 0, 0, 0)
+
 
 def leverIntegrate(request):
     if request.GET.get('state') != os.getenv('LEVER_STATE'):
@@ -49,6 +54,43 @@ def leverIntegrate(request):
     employer.save()
 
     return HttpResponseRedirect('/employerDashboard/')
+
+
+def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
+    # TODO: Require login to access page
+    if not opportunityId:
+        return _getErrorPage(request, status.HTTP_400_BAD_REQUEST, 'An opportunity ID is required')
+
+    if not employerId:
+        return _getErrorPage(request, status.HTTP_400_BAD_REQUEST, 'An employer ID is required')
+
+    employer = Employer.objects.get(id=employerId)
+    opportunity = getLeverRequestWithRefresh(
+        employer,
+        f'opportunities/{opportunityId}?expand=application&expand=owner&expand=followers&expand=sourcedBy&expand=contact'
+    )
+    otherContactKeys = set([opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']])
+    otherContacts = []
+    for contactKey in otherContactKeys:
+        if (not contactKey) or contactKey == opportunity['contact']:
+            continue
+        otherContacts.append(getLeverContact(employer, contactKey))
+
+    return render(request, 'leverSendOpportunity.html', context={
+        'data': dumps({
+            'candidate': {
+                'name': opportunity['name'],
+                'emails': opportunity['emails'],
+                'primaryContact': getLeverContact(employer, opportunity['contact']),
+                'otherContacts': otherContacts,
+                'tags': opportunity['tags']
+            },
+            'employer': {
+                'companyName': employer.companyName,
+                'logo': employer.logo.url if employer.logo else None,
+            }
+        })
+    })
 
 
 class LeverLogOut(UproveAPIView):
@@ -201,13 +243,28 @@ class LeverChangeStage(BaseLeverChange):
         if isinstance(data, Response):
             return data
 
-        # TODO: Parse the data
-        # fromStageId
-        # toStageId
-        # contactId
-        # opportunityId
+        if not employerId:
+            return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(status=status.HTTP_200_OK)
+        employer = Employer.objects.get(id=employerId)
+
+        data = data['data']
+        if data['toStageId'] != employer.leverTriggerStageKey:
+            return Response(status=status.HTTP_200_OK)
+
+        opportunityId = data["opportunityId"]
+        opportunity = getLeverRequestWithRefresh(employer, f'opportunities/{opportunityId}')['data']
+        if LEVER_UPROVE_TAG not in opportunity['tags']:
+            return Response(status=status.HTTP_200_OK)
+
+        resp = getLeverRequestWithRefresh(
+            employer,
+            f'opportunities/{data["opportunityId"]}/addLinks',
+            bodyCfg={'links': request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/')},
+            method='POST'
+        )
+
+        return Response(status=resp['status_code'])
 
 
 class LeverArchive(BaseLeverChange):
@@ -260,12 +317,21 @@ def getLeverItems(url, employer, itemId=None):
     return data
 
 
-def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None):
+def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET', bodyCfg=None):
     body = {'responseType': 'json'}
+    if bodyCfg:
+        body = {**bodyCfg, **body}
     if nextKey:
         body['offset'] = nextKey
     url = f'{os.getenv("LEVER_BASE_URL")}{relativeUrl}'
-    response = requests.get(url, body, headers={'Authorization': f'Bearer {employer.leverAccessToken}'})
+    if method == 'GET':
+        requestMethodFn = requests.get
+    elif method == 'POST':
+        requestMethodFn = requests.post
+    else:
+        requestMethodFn = requests.put
+
+    response = requestMethodFn(url, body, headers={'Authorization': f'Bearer {employer.leverAccessToken}'})
 
     # Update the access tokens if they have expired
     if response.status_code != 200:
@@ -302,3 +368,14 @@ def validateLeverRequest(requestData, signatureToken):
     plainText = requestData.get('token') + str(requestData['triggeredAt'])
     hash = hmac.new(bytes(signatureToken, 'UTF-8'), plainText.encode(), hashlib.sha256).hexdigest()
     return hash == requestData['signature']
+
+
+def getLeverContact(employer, contactId):
+    if not contactId:
+        return {}
+    contactData = getLeverRequestWithRefresh(employer, f'contacts/{contactId}')
+    return {
+        'name': contactData['name'],
+        'email': contactData['emails'][0] if contactData['emails'] else None,
+        'phoneNumbers': contactData['phones']
+    }

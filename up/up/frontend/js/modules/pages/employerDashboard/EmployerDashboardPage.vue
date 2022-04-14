@@ -17,7 +17,7 @@
                 <button class="nav-link" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations" type="button" role="tab" aria-selected="false">Integrations</button>
             </li>
         </ul>
-        <div class="tab-content" id="employerTabContent">
+        <div class="tab-content mb-3" id="employerTabContent">
             <div class="tab-pane fade show active" id="job-openings" role="tabpanel">
                 <div class="mb-2 d-flex justify-content-end">
                     <button type="button" class="btn btn-primary me-2" @click="eventBus.emit('open:editJobPostingModal')">
