@@ -1,3 +1,3 @@
 import CandidateProjectPage from './CandidateProjectPage.vue';
 
-export {CandidateProjectPage as page};
+export {CandidateProjectPage as default};

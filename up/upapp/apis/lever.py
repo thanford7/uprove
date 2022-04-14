@@ -260,7 +260,7 @@ class LeverChangeStage(BaseLeverChange):
         resp = getLeverRequestWithRefresh(
             employer,
             f'opportunities/{data["opportunityId"]}/addLinks',
-            bodyCfg={'links': request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/')},
+            bodyCfg={'links': [request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/')]},
             method='POST'
         )
 
@@ -346,6 +346,7 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
             raise ConnectionError()
 
         data = response.json()
+        print(data)
         employer.leverAccessToken = data['access_token']
         employer.leverRefreshToken = data.get('refresh_token')
         employer.save()

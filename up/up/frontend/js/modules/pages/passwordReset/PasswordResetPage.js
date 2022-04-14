@@ -1,3 +1,3 @@
 import PasswordResetPage from './PasswordResetPage.vue';
 
-export {PasswordResetPage as page};
+export {PasswordResetPage as default};

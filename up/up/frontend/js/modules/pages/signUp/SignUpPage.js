@@ -1,3 +1,3 @@
 import SignUpPage from './SignUpPage.vue';
 
-export {SignUpPage as page};
+export {SignUpPage as default};

@@ -17,7 +17,8 @@ if (jQueryConsole) {
 
 setTimeout(() => {
     const pageName = $('body').data('page');
-    const {page, banner, isNoHeaderFooter} = Pages[pageName];
+    const page = Pages[pageName].default
+    const {banner, isNoHeaderFooter} = Pages[pageName];
     initSelectize();
     if (banner) {
         initVue(banner, '#hero');

@@ -1,3 +1,3 @@
 import JobPostingPage from './JobPostingPage.vue';
 
-export {JobPostingPage as page};
+export {JobPostingPage as default};

@@ -1,3 +1,3 @@
 import JobsPage from "./JobsPage.vue";
 
-export {JobsPage as page};
+export {JobsPage as default};

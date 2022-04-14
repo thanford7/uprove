@@ -1,4 +1,4 @@
 import CandidateHeroBanner from "./CandidateHeroBanner";
 import CandidateHomePage from './CandidateHomePage.vue';
 
-export {CandidateHomePage as page, CandidateHeroBanner as banner};
+export {CandidateHomePage as default, CandidateHeroBanner as banner};
