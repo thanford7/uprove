@@ -84,7 +84,7 @@ export default {
         },
         getProjectFiles(customProject) {
             const project = this.getProject(customProject);
-            return project.files.filter((f) => f.skillLevelBits & customProject.skillLevelBit)
+            return (project) ? project.files.filter((f) => f.skillLevelBits & customProject.skillLevelBit) : [];
         },
     },
     async created() {

@@ -112,7 +112,7 @@ if DEBUG is True:
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql',
-                'NAME': 'uprove',
+                'NAME': env('LOCAL_DB_NAME'),
                 'USER': env('DB_USER'),
                 'PASSWORD': env('DB_PASSWORD'),
                 'HOST': 'db' if IS_DOCKER else 'localhost',
