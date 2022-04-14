@@ -521,11 +521,11 @@ class UserPreferenceView(UproveAPIView):
         user.preferenceCompanySizes.clear()
         user.preferenceRoles.clear()
         user.preferenceCountry.clear()
-        for v in self.data['companySizes']:
+        for v in self.data.get('companySizes', []):
             user.preferenceCompanySizes.add(v)
-        for v in self.data['roleTitles']:
+        for v in self.data.get('roleTitles', []):
             user.preferenceRoles.add(v)
-        for v in self.data['countries']:
+        for v in self.data.get('countries', []):
             user.preferenceCountry.add(v)
 
         isChanged = dataUtil.setObjectAttributes(user, self.data, {
