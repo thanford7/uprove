@@ -1,3 +1,3 @@
 import CandidateOnboardPage from './CandidateOnboardPage.vue';
 
-export {CandidateOnboardPage as default};
+export {CandidateOnboardPage as page};

@@ -1,3 +1,3 @@
 import PrivacyPage from './PrivacyPage.vue';
 
-export {PrivacyPage as default};
+export {PrivacyPage as page};

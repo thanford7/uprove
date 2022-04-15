@@ -1,3 +1,3 @@
 import AdminPage from './AdminPage.vue';
 
-export {AdminPage as default};
+export {AdminPage as page};

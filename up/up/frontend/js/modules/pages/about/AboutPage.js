@@ -1,3 +1,3 @@
 import AboutPage from './AboutPage.vue';
 
-export {AboutPage as default};
+export {AboutPage as page};

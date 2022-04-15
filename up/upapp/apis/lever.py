@@ -67,22 +67,18 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
     employer = Employer.objects.get(id=employerId)
     opportunity = getLeverRequestWithRefresh(
         employer,
-        f'opportunities/{opportunityId}?expand=application&expand=owner&expand=followers&expand=sourcedBy&expand=contact'
-    )
-    otherContactKeys = set([opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']])
-    otherContacts = []
-    for contactKey in otherContactKeys:
-        if (not contactKey) or contactKey == opportunity['contact']:
-            continue
-        otherContacts.append(getLeverContact(employer, contactKey))
+        f'opportunities/{opportunityId}?expand=applications&expand=owner&expand=followers&expand=sourcedBy'
+    )['data']
+    contacts = {}
+    for contactData in [opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']]:
+        contacts[contactData['id']] = serializeLeverContact(contactData)
 
     return render(request, 'leverSendOpportunity.html', context={
         'data': dumps({
             'candidate': {
                 'name': opportunity['name'],
                 'emails': opportunity['emails'],
-                'primaryContact': getLeverContact(employer, opportunity['contact']),
-                'otherContacts': otherContacts,
+                'contacts': list(contacts.values()),
                 'tags': opportunity['tags']
             },
             'employer': {
@@ -260,7 +256,8 @@ class LeverChangeStage(BaseLeverChange):
         resp = getLeverRequestWithRefresh(
             employer,
             f'opportunities/{data["opportunityId"]}/addLinks',
-            bodyCfg={'links': [request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/')]},
+            bodyCfg={'links': [request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/'),]},
+            isJSON=True,
             method='POST'
         )
 
@@ -317,8 +314,8 @@ def getLeverItems(url, employer, itemId=None):
     return data
 
 
-def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET', bodyCfg=None):
-    body = {'responseType': 'json'}
+def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET', bodyCfg=None, isJSON=False):
+    body = {}  # {'responseType': 'json'}
     if bodyCfg:
         body = {**bodyCfg, **body}
     if nextKey:
@@ -331,10 +328,19 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
     else:
         requestMethodFn = requests.put
 
-    response = requestMethodFn(url, body, headers={'Authorization': f'Bearer {employer.leverAccessToken}'})
+    headers = {'Authorization': f'Bearer {employer.leverAccessToken}'}
+    if isJSON:
+        headers = {**headers, 'Content-Type': 'application/json'}
+    requestKwargs = {'headers': headers}
+    if isJSON:
+        requestKwargs['json'] = body
+    else:
+        requestKwargs['data'] = body
+
+    response = requestMethodFn(url, **requestKwargs)
 
     # Update the access tokens if they have expired
-    if response.status_code != 200:
+    if response.status_code != 200 and response.reason != 'Bad Request':
         response = requests.post(os.getenv('LEVER_AUTH_TOKEN_URL'), {
             'client_id': os.getenv('LEVER_CLIENT_ID'),
             'client_secret': os.getenv('LEVER_CLIENT_SECRET'),
@@ -346,11 +352,10 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
             raise ConnectionError()
 
         data = response.json()
-        print(data)
         employer.leverAccessToken = data['access_token']
         employer.leverRefreshToken = data.get('refresh_token')
         employer.save()
-        response = requests.get(url, body, headers={'Authorization': f'Bearer {employer.leverAccessToken}'})
+        response = requestMethodFn(url, **requestKwargs)
 
     return response.json()
 
@@ -375,8 +380,12 @@ def getLeverContact(employer, contactId):
     if not contactId:
         return {}
     contactData = getLeverRequestWithRefresh(employer, f'contacts/{contactId}')
+    return serializeLeverContact(contactData)
+
+
+def serializeLeverContact(contactData):
     return {
         'name': contactData['name'],
-        'email': contactData['emails'][0] if contactData['emails'] else None,
-        'phoneNumbers': contactData['phones']
+        'email': contactData['email'],
+        'phoneNumbers': contactData.get('phones')
     }

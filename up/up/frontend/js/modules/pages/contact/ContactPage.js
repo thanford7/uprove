@@ -1,3 +1,3 @@
 import ContactPage from "./ContactPage.vue";
 
-export {ContactPage as default};
+export {ContactPage as page};

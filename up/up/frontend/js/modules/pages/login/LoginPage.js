@@ -1,3 +1,3 @@
 import LoginPage from './LoginPage.vue';
 
-export {LoginPage as default};
+export {LoginPage as page};

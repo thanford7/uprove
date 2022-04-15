@@ -1,3 +1,3 @@
 import TermsOfServicePage from "./TermsOfServicePage.vue";
 
-export {TermsOfServicePage as default};
+export {TermsOfServicePage as page};

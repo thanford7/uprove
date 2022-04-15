@@ -1,3 +1,3 @@
 import BlogSinglePage from './BlogSinglePage.vue';
 
-export {BlogSinglePage as default};
+export {BlogSinglePage as page};

@@ -1,4 +1,4 @@
-import LeverSendOpportunityPage from "./LeverSendOpportunityPage";
+import LeverSendOpportunityPage from "./LeverSendOpportunityPage.vue";
 
 const isNoHeaderFooter = true;
-export {LeverSendOpportunityPage as default, isNoHeaderFooter};
+export {LeverSendOpportunityPage as page, isNoHeaderFooter};
