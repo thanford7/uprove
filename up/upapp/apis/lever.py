@@ -24,7 +24,7 @@ from upapp.models import Employer, EmployerJob, RoleTitle
 from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject
 from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
-from views import _getErrorPage
+from upapp.views import _getErrorPage
 
 RECORD_LIMIT = 20000
 LEVER_UPROVE_TAG = 'uprove'
