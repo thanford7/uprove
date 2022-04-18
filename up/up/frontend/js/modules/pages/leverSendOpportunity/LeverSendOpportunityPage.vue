@@ -3,18 +3,18 @@
         <BasePage :headerTitle="`${initData.employer.companyName}: Uprove Assessment Configuration`" :headerImage="initData.employer.logo">
             <div class="row mb-3">
                 <div>
-                    <h5>Assessment for {{initData.candidate.name}}</h5>
+                    <h5>Assessment for {{initData.candidate.name}} ({{initData.jobTitle}} position)</h5>
                 </div>
                 <div class="mb-3 col-md-4">
                     <label class="form-label">
-                        Candidate email address
+                        Candidate Email Address
                         <InfoToolTip :elId="getNewElUid()" content="To send to multiple email addresses, separate each email address with a comma"/>
                     </label>
                     <input type="text" class="form-control" placeholder="Required" v-model="initData.candidate.emails">
                 </div>
                 <div class="mb-3 col-md-4">
                     <label class="form-label">
-                        {{initData.employer.companyName}} contact email address
+                        {{initData.employer.companyName}} Contact Email Address
                         <InfoToolTip :elId="getNewElUid()" content="This is the individual that the candidate should reach out to if they have questions or issues"/>
                     </label>
                     <InputSelectize
@@ -30,13 +30,13 @@
                             labelField: 'email',
                             searchField: ['email']
                         }"
-                        placeholder="Optional"
+                        placeholder="Required"
                         @selected="setCompanyContactEmail"
                     />
                 </div>
                 <div class="mb-3 col-md-4">
                     <label class="form-label">
-                        {{initData.employer.companyName}} contact name
+                        {{initData.employer.companyName}} Contact Name
                         <InfoToolTip :elId="getNewElUid()" content="This is the individual that the candidate should reach out to if they have questions or issues"/>
                     </label>
                     <InputSelectize
@@ -52,7 +52,7 @@
                             labelField: 'name',
                             searchField: ['name']
                         }"
-                        placeholder="Optional"
+                        placeholder="Required"
                         @selected="setCompanyContactName"
                     />
                 </div>
@@ -79,7 +79,7 @@
             <div class="row mb-3">
                 <div class="mb-3 col-12">
                     <label class="form-label">
-                        Assessment email to candidate
+                        Assessment Email To Candidate
                         <InfoToolTip :elId="getNewElUid()" content="This email will be sent to give the candidate instructions on how to complete the assessment. You can modify the language as you see fit"/>
                     </label>
                     <InputWsiwyg :elId="getNewElUid()" v-model="assessmentEmail"/>
@@ -97,18 +97,29 @@ import InputSelectize from "../../inputs/InputSelectize";
 import InputWsiwyg from "../../inputs/InputWsiwyg";
 import ProjectConfigSelectize from "../../inputs/ProjectConfigSelectize";
 import ProjectsSelectize from "../../inputs/ProjectsSelectize";
+import globalData from "../../../globalData";
 
 export default {
     name: "LeverSendOpportunityPage",
     components: {BasePage, InfoToolTip, InputSelectize, InputWsiwyg, ProjectConfigSelectize, ProjectsSelectize},
     computed: {
         assessmentEmail() {
+            const companySupport = (this.formData.companyContactEmail && this.formData.companyContactName) ? ` If you
+            have any questions about ${this.initData.employer.companyName} or the interview
+            process, please email ${this.formData.companyContactName} at
+            <a href="mailto: ${this.formData.companyContactEmail}">${this.formData.companyContactEmail}</a>.
+            ` : ''
             return `
                 <p>Hi ${this.initData.candidate.name},</p>
-                <p>Congratulations on making it to this stage in the interview process! The next step in the process
-                is to complete a case study. The background, instructions, and supporting files can be accessed using
-                <a href="${customProjectUtil.getLink(this.formData.customProject, true)}">this link</a>
+                <p>Congratulations on making it to this stage in the interview process with
+                ${this.initData.employer.companyName} for the ${this.initData.jobTitle} position! The next step
+                in the process is to complete a case study. The background, instructions, and supporting files
+                can be accessed using
+                <a href="${customProjectUtil.getLink(this.formData.customProject, true)}">this link</a>. If you have
+                any questions about the case study, you can email
+                <a href="mailto: ${globalData.CANDIDATE_SUPPORT_EMAIL}">${globalData.CANDIDATE_SUPPORT_EMAIL}</a>.${companySupport}
                 </p>
+                <p>Sincerely,</p>
             `
         }
     },

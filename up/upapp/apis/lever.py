@@ -75,8 +75,12 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
         raise opportunity
 
     opportunity = opportunity['data']
+    postingKey = opportunity['applications'][0]['posting']
+    posting = getLeverRequestWithRefresh(
+        employer,
+        f'postings/{postingKey}'
+    )['data']
     try:
-        postingKey = opportunity['applications'][0]['posting']
         uproveJob = EmployerJob.objects\
             .prefetch_related('allowedProjects', 'allowedProjects__project', 'allowedProjects__skills')\
             .get(leverPostingKey=postingKey)
@@ -102,6 +106,7 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
                 'companyName': employer.companyName,
                 'logo': employer.logo.url if employer.logo else None,
             },
+            'jobTitle': posting['text'],
             'primaryCustomProject': getSerializedCustomProject(primaryProject) if primaryProject else None,
             'projects': [getSerializedProject(p) for p in ProjectView.getProjects(employerId=employer.id)]
         })
