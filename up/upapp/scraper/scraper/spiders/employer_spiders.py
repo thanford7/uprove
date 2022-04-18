@@ -481,3 +481,9 @@ class AzaleaHealthSpider(JazzHRSpider):
     name = 'azaleaHeath'
     start_urls = ['https://azaleahealth.theresumator.com/apply']
 
+
+class ExabeamSpider(LeverSpider):
+    companyName = 'Exabeam'
+    name = 'exabeam'
+    start_urls = ['https://jobs.lever.co/exabeam']
+
