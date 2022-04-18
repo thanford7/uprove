@@ -16,11 +16,13 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp import security
 from upapp.apis import UproveAPIView
 from upapp.apis.employer import JobPostingView
+from upapp.apis.project import ProjectView
 from upapp.models import Employer, EmployerJob, RoleTitle
+from upapp.modelSerializers import getSerializedProject
+from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
 from views import _getErrorPage
 
@@ -82,9 +84,11 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
                 'tags': opportunity['tags']
             },
             'employer': {
+                'id': employer.id,
                 'companyName': employer.companyName,
                 'logo': employer.logo.url if employer.logo else None,
-            }
+            },
+            'projects': [getSerializedProject(p) for p in ProjectView.getProjects(employerId=employer.id)]
         })
     })
 

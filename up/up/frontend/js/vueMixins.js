@@ -514,11 +514,14 @@ const dataLoaderMixin = {
                     this.setData(r, data);
                     return new Promise(() => true);
                 }
-                return makeAjaxRequest(this.apiUrl + r.route, {
+
+                const ajaxCfg = {
                     method: 'GET',
                     success: (data) => this.setData(r, data),
                     error: this.onSaveFailure
-                });
+                };
+
+                return makeAjaxRequest(this.apiUrl + r.route, ajaxCfg);
             });
 
             await Promise.all(requests);

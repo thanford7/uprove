@@ -52,33 +52,19 @@
             <label for="modalJobProjects" class="form-label">
                 Applicant Project(s) <InfoToolTip :content="infoApplicantProject" :elId="getNewElUid()"/>
             </label>
-            <InputSelectize
+            <ProjectsSelectize
                 ref="jobProjects"
-                elId="modalJobProjects"
-                :isParseAsInt="true"
-                placeholder="Required" :cfg="projectsCfg" @selected="updateCustomProjects"
+                :isAllowMulti="true"
+                :employerId="initData.employer.id"
+                :allowedProjects="formData.allowedProjects"
+                @projectChange="formData.allowedProjects = $event"
             />
         </div>
         <div class="mb-3 pt-1 border-top" v-for="customProject in formData.allowedProjects">
-            <label :for="`modalJobCustomProject-skillBits-${customProject.id}`" class="form-label">
-                Customize {{getProject(customProject.projectId).title}} Project
-                <a href="#" @click="openCustomProject(customProject, $event)"><i class="fas fa-external-link-alt"></i> View customized project</a>
-            </label>
-            <InputSelectize
-                :ref="`modalJobCustomProject-skillBits-${customProject.id}`"
-                :elId="`modalJobCustomProject-skillBits-${customProject.id}`"
-                :items="[customProject.skillLevelBit]"
-                :isParseAsBits="true"
-                placeholder="Skill level (required)"
-                :cfg="getProjectSkillLevelsCfg(customProject)"
-                @selected="customProject.skillLevelBit = $event"
-            />
-            <SkillsSelectize
-                :ref="`modalJobCustomProject-skills-${customProject.id}`"
-                :items="getDefaultSkills(customProject)"
-                :skills="getProject(customProject.projectId).skills"
-                :cfg="{isMulti: true, projectId: getProject(customProject.projectId).id, isIncludeDetails: true, placeholder: 'Skills (required)'}"
-                @selected="customProject.skillIds = $event"
+            <ProjectConfigSelectize
+                :employerId="initData.employer.id"
+                :customProject="customProject"
+                :project="getProject(customProject.projectId)"
             />
         </div>
     </BaseModal>
@@ -92,15 +78,15 @@ import form from "../../utils/form";
 import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
-import skillSelectize from "../selectizeCfgs/skill";
-import SkillsSelectize from "../inputs/SkillsSelectize";
+import ProjectConfigSelectize from "../inputs/ProjectConfigSelectize";
+import ProjectsSelectize from "../inputs/ProjectsSelectize";
 import $ from "jquery";
 
 export default {
     name: "EditJobPostingModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {SkillsSelectize, BaseModal, InfoToolTip, InputSelectize, InputWsiwyg},
+    components: {ProjectsSelectize, ProjectConfigSelectize, BaseModal, InfoToolTip, InputSelectize, InputWsiwyg},
     data() {
         return {
             modalName: 'editJobPostingModal',
@@ -111,7 +97,6 @@ export default {
                 jobTitle: '#modalJobTitle',
                 jobDescription: '#modalJobDescription',
             },
-            newProjectCount: 0,
             infoApplicantProject: (
                 'Select one or more projects which applicants to this job position will need to complete. ' +
                 'If more than one project is selected, each applicant will only need to complete one project, but ' +
@@ -132,85 +117,15 @@ export default {
                 options: this.initData.jobTemplates.map((e) => ({value: e.id, text: e.title}))
             }
         },
-        projectsCfg() {
-            return {
-                plugins: ['uprove', 'remove_button'],
-                maxItems: null,
-                optgroups: dataUtil.sortBy(dataUtil.uniqBy(this.initData.projects.map((p) => ({group: p.role})), 'group'), 'group'),
-                optgroupValueField: 'group',
-                optgroupLabelField: 'group',
-                optgroupField: 'role',
-                valueField: 'id',
-                labelField: 'title',
-                searchField: ['title', 'role'],
-                options: this.initData.projects,
-                closeAfterSelect: true,
-                render: {
-                    option: (data, escape) => {
-                        let skillsHtml = '';
-                        data.skills.forEach((skill) => {
-                            skillsHtml += `<div class="badge -color-lightblue -color-black-text me-1">${escape(skill.name)}</div>`
-                        });
-                        let skillLevelsHtml = '';
-                        this.getSkillLevelsFromBits(data.skillLevelBits).forEach((skillLevel) => {
-                            skillLevelsHtml += `<div class="badge -color-lightgrey -color-black-text me-1">${escape(skillLevel.title)}</div>`
-                        });
-                        const getProjectUrl = (projectId) => `/project/${projectId}/`;
-                        return `
-                            <div class="option" data-selectable data-value="${data.id}" style="cursor: pointer;">
-                                <div class="mb-1">
-                                    ${escape(data.title)}
-                                    <a href="${getProjectUrl(data.id)}" title="Open full project description"><i class="fas fa-external-link-alt"></i></a>
-                                </div>
-                                <div class="-sub-text">${data.description}</div>
-                                <div><span class="-sub-text">Skills: </span>${skillsHtml}</div>
-                                <div class="mt-1"><span class="-sub-text">Role levels: </span>${skillLevelsHtml}</div>
-                            </div>
-                        `;
-                    }
-                }
-            };
-        }
     },
     methods: {
-        setCustomProjectSkillLevel(customProject) {
-            const project = this.getProject(customProject.projectId);
-            const skillLevels = this.getSkillLevelNumbersFromBits(project.skillLevelBits);
-            customProject.skillLevelBit = customProject.skillLevelBit || (skillLevels && skillLevels.length === 1) ? skillLevels : null;
-            return customProject.skillLevelBit;
-        },
         getProject(projectId) {
             return this.initData.projects.find((project) => project.id === projectId);
-        },
-        getProjectSkillLevelsCfg(customProject) {
-            const project = this.getProject(customProject.projectId);
-            const skillLevels = this.getSkillLevelNumbersFromBits(project.skillLevelBits);
-            return {
-                maxItems: 1,
-                options: Object
-                    .entries(this.globalData.SKILL_LEVEL)
-                    .filter(([key, level]) => skillLevels.includes(key))
-                    .map(([key, level]) => ({value: key, text: level.title}))
-            }
-        },
-        getDefaultSkills(customProject) {
-            const project = this.getProject(customProject.projectId);
-            return (customProject.skills) ? customProject.skills.map((s) => s.id) : skillSelectize.getDefaultSkills(project.skills);
-        },
-        openCustomProject(customProject, e) {
-            e.preventDefault();
-            const skillHref = (customProject.skillIds || []).reduce((skillHref, sId) => {
-                skillHref += `&skill=${sId}`;
-                return skillHref;
-            }, '');
-            const href = `/project/${customProject.projectId}/?skillLevel=${customProject.skillLevelBit}${skillHref}`;
-            window.open(href, '_blank').focus();
         },
         processFormData() {
             return Object.assign(this.readForm(), {employerId: this.initData.employer.id})
         },
         setFormFields() {
-            this.$refs.jobProjects.elSel.setValue(this.formData.allowedProjects.map((ap) => ap.projectId));
             this.formData.allowedProjects.forEach((ap) => {
                 // Format data for ajax request
                 ap.skillIds = ap.skills.map((s) => s.id);
@@ -231,7 +146,7 @@ export default {
             }
 
             if (!formData.allowedProjects || !formData.allowedProjects.length) {
-                this.addPopover($(this.$refs['jobProjects'].targetEl),
+                this.addPopover($(this.$refs.jobProjects.$refs.projects.targetEl),
                 {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
@@ -256,24 +171,6 @@ export default {
 
             return true;
         },
-        updateCustomProjects(projectIds) {
-            // Remove projects that are no longer selected
-            this.formData.allowedProjects = this.formData.allowedProjects.filter((ap) => projectIds.includes(ap.projectId));
-
-            // Add new projects
-            const currentProjectIds = this.formData.allowedProjects.map((ap) => ap.projectId);
-            projectIds.forEach((projectId) => {
-                if (!currentProjectIds.includes(projectId)) {
-                    const proj = this.getProject(projectId);
-                    this.formData.allowedProjects.push({
-                        id: `new-${this.newProjectCount}`,
-                        projectId,
-                        skillIds: skillSelectize.getDefaultSkills(proj.skills)
-                    })
-                    this.newProjectCount++;
-                }
-            });
-        },
         updateJobDescription(templateId) {
             if (!templateId) {
                 return;
@@ -282,14 +179,6 @@ export default {
             this.$refs.jobDescription.addContent(template.description);
         }
     },
-    updated() {
-        if (this.formData.allowedProjects) {
-            this.formData.allowedProjects.forEach((ap) => {
-                // Set selectize elements
-                this.$refs[`modalJobCustomProject-skillBits-${ap.id}`].elSel.setValue(ap.skillLevelBit);
-                this.$refs[`modalJobCustomProject-skills-${ap.id}`].elSel.setValue(ap.skillIds);
-            });
-        }
-    }
+
 }
 </script>
