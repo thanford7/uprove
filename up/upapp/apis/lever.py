@@ -21,7 +21,7 @@ from upapp.apis import UproveAPIView
 from upapp.apis.employer import JobPostingView
 from upapp.apis.project import ProjectView
 from upapp.models import Employer, EmployerJob, RoleTitle
-from upapp.modelSerializers import getSerializedProject
+from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject
 from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
 from views import _getErrorPage
@@ -70,7 +70,21 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
     opportunity = getLeverRequestWithRefresh(
         employer,
         f'opportunities/{opportunityId}?expand=applications&expand=owner&expand=followers&expand=sourcedBy'
-    )['data']
+    )
+    if isinstance(opportunity, ConnectionError):
+        raise opportunity
+
+    opportunity = opportunity['data']
+    try:
+        postingKey = opportunity['applications'][0]['posting']
+        uproveJob = EmployerJob.objects\
+            .prefetch_related('allowedProjects', 'allowedProjects__project', 'allowedProjects__skills')\
+            .get(leverPostingKey=postingKey)
+        allowedProjects = sorted(uproveJob.allowedProjects.all(), key=lambda p: p.id)
+        primaryProject = allowedProjects[0] if allowedProjects else None
+    except EmployerJob.DoesNotExist:
+        primaryProject = None
+
     contacts = {}
     for contactData in [opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']]:
         contacts[contactData['id']] = serializeLeverContact(contactData)
@@ -88,6 +102,7 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
                 'companyName': employer.companyName,
                 'logo': employer.logo.url if employer.logo else None,
             },
+            'primaryCustomProject': getSerializedCustomProject(primaryProject) if primaryProject else None,
             'projects': [getSerializedProject(p) for p in ProjectView.getProjects(employerId=employer.id)]
         })
     })

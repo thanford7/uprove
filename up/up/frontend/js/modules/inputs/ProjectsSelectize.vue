@@ -80,6 +80,9 @@ export default {
         getProject(projectId) {
             return this.cData.projects.find((project) => project.id === projectId);
         },
+        setAllowedProjects() {
+            this.$refs.projects.elSel.setValue((this.allowedProjects || []).map((ap) => ap.projectId), true);
+        },
         updateCustomProjects(projectIds) {
             if (!this.isAllowMulti) {
                 const customProject = this.getNewCustomProject(projectIds);
@@ -109,9 +112,10 @@ export default {
         await this.loadData([{route: `project/?employerId=${this.employerId}`, dataKey: 'projects'}]);
         const optionGroups = dataUtil.sortBy(dataUtil.uniqBy(this.cData.projects.map((p) => ({key: p.role, data: {role: p.role}})), 'key'), 'key');
         this.$refs.projects.resetOptions(this.cData.projects, optionGroups);
+        this.setAllowedProjects();
     },
     updated() {
-        this.$refs.projects.elSel.setValue((this.allowedProjects || []).map((ap) => ap.projectId), true);
+        this.setAllowedProjects();
     }
 }
 </script>

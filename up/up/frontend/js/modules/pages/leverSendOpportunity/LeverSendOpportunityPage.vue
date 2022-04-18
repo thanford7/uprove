@@ -63,6 +63,7 @@
                     </label>
                     <ProjectsSelectize
                         :employerId="initData.employer.id"
+                        :allowedProjects="(initData.primaryCustomProject) ? [initData.primaryCustomProject] : []"
                         @projectChange="formData.customProject = $event"
                     />
                 </div>
@@ -76,7 +77,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="mb-3 col-md-6">
+                <div class="mb-3 col-12">
                     <label class="form-label">
                         Assessment email to candidate
                         <InfoToolTip :elId="getNewElUid()" content="This email will be sent to give the candidate instructions on how to complete the assessment. You can modify the language as you see fit"/>
@@ -90,6 +91,7 @@
 
 <script>
 import BasePage from "../base/BasePage";
+import customProjectUtil from "../../../utils/customProject";
 import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 import InputWsiwyg from "../../inputs/InputWsiwyg";
@@ -105,7 +107,7 @@ export default {
                 <p>Hi ${this.initData.candidate.name},</p>
                 <p>Congratulations on making it to this stage in the interview process! The next step in the process
                 is to complete a case study. The background, instructions, and supporting files can be accessed using
-                <a href="#">this link</a>
+                <a href="${customProjectUtil.getLink(this.formData.customProject, true)}">this link</a>
                 </p>
             `
         }
@@ -142,6 +144,7 @@ export default {
             this.formData.companyContactEmail = companyContacts[0].email;
             this.formData.companyContactName = companyContacts[0].name;
         }
+        this.formData.customProject = this.initData.primaryCustomProject;
     }
 }
 </script>

@@ -24,6 +24,7 @@
 </template>
 
 <script>
+import customProjectUtil from "../../utils/customProject";
 import InputSelectize from "./InputSelectize";
 import SkillsSelectize from "./SkillsSelectize";
 import skillSelectize from "../selectizeCfgs/skill";
@@ -49,12 +50,7 @@ export default {
         },
         openCustomProject(customProject, e) {
             e.preventDefault();
-            const skillHref = (customProject.skillIds || []).reduce((skillHref, sId) => {
-                skillHref += `&skill=${sId}`;
-                return skillHref;
-            }, '');
-            const href = `/project/${customProject.projectId}/?skillLevel=${customProject.skillLevelBit}${skillHref}`;
-            window.open(href, '_blank').focus();
+            window.open(customProjectUtil.getLink(customProject), '_blank').focus();
         },
     },
 }
