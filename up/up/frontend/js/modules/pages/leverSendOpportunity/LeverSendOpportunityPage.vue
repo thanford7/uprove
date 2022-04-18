@@ -10,7 +10,7 @@
                         Candidate Email Address
                         <InfoToolTip :elId="getNewElUid()" content="To send to multiple email addresses, separate each email address with a comma"/>
                     </label>
-                    <input type="text" class="form-control" placeholder="Required" v-model="initData.candidate.emails">
+                    <input id="candidateEmails" type="text" class="form-control" placeholder="Required" v-model="initData.candidate.emails">
                 </div>
                 <div class="mb-3 col-md-4">
                     <label class="form-label">
@@ -19,7 +19,7 @@
                     </label>
                     <InputSelectize
                         ref="companyContactEmail"
-                        :elId="getNewElUid()"
+                        elId="companyContactEmail"
                         :cfg="{
                             maxItems: 1,
                             create: true,
@@ -41,7 +41,7 @@
                     </label>
                     <InputSelectize
                         ref="companyContactName"
-                        :elId="getNewElUid()"
+                        elId="companyContactName"
                         :cfg="{
                             maxItems: 1,
                             create: true,
@@ -62,6 +62,7 @@
                         <InfoToolTip :elId="getNewElUid()" content="This is the project assessment that the candidate must complete. You can open any of the assessments to get more details"/>
                     </label>
                     <ProjectsSelectize
+                        ref="customProject"
                         :employerId="initData.employer.id"
                         :allowedProjects="(initData.primaryCustomProject) ? [initData.primaryCustomProject] : []"
                         @projectChange="formData.customProject = $event"
@@ -70,21 +71,39 @@
                 <div class="mb-3 col-md-6">
                     <ProjectConfigSelectize
                         v-if="formData.customProject"
+                        ref="customProjectCfg"
                         :employerId="initData.employer.id"
                         :customProject="formData.customProject"
                         :project="getProject(formData.customProject)"
                     />
                 </div>
             </div>
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="mb-3 col-12">
                     <label class="form-label">
                         Assessment Email To Candidate
                         <InfoToolTip :elId="getNewElUid()" content="This email will be sent to give the candidate instructions on how to complete the assessment. You can modify the language as you see fit"/>
                     </label>
-                    <InputWsiwyg :elId="getNewElUid()" v-model="assessmentEmail"/>
+                    <p class="-text-medium">From: {{formData.companyContactEmail}}</p>
+                    <p class="-text-medium">CC: {{globalData.CANDIDATE_SUPPORT_EMAIL}}</p>
+                    <p class="-text-medium">To: {{(initData.candidate.emails) ? initData.candidate.emails.join('; ') : ''}}</p>
+                    <div class="mb-3">
+                        <span class="-text-medium">Subject:&nbsp;</span>
+                        <input
+                            id="assessmentEmailTitle"
+                            type="text" class="form-control w-75"
+                           placeholder="Email subject" v-model="assessmentEmailTitle"
+                            style="display: inline-block;"
+                        >
+                    </div>
+                    <InputWsiwyg :elId="assessmentEmail" v-model="assessmentEmail"/>
                 </div>
             </div>
+            <row class="mb-3">
+                <div class="col-12 btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send assessment email
+                </div>
+            </row>
         </BasePage>
     </div>
 </template>
@@ -97,30 +116,41 @@ import InputSelectize from "../../inputs/InputSelectize";
 import InputWsiwyg from "../../inputs/InputWsiwyg";
 import ProjectConfigSelectize from "../../inputs/ProjectConfigSelectize";
 import ProjectsSelectize from "../../inputs/ProjectsSelectize";
-import globalData from "../../../globalData";
+import globalData, {SEVERITY} from "../../../globalData";
 
 export default {
     name: "LeverSendOpportunityPage",
     components: {BasePage, InfoToolTip, InputSelectize, InputWsiwyg, ProjectConfigSelectize, ProjectsSelectize},
+    data() {
+        return {
+            crudUrl: 'lever/send-assessment/',
+            requiredFields: {
+                candidateEmails: '#candidateEmails',
+                companyContactEmail: '#companyContactEmail',
+                companyContactName: '#companyContactName',
+                customProject: null
+            }
+        }
+    },
     computed: {
         assessmentEmail() {
-            const companySupport = (this.formData.companyContactEmail && this.formData.companyContactName) ? ` If you
-            have any questions about ${this.initData.employer.companyName} or the interview
-            process, please email ${this.formData.companyContactName} at
-            <a href="mailto: ${this.formData.companyContactEmail}">${this.formData.companyContactEmail}</a>.
-            ` : ''
             return `
                 <p>Hi ${this.initData.candidate.name},</p>
                 <p>Congratulations on making it to this stage in the interview process with
                 ${this.initData.employer.companyName} for the ${this.initData.jobTitle} position! The next step
                 in the process is to complete a case study. The background, instructions, and supporting files
                 can be accessed using
-                <a href="${customProjectUtil.getLink(this.formData.customProject, true)}">this link</a>. If you have
+                <a id="redirectLink" href="${customProjectUtil.getLink(this.formData.customProject, true)}">this link</a>. If you have
                 any questions about the case study, you can email
-                <a href="mailto: ${globalData.CANDIDATE_SUPPORT_EMAIL}">${globalData.CANDIDATE_SUPPORT_EMAIL}</a>.${companySupport}
+                <a href="mailto: ${globalData.CANDIDATE_SUPPORT_EMAIL}">${globalData.CANDIDATE_SUPPORT_EMAIL}</a>.
+                If you have any questions about ${this.initData.employer.companyName} or the interview process, please email me.
                 </p>
                 <p>Sincerely,</p>
-            `
+                <p>${this.formData.companyContactName}</p>
+            `;
+        },
+        assessmentEmailTitle() {
+            return `${this.initData.employer.companyName} | Interview next steps for ${this.initData.jobTitle} position`;
         }
     },
     methods: {
@@ -146,16 +176,47 @@ export default {
                 this.formData.companyContactName = contact.name;
             }
         },
+        readForm() {
+            return Object.assign({}, this.formData, {
+                candidateName: this.initData.candidate.name,
+                candidateEmails: this.initData.candidate.emails,
+                emailTitle: this.assessmentEmailTitle,
+                emailBody: this.assessmentEmail,
+                employerId: this.initData.employer.id
+            });
+        },
+        isGoodFormFields(formData) {
+            if (!formData.customProject.skillLevelBit) {
+                this.addPopover($(this.$refs.customProjectCfg.getSkillLevelTargetEl()),
+                {severity: SEVERITY.WARN, content: 'You must select a skill level', isOnce: true}
+                );
+                return false;
+            }
+            if (!formData.emailBody.includes('redirectLink')) {
+                this.addPopover($('#assessmentEmail'),
+                {severity: SEVERITY.WARN, content: 'Email must contain a link to the assessment', isOnce: true}
+                );
+                return false;
+            }
+            if (!formData.emailTitle) {
+                this.addPopover($('#assessmentEmailTitle'),
+                {severity: SEVERITY.WARN, content: 'Email title cannot be blank', isOnce: true}
+                );
+                return false;
+            }
+            return true;
+        }
     },
     mounted() {
         const companyContacts = this.initData.candidate.contacts;
-        if (companyContacts.length === 1) {
+        if (companyContacts.length) {
             this.$refs.companyContactEmail.elSel.setValue(companyContacts[0].email, true);
             this.$refs.companyContactName.elSel.setValue(companyContacts[0].name, true);
             this.formData.companyContactEmail = companyContacts[0].email;
             this.formData.companyContactName = companyContacts[0].name;
         }
         this.formData.customProject = this.initData.primaryCustomProject;
+        this.requiredFields.customProject = this.$refs.customProject.getTargetEl();
     }
 }
 </script>

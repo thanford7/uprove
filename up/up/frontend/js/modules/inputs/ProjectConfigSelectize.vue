@@ -5,7 +5,7 @@
             <a href="#" @click="openCustomProject(customProject, $event)"><i class="fas fa-external-link-alt"></i> View customized project</a>
         </label>
         <InputSelectize
-            :ref="`modalJobCustomProject-skillBits-${customProject.id}`"
+            :ref="getSkillLevelRef()"
             :elId="getNewElUid()"
             :items="[customProject.skillLevelBit]"
             :isParseAsBits="true"
@@ -52,6 +52,12 @@ export default {
             e.preventDefault();
             window.open(customProjectUtil.getLink(customProject), '_blank').focus();
         },
+        getSkillLevelRef() {
+            return `modalJobCustomProject-skillBits-${this.customProject.id}`;
+        },
+        getSkillLevelTargetEl() {
+            return this.$refs[this.getSkillLevelRef()].targetEl;
+        }
     },
 }
 </script>

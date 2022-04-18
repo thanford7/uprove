@@ -6,6 +6,7 @@ from json import dumps
 import requests
 from datetime import datetime, timedelta
 
+import bs4
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.http import HttpResponseRedirect
@@ -20,7 +21,9 @@ from upapp import security
 from upapp.apis import UproveAPIView
 from upapp.apis.employer import JobPostingView
 from upapp.apis.project import ProjectView
-from upapp.models import Employer, EmployerJob, RoleTitle
+from upapp.apis.sendEmail import EmailView
+from upapp.apis.user import UserView, UprovePasswordResetForm
+from upapp.models import Employer, EmployerJob, RoleTitle, User
 from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject
 from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
@@ -90,15 +93,16 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
         primaryProject = None
 
     contacts = {}
-    for contactData in [opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']]:
-        contacts[contactData['id']] = serializeLeverContact(contactData)
+    for idx, contactData in enumerate([opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']]):
+        if not contacts.get(contactData['id']):
+            contacts[contactData['id']] = {**serializeLeverContact(contactData), 'priority': idx}
 
     return render(request, 'leverSendOpportunity.html', context={
         'data': dumps({
             'candidate': {
                 'name': opportunity['name'],
                 'emails': opportunity['emails'],
-                'contacts': list(contacts.values()),
+                'contacts': sorted(contacts.values(), key=lambda x: x['priority']),
                 'tags': opportunity['tags']
             },
             'employer': {
@@ -111,6 +115,54 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
             'projects': [getSerializedProject(p) for p in ProjectView.getProjects(employerId=employer.id)]
         })
     })
+
+
+class LeverSendAssessment(UproveAPIView):
+
+    def post(self, request):
+        user = None
+        for userEmail in self.data['candidateEmails']:
+            try:
+                user = User.objects.get(email=userEmail)
+                if user:
+                    break
+            except User.DoesNotExist:
+                continue
+
+        # Send the email if the user already exists
+        if user:
+            return EmailView.sendEmail(
+                self.data['emailTitle'],
+                self.data['candidateEmails'],
+                htmlContent=self.data['emailBody'],
+                fromEmail=self.data['companyContactEmail'],
+                ccEmail=EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
+            )
+
+        candidateNames = self.data['candidateName'].split(' ')
+        firstName = candidateNames[0]
+        lastName = ' '.join(candidateNames[1:]) if len(candidateNames) > 1 else ''
+        user, _ = UserView.createUser({
+            'email': self.data['candidateEmails'][0],
+            'firstName': firstName,
+            'lastName': lastName,
+            'inviteEmployerId': self.data['employerId']
+        }, False)
+        resetContext = UprovePasswordResetForm({'email': user.email}).getEmailContext(request, user.email)
+        htmlBody = bs4.BeautifulSoup(self.data['emailBody'])
+        redirectLink = htmlBody.find(id='redirectLink')
+        originalRedirectLink = redirectLink['href']
+        redirectLink['href'] = f'{resetContext["protocol"]}://{resetContext["domain"]}/password-reset-email/{resetContext["uid"]}/{resetContext["token"]}?isnew=False&next={originalRedirectLink}'
+        htmlBody = str(htmlBody)
+
+        return EmailView.sendEmail(
+            self.data['emailTitle'],
+            self.data['candidateEmails'],
+            htmlContent=htmlBody,
+            fromEmail=self.data['companyContactEmail'],
+            ccEmail=EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
+        )
+
 
 
 class LeverLogOut(UproveAPIView):

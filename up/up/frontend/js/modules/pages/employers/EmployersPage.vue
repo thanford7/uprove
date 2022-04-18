@@ -103,7 +103,7 @@
                             </template>
                             <template v-slot:front-price>
                                 <h2 class="-color-darkblue-text">Custom price/mo</h2>
-                                <h6>Reduced fee per hire</h6>
+                                <h6>No fee per hire</h6>
                                 <h6>Monthly contract</h6>
                             </template>
                             <template v-slot:front-details>

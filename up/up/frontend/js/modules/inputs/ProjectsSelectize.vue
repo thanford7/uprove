@@ -107,6 +107,9 @@ export default {
 
             this.$emit('projectChange', this.allowedProjects);
         },
+        getTargetEl() {
+            return this.$refs.projects.targetEl;
+        }
     },
     async mounted() {
         await this.loadData([{route: `project/?employerId=${this.employerId}`, dataKey: 'projects'}]);

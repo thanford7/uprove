@@ -6,6 +6,7 @@ import ffmpeg as ffmpeg
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.files.base import File
 from django.core.mail import EmailMultiAlternatives
@@ -15,6 +16,8 @@ from django.db.transaction import atomic
 from django.template import loader
 from django.templatetags.static import static
 from django.utils import crypto, timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from moviepy.editor import clips_array, VideoFileClip
 from rest_framework import status, authentication
 from rest_framework.views import APIView
@@ -1487,6 +1490,20 @@ class WaitlistView(UproveAPIView):
 
 
 class UprovePasswordResetForm(PasswordResetForm):
+
+    def getEmailContext(self, request, userEmail, use_https=False):
+        current_site = get_current_site(request)
+        site_name = current_site.name
+        domain = current_site.domain
+        user = next(self.get_users(userEmail), None)
+        return {
+            'domain': domain,
+            'site_name': site_name,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'user': user,
+            'token': default_token_generator.make_token(user),
+            'protocol': 'https' if use_https else 'http'
+        }
 
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):
