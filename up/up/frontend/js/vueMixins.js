@@ -37,14 +37,12 @@ const store = createStore({
                 this.commit('clearSuccessAlerts');
             }, 10000);
 
-            if ([SEVERITY.DANGER, SEVERITY.WARN].includes(alert.type)) {
-                // If modal is open, scroll to the top, otherwise scroll to the top of the page
-                const modal$ = $('.modal.show .modal-content');
-                if (modal$.length) {
-                    layout.scrollTo(modal$, true);
-                } else {
-                    layout.scrollTo($('#vue-container'));
-                }
+            // If modal is open, scroll to the top, otherwise scroll to the top of the page
+            const modal$ = $('.modal.show .modal-content');
+            if (modal$.length) {
+                layout.scrollTo(modal$, true);
+            } else {
+                layout.scrollTo($('#vue-container'));
             }
         },
         clearAlert(state, alertId) {

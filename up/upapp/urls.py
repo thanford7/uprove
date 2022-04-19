@@ -88,7 +88,7 @@ urlpatterns = [
     path(apiPath + 'lever/logout/', lever.LeverLogOut.as_view()),
     path(apiPath + 'lever/opportunities/', lever.LeverOpportunities.as_view()),
     path(apiPath + 'lever/postings/', lever.LeverPostings.as_view()),
-    path(apiPath + 'lever/send-assessment/', lever.LeverStages.as_view()),
+    path(apiPath + 'lever/send-assessment/', lever.LeverSendAssessment.as_view()),
     path(apiPath + 'lever/stages/', lever.LeverStages.as_view()),
     re_path(f'^{apiPath}lever/change/stage-change/(?P<employerId>[0-9]+)?/?$', lever.LeverChangeStage.as_view()),
     re_path(f'^{apiPath}lever/change/archive/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),

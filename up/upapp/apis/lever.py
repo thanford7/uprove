@@ -119,6 +119,7 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
 
 class LeverSendAssessment(UproveAPIView):
 
+    @atomic
     def post(self, request):
         user = None
         for userEmail in self.data['candidateEmails']:
@@ -131,13 +132,14 @@ class LeverSendAssessment(UproveAPIView):
 
         # Send the email if the user already exists
         if user:
-            return EmailView.sendEmail(
+            response = EmailView.sendEmail(
                 self.data['emailTitle'],
                 self.data['candidateEmails'],
                 htmlContent=self.data['emailBody'],
                 fromEmail=self.data['companyContactEmail'],
                 ccEmail=EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
             )
+            return Response(status=response.status_code)
 
         candidateNames = self.data['candidateName'].split(' ')
         firstName = candidateNames[0]
@@ -154,15 +156,17 @@ class LeverSendAssessment(UproveAPIView):
         originalRedirectLink = redirectLink['href']
         redirectLink['href'] = f'{resetContext["protocol"]}://{resetContext["domain"]}/password-reset-email/{resetContext["uid"]}/{resetContext["token"]}?isnew=False&next={originalRedirectLink}'
         htmlBody = str(htmlBody)
+        print(htmlBody)
 
-        return EmailView.sendEmail(
+        response = EmailView.sendEmail(
             self.data['emailTitle'],
             self.data['candidateEmails'],
             htmlContent=htmlBody,
             fromEmail=self.data['companyContactEmail'],
-            ccEmail=EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
+            ccEmail=[EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP], self.data['companyContactEmail']]
         )
 
+        return Response(status=response.status_code)
 
 
 class LeverLogOut(UproveAPIView):

@@ -82,7 +82,7 @@ class EmailView(UproveAPIView):
             subject=subject,
             html_content=htmlContent)
 
-        if ccEmail:
+        if ccEmail and not settings.DEBUG:
             if not isinstance(ccEmail, list):
                 ccEmail = [ccEmail]
             for email in ccEmail:

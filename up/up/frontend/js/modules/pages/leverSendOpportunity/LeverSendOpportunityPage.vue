@@ -100,7 +100,7 @@
                 </div>
             </div>
             <row class="mb-3">
-                <div class="col-12 btn btn-primary">
+                <div class="col-12 btn btn-primary" @click="saveChange">
                     <i class="fas fa-paper-plane"></i> Send assessment email
                 </div>
             </row>
@@ -154,6 +154,14 @@ export default {
         }
     },
     methods: {
+        getSuccessMessage() {
+            return `Message successfully sent to ${this.initData.candidate.emails.join('; ')}`;
+        },
+        getAjaxCfgOverride() {
+            return {
+                method: 'POST'
+            };
+        },
         getProject(customProject) {
             if (!customProject) {
                 return null;
