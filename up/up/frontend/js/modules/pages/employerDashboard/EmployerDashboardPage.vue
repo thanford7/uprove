@@ -2,19 +2,49 @@
     <BasePage>
         <ul class="nav nav-tabs" id="employerTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="job-openings-tab" data-bs-toggle="tab" data-bs-target="#job-openings" type="button" role="tab" aria-selected="true">Job openings</button>
+                <button
+                    class="nav-link" id="job-openings-tab"
+                    :class="(currentTab === 'job-openings') ? 'active': ''"
+                    data-bs-toggle="tab" data-bs-target="#job-openings"
+                    type="button" role="tab" aria-selected="true"
+                    @click="setTabParam('job-openings')"
+                >Job openings</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" id="applications-tab" data-bs-toggle="tab" data-bs-target="#applications" type="button" role="tab" aria-selected="false">Applications</button>
+                <button
+                    class="nav-link" id="applications-tab"
+                    :class="(currentTab === 'applications') ? 'active': ''"
+                    data-bs-toggle="tab" data-bs-target="#applications"
+                    type="button" role="tab" aria-selected="false"
+                    @click="setTabParam('applications')"
+                >Applications</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button" role="tab" aria-selected="false">Projects</button>
+                <button
+                    class="nav-link" id="projects-tab"
+                    :class="(currentTab === 'projects') ? 'active': ''"
+                    data-bs-toggle="tab" data-bs-target="#projects"
+                    type="button" role="tab" aria-selected="false"
+                    @click="setTabParam('projects')"
+                >Projects</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-selected="false">Settings</button>
+                <button
+                    class="nav-link" id="settings-tab"
+                    :class="(currentTab === 'settings') ? 'active': ''"
+                    data-bs-toggle="tab" data-bs-target="#settings"
+                    type="button" role="tab" aria-selected="false"
+                    @click="setTabParam('settings')"
+                >Settings</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations" type="button" role="tab" aria-selected="false">Integrations</button>
+                <button
+                    class="nav-link" id="integrations-tab"
+                    :class="(currentTab === 'integrations') ? 'active': ''"
+                    data-bs-toggle="tab" data-bs-target="#integrations"
+                    type="button" role="tab" aria-selected="false"
+                    @click="setTabParam('integrations')"
+                >Integrations</button>
             </li>
         </ul>
         <div class="tab-content mb-3" id="employerTabContent">
@@ -369,6 +399,7 @@ export default {
             sortKeysJobPostingTable: [],
             leverData: {},
             leverWebhookTypes: leverIntegration.TYPES,
+            currentTab: 'job-openings'
         }
     },
     computed: {
@@ -458,17 +489,27 @@ export default {
                     updateApp.declineDateTime = data.declineDateTime;
                 }
             });
+        },
+        setTabParam(tabName) {
+            this.currentTab = tabName;
+            dataUtil.setQueryParams([{key: 'tab', val: tabName}])
         }
     },
     async mounted() {
+        const {tab} = dataUtil.getQueryParams();
+        if (tab) {
+            this.currentTab = tab;
+        }
         this.leverData = dataUtil.pick(this.initData.employer, [
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);
-        await this.loadData([{route: 'lever/stages/', dataKey: 'leverStages'}]);
-        this.$refs.leverStage.resetOptions(this.cData.leverStages);
-        this.$refs.leverStage.elSel.setValue(this.initData.employer.leverTriggerStageKey, true);
-        this.$refs.leverStageComplete.resetOptions(this.cData.leverStages);
-        this.$refs.leverStageComplete.elSel.setValue(this.initData.employer.leverCompleteStageKey, true);
+        if ('isLeverOn') {
+            await this.loadData([{route: 'lever/stages/', dataKey: 'leverStages'}]);
+            this.$refs.leverStage.resetOptions(this.cData.leverStages);
+            this.$refs.leverStage.elSel.setValue(this.initData.employer.leverTriggerStageKey, true);
+            this.$refs.leverStageComplete.resetOptions(this.cData.leverStages);
+            this.$refs.leverStageComplete.elSel.setValue(this.initData.employer.leverCompleteStageKey, true);
+        }
     }
 }
 </script>

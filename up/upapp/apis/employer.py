@@ -302,7 +302,7 @@ class JobPostingView(APIView):
         )
 
     @staticmethod
-    def setCustomProjects(employerJob, allowedProjects):
+    def setCustomProjects(employerJob, allowedProjects, isDeleteExisting=True):
         existingCustomProjects = JobPostingView.getCustomProjects()
         existingAllowedProjectIds = [ap.id for ap in employerJob.allowedProjects.all()]
         newAllowedProjectIds = []
@@ -342,9 +342,10 @@ class JobPostingView(APIView):
                 continue
             employerJob.allowedProjects.add(customProject)
 
-        for projectId in existingAllowedProjectIds:
-            if projectId not in newAllowedProjectIds:
-                employerJob.allowedProjects.remove(CustomProject.objects.get(id=projectId))
+        if isDeleteExisting:
+            for projectId in existingAllowedProjectIds:
+                if projectId not in newAllowedProjectIds:
+                    employerJob.allowedProjects.remove(CustomProject.objects.get(id=projectId))
 
 
 class JobProjectLinkView(APIView):

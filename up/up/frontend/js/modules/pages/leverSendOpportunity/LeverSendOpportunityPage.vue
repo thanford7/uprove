@@ -134,14 +134,16 @@ export default {
     },
     computed: {
         assessmentEmail() {
+            const projectUrl = `${this.globalData.BASE_URL}/job-posting/${this.initData.jobId}/`;
             return `
                 <p>Hi ${this.initData.candidate.name},</p>
                 <p>Congratulations on making it to this stage in the interview process with
                 ${this.initData.employer.companyName} for the ${this.initData.jobTitle} position! The next step
                 in the process is to complete a case study. The background, instructions, and supporting files
                 can be accessed using
-                <a id="redirectLink" href="${customProjectUtil.getLink(this.formData.customProject, true)}">this link</a>. If you have
-                any questions about the case study, you can email
+                <a id="redirectLink" href="${projectUrl}">this link</a>.
+                If you do not already have an account with Uprove, you will be asked to set a password before continuing to the
+                case study. If you have any questions about the case study, you can email
                 <a href="mailto: ${globalData.CANDIDATE_SUPPORT_EMAIL}">${globalData.CANDIDATE_SUPPORT_EMAIL}</a>.
                 If you have any questions about ${this.initData.employer.companyName} or the interview process, please email me.
                 </p>
@@ -190,7 +192,9 @@ export default {
                 candidateEmails: this.initData.candidate.emails,
                 emailTitle: this.assessmentEmailTitle,
                 emailBody: this.assessmentEmail,
-                employerId: this.initData.employer.id
+                employerId: this.initData.employer.id,
+                jobId: this.initData.jobId,
+                opportunityId: this.initData.candidate.opportunityId
             });
         },
         isGoodFormFields(formData) {
@@ -224,6 +228,9 @@ export default {
             this.formData.companyContactName = companyContacts[0].name;
         }
         this.formData.customProject = this.initData.primaryCustomProject;
+        if (this.formData.customProject) {
+            this.formData.customProject.skillIds = this.formData.customProject.skills.map((s) => s.id);
+        }
         this.requiredFields.customProject = this.$refs.customProject.getTargetEl();
     }
 }

@@ -4,7 +4,7 @@
 $card-radius: 10px;
 @mixin card {
     background-color: colors.$color-white;
-    border: colors.$color-lightgrey 1px solid;
+    box-shadow: 0 0 3px 1px colors.$color-lightgrey;
     border-radius: $card-radius;
     padding: 10px;
     height: fit-content;

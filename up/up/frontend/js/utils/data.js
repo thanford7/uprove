@@ -101,7 +101,7 @@ class DataUtil {
     /**
      * Update query params and optionally redirect to a new page
      * @param params {Array}: Array of dicts with key: val pairs. The key represents the name of the query param and
-     * val represents the value. Val can be a single value or a list of values
+     * val represents the value. Val can be a single value or a list of values. Example: [{key: 'tab', val: 'settings'}]
      * @param path {null|string}: Optional path if directing to a new page
      */
     setQueryParams(params, path = null) {

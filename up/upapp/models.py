@@ -439,8 +439,11 @@ class UserJobApplication(models.Model):
     inviteDateTime = models.DateTimeField(null=True)
     submissionDateTime = models.DateTimeField(null=True)
     approveDateTime = models.DateTimeField(null=True)
+    hireDateTime = models.DateTimeField(null=True)
     declineDateTime = models.DateTimeField(null=True)
     withdrawDateTime = models.DateTimeField(null=True)
+
+    leverOpportunityKey = models.CharField(max_length=75, null=True)
 
     class Meta:
         unique_together = ('user', 'employerJob')

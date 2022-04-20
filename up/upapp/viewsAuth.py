@@ -10,6 +10,9 @@ from django.contrib.auth.views import PasswordResetConfirmView
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http import HttpResponseRedirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -125,17 +128,32 @@ class PasswordResetGenerateView(UproveAPIView):
 class PasswordResetView(PasswordResetConfirmView):
     """Render the page for the user to set password
     """
+
+    def setup(self, *args, **kwargs):
+        params = args[0].GET
+
+        # Need to persist in session because Django redirects the URL
+        if params:
+            args[0].session['isNewUser'] = params.get('isnew') == 'True'
+            args[0].session['next'] = params.get('next')
+        super().setup(*args, **kwargs)
+
     def get_user(self, uidb64):
-        logoutUser(self.request)  # Logout the user if they were logged in when they made the request to reset
+        # logoutUser(self.request)  # Logout the user if they were logged in when they made the request to reset
         user = super().get_user(uidb64)
         setUproveUser(self.request, user)
         return user
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        params = self.request.GET
-        isNewUser = params.get('isnew') == 'True'
-        context['data'] = dumps({'isNew': isNewUser, 'next': params.get('next')})
+        sessionData = self.request.session
+        isNewUser = sessionData.get('isNewUser')
+        context['data'] = dumps({'isNew': isNewUser, 'next': sessionData.get('next')})
+
+        # Remove session variables that are no longer needed
+        del sessionData['isNewUser']
+        del sessionData['next']
+
         if isNewUser:
             saveActivity(
                 ActivityKey.CREATE_ACCOUNT,

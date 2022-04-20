@@ -28,7 +28,7 @@ def initBaseVariables(context):
 
     baseVariables = json.dumps({
         'uproveUser': uproveUser,
-        'BASE_URL': baseUrl,
+        'BASE_URL': protocol + baseUrl,
         'STATIC_URL': static,
         'MEDIA_URL': media,
         'LEVER_REDIRECT_URL': f'https://sandbox-lever.auth0.com/authorize?client_id={os.getenv("LEVER_CLIENT_ID")}&redirect_uri={leverRedirectUrl}&state={os.getenv("LEVER_STATE")}&response_type=code&scope={os.getenv("LEVER_SCOPE")}&prompt=consent&audience={os.getenv("LEVER_AUDIENCE")}'

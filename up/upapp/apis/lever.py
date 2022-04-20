@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 from json import dumps
+from urllib import parse
 
 import requests
 from datetime import datetime, timedelta
@@ -22,12 +23,10 @@ from upapp.apis import UproveAPIView
 from upapp.apis.employer import JobPostingView
 from upapp.apis.project import ProjectView
 from upapp.apis.sendEmail import EmailView
-from upapp.apis.user import UserView, UprovePasswordResetForm
-from upapp.models import Employer, EmployerJob, RoleTitle, User
+from upapp.models import Employer, EmployerJob, RoleTitle, User, UserJobApplication
 from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject
 from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
-from upapp.views import _getErrorPage
 
 RECORD_LIMIT = 20000
 LEVER_UPROVE_TAG = 'uprove'
@@ -62,6 +61,7 @@ def leverIntegrate(request):
 
 
 def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
+    from upapp.views import _getErrorPage  # Avoid circular import
     # TODO: Require login to access page
     if not opportunityId:
         return _getErrorPage(request, status.HTTP_400_BAD_REQUEST, 'An opportunity ID is required')
@@ -70,19 +70,24 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
         return _getErrorPage(request, status.HTTP_400_BAD_REQUEST, 'An employer ID is required')
 
     employer = Employer.objects.get(id=employerId)
-    opportunity = getLeverRequestWithRefresh(
-        employer,
-        f'opportunities/{opportunityId}?expand=applications&expand=owner&expand=followers&expand=sourcedBy'
-    )
-    if isinstance(opportunity, ConnectionError):
-        raise opportunity
+    try:
+        opportunity = getLeverRequestWithRefresh(
+            employer,
+            f'opportunities/{opportunityId}?expand=applications&expand=owner&expand=followers&expand=sourcedBy'
+        )['data']
+    except ConnectionError:
+        return _getLeverConnectionErrorPage(request)
 
-    opportunity = opportunity['data']
     postingKey = opportunity['applications'][0]['posting']
-    posting = getLeverRequestWithRefresh(
-        employer,
-        f'postings/{postingKey}'
-    )['data']
+
+    try:
+        posting = getLeverRequestWithRefresh(
+            employer,
+            f'postings/{postingKey}'
+        )['data']
+    except ConnectionError:
+        return _getLeverConnectionErrorPage(request)
+
     try:
         uproveJob = EmployerJob.objects\
             .prefetch_related('allowedProjects', 'allowedProjects__project', 'allowedProjects__skills')\
@@ -90,7 +95,10 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
         allowedProjects = sorted(uproveJob.allowedProjects.all(), key=lambda p: p.id)
         primaryProject = allowedProjects[0] if allowedProjects else None
     except EmployerJob.DoesNotExist:
-        primaryProject = None
+        return _getErrorPage(
+            request, status.HTTP_400_BAD_REQUEST,
+            f'Job posting not found.'
+        )
 
     contacts = {}
     for idx, contactData in enumerate([opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']]):
@@ -103,13 +111,15 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
                 'name': opportunity['name'],
                 'emails': opportunity['emails'],
                 'contacts': sorted(contacts.values(), key=lambda x: x['priority']),
-                'tags': opportunity['tags']
+                'tags': opportunity['tags'],
+                'opportunityId': opportunityId
             },
             'employer': {
                 'id': employer.id,
                 'companyName': employer.companyName,
                 'logo': employer.logo.url if employer.logo else None,
             },
+            'jobId': uproveJob.id,
             'jobTitle': posting['text'],
             'primaryCustomProject': getSerializedCustomProject(primaryProject) if primaryProject else None,
             'projects': [getSerializedProject(p) for p in ProjectView.getProjects(employerId=employer.id)]
@@ -121,7 +131,9 @@ class LeverSendAssessment(UproveAPIView):
 
     @atomic
     def post(self, request):
+        from upapp.apis.user import UserView, UprovePasswordResetForm  # Avoid circular import
         user = None
+        htmlBody = self.data['emailBody']
         for userEmail in self.data['candidateEmails']:
             try:
                 user = User.objects.get(email=userEmail)
@@ -130,33 +142,40 @@ class LeverSendAssessment(UproveAPIView):
             except User.DoesNotExist:
                 continue
 
-        # Send the email if the user already exists
-        if user:
-            response = EmailView.sendEmail(
-                self.data['emailTitle'],
-                self.data['candidateEmails'],
-                htmlContent=self.data['emailBody'],
-                fromEmail=self.data['companyContactEmail'],
-                ccEmail=EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
-            )
-            return Response(status=response.status_code)
+        if not user:
+            candidateNames = self.data['candidateName'].split(' ')
+            firstName = candidateNames[0]
+            lastName = ' '.join(candidateNames[1:]) if len(candidateNames) > 1 else ''
+            user, _ = UserView.createUser({
+                'email': self.data['candidateEmails'][0],
+                'firstName': firstName,
+                'lastName': lastName,
+                'inviteEmployerId': self.data['employerId']
+            }, False)
+            resetContext = UprovePasswordResetForm({'email': user.email}).getEmailContext(request, user.email)
+            htmlBody = bs4.BeautifulSoup(htmlBody)
+            redirectLink = htmlBody.find(id='redirectLink')
+            originalRedirectLink = redirectLink['href']
+            urlParams = {'isnew': False, 'next': originalRedirectLink}
+            encodedUrlParams = parse.urlencode(urlParams)
+            redirectLink[
+                'href'] = f'{resetContext["protocol"]}://{resetContext["domain"]}/password-reset-email/{resetContext["uid"]}/{resetContext["token"]}/?{encodedUrlParams}'
+            htmlBody = str(htmlBody)
 
-        candidateNames = self.data['candidateName'].split(' ')
-        firstName = candidateNames[0]
-        lastName = ' '.join(candidateNames[1:]) if len(candidateNames) > 1 else ''
-        user, _ = UserView.createUser({
-            'email': self.data['candidateEmails'][0],
-            'firstName': firstName,
-            'lastName': lastName,
-            'inviteEmployerId': self.data['employerId']
-        }, False)
-        resetContext = UprovePasswordResetForm({'email': user.email}).getEmailContext(request, user.email)
-        htmlBody = bs4.BeautifulSoup(self.data['emailBody'])
-        redirectLink = htmlBody.find(id='redirectLink')
-        originalRedirectLink = redirectLink['href']
-        redirectLink['href'] = f'{resetContext["protocol"]}://{resetContext["domain"]}/password-reset-email/{resetContext["uid"]}/{resetContext["token"]}?isnew=False&next={originalRedirectLink}'
-        htmlBody = str(htmlBody)
-        print(htmlBody)
+        job = JobPostingView.getEmployerJobs(jobId=self.data['jobId'])
+        JobPostingView.setCustomProjects(job, [self.data['customProject']], isDeleteExisting=False)
+
+        # Create an application for the user if it doesn't exist
+        leverOpportunityKey = self.data['opportunityId']
+        try:
+            UserJobApplication.objects.get(leverOpportunityKey=leverOpportunityKey)
+        except UserJobApplication.DoesNotExist:
+            UserJobApplication(
+                user=user,
+                employerJob=job,
+                inviteDateTime=timezone.now(),
+                leverOpportunityKey=leverOpportunityKey
+            ).save()
 
         response = EmailView.sendEmail(
             self.data['emailTitle'],
@@ -300,8 +319,8 @@ class BaseLeverChange(APIView):
         if not employerId:
             return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
 
-        employer = Employer.objects.get(id=employerId)
-        hookKey = getattr(employer, hookAttr)
+        self.employer = Employer.objects.get(id=employerId)
+        hookKey = getattr(self.employer, hookAttr)
         if not hookKey:
             return Response('The signature token for this webhook has not been configured', status=status.HTTP_400_BAD_REQUEST)
 
@@ -309,7 +328,7 @@ class BaseLeverChange(APIView):
         if not isAuthorizedRequest:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        return data
+        return data['data']
 
 
 class LeverChangeStage(BaseLeverChange):
@@ -319,22 +338,16 @@ class LeverChangeStage(BaseLeverChange):
         if isinstance(data, Response):
             return data
 
-        if not employerId:
-            return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
-
-        employer = Employer.objects.get(id=employerId)
-
-        data = data['data']
-        if data['toStageId'] != employer.leverTriggerStageKey:
+        if data['toStageId'] != self.employer.leverTriggerStageKey:
             return Response(status=status.HTTP_200_OK)
 
         opportunityId = data["opportunityId"]
-        opportunity = getLeverRequestWithRefresh(employer, f'opportunities/{opportunityId}')['data']
+        opportunity = getLeverRequestWithRefresh(self.employer, f'opportunities/{opportunityId}')['data']
         if LEVER_UPROVE_TAG not in opportunity['tags']:
             return Response(status=status.HTTP_200_OK)
 
         resp = getLeverRequestWithRefresh(
-            employer,
+            self.employer,
             f'opportunities/{data["opportunityId"]}/addLinks',
             bodyCfg={'links': [request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/'),]},
             isJSON=True,
@@ -351,8 +364,45 @@ class LeverArchive(BaseLeverChange):
         if isinstance(data, Response):
             return data
 
-        # TODO: Parse the data
+        isHired = False
+        wasHired = False
+        if isArchived := bool(data['toArchived']):
+            archivedReasonCode = data['toArchived']['reason']
+            archiveReason = getLeverRequestWithRefresh(
+                self.employer,
+                f'archive_reasons/{archivedReasonCode}'
+            )['data']['text']
+            isHired = archiveReason.lower() == 'hired'
+        if bool(data['fromArchived']):
+            archivedReasonCode = data['fromArchived']['reason']
+            archiveReason = getLeverRequestWithRefresh(
+                self.employer,
+                f'archive_reasons/{archivedReasonCode}'
+            )['data']['text']
+            wasHired = archiveReason.lower() == 'hired'
 
+        try:
+            jobApplication = UserJobApplication.objects.get(leverOpportunityKey=data['opportunityId'])
+        except UserJobApplication.DoesNotExist:
+            # This is not an application that we are tracking
+            return Response(status=status.HTTP_200_OK)
+
+        if isHired:
+            isArchived = False
+            jobApplication.approveDateTime = timezone.now()
+            jobApplication.hireDateTime = timezone.now()
+            jobApplication.declineDateTime = None
+        elif wasHired:
+            jobApplication.approveDateTime = None
+            jobApplication.hireDateTime = None
+
+        if isArchived and not jobApplication.declineDateTime:
+            jobApplication.declineDateTime = timezone.now()
+
+        if not isArchived and jobApplication.declineDateTime:
+            jobApplication.declineDateTime = None
+
+        jobApplication.save()
         return Response(status=status.HTTP_200_OK)
 
 
@@ -363,7 +413,15 @@ class LeverHired(BaseLeverChange):
         if isinstance(data, Response):
             return data
 
-        # TODO: Parse the data
+        try:
+            jobApplication = UserJobApplication.objects.get(leverOpportunityKey=data['opportunityId'])
+        except UserJobApplication.DoesNotExist:
+            # This is not an application that we are tracking
+            return Response(status=status.HTTP_200_OK)
+
+        jobApplication.approveDateTime = timezone.now()
+        jobApplication.hireDateTime = timezone.now()
+        jobApplication.save()
 
         return Response(status=status.HTTP_200_OK)
 
@@ -375,7 +433,15 @@ class LeverDeleted(BaseLeverChange):
         if isinstance(data, Response):
             return data
 
-        # TODO: Parse the data
+        try:
+            jobApplication = UserJobApplication.objects.get(leverOpportunityKey=data['opportunityId'])
+        except UserJobApplication.DoesNotExist:
+            # This is not an application that we are tracking
+            return Response(status=status.HTTP_200_OK)
+
+        if not jobApplication.declineDateTime:
+            jobApplication.declineDateTime = timezone.now()
+            jobApplication.save()
 
         return Response(status=status.HTTP_200_OK)
 
@@ -469,3 +535,42 @@ def serializeLeverContact(contactData):
         'email': contactData['email'],
         'phoneNumbers': contactData.get('phones')
     }
+
+
+def updateLeverAssessmentComplete(request, jobApplication):
+    if opportunityKey := jobApplication.leverOpportunityKey:
+        employer = jobApplication.employerJob.employer
+        getLeverRequestWithRefresh(
+            employer,
+            f'opportunities/{opportunityKey}/addLinks',
+            bodyCfg={'links': [
+                request.build_absolute_uri('/employerDashboard/?tab=applications'), ]},
+            isJSON=True,
+            method='POST'
+        )
+
+        getLeverRequestWithRefresh(
+            employer,
+            f'opportunities/{opportunityKey}/notes',
+            bodyCfg={
+                'value': 'Candidate has completed the Uprove assessment. A link was added to this opportunity to view the assessment.'},
+            isJSON=True,
+            method='POST'
+        )
+
+        if newLeverStage := employer.leverCompleteStageKey:
+            getLeverRequestWithRefresh(
+                employer,
+                f'opportunities/{opportunityKey}/stage',
+                bodyCfg={'stage': newLeverStage},
+                isJSON=True,
+                method='PUT'
+            )
+
+
+def _getLeverConnectionErrorPage(request):
+    from upapp.views import _getErrorPage  # Avoid circular import
+    return _getErrorPage(
+        request, status.HTTP_400_BAD_REQUEST,
+        f'Uprove no longer has permission to access your Lever account. Please visit the integrations tab on your Uprove dashboard to reset the connection.'
+    )
