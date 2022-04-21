@@ -6,6 +6,7 @@ $primary: colors.$color-blue;
 $secondary: colors.$color-lightgrey;
 $info: colors.$color-darkblue;
 $dark: colors.$color-darkgrey;
+$success: colors.$color-green;
 $accordion-button-bg: rgba(colors.$color-lightgrey, .4);
 $accordion-button-active-bg: colors.$color-darkblue;
 $accordion-button-active-color: colors.$color-white;
@@ -20,6 +21,9 @@ $h3-font-size: $font-size-base * 2.5;
 $h4-font-size: $font-size-base * 2;
 $h5-font-size: $font-size-base * 1.5;
 $h6-font-size: $font-size-base;
+
+$nav-link-color: colors.$color-darkblue;
+$nav-tabs-link-active-color: colors.$color-blue;
 
 $spacer: 1rem;
 $spacers: (
@@ -37,6 +41,13 @@ $spacers: (
 );
 
 $btn-font-size: 1.0rem;
+
+$input-border-radius: 0.5rem;
+$input-border-radius-sm: 0.5rem;
+$input-border-radius-lg: 0.5rem;
+
+$form-label-font-size: 1rem;
+$form-label-fontweight:600;
 
 @import "bootstrap/scss/bootstrap";
 
@@ -309,7 +320,7 @@ tr {
 }
 
 .tab-content {
-    padding: 10px 7px;
+    padding: 16px 24px;
     background-color: colors.$color-white;
     border-bottom: 1px solid colors.$color-lightgrey;
     border-left: 1px solid colors.$color-lightgrey;

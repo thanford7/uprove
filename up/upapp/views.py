@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from json import dumps
 
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 
@@ -44,9 +44,6 @@ def admin(request):
         return _getUnauthorizedPage(request)
     return render(request, 'admin.html', {'data': dumps({
         'projects': [getSerializedProject(p, isIncludeDetails=True, isAdmin=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)],
-        # TODO: Lazy load employers and users since this will get long
-        'employers': [getSerializedEmployer(e, isEmployer=True) for e in EmployerView.getEmployers()],
-        'users': [getSerializedUser(u) for u in UserView.getUsers()],
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
         'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
@@ -86,10 +83,17 @@ def candidateBoard(request):
 
     return render(request, 'candidateBoard.html', context={'data': dumps({
         'candidates': [{
+            'id': candidate.id,
             'profileId': candidate.primaryProfile.id,
             'profileName': candidate.primaryProfile.profileName,
             'firstName': candidate.firstName,
             'lastName': candidate.lastName,
+            'email': candidate.email,
+            'appliedJobs': [
+                j.employerJob.jobTitle
+                for j in candidate.jobApplication.all()
+                if j.employerJob.employer_id == user.employer_id
+            ],
             'userProjects': [{
                 'id': project.id,
                 'projectTitle': project.customProject.project.title,
@@ -106,7 +110,7 @@ def candidateBoard(request):
             for candidate
             in User.objects
                 .select_related('djangoUser')
-                .prefetch_related('profile', 'userProject', 'userProject__customProject')
+                .prefetch_related('profile', 'userProject', 'userProject__customProject', 'jobApplication', 'jobApplication__employerJob')
                 .annotate(isCandidateF=F('userTypeBits').bitand(User.USER_TYPE_CANDIDATE))
                 .filter(
                     djangoUser__is_active=True,
@@ -205,7 +209,15 @@ def employerDashboard(request, employerId=None):
             getSerializedEmployerCustomProjectCriterion(ec)
             for ec in EmployerCustomProjectCriterion.objects.filter(employer_id=employerId)
         ],
-        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()]
+        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
+        'users': [{
+            'id': u.id,
+            'firstName': u.firstName,
+            'lastName': u.lastName,
+            'email': u.email,
+            'userTypeBits': u.userTypeBits,
+            'leverUserKey': u.leverUserKey
+        } for u in UserView.getUsers(filter=Q(employer_id=employerId))]
     })})
 
 

@@ -16,15 +16,19 @@ if (jQueryConsole) {
 }
 
 setTimeout(() => {
-    const pageName = $('body').data('page');
-    const {page, banner} = Pages[pageName];
+    const bodyData = $('body').data();
+    const pageName = bodyData.page;
+    const {page, banner, isNoHeaderFooter} = Pages[pageName];
     initSelectize();
     if (banner) {
         initVue(banner, '#hero');
     }
     initVue(page, '#vue-container');
-    initVue(header, '#site-header .navbar');
-    initVue(footer, '#site-footer');
+
+    if (!isNoHeaderFooter) {
+        initVue(header, '#site-header .navbar');
+        initVue(footer, '#site-footer');
+    }
 
     // Remove data scripts so it's not visible after data has been loaded in Vue
     $('#globalData').remove();

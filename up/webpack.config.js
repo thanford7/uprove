@@ -157,6 +157,7 @@ module.exports = function (env, argv) {
     } else {
         cfg.devServer = {
             host: '0.0.0.0',
+            allowedHosts: ['177d-65-155-190-226.ngrok.io'],
             historyApiFallback: {
                 index: '/404/'
             },

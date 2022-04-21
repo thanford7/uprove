@@ -486,4 +486,3 @@ class ExabeamSpider(LeverSpider):
     companyName = 'Exabeam'
     name = 'exabeam'
     start_urls = ['https://jobs.lever.co/exabeam']
-

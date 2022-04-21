@@ -1,4 +1,3 @@
-from collections import defaultdict
 from enum import Enum, auto
 
 from django.core.files.uploadedfile import UploadedFile

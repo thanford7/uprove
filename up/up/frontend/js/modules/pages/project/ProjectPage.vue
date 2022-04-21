@@ -91,7 +91,7 @@
                                 <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Link project to {{pluralize('job position', (formData.jobIds || []).length)}}</button>
                             </template>
                             <template v-else>
-                                <button @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Save project to dashboard</button>
+                                <button id="candidateSaveButton" @click="readAndSubmitForm" type="button" class="btn btn-primary w-100">Save project to dashboard</button>
                             </template>
                         </template>
                     </AccordionItem>
@@ -158,6 +158,7 @@ import skillSelectize from "../../selectizeCfgs/skill";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import ProjectJobs from "../projects/ProjectJobs";
 import BasePage from "../base/BasePage";
+import {getAjaxFormData} from "../../../vueMixins";
 
 export default {
     name: "ProjectPage.vue",
@@ -276,11 +277,11 @@ export default {
             return idx === Object.values(targetObject).length - 1;
         },
         unlinkJob(customProject, job) {
-            const ajaxData = this.getAjaxFormData({
+            const ajaxData = getAjaxFormData({
                 jobId: job.id,
                 skillLevelBit: customProject.skillLevelBit,
                 skillIds: customProject.skillIds
-            })
+            }, [])
 
             this.submitAjaxRequest(ajaxData, {
                 method: 'DELETE',
@@ -360,19 +361,29 @@ export default {
         } else if (this.isCandidate) {
             this.crudUrl = 'user-project/';
             this.pageRedirect = `/candidateDashboard/${this.globalData.uproveUser.id}/`;
-            // Only add this info popover if the skill level is unset
-            if (!this.$refs.projectSkillLevel.elSel.getValue()) {
+
+            const {isInvite} = dataUtil.getQueryParams();
+            if (isInvite) {
                 popoverCfgs.push({
-                    el$: $(this.$refs.projectSkillLevel.targetEl),
-                    content: 'Choose your desired career level to get started.',
-                    clickTarget: this.$refs.projectSkillLevel.targetEl
+                    el$: $('#candidateSaveButton'),
+                    content: 'To begin working on this project, save it to your dashboard.',
+                    clickTarget: 'body'
+                });
+            } else {
+                // Only add this info popover if the skill level is unset
+                if (!this.$refs.projectSkillLevel.elSel.getValue()) {
+                    popoverCfgs.push({
+                        el$: $(this.$refs.projectSkillLevel.targetEl),
+                        content: 'Choose your desired career level to get started.',
+                        clickTarget: this.$refs.projectSkillLevel.targetEl
+                    });
+                }
+                popoverCfgs.push({
+                    el$: $(this.$refs.skills.targetEl),
+                    content: 'These are the recommended skills based on employer interest. Adding skills will allow you to show off more of your talent, but will also increase the time to complete the project.',
+                    showEvent: (popoverCfgs.length) ? {target$: $(this.$refs.projectSkillLevel.targetEl), event: 'blur'} : null
                 });
             }
-            popoverCfgs.push({
-                el$: $(this.$refs.skills.targetEl),
-                content: 'These are the recommended skills based on employer interest. Adding skills will allow you to show off more of your talent, but will also increase the time to complete the project.',
-                showEvent: (popoverCfgs.length) ? {target$: $(this.$refs.projectSkillLevel.targetEl), event: 'blur'} : null
-            });
         }
         this.createPopoverChain(popoverCfgs, {severity: SEVERITY.INFO, isOnce: true});
     }

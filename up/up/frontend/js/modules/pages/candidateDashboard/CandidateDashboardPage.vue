@@ -140,9 +140,12 @@
                         </template>
                     </Table>
                 </div>
-                <div class="card-custom">
+                <div
+                    v-if="initData.user.videos?.length || initData.user.images?.length || initData.user.files?.length"
+                    class="card-custom"
+                >
                     <h4>Resources</h4>
-                    <div v-if="initData.user.videos && initData.user.videos.length" class="row">
+                    <div v-if="initData.user.videos?.length" class="row">
                         <h5>Videos</h5>
                         <div v-for="video in initData.user.videos"
                              class="col-md-5 m-2 p-2 -hover-highlight-border"
@@ -158,7 +161,7 @@
                             />
                         </div>
                     </div>
-                    <div v-if="initData.user.images && initData.user.images.length" class="row">
+                    <div v-if="initData.user.images?.length" class="row">
                         <h5>Images</h5>
                         <div v-for="image in initData.user.images"
                              class="col-md-5 m-2 p-2 -hover-highlight-border"
@@ -174,7 +177,7 @@
                             />
                         </div>
                     </div>
-                    <div v-if="initData.user.files && initData.user.files.length" class="row">
+                    <div v-if="initData.user.files?.length" class="row">
                         <h5>Files</h5>
                         <div v-for="file in initData.user.files" class="col-6 col-md-4 m-2 -hover-highlight-border">
                             <div>

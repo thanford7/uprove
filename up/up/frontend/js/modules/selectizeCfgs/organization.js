@@ -8,7 +8,7 @@ class OrganizationSelectize {
             sortField: 'name',
             searchField: 'name',
             create: true,
-            loadThrottle: 200,
+            loadThrottle: 500,
             placeholder: 'Start typing to see existing orgs'
         };
         cfg.load = (query, callback) => {

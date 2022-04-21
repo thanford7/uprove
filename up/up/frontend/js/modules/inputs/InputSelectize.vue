@@ -73,7 +73,13 @@ export default {
                 });
             }
         },
-        resetOptions(options) {
+        resetOptions(options, optionGroups=null) {
+            if (optionGroups) {
+                optionGroups.forEach(({key, data}) => {
+                    this.elSel.addOptionGroup(key, data);
+                });
+            }
+
             let currentItems = this.elSel.getValue();
             currentItems = (Array.isArray(currentItems)) ? currentItems : [currentItems];
             this.elSel.clearOptions(true);

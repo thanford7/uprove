@@ -5,7 +5,7 @@ from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
-from upapp.apis import blog, employer, job, project, sendEmail, storage, tag, user
+from upapp.apis import blog, employer, job, lever, project, sendEmail, storage, tag, user
 from upapp.sitemaps import sitemaps
 
 apiPath = 'api/v1/'
@@ -81,6 +81,23 @@ urlpatterns = [
     path(apiPath + 'password-reset-generate/', viewsAuth.PasswordResetGenerateView.as_view(), name='passwordResetSend'),
     path('password-reset-complete/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='password-reset-complete'),
     path('login/', viewsAuth.LoginPageView.as_view(template_name='login.html'), name='login'),
+
+    # Lever
+    re_path('^integrate/?$', lever.leverIntegrate, name='leverIntegrate'),
+    re_path('^lever/customize-assessment/(?P<employerId>[0-9]+)/(?P<opportunityId>[\S]+)/$', lever.leverCustomizeAssessment, name='leverCustomizeAssessment'),
+    path(apiPath + 'lever/send-assessment/', lever.LeverSendAssessment.as_view()),
+
+    re_path(f'^{apiPath}lever/logout/(?P<employerId>[0-9]+)?/?$', lever.LeverLogOut.as_view()),
+    re_path(f'^{apiPath}lever/opportunities/(?P<employerId>[0-9]+)?/?$', lever.LeverOpportunities.as_view()),
+    re_path(f'^{apiPath}lever/postings/(?P<employerId>[0-9]+)?/?$', lever.LeverPostings.as_view()),
+    re_path(f'^{apiPath}lever/stages/(?P<employerId>[0-9]+)?/?$', lever.LeverStages.as_view()),
+    re_path(f'^{apiPath}lever/users/(?P<employerId>[0-9]+)?/?$', lever.LeverUsers.as_view()),
+
+    re_path(f'^{apiPath}lever/change/stage-change/(?P<employerId>[0-9]+)?/?$', lever.LeverChangeStage.as_view()),
+    re_path(f'^{apiPath}lever/change/archive/(?P<employerId>[0-9]+)?/?$', lever.LeverArchive.as_view()),
+    re_path(f'^{apiPath}lever/change/hire/(?P<employerId>[0-9]+)?/?$', lever.LeverHired.as_view()),
+    re_path(f'^{apiPath}lever/change/delete/(?P<employerId>[0-9]+)?/?$', lever.LeverDeleted.as_view()),
+    re_path(f'^{apiPath}lever/config/(?P<employerId>[0-9]+)?/?$', lever.LeverConfig.as_view()),
 
     # Storage
     path(apiPath + 'user-storage/', storage.UserStorageView.as_view()),

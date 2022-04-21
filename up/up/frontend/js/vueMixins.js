@@ -37,14 +37,12 @@ const store = createStore({
                 this.commit('clearSuccessAlerts');
             }, 10000);
 
-            if ([SEVERITY.DANGER, SEVERITY.WARN].includes(alert.type)) {
-                // If modal is open, scroll to the top, otherwise scroll to the top of the page
-                const modal$ = $('.modal.show .modal-content');
-                if (modal$.length) {
-                    layout.scrollTo(modal$, true);
-                } else {
-                    layout.scrollTo($('#vue-container'));
-                }
+            // If modal is open, scroll to the top, otherwise scroll to the top of the page
+            const modal$ = $('.modal.show .modal-content');
+            if (modal$.length) {
+                layout.scrollTo(modal$, true);
+            } else {
+                layout.scrollTo($('#vue-container'));
             }
         },
         clearAlert(state, alertId) {
@@ -62,6 +60,69 @@ const store = createStore({
 $(window).on('resize', () => {
     store.commit('updateIsMobile');
 });
+
+
+/**
+ * Transforms an object into form data. Splits media data (files, images, videos) into separate fields so they
+ * can be processed differently
+ * @param data {Object}
+ * @param mediaFields {Array}
+ * @returns {FormData}
+ */
+const getAjaxFormData = (data, mediaFields=null) => {
+    const ajaxData = new FormData();
+    mediaFields = mediaFields || [];
+    ajaxData.append('data', JSON.stringify(dataUtil.omit(data, mediaFields)));
+    mediaFields.forEach((field) => {
+        const val = dataUtil.get(data, field);
+        if (!val) {
+            return;
+        }
+        const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
+            if (idx !== 0) {
+                fieldPart = dataUtil.capitalize(fieldPart);
+            }
+            return finalField + fieldPart;
+        }, ''); // If field uses dot notation, we need to use the last subfield
+        if (Array.isArray(val)) {
+            val.forEach((file) => {
+                ajaxData.append(finalField, file);
+            })
+        } else {
+            ajaxData.append(finalField, val);
+        }
+    });
+    return ajaxData;
+};
+
+
+const getNewElUid = () => {
+    newElUid++;
+    return `s-${newElUid}`;
+}
+
+
+const getFailureMessage = (errorThrown, xhr) => {
+    const responseText = xhr.responseText;
+    return `${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
+};
+
+const makeAjaxRequest = (url, cfg) => {
+    return $.ajax(Object.assign({
+        url,
+        mode: 'same-origin',
+        headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
+        contentType: false,
+        processData: false,
+    }, cfg));
+};
+
+const addErrorAlert = (xhr, textStatus, errorThrown) => {
+    store.commit('addAlert', {
+        message: getFailureMessage(errorThrown, xhr),
+        alertType: SEVERITY.DANGER
+    });
+};
 
 
 const ajaxRequestMixin = {
@@ -184,7 +245,7 @@ const ajaxRequestMixin = {
         getFailureMessage(errorThrown, xhr) {
             // subclass
             const responseText = xhr.responseText;
-            return `${this.getFailureMessagePrepend()}${errorThrown}${(responseText && !responseText.includes('<!DOCTYPE html>')) ? `: ${responseText}` : ''}`;
+            return `${this.getFailureMessagePrepend()}${getFailureMessage(errorThrown, xhr)}`;
         },
         getFailureMessagePrepend() {
             // subclass
@@ -225,39 +286,9 @@ const ajaxRequestMixin = {
                 return false;
             }
             return this.submitAjaxRequest(
-                this.getAjaxFormData(formData),
+                getAjaxFormData(formData, this.mediaFields),
                 {method: (formData.id) ? 'PUT' : 'POST'}
             )
-        },
-        /**
-         * Transforms an object into form data. Splits media data (files, images, videos) into separate fields so they
-         * can be processed differently
-         * @param data {Object}
-         * @returns {FormData}
-         */
-        getAjaxFormData(data) {
-            const ajaxData = new FormData();
-            ajaxData.append('data', JSON.stringify(dataUtil.omit(data, this.mediaFields)));
-            this.mediaFields.forEach((field) => {
-                const val = dataUtil.get(data, field);
-                if (!val) {
-                    return;
-                }
-                const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
-                    if (idx !== 0) {
-                        fieldPart = dataUtil.capitalize(fieldPart);
-                    }
-                    return finalField + fieldPart;
-                }, ''); // If field uses dot notation, we need to use the last subfield
-                if (Array.isArray(val)) {
-                    val.forEach((file) => {
-                        ajaxData.append(finalField, file);
-                    })
-                } else {
-                    ajaxData.append(finalField, val);
-                }
-            });
-            return ajaxData;
         },
         saveChange(e, allowDefault = false) {
             if (e && !allowDefault) {
@@ -300,14 +331,9 @@ const ajaxRequestMixin = {
                     return;
                 }
             }
-            return $.ajax(Object.assign({
-                url: this.apiUrl + this.crudUrl,
+            return makeAjaxRequest(this.apiUrl + this.crudUrl, Object.assign({
                 method,
-                mode: 'same-origin',
-                headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
                 data: requestData,
-                contentType: false,
-                processData: false,
                 success: this.onSaveSuccessFn(method),
                 error: this.onSaveFailure
             }, overrides));
@@ -325,10 +351,7 @@ const globalVarsMixin = {
         }
     },
     methods: {
-        getNewElUid() {
-            newElUid++;
-            return `s-${newElUid}`;
-        },
+        getNewElUid,
         isSelf(userId) {
             return this.globalData.uproveUser.id === userId;
         },
@@ -475,7 +498,7 @@ const dataLoaderMixin = {
         return {
             cData: {},
             isLoading: false,
-            loadRoutes: [],  // Each route: {route: <>, dataKey: ''}
+            loadRoutes: [],  // Each route: {route: <>, dataKey: '', isNoCache: <boolean>}
             loadCache
         }
     },
@@ -489,27 +512,30 @@ const dataLoaderMixin = {
                     this.setData(r, data);
                     return new Promise(() => true);
                 }
-                return $.ajax({
-                    url: this.apiUrl + r.route,
+
+                const ajaxCfg = {
                     method: 'GET',
-                    mode: 'same-origin',
-                    headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
-                    contentType: false,
-                    processData: false,
                     success: (data) => this.setData(r, data),
                     error: this.onSaveFailure
-                });
+                };
+
+                return makeAjaxRequest(this.apiUrl + r.route, ajaxCfg);
             });
 
             await Promise.all(requests);
             this.isLoading = false;
             return true;
         },
-        setData(route, data) {
+        setData(route, data, isNoCache=false) {
             this.cData[route.dataKey] = data;
-            this.loadCache[route.route] = data;
+            if (!route.isNoCache) {
+                this.loadCache[route.route] = data;
+            }
         }
     }
 }
 
-export {ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, store};
+export {
+    ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin,
+    store, addErrorAlert, getAjaxFormData, getNewElUid, makeAjaxRequest
+};

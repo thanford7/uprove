@@ -62,7 +62,7 @@ class EmailView(UproveAPIView):
             raise Exception('An error occurred while sending the email')
 
     @staticmethod
-    def sendEmail(subjectText, toEmails, djangoContext=None, djangoEmailBodyTemplate=None, htmlContent=None, fromEmail=None):
+    def sendEmail(subjectText, toEmails, djangoContext=None, djangoEmailBodyTemplate=None, htmlContent=None, fromEmail=None, ccEmail=None):
         """Blend SendGrid's email service with Django's email templates
         :param subjectText {str}: The email subject line
         :param toEmails {list}:
@@ -81,6 +81,12 @@ class EmailView(UproveAPIView):
             to_emails=toEmails if not settings.DEBUG else TEST_EMAIL_ADDRESS,
             subject=subject,
             html_content=htmlContent)
+
+        if ccEmail and not settings.DEBUG:
+            if not isinstance(ccEmail, list):
+                ccEmail = [ccEmail]
+            for email in ccEmail:
+                message.add_cc(email)
 
         # Add Uprove logo
         imageName = 'logo.png'

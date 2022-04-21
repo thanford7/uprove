@@ -46,7 +46,7 @@
                         </li>
                         <li>
                             Upload your final project files and submit your final project to {{initData.employer.companyName}}
-                            from your home page
+                            from your <a href="/candidateDashboard/">dashboard page</a>
                         </li>
                     </ol>
                     <div class="-sub-text">Need help or have questions about the project?</div>

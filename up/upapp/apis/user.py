@@ -6,6 +6,7 @@ import ffmpeg as ffmpeg
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.files.base import File
 from django.core.mail import EmailMultiAlternatives
@@ -15,6 +16,8 @@ from django.db.transaction import atomic
 from django.template import loader
 from django.templatetags.static import static
 from django.utils import crypto, timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from moviepy.editor import clips_array, VideoFileClip
 from rest_framework import status, authentication
 from rest_framework.views import APIView
@@ -23,6 +26,7 @@ from rest_framework.response import Response
 from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
+from upapp.apis.lever import getLeverRequestWithRefresh, updateLeverAssessmentComplete
 from upapp.apis.project import SkillView
 from upapp.apis.sendEmail import EmailView
 from upapp.apis.tag import TagView
@@ -295,13 +299,22 @@ class UserContentItemView(APIView):
 class UserView(UproveAPIView):
 
     def get(self, request, userId=None):
-        return Response(getSerializedUser(self.getUser(userId)), status=status.HTTP_200_OK)
+        if userId:
+            return Response(status=status.HTTP_200_OK, data=getSerializedUser(self.getUser(userId)))
+        elif searchText := self.data.get('search'):
+            searchText = searchText[0]
+            userFilter = Q(firstName__iregex=f'^.*{searchText}.*$')
+            userFilter |= Q(lastName__iregex=f'^.*{searchText}.*$')
+            userFilter |= Q(email__iregex=f'^.*{searchText}.*$')
+            return Response(status=status.HTTP_200_OK, data=[getSerializedUser(u) for u in self.getUsers(userFilter)])
+
+        return Response('Please provide a user ID or search text', status=status.HTTP_400_BAD_REQUEST)
 
     @atomic
     def put(self, request, userId=None):
         from upapp.viewsAuth import setUproveUser
 
-        userId = userId or request.data.get('id')
+        userId = userId or self.data.get('id')
         if not userId:
             return Response('User ID is required to perform this operation', status=status.HTTP_400_BAD_REQUEST)
         if not (security.isPermittedAdmin(request) or security.isSelf(userId, request=request)):
@@ -336,7 +349,6 @@ class UserView(UproveAPIView):
             })
 
         EmailView.sendFormattedEmail(request, contactType=EmailView.TYPE_CANDIDATE_SIGNUP)
-        UserProfileView.createUserProfile(user.id, isPrimary=True)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedUser(user))
 
@@ -431,8 +443,21 @@ class UserView(UproveAPIView):
             raise e
 
     @staticmethod
-    def getUsers():
-        return User.objects.select_related('djangoUser').prefetch_related('image', 'profile').all()
+    def getUsers(filter=None):
+        if not filter:
+            filter = Q()
+        return User.objects\
+            .select_related('djangoUser')\
+            .prefetch_related(
+                'image',
+                'profile',
+                'userTag__tag',
+                'preferenceCompanySizes',
+                'preferenceRoles',
+                'preferenceState',
+                'preferenceCountry'
+            )\
+            .filter(filter)
 
     @staticmethod
     def updateUser(user, data):
@@ -485,6 +510,7 @@ class UserView(UproveAPIView):
             createdDateTime=timezone.now()
         )
         user.save()
+        UserProfileView.createUserProfile(user.id, isPrimary=True)
         saveActivity(ActivityKey.CREATE_ACCOUNT, user.id)
 
         return user, bool(password)
@@ -539,13 +565,6 @@ class UserPreferenceView(UproveAPIView):
 
 class UserProfileView(UproveAPIView):
     USER_SKILL_LIMIT = 5
-
-    def get(self, request, profileId=None):
-        pass
-
-    @atomic
-    def post(self, request):
-        pass
 
     @atomic
     def put(self, request):
@@ -1339,6 +1358,9 @@ class UserJobApplicationView(UproveAPIView):
                 'withdrawDateTime': {'propFunc': dtGetter}
             })
 
+            if data.get('submissionDateTime'):
+                updateLeverAssessmentComplete(request, jobApplication)
+
         if isEmployer:
             dataUtil.setObjectAttributes(jobApplication, data, {
                 'approveDateTime': {'propFunc': dtGetter},
@@ -1488,6 +1510,20 @@ class WaitlistView(UproveAPIView):
 
 
 class UprovePasswordResetForm(PasswordResetForm):
+
+    def getEmailContext(self, request, userEmail, use_https=False):
+        current_site = get_current_site(request)
+        site_name = current_site.name
+        domain = current_site.domain
+        user = next(self.get_users(userEmail), None)
+        return {
+            'domain': domain,
+            'site_name': site_name,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'user': user,
+            'token': default_token_generator.make_token(user),
+            'protocol': 'https' if use_https else 'http'
+        }
 
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):

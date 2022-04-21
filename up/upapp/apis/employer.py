@@ -14,18 +14,22 @@ from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
     getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject, \
     getSerializedUserProject
-from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP
+from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP, normalizeJobTitle
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
 
-class EmployerView(APIView):
+class EmployerView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
 
     def get(self, request, employerId=None):
         if employerId:
             isEmployer = security.isPermittedEmployer(request, employerId)
             data = getSerializedEmployer(self.getEmployer(employerId), isEmployer=isEmployer)
+        elif searchText := self.data.get('search'):
+            searchText = searchText[0]
+            employerFilter = Q(companyName__iregex=f'^.*{searchText}.*$')
+            data = [getSerializedEmployer(e, isEmployer=False) for e in self.getEmployers(employerFilter)]
         else:
             data = [getSerializedEmployer(e, isEmployer=False) for e in self.getEmployers()]
         return Response(status=status.HTTP_200_OK, data=data)
@@ -110,51 +114,73 @@ class EmployerView(APIView):
             raise e
 
     @staticmethod
-    def getEmployers():
-        return Employer.objects.all()
+    def getEmployers(filter=None):
+        filter = filter or Q()
+        return Employer.objects.filter(filter)
 
 
-class JobPostingView(APIView):
+class JobPostingView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
     permittedCountries = ['USA', 'UK', 'Canada']
 
+    def get(self, request):
+        if jobId := self.data.get('id'):
+            return Response(
+                status=status.HTTP_200_OK,
+                data=getSerializedEmployerJob(self.getEmployerJobs(jobId=jobId))
+            )
+
+        if employerId := self.data.get('employerId'):
+            employerId = employerId[0]
+            if not (security.isPermittedEmployer(request, employerId) or self.isAdmin):
+                return Response('You do not have permission to view this employer', status=status.HTTP_401_UNAUTHORIZED)
+            jobFilter = Q()
+            if searchText := self.data.get('search'):
+                searchText = searchText[0]
+                jobFilter = Q(jobTitle__iregex=f'^.*{searchText}.*$')
+            return Response(
+                status=status.HTTP_200_OK,
+                data=[getSerializedEmployerJob(j) for j in self.getEmployerJobs(employerId=employerId, jobFilter=jobFilter)]
+            )
+
     @atomic
     def post(self, request):
-        data = request.data
-        if not security.isPermittedEmployer(request, data['employerId']):
+        if not security.isPermittedEmployer(request, self.data['employerId']):
             return Response('You do not have permission to post for this employer', status=status.HTTP_401_UNAUTHORIZED)
 
+        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
         employerJob = EmployerJob(
-            employer_id=data['employerId'],
-            jobTitle=data['jobTitle'],
-            jobDescription=data['jobDescription'],
-            openDate=dateUtil.deserializeDateTime(data.get('openDate'), dateUtil.FormatType.DATE, allowNone=True),
-            salaryFloor=data.get('salaryFloor'),
-            salaryCeiling=data.get('salaryCeiling'),
-            salaryUnit=data.get('salaryUnit'),
+            employer_id=self.data['employerId'],
+            jobTitle=self.data['jobTitle'],
+            role=normalizeJobTitle(self.data['jobTitle'], roleTitles),
+            jobDescription=self.data['jobDescription'],
+            openDate=dateUtil.deserializeDateTime(self.data.get('openDate'), dateUtil.FormatType.DATE, allowNone=True),
+            salaryFloor=self.data.get('salaryFloor'),
+            salaryCeiling=self.data.get('salaryCeiling'),
+            salaryUnit=self.data.get('salaryUnit'),
             modifiedDateTime=timezone.now(),
             createdDateTime=timezone.now()
         )
         employerJob.save()
 
-        self.setCustomProjects(employerJob, data['allowedProjects'])
+        self.setCustomProjects(employerJob, self.data['allowedProjects'])
 
         return Response(status=status.HTTP_200_OK,
                         data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
 
     @atomic
     def put(self, request, jobId=None):
-        data = request.data
-        jobId = jobId or data['id']
-        if not security.isPermittedEmployer(request, data['employerId']):
+        jobId = jobId or self.data['id']
+        if not security.isPermittedEmployer(request, self.data['employerId']):
             return Response('You do not have permission to post for this employer', status=status.HTTP_401_UNAUTHORIZED)
 
         if not jobId:
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         employerJob = self.getEmployerJobs(jobId=jobId)
+        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
         dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
-        dataUtil.setObjectAttributes(employerJob, data, {
+        dataUtil.setObjectAttributes(employerJob, self.data, {
             'jobTitle': None,
             'jobDescription': None,
             'openDate': {'propFunc': dateGetter},
@@ -164,16 +190,16 @@ class JobPostingView(APIView):
             'salaryCeiling': None,
             'salaryUnit': None
         })
+        employerJob.role = normalizeJobTitle(employerJob.jobTitle, roleTitles)
         employerJob.save()
 
-        self.setCustomProjects(employerJob, data['allowedProjects'])
+        self.setCustomProjects(employerJob, self.data['allowedProjects'])
         return Response(status=status.HTTP_200_OK,
                         data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
 
     @atomic
     def delete(self, request, jobId=None):
-        data = request.data
-        jobId = jobId or data['id']
+        jobId = jobId or self.data['id']
 
         if not jobId:
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
@@ -228,7 +254,7 @@ class JobPostingView(APIView):
         return jobs
 
     @staticmethod
-    def getEmployerJobFilter(isIncludeClosed=False):
+    def getEmployerJobFilter(isIncludeClosed=False, isEmployer=False):
         filter = Q()
         if not isIncludeClosed:
             filter &= Q(openDate__lte=timezone.now().date()) & (
@@ -236,8 +262,12 @@ class JobPostingView(APIView):
             ) & (
                 Q(pauseDate__isnull=True) | Q(pauseDate__gt=timezone.now().date())
             )
-        filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
-        filter &= Q(role__isnull=False)
+
+        if not isEmployer:
+            filter &= Q(isInternal=False)
+            filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
+            filter &= Q(role__isnull=False)
+
         return filter
 
     @staticmethod
@@ -294,7 +324,7 @@ class JobPostingView(APIView):
         )
 
     @staticmethod
-    def setCustomProjects(employerJob, allowedProjects):
+    def setCustomProjects(employerJob, allowedProjects, isDeleteExisting=True):
         existingCustomProjects = JobPostingView.getCustomProjects()
         existingAllowedProjectIds = [ap.id for ap in employerJob.allowedProjects.all()]
         newAllowedProjectIds = []
@@ -334,9 +364,10 @@ class JobPostingView(APIView):
                 continue
             employerJob.allowedProjects.add(customProject)
 
-        for projectId in existingAllowedProjectIds:
-            if projectId not in newAllowedProjectIds:
-                employerJob.allowedProjects.remove(CustomProject.objects.get(id=projectId))
+        if isDeleteExisting:
+            for projectId in existingAllowedProjectIds:
+                if projectId not in newAllowedProjectIds:
+                    employerJob.allowedProjects.remove(CustomProject.objects.get(id=projectId))
 
 
 class JobProjectLinkView(APIView):

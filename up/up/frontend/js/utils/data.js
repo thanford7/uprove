@@ -40,6 +40,23 @@ class DataUtil {
         return (this.isNil(dateVal) && !isConvertNull) ? null : dayjs(dateVal);
     }
 
+    copyText(e) {
+        const target$ = $(e.currentTarget);
+        const copyTarget$ = target$.closest('div').find('.copy-target');
+        const text = copyTarget$.text() || copyTarget$.val();
+        const copyMsgId = this.getNewElUid();
+        navigator.clipboard.writeText(text).then(
+            () => {
+                target$.parent().append(`<span id="${copyMsgId}" class="-color-green-text -sub-text"> Copied successfully</span>`)
+            }, () => {
+                target$.parent().append('<span id="${copyMsgId}" class="-color-red-text -sub-text"> Copy failed. Please copy manually</span>')
+            }
+        );
+        setTimeout(() => {
+            $(`#${copyMsgId}`).remove()
+        }, 3000);
+    }
+
     getFileNameFromUrl(fileUrl) {
         const [fileName] = fileUrl.split('/').slice(-1);
         return fileName;
@@ -84,7 +101,7 @@ class DataUtil {
     /**
      * Update query params and optionally redirect to a new page
      * @param params {Array}: Array of dicts with key: val pairs. The key represents the name of the query param and
-     * val represents the value. Val can be a single value or a list of values
+     * val represents the value. Val can be a single value or a list of values. Example: [{key: 'tab', val: 'settings'}]
      * @param path {null|string}: Optional path if directing to a new page
      */
     setQueryParams(params, path = null) {
@@ -177,6 +194,19 @@ class DataUtil {
 
     capitalize(string) {
         return (string) ? string.charAt(0).toUpperCase() + string.slice(1) : '';
+    }
+
+    debounce(func, waitMS, immediate=false) {
+        let timeout;
+        return () => {
+            const args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function () {
+                timeout = null;
+                if (!immediate) func.apply(this, args);
+            }, waitMS);
+            if (immediate && !timeout) func.apply(this, args);
+        };
     }
 
     /**

@@ -87,6 +87,8 @@ class User(AuditFields):
     preferenceCountry = models.ManyToManyField('Country')
     preferenceState = models.ManyToManyField('State')
 
+    leverUserKey = models.CharField(max_length=75, null=True)
+
     @property
     def hasPreferences(self):
         return any((
@@ -363,6 +365,17 @@ class Employer(AuditFields):
     glassDoorUrl = models.CharField(max_length=200, null=True)
     isDemo = models.BooleanField(default=False)
 
+    # Lever integration
+    isLeverOn = models.BooleanField(default=False)
+    leverAccessToken = models.CharField(max_length=1400, null=True)
+    leverRefreshToken = models.CharField(max_length=1400, null=True)
+    leverTriggerStageKey = models.CharField(max_length=100, null=True)
+    leverCompleteStageKey = models.CharField(max_length=100, null=True)
+    leverHookStageChangeToken = models.CharField(max_length=75, null=True)
+    leverHookArchive = models.CharField(max_length=75, null=True)
+    leverHookHired = models.CharField(max_length=75, null=True)
+    leverHookDeleted = models.CharField(max_length=75, null=True)
+
 
 class CustomProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='customProject')
@@ -397,6 +410,11 @@ class EmployerJob(AuditFields):
     salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
     applicationUrl = models.CharField(max_length=500, null=True)
     location = models.CharField(max_length=100, null=True)
+    isInternal = models.BooleanField(default=False)  # If true, the job won't be displayed on the job board
+    isFullTime = models.BooleanField(default=True)
+
+    # Lever integration
+    leverPostingKey = models.CharField(max_length=50, null=True)
 
     # Normalized from the raw location text
     isRemote = models.BooleanField(null=True)
@@ -420,14 +438,17 @@ class JobTemplate(models.Model):
 
 
 class UserJobApplication(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='jobApplication')
     userProject = models.ForeignKey('UserProject', on_delete=models.SET_NULL, null=True, related_name='jobApplication')
     employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
     inviteDateTime = models.DateTimeField(null=True)
     submissionDateTime = models.DateTimeField(null=True)
     approveDateTime = models.DateTimeField(null=True)
+    hireDateTime = models.DateTimeField(null=True)
     declineDateTime = models.DateTimeField(null=True)
     withdrawDateTime = models.DateTimeField(null=True)
+
+    leverOpportunityKey = models.CharField(max_length=75, null=True)
 
     class Meta:
         unique_together = ('user', 'employerJob')

@@ -65,11 +65,13 @@ import InputCheckBox from "../inputs/InputCheckBox";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
+import dataUtil from "../../utils/data";
 
 export default {
     name: "EditEmployerModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
+    props: ['isUpdateDataOverride'],
     components: {BaseModal, InputCheckBox, InputOrViewMedia, InputSelectize, InputWsiwyg},
     data() {
         return {
@@ -96,6 +98,9 @@ export default {
     },
     mounted() {
         this.toggleLogoUpload(!Boolean(this.formData.logo));
+        if (!dataUtil.isNil(this.isUpdateDataOverride)) {
+            this.isUpdateData = this.isUpdateDataOverride;
+        }
     },
     updated() {
         this.toggleLogoUpload(!Boolean(this.formData.logo));

@@ -7,7 +7,7 @@
     >
         <div class="mb-3 -border-bottom--light">
             <div class="d-flex align-items-center">
-                <h5 class="-text-bold m-0" style="display: inline-block;">Files</h5>&nbsp;
+                <h6 class="-text-bold m-0" style="display: inline-block;">Files</h6>&nbsp;
                 <span v-if="formData.files" class="badge rounded-pill bg-secondary">{{formData.files.length}}</span>
             </div>
             <div v-for="(file, idx) in formData.files" class="-hover-highlight-border mb-2 position-relative">
@@ -31,7 +31,7 @@
         </div>
         <div class="mb-3 -border-bottom--light">
             <div class="d-flex align-items-center">
-                <h5 class="-text-bold m-0" style="display: inline-block;">Videos</h5>&nbsp;
+                <h6 class="-text-bold m-0" style="display: inline-block;">Videos</h6>&nbsp;
                 <span v-if="formData.videos" class="badge rounded-pill bg-secondary">{{formData.videos.length}}</span>
             </div>
             <div v-for="(video, idx) in formData.videos" class="-hover-highlight-border mb-2 position-relative">
@@ -66,7 +66,7 @@
         </div>
         <div class="mb-3 -border-bottom--light">
             <div class="d-flex align-items-center">
-                <h5 class="-text-bold m-0" style="display: inline-block;">Images</h5>&nbsp;
+                <h6 class="-text-bold m-0" style="display: inline-block;">Images</h6>&nbsp;
                 <span v-if="formData.images" class="badge rounded-pill bg-secondary">{{formData.images.length}}</span>
             </div>
             <div v-for="(image, idx) in formData.images" class="-hover-highlight-border mb-2 position-relative">
@@ -89,7 +89,7 @@
             </div>
         </div>
         <div class="mb-3">
-            <h5 class="-text-bold">Project Notes <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.userProjectNotes"/></h5>
+            <h6 class="-text-bold">Project Notes <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.userProjectNotes"/></h6>
             <InputWsiwyg v-model="formData.projectNotes" elId="blogPost" placeholder="Write post..."/>
         </div>
         <template v-slot:footer>
@@ -134,7 +134,7 @@ export default {
             newFileCount: 0,
             newVideoCount: 0,
             newImageCount: 0,
-            mediaFields: new Set(['files', 'videos', 'images']),
+            mediaFields: new Set(['file', 'video', 'image']),
             contentTypes: CONTENT_TYPES
         }
     },
@@ -186,20 +186,18 @@ export default {
             const formData = {...this.formData};
 
             // Update all media files for saving
-            Object.assign(
-                formData,
-                dataUtil.getFileFormatForAjaxRequest(formData.files, 'filesMetaData', 'files', 'file'),
-                dataUtil.getFileFormatForAjaxRequest(formData.videos, 'videosMetaData', 'videos', 'video'),
-                dataUtil.getFileFormatForAjaxRequest(formData.images, 'imagesMetaData', 'images', 'image'),
+            return Object.assign(
+                dataUtil.omit(formData, ['files', 'videos', 'images']),
+                dataUtil.getFileFormatForAjaxRequest(formData.files, 'filesMetaData', 'file', 'file'),
+                dataUtil.getFileFormatForAjaxRequest(formData.videos, 'videosMetaData', 'video', 'video'),
+                dataUtil.getFileFormatForAjaxRequest(formData.images, 'imagesMetaData', 'image', 'image'),
             );
-
-            return formData;
         },
         isGoodFormFields(formData) {
             const checkFields = [
-                {dataKey: 'files', metaDataKey: 'filesMetaData', idKey: 'file'},
-                {dataKey: 'videos', metaDataKey: 'videosMetaData', idKey: 'video'},
-                {dataKey: 'images', metaDataKey: 'imagesMetaData', idKey: 'image'},
+                {dataKey: 'file', metaDataKey: 'filesMetaData', idKey: 'file'},
+                {dataKey: 'video', metaDataKey: 'videosMetaData', idKey: 'video'},
+                {dataKey: 'image', metaDataKey: 'imagesMetaData', idKey: 'image'},
             ];
 
             for (let x = 0; x < checkFields.length; x++) {
