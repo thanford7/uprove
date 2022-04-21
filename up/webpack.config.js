@@ -20,7 +20,6 @@ module.exports = function (env, argv) {
     const cfg = {
         mode: (env.prod) ? 'production' : 'development',
         context: __dirname,
-        devtool: 'source-map',
         entry: [path.resolve(__dirname, 'up/frontend/js/main.js')],
         output: {
             path: path.resolve(__dirname, 'up/frontend/dist/'),
@@ -155,6 +154,7 @@ module.exports = function (env, argv) {
         });
         cfg.plugins.push(new CleanWebpackPlugin());
     } else {
+        cfg.devtool = 'source-map';
         cfg.devServer = {
             host: '0.0.0.0',
             allowedHosts: ['177d-65-155-190-226.ngrok.io'],
