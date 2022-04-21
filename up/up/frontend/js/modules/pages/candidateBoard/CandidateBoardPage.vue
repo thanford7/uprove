@@ -32,7 +32,7 @@
             </BaseFilter>
         </template>
         <div class="row mb-3">
-            <div class="card-custom">
+            <div class="card-custom card-custom--no-side-margin">
                 <Table :data="filteredCandidates" :headers="headers" emptyDataMessage="No current profiles">
                     <template v-slot:body>
                         <tr v-for="candidate in filteredCandidates">
@@ -81,15 +81,36 @@
                                     </button>
                                 </div>
                             </td>
+                            <td>
+                                <a
+                                    v-if="globalData?.uproveUser?.leverUserKey" href="#"
+                                    @click="eventBus.emit('open:addLeverOpportunityModal', candidate)"
+                                >
+                                    Add to Lever
+                                </a>
+                                <div v-if="candidate.appliedJobs.length" class="-text-medium">
+                                    <InfoToolTip
+                                        :elId="getNewElUid()"
+                                        :content="getAppliedJobsHtml(candidate.appliedJobs)"
+                                        :isHtmlContent="true"
+                                        :isExcludeInfoCircle="true"
+                                    >
+                                        <i class="fas fa-check-circle -color-green-text"></i>
+                                        Has {{pluralize('application', candidate.appliedJobs.length)}}
+                                    </InfoToolTip>
+                                </div>
+                            </td>
                         </tr>
                     </template>
                 </Table>
             </div>
         </div>
     </BasePage>
+    <AddLeverOpportunityModal v-if="globalData.uproveUser.employerId" :employerId="globalData.uproveUser.employerId"/>
 </template>
 
 <script>
+import AddLeverOpportunityModal from "../../modals/AddLeverOpportunityModal";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
@@ -108,8 +129,8 @@ import userProjectUtil from "../../../utils/userProject";
 export default {
     name: "CandidateBoardPage",
     components: {
-        BaseFilter, BasePage, BadgesSkillLevels, BadgesSkills, BannerAlert, InfoToolTip, PageHeader,
-        RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
+        AddLeverOpportunityModal, BaseFilter, BasePage, BadgesSkillLevels, BadgesSkills,
+        BannerAlert, InfoToolTip, PageHeader, RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
     },
     data() {
         return {
@@ -117,6 +138,7 @@ export default {
                 {'value': 'First name', 'sortFn': 'firstName'},
                 {'value': 'Last name', 'sortFn': 'lastName'},
                 {'value': 'Projects'},
+                {'value': 'Actions'}
             ]]
         }
     },
@@ -163,6 +185,18 @@ export default {
     methods: {
         getBadgeColor: userProjectUtil.getBadgeColor,
         getEvalPopoverHtml: userProjectUtil.getEvalPopoverHtml,
+        getAppliedJobsHtml(appliedJobs) {
+            let html = '<div>Current jobs</div><ul>';
+            appliedJobs.forEach((j) => {
+                html += `
+                    <li>
+                        ${j}
+                    </li>
+                `
+            });
+            html += '</ul>';
+            return html;
+        },
         setSkills(skillIds) {
             this.filter.skills = this.$refs.skills.getSkills(skillIds);
             dataUtil.setQueryParams([{key: 'skill', val: skillIds}]);

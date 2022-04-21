@@ -57,7 +57,7 @@ def leverIntegrate(request):
     employer.leverRefreshToken = data.get('refresh_token')
     employer.save()
 
-    return HttpResponseRedirect('/employerDashboard/')
+    return HttpResponseRedirect('/employerDashboard/?tab=integrations')
 
 
 def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
@@ -127,6 +127,20 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
     })
 
 
+class BaseLeverAPIView(UproveAPIView):
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if not self.user or not self.user.employer_id:
+            return Response('You must be logged in', status=status.HTTP_401_UNAUTHORIZED)
+        if not kwargs['employerId']:
+            return Response('An employer ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        self.employer = Employer.objects.get(id=kwargs['employerId'])
+
+        if (not security.isPermittedEmployer(request, self.employer.id)) or self.isAdmin:
+            return Response('You do not have permission to make updates for this employer', status=status.HTTP_401_UNAUTHORIZED)
+
+
 class LeverSendAssessment(UproveAPIView):
 
     @atomic
@@ -188,35 +202,86 @@ class LeverSendAssessment(UproveAPIView):
         return Response(status=response.status_code)
 
 
-class LeverLogOut(UproveAPIView):
+class LeverLogOut(BaseLeverAPIView):
 
-    def post(self, request):
-        employer = Employer.objects.get(id=self.user.employer_id)
-        employer.isLeverOn = False
+    def post(self, request, employerId=None):
+        self.employer.isLeverOn = False
+        self.employer.save()
         return Response(status=status.HTTP_200_OK)
 
 
-class LeverOpportunities(UproveAPIView):
+class LeverOpportunities(BaseLeverAPIView):
 
-    def get(self, request, opportunityId=None):
-        if not self.user or not self.user.employer_id:
-            return Response('You must be logged in', status=status.HTTP_401_UNAUTHORIZED)
-        employer = Employer.objects.get(id=self.user.employer_id)
-        opportunities = getLeverItems('opportunities', employer, itemId=opportunityId)
+    def get(self, request, opportunityId=None, employerId=None):
+        opportunities = getLeverItems('opportunities', self.employer, itemId=opportunityId)
         return Response(status=status.HTTP_200_OK, data=opportunities)
 
+    @atomic
+    def post(self, request, employerId=None):
+        if not self.user.leverUserKey:
+            return Response(
+                'Your account is not linked with Lever. Go to the "Users" tab in your Dashboard to update this.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-class LeverPostings(UproveAPIView):
+        # Check if opportunity already exists. If so, shortcircuit
+        try:
+            currentApplication = UserJobApplication.objects.get(user_id=self.data['id'], employerJob_id=self.data['jobId'])
+            if currentApplication.leverOpportunityKey:
+                return Response('Candidate has already been added to this opportunity on Lever', status=status.HTTP_400_BAD_REQUEST)
+        except UserJobApplication.DoesNotExist:
+            currentApplication = UserJobApplication(
+                user_id=self.data['id'],
+                employerJob_id=self.data['jobId'],
+                inviteDateTime=timezone.now(),
+            )
+
+
+        resp = getLeverRequestWithRefresh(
+            self.employer,
+            f'opportunities?perform_as={self.user.leverUserKey}',
+            bodyCfg={
+                'name': f'{self.data["firstName"]} {self.data["lastName"]}',
+                'emails': [self.data['email']],
+                'links': [request.build_absolute_uri(f'/profile/{self.data["profileId"]}')],
+                'tags': ['uprove'],
+                'sources': ['Uprove'],
+                'origin': 'agency',
+                'postings': [self.data['leverPostingKey']]
+            },
+            isJSON=True,
+            method='POST'
+        )
+        opportunity = resp.get('data')
+        if not opportunity:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=resp)
+
+        currentApplication.leverOpportunityKey = opportunity['id']
+        currentApplication.save()
+
+        resp = getLeverRequestWithRefresh(
+            self.employer,
+            f'opportunities/{opportunity["id"]}/notes',
+            bodyCfg={
+                'value': self.data['note']},
+            isJSON=True,
+            method='POST'
+        )
+        note = resp.get('data')
+        if not note:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=resp)
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class LeverPostings(BaseLeverAPIView):
 
     @atomic
-    def post(self, request):
-        if not self.user or not self.user.employer_id:
-            return Response('You must be logged in', status=status.HTTP_401_UNAUTHORIZED)
-        employer = Employer.objects.get(id=self.user.employer_id)
-        postings = getLeverItems('postings', employer)
+    def post(self, request, employerId=None):
+        postings = getLeverItems('postings', self.employer)
         currentLeverJobs = {
             j.leverPostingKey: j for j in
-            JobPostingView.getEmployerJobs(employerId=self.user.employer_id, jobFilter=Q(leverPostingKey__isnull=False))
+            JobPostingView.getEmployerJobs(employerId=self.employer.id, jobFilter=Q(leverPostingKey__isnull=False))
         }
         roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
 
@@ -230,7 +295,7 @@ class LeverPostings(UproveAPIView):
 
             if not (currentJob := currentLeverJobs.get(leverPostingKey)):
                 currentJob = EmployerJob(
-                    employer=employer,
+                    employer=self.employer,
                     createdDateTime=timezone.now(),
                     modifiedDateTime=timezone.now(),
                     leverPostingKey=leverPostingKey
@@ -238,6 +303,10 @@ class LeverPostings(UproveAPIView):
                 currentLeverJobs[leverPostingKey] = currentJob
             isUpdated = dataUtil.setObjectAttributes(currentJob, posting, {
                 'jobTitle': {'formName': 'text'},
+            }) or dataUtil.setObjectAttributes(currentJob, posting['categories'], {
+                'jobDepartment': {'formName': 'team'},
+                'isFullTime': {'formName': 'commitment', 'propFunc': lambda x: (not x) or ('full' in x.lower())},
+                'location': None
             })
             currentJob.role = normalizeJobTitle(currentJob.jobTitle, roleTitles)
 
@@ -277,12 +346,27 @@ class LeverPostings(UproveAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class LeverStages(UproveAPIView):
+class LeverUsers(BaseLeverAPIView):
 
-    def get(self, request, stageId=None):
+    def post(self, request, employerId=None):
+        from upapp.apis.user import UserView  # Avoid circular import
+        from upapp.viewsAuth import updateUproveUser
+        uproveUsers = UserView.getUsers(filter=Q(employer_id=self.employer.id))
+        for user in uproveUsers:
+            leverUser = getLeverRequestWithRefresh(self.employer, f'/users?email={user.email}').get('data')
+            if leverUser and not user.leverUserKey:
+                user.leverUserKey = leverUser[0]['id']
+                user.save()
+            updateUproveUser(request)
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class LeverStages(BaseLeverAPIView):
+
+    def get(self, request, stageId=None, employerId=None):
         relativeUrl = f'stages/{stageId}' if stageId else 'stages'
-        employer = Employer.objects.get(id=self.user.employer_id)
-        response = getLeverRequestWithRefresh(employer, relativeUrl)
+        response = getLeverRequestWithRefresh(self.employer, relativeUrl)
         return Response(status=status.HTTP_200_OK, data=response.get('data', []))
 
 

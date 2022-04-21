@@ -86,6 +86,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'isSuperUser': user.djangoUser.is_superuser,
         'isDemo': user.isDemo,
         'isAuthenticated': user.djangoUser.is_authenticated,
+        'leverUserKey': user.leverUserKey,
         'skills': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_SKILL)],
         'interests': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_INTEREST)],
         'preferences': {
@@ -409,6 +410,7 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
         'pauseDate': getDateTimeFormatOrNone(employerJob.pauseDate),
         'closeDate': getDateTimeFormatOrNone(employerJob.closeDate),
         'isRemote': employerJob.isRemote,
+        'location': employerJob.location,
         'city': employerJob.city,
         'state': employerJob.state.stateName if employerJob.state else None,
         'stateId': employerJob.state.id if employerJob.state else None,
@@ -417,10 +419,10 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
         'region': employerJob.region,
         'applicationUrl': employerJob.applicationUrl,
         'isInternal': employerJob.isInternal,
+        'leverPostingKey': employerJob.leverPostingKey,
     }
     employerFields = {
         'applications': [getSerializedJobApplication(app, isEmployer=True) for app in employerJob.jobApplication.all()],
-        'leverPostingKey': employerJob.leverPostingKey,
         **serializeAuditFields(employerJob)
     }
 

@@ -254,7 +254,7 @@ export default {
             }
             const sel = this.$refs['editUser'];
             sel.elSel.clear(true);
-            this.eventBus.emit('open:editUserModal', {formData: this.getUser(userId)});
+            this.eventBus.emit('open:editUserModal', this.getUser(userId));
         },
     },
 }

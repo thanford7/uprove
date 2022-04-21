@@ -85,6 +85,8 @@ class User(AuditFields):
     preferenceCountry = models.ManyToManyField('Country')
     preferenceState = models.ManyToManyField('State')
 
+    leverUserKey = models.CharField(max_length=75, null=True)
+
     @property
     def hasPreferences(self):
         return any((
@@ -407,6 +409,7 @@ class EmployerJob(AuditFields):
     applicationUrl = models.CharField(max_length=500, null=True)
     location = models.CharField(max_length=100, null=True)
     isInternal = models.BooleanField(default=False)  # If true, the job won't be displayed on the job board
+    isFullTime = models.BooleanField(default=True)
 
     # Lever integration
     leverPostingKey = models.CharField(max_length=50, null=True)
@@ -433,7 +436,7 @@ class JobTemplate(models.Model):
 
 
 class UserJobApplication(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='jobApplication')
     userProject = models.ForeignKey('UserProject', on_delete=models.SET_NULL, null=True, related_name='jobApplication')
     employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
     inviteDateTime = models.DateTimeField(null=True)

@@ -40,6 +40,12 @@ def setUproveUser(request, user):
         return msg
 
 
+def updateUproveUser(request):
+    if userData := request.session['uproveUser']:
+        uproveUser = User.objects.select_related('djangoUser').prefetch_related('profile').get(id=userData['id'])
+        request.session['uproveUser'] = getSerializedUser(uproveUser)
+
+
 def getLoginRedirectUrl(request):
     if not isinstance(request, WSGIRequest):
         pageRedirect = request.data.get('redirect')

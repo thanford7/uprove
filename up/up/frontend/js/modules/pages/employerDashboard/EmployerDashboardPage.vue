@@ -8,7 +8,8 @@
                     data-bs-toggle="tab" data-bs-target="#job-openings"
                     type="button" role="tab" aria-selected="true"
                     @click="setTabParam('job-openings')"
-                >Job openings</button>
+                >Job openings
+                </button>
             </li>
             <li class="nav-item">
                 <button
@@ -17,7 +18,8 @@
                     data-bs-toggle="tab" data-bs-target="#applications"
                     type="button" role="tab" aria-selected="false"
                     @click="setTabParam('applications')"
-                >Applications</button>
+                >Applications
+                </button>
             </li>
             <li class="nav-item">
                 <button
@@ -26,7 +28,8 @@
                     data-bs-toggle="tab" data-bs-target="#projects"
                     type="button" role="tab" aria-selected="false"
                     @click="setTabParam('projects')"
-                >Projects</button>
+                >Projects
+                </button>
             </li>
             <li class="nav-item">
                 <button
@@ -35,7 +38,18 @@
                     data-bs-toggle="tab" data-bs-target="#settings"
                     type="button" role="tab" aria-selected="false"
                     @click="setTabParam('settings')"
-                >Settings</button>
+                >Settings
+                </button>
+            </li>
+            <li class="nav-item">
+                <button
+                    class="nav-link" id="users-tab"
+                    :class="(currentTab === 'users') ? 'active': ''"
+                    data-bs-toggle="tab" data-bs-target="#users"
+                    type="button" role="tab" aria-selected="false"
+                    @click="setTabParam('users')"
+                >Users
+                </button>
             </li>
             <li class="nav-item">
                 <button
@@ -44,16 +58,19 @@
                     data-bs-toggle="tab" data-bs-target="#integrations"
                     type="button" role="tab" aria-selected="false"
                     @click="setTabParam('integrations')"
-                >Integrations</button>
+                >Integrations
+                </button>
             </li>
         </ul>
         <div class="tab-content mb-3" id="employerTabContent">
-            <div class="tab-pane fade show active" id="job-openings" role="tabpanel">
+            <div class="tab-pane fade" :class="(currentTab === 'job-openings') ? 'show active': ''" id="job-openings" role="tabpanel">
                 <div class="mb-2 d-flex justify-content-end">
-                    <button type="button" class="btn btn-primary me-2" @click="eventBus.emit('open:editJobPostingModal')">
+                    <button type="button" class="btn btn-primary me-2"
+                            @click="eventBus.emit('open:editJobPostingModal')">
                         Create job posting
                     </button>
-                    <button v-if="initData.employer.isLeverOn" type="button" class="btn btn-secondary" @click="loadLeverJobPostings">
+                    <button v-if="initData.employer.isLeverOn" type="button" class="btn btn-secondary"
+                            @click="loadLeverJobPostings">
                         Pull from Lever
                         <InfoToolTip :elId="getNewElUid()" content="Any job postings with the 'uprove' tag will be created
                         and/or updated in Uprove.
@@ -83,34 +100,45 @@
                                 <td>
                                     <HamburgerDropdown :elId="getNewElUid()">
                                         <li>
-                                            <a class="dropdown-item" href="#" @click="eventBus.emit('open:editJobPostingModal', job)">
+                                            <a class="dropdown-item" href="#"
+                                               @click="eventBus.emit('open:editJobPostingModal', job)">
                                                 <i class="fas fa-pencil-alt"></i> Edit job
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="#" @click="eventBus.emit('open:inviteJobApplicantModal', job)">
+                                            <a class="dropdown-item" href="#"
+                                               @click="eventBus.emit('open:inviteJobApplicantModal', job)">
                                                 <i class="fas fa-user-plus"></i> Invite applicants
                                             </a>
                                         </li>
                                     </HamburgerDropdown>
                                 </td>
-                                <td title="View job posting"><a :href="`/job-posting/${job.id}/`">{{job.jobTitle}}</a></td>
-                                <td>{{getJobStatus(job)}}</td>
-                                <td class="text-center border-start">{{job.applications.filter((a) => !Boolean(a.submissionDateTime)).length}}</td>
-                                <td class="text-center">{{job.applications.filter((a) => Boolean(a.submissionDateTime)).length}}</td>
-                                <td class="text-center">{{job.applications.filter((a) => Boolean(a.approveDateTime)).length}}</td>
-                                <td class="text-center">{{job.applications.filter((a) => Boolean(a.declineDateTime)).length}}</td>
+                                <td title="View job posting"><a :href="`/job-posting/${job.id}/`">{{ job.jobTitle }}</a>
+                                </td>
+                                <td>{{ getJobStatus(job) }}</td>
+                                <td class="text-center border-start">
+                                    {{ job.applications.filter((a) => !Boolean(a.submissionDateTime)).length }}
+                                </td>
+                                <td class="text-center">
+                                    {{ job.applications.filter((a) => Boolean(a.submissionDateTime)).length }}
+                                </td>
+                                <td class="text-center">
+                                    {{ job.applications.filter((a) => Boolean(a.approveDateTime)).length }}
+                                </td>
+                                <td class="text-center">
+                                    {{ job.applications.filter((a) => Boolean(a.declineDateTime)).length }}
+                                </td>
                             </tr>
                         </template>
                     </Table>
                 </div>
             </div>
-            <div class="tab-pane fade" id="applications" role="tabpanel">
+            <div class="tab-pane fade" :class="(currentTab === 'applications') ? 'show active': ''" id="applications" role="tabpanel">
                 <div class="table-responsive-md">
-                        <Table
-                            class="mt-3"
-                            :data="applications"
-                            :headers="[
+                    <Table
+                        class="mt-3"
+                        :data="applications"
+                        :headers="[
                                 [
                                     {},
                                     {value: 'First name', sortFn: 'user.firstName'},
@@ -121,52 +149,57 @@
                                     {value: 'Project score', sortFn: 'userProject.evaluationScorePct'}
                                 ]
                             ]"
-                            emptyDataMessage="No job applications"
-                        >
-                            <template v-slot:body>
-                                <tr v-for="application in applications" class="hover-menu">
-                                    <td>
-                                        <HamburgerDropdown :elId="getNewElUid()">
-                                            <li>
-                                                <a class="dropdown-item" href="#"><i class="far fa-envelope"></i> Message</a>
-                                            </li>
-                                            <li
-                                                v-if="getApplicationStatus(application) !== APPLICATION_STATUS.NOT_SUBMITTED"
-                                                @click="eventBus.emit('open:viewCandidateApplicationModal', {application})"
-                                            >
-                                                <a class="dropdown-item" href="#">
-                                                    <i class="far fa-eye"></i> Quick view application
-                                                </a>
-                                            </li>
-                                            <li @click="approveApplication(application)">
-                                                <a class="dropdown-item" href="#">
-                                                    <i class="far fa-thumbs-up -color-green-text"></i> Approve <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
-                                                </a>
-                                            </li>
-                                            <li @click="declineApplication(application)">
-                                                <a class="dropdown-item" href="#">
-                                                    <i class="far fa-thumbs-down -color-red-text"></i> Decline <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerDecline"/>
-                                                </a>
-                                            </li>
-                                        </HamburgerDropdown>
-                                    </td>
-                                    <td>{{application.user.firstName}}</td>
-                                    <td>{{application.user.lastName}}</td>
-                                    <td>{{getApplicationStatus(application)}}</td>
-                                    <td>{{application.job.jobTitle}}</td>
-                                    <td>{{application?.userProject?.customProject?.projectTitle || '-None-'}}</td>
-                                    <td>{{(application?.userProject?.evaluationScorePct) ? `${application?.userProject?.evaluationScorePct}%` : 'None'}}</td>
-                                </tr>
-                            </template>
-                        </Table>
-                    </div>
+                        emptyDataMessage="No job applications"
+                    >
+                        <template v-slot:body>
+                            <tr v-for="application in applications" class="hover-menu">
+                                <td>
+                                    <HamburgerDropdown :elId="getNewElUid()">
+                                        <li>
+                                            <a class="dropdown-item" href="#"><i class="far fa-envelope"></i>
+                                                Message</a>
+                                        </li>
+                                        <li
+                                            v-if="getApplicationStatus(application) !== APPLICATION_STATUS.NOT_SUBMITTED"
+                                            @click="eventBus.emit('open:viewCandidateApplicationModal', {application})"
+                                        >
+                                            <a class="dropdown-item" href="#">
+                                                <i class="far fa-eye"></i> Quick view application
+                                            </a>
+                                        </li>
+                                        <li @click="approveApplication(application)">
+                                            <a class="dropdown-item" href="#">
+                                                <i class="far fa-thumbs-up -color-green-text"></i> Approve
+                                                <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
+                                            </a>
+                                        </li>
+                                        <li @click="declineApplication(application)">
+                                            <a class="dropdown-item" href="#">
+                                                <i class="far fa-thumbs-down -color-red-text"></i> Decline
+                                                <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerDecline"/>
+                                            </a>
+                                        </li>
+                                    </HamburgerDropdown>
+                                </td>
+                                <td>{{ application.user.firstName }}</td>
+                                <td>{{ application.user.lastName }}</td>
+                                <td>{{ getApplicationStatus(application) }}</td>
+                                <td>{{ application.job.jobTitle }}</td>
+                                <td>{{ application?.userProject?.customProject?.projectTitle || '-None-' }}</td>
+                                <td>
+                                    {{ (application?.userProject?.evaluationScorePct) ? `${application?.userProject?.evaluationScorePct}%` : 'None' }}
+                                </td>
+                            </tr>
+                        </template>
+                    </Table>
+                </div>
             </div>
-            <div class="tab-pane fade" id="projects" role="tabpanel">
+            <div class="tab-pane fade" :class="(currentTab === 'projects') ? 'show active': ''" id="projects" role="tabpanel">
                 <div class="table-responsive-md">
-                        <Table
-                            class="mt-3"
-                            :data="customProjects"
-                            :headers="[
+                    <Table
+                        class="mt-3"
+                        :data="customProjects"
+                        :headers="[
                                 [
                                     {},
                                     {value: 'Project', sortFn: 'projectTitle'},
@@ -175,38 +208,82 @@
                                     {value: 'Linked jobs'},
                                 ]
                             ]"
-                            emptyDataMessage="<a href='/projects/'>Find a project to get started</a>"
-                        >
-                            <template v-slot:body>
-                                <tr v-for="customProject in customProjects" class="hover-menu">
-                                    <td>
-                                        <HamburgerDropdown :elId="getNewElUid()">
-                                            <li @click="eventBus.emit('open:editCustomProjectModal', customProject)">
-                                                <a class="dropdown-item" href="#"><i class="fas fa-pencil-alt"></i> Edit project</a>
-                                            </li>
-                                        </HamburgerDropdown>
-                                    </td>
-                                    <td>{{customProject.projectTitle}}</td>
-                                    <td><BadgesSkillLevels :skillLevels="customProject.skillLevel"/></td>
-                                    <td><BadgesSkills :skills="customProject.skills"/></td>
-                                    <td>
-                                        <ul>
-                                            <li v-for="job in customProject.jobs">{{job.jobTitle}}</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                            </template>
-                        </Table>
-                    </div>
+                        emptyDataMessage="<a href='/projects/'>Find a project to get started</a>"
+                    >
+                        <template v-slot:body>
+                            <tr v-for="customProject in customProjects" class="hover-menu">
+                                <td>
+                                    <HamburgerDropdown :elId="getNewElUid()">
+                                        <li @click="eventBus.emit('open:editCustomProjectModal', customProject)">
+                                            <a class="dropdown-item" href="#"><i class="fas fa-pencil-alt"></i> Edit
+                                                project</a>
+                                        </li>
+                                    </HamburgerDropdown>
+                                </td>
+                                <td>{{ customProject.projectTitle }}</td>
+                                <td>
+                                    <BadgesSkillLevels :skillLevels="customProject.skillLevel"/>
+                                </td>
+                                <td>
+                                    <BadgesSkills :skills="customProject.skills"/>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li v-for="job in customProject.jobs">{{ job.jobTitle }}</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </template>
+                    </Table>
+                </div>
             </div>
-            <div class="tab-pane fade" id="settings" role="tabpanel">
-                    <div>
-                        <a href="#" @click="eventBus.emit('open:editEmployerModal', initData.employer)">Edit employer information</a>
-                    </div>
-<!--                    <a href="#">Manage users</a>-->
-<!--                    <a href="#">Update billing</a>-->
+            <div class="tab-pane fade" :class="(currentTab === 'settings') ? 'show active': ''" id="settings" role="tabpanel">
+                <div>
+                    <a href="#" @click="eventBus.emit('open:editEmployerModal', initData.employer)">Edit employer
+                        information</a>
+                </div>
+                <!--                    <a href="#">Manage users</a>-->
+                <!--                    <a href="#">Update billing</a>-->
             </div>
-            <div class="tab-pane fade" id="integrations" role="tabpanel">
+            <div class="tab-pane fade" :class="(currentTab === 'users') ? 'show active': ''" id="users" role="tabpanel">
+                <div class="mb-2 d-flex justify-content-end">
+                    <button v-if="initData.employer.isLeverOn" type="button" class="btn btn-secondary"
+                            @click="connectLeverUsers">
+                        Connect to Lever
+                        <InfoToolTip :elId="getNewElUid()" content="Connect all current users with Lever so they can push
+                        candidates directly to Lever."/>
+                    </button>
+                </div>
+                <div class="table-responsive-md">
+                    <Table
+                        class="mt-3"
+                        :data="initData.users"
+                        :headers="userTableHeaders"
+                        emptyDataMessage="<a href='/projects/'>No current users</a>"
+                    >
+                        <template v-slot:body>
+                            <tr v-for="user in initData.users" class="hover-menu">
+                                <td>
+                                    <HamburgerDropdown :elId="getNewElUid()">
+                                        <li @click="eventBus.emit('open:editUserModal', user)">
+                                            <a class="dropdown-item" href="#"><i class="fas fa-pencil-alt"></i> Edit
+                                                user</a>
+                                        </li>
+                                    </HamburgerDropdown>
+                                </td>
+                                <td>{{ user.firstName }}</td>
+                                <td>{{ user.lastName }}</td>
+                                <td>{{ user.email }}</td>
+                                <td v-if="initData.employer.isLeverOn">
+                                    <i v-if="user.leverUserKey" class="fas fa-check-circle -color-green-text"></i>
+                                    <i v-else class="fas fa-times-circle -color-red-text"></i>
+                                </td>
+                            </tr>
+                        </template>
+                    </Table>
+                </div>
+            </div>
+            <div class="tab-pane fade" :class="(currentTab === 'integrations') ? 'show active': ''" id="integrations" role="tabpanel">
                 <div class="card-custom">
                     <div class="d-flex align-items-center">
                         <div class="btn-group" role="group">
@@ -237,8 +314,10 @@
                         <h5>Webhooks</h5>
                         <div class="-text-medium mb-3">
                             Webhooks allow us to automatically update candidate information and send Uprove assessments
-                            to candidates based on changes in Lever. This means less clicks for you! Go to <code>Settings ->
-                            Integrations and API -> Webhooks</code> to get and set the necessary fields described below. For
+                            to candidates based on changes in Lever. This means less clicks for you! Go to <code>Settings
+                            ->
+                            Integrations and API -> Webhooks</code> to get and set the necessary fields described below.
+                            For
                             each webhook:
                             <ul class="mt-2">
                                 <li>Click the toggle button next to the webhook in Lever to turn it on</li>
@@ -246,14 +325,19 @@
                                 <li>Copy the signature token from Lever and paste it into the form field for the
                                     corresponding webhook in Uprove
                                 </li>
-                                <li>Copy the webhook URL from Uprove and paste it into the URL field for the corresponding
+                                <li>Copy the webhook URL from Uprove and paste it into the URL field for the
+                                    corresponding
                                     webhook in Lever (it's a gray box that begins with "https://")
                                 </li>
-                                <li>Click the "Verify connection" button in Lever to confirm the webhook is working properly</li>
+                                <li>Click the "Verify connection" button in Lever to confirm the webhook is working
+                                    properly
+                                </li>
                             </ul>
                             <div class="mt-2">
-                                A <span class="badge -color-moderategrey">uprove</span> tag must be added to all job postings
-                                and candidates that should receive a Uprove assessment. If the tag is added to a job posting,
+                                A <span class="badge -color-moderategrey">uprove</span> tag must be added to all job
+                                postings
+                                and candidates that should receive a Uprove assessment. If the tag is added to a job
+                                posting,
                                 all candidates assigned to that job posting will automatically inherit that tag.
                             </div>
                         </div>
@@ -354,6 +438,7 @@
     <EditCustomProjectModal/>
     <EditEmployerModal/>
     <EditJobPostingModal/>
+    <EditUserModal/>
     <InviteJobApplicantModal/>
     <ViewCandidateApplicationModal
         @approve="approveApplication($event)"
@@ -372,6 +457,7 @@ import BasePage from "../base/BasePage";
 import EditCustomProjectModal from "../../modals/EditCustomProjectModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
+import EditUserModal from "../../modals/EditUserModal";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
@@ -388,7 +474,7 @@ export default {
     components: {
         LeverWebhook,
         BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditCustomProjectModal, EditEmployerModal,
-        EditJobPostingModal, HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal,
+        EditJobPostingModal, EditUserModal, HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal,
         Table, ViewCandidateApplicationModal
     },
     data() {
@@ -431,16 +517,33 @@ export default {
                 return customProjects;
             }, {});
             return Object.values(customProjects);
+        },
+        userTableHeaders() {
+            const baseHeaders = [
+                    {},
+                    {value: 'First name', sortFn: 'firstName'},
+                    {value: 'Last name', sortFn: 'lastName'},
+                    {value: 'Email', sortFn: 'email'},
+            ];
+
+            if (this.initData.employer.isLeverOn) {
+                baseHeaders.push({
+                    value: 'Has Lever connection',
+                    toolTip: 'Each user needs to be connected with Lever to be able to push candidates directly to Lever. Use the "Connect to Lever" button to create the connection for users that have a Lever account.'
+                });
+            }
+
+            return [baseHeaders];
         }
     },
     methods: {
         getApplicationStatus: dataUtil.getApplicationStatus,
-        leverLogin: (isOn) => {
+        leverLogin: function (isOn) {
             if (isOn) {
                 leverIntegration.login();
             } else {
-                leverIntegration.logout(() => {
-                    this.initData.employer.isLeverOn = false;
+                leverIntegration.logout(this.initData.employer.id, () => {
+                    this.leverData.isLeverOn = false;
                 });
             }
         },
@@ -448,7 +551,10 @@ export default {
             leverIntegration.saveToken($(targetEl), this.initData.employer.id, modelName, val)
         },
         loadLeverJobPostings() {
-            leverIntegration.loadJobPostings();
+            leverIntegration.loadJobPostings(this.initData.employer.id);
+        },
+        connectLeverUsers() {
+            leverIntegration.connectUsers(this.initData.employer.id)
         },
         getJobStatus(job) {
             if (job.closeDate) {
@@ -504,7 +610,7 @@ export default {
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);
         if ('isLeverOn') {
-            await this.loadData([{route: 'lever/stages/', dataKey: 'leverStages'}]);
+            await this.loadData([{route: `lever/stages/${this.initData.employer.id}/`, dataKey: 'leverStages'}]);
             this.$refs.leverStage.resetOptions(this.cData.leverStages);
             this.$refs.leverStage.elSel.setValue(this.initData.employer.leverTriggerStageKey, true);
             this.$refs.leverStageComplete.resetOptions(this.cData.leverStages);

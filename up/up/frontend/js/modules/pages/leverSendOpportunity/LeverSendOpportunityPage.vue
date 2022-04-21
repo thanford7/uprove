@@ -1,26 +1,31 @@
 <template>
     <div class="card-custom">
-        <BasePage :headerTitle="`${initData.employer.companyName}: Uprove Assessment Configuration`" :headerImage="initData.employer.logo">
-            <div class="row mb-3">
-                <div>
-                    <h5>Assessment for {{initData.candidate.name}} ({{initData.jobTitle}} position)</h5>
-                </div>
-                <div class="mb-3 col-md-4">
-                    <label class="form-label">
-                        Candidate Email Address
-                        <InfoToolTip :elId="getNewElUid()" content="To send to multiple email addresses, separate each email address with a comma"/>
-                    </label>
-                    <input id="candidateEmails" type="text" class="form-control" placeholder="Required" v-model="initData.candidate.emails">
-                </div>
-                <div class="mb-3 col-md-4">
-                    <label class="form-label">
-                        {{initData.employer.companyName}} Contact Email Address
-                        <InfoToolTip :elId="getNewElUid()" content="This is the individual that the candidate should reach out to if they have questions or issues"/>
-                    </label>
-                    <InputSelectize
-                        ref="companyContactEmail"
-                        elId="companyContactEmail"
-                        :cfg="{
+        <BasePage :headerTitle="`${initData.employer.companyName}: Uprove Assessment Configuration`"
+                  :headerImage="initData.employer.logo">
+            <div v-if="!isMsgSent">
+                <div class="row mb-3">
+                    <div>
+                        <h5>Assessment for {{ initData.candidate.name }} ({{ initData.jobTitle }} position)</h5>
+                    </div>
+                    <div class="mb-3 col-md-4">
+                        <label class="form-label">
+                            Candidate Email Address
+                            <InfoToolTip :elId="getNewElUid()"
+                                         content="To send to multiple email addresses, separate each email address with a comma"/>
+                        </label>
+                        <input id="candidateEmails" type="text" class="form-control" placeholder="Required"
+                               v-model="initData.candidate.emails">
+                    </div>
+                    <div class="mb-3 col-md-4">
+                        <label class="form-label">
+                            {{ initData.employer.companyName }} Contact Email Address
+                            <InfoToolTip :elId="getNewElUid()"
+                                         content="This is the individual that the candidate should reach out to if they have questions or issues"/>
+                        </label>
+                        <InputSelectize
+                            ref="companyContactEmail"
+                            elId="companyContactEmail"
+                            :cfg="{
                             maxItems: 1,
                             create: true,
                             persist: false,
@@ -30,19 +35,20 @@
                             labelField: 'email',
                             searchField: ['email']
                         }"
-                        placeholder="Required"
-                        @selected="setCompanyContactEmail"
-                    />
-                </div>
-                <div class="mb-3 col-md-4">
-                    <label class="form-label">
-                        {{initData.employer.companyName}} Contact Name
-                        <InfoToolTip :elId="getNewElUid()" content="This is the individual that the candidate should reach out to if they have questions or issues"/>
-                    </label>
-                    <InputSelectize
-                        ref="companyContactName"
-                        elId="companyContactName"
-                        :cfg="{
+                            placeholder="Required"
+                            @selected="setCompanyContactEmail"
+                        />
+                    </div>
+                    <div class="mb-3 col-md-4">
+                        <label class="form-label">
+                            {{ initData.employer.companyName }} Contact Name
+                            <InfoToolTip :elId="getNewElUid()"
+                                         content="This is the individual that the candidate should reach out to if they have questions or issues"/>
+                        </label>
+                        <InputSelectize
+                            ref="companyContactName"
+                            elId="companyContactName"
+                            :cfg="{
                             maxItems: 1,
                             create: true,
                             persist: false,
@@ -52,58 +58,62 @@
                             labelField: 'name',
                             searchField: ['name']
                         }"
-                        placeholder="Required"
-                        @selected="setCompanyContactName"
-                    />
-                </div>
-                <div class="mb-3 col-md-6">
-                    <label class="form-label">
-                        Assessment
-                        <InfoToolTip :elId="getNewElUid()" content="This is the project assessment that the candidate must complete. You can open any of the assessments to get more details"/>
-                    </label>
-                    <ProjectsSelectize
-                        ref="customProject"
-                        :employerId="initData.employer.id"
-                        :allowedProjects="(initData.primaryCustomProject) ? [initData.primaryCustomProject] : []"
-                        @projectChange="formData.customProject = $event"
-                    />
-                </div>
-                <div class="mb-3 col-md-6">
-                    <ProjectConfigSelectize
-                        v-if="formData.customProject"
-                        ref="customProjectCfg"
-                        :employerId="initData.employer.id"
-                        :customProject="formData.customProject"
-                        :project="getProject(formData.customProject)"
-                    />
-                </div>
-            </div>
-            <div class="row mb-2">
-                <div class="mb-3 col-12">
-                    <label class="form-label">
-                        Assessment Email To Candidate
-                        <InfoToolTip :elId="getNewElUid()" content="This email will be sent to give the candidate instructions on how to complete the assessment. You can modify the language as you see fit"/>
-                    </label>
-                    <p class="-text-medium">From: {{formData.companyContactEmail}}</p>
-                    <p class="-text-medium">CC: {{globalData.CANDIDATE_SUPPORT_EMAIL}}</p>
-                    <p class="-text-medium">To: {{(initData.candidate.emails) ? initData.candidate.emails.join('; ') : ''}}</p>
-                    <div class="mb-3">
-                        <span class="-text-medium">Subject:&nbsp;</span>
-                        <input
-                            id="assessmentEmailTitle"
-                            type="text" class="form-control w-75"
-                           placeholder="Email subject" v-model="assessmentEmailTitle"
-                            style="display: inline-block;"
-                        >
+                            placeholder="Required"
+                            @selected="setCompanyContactName"
+                        />
                     </div>
-                    <InputWsiwyg :elId="assessmentEmail" v-model="assessmentEmail"/>
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">
+                            Assessment
+                            <InfoToolTip :elId="getNewElUid()"
+                                         content="This is the project assessment that the candidate must complete. You can open any of the assessments to get more details"/>
+                        </label>
+                        <ProjectsSelectize
+                            ref="customProject"
+                            :employerId="initData.employer.id"
+                            :allowedProjects="(initData.primaryCustomProject) ? [initData.primaryCustomProject] : []"
+                            @projectChange="formData.customProject = $event"
+                        />
+                    </div>
+                    <div class="mb-3 col-md-6">
+                        <ProjectConfigSelectize
+                            v-if="formData.customProject"
+                            ref="customProjectCfg"
+                            :employerId="initData.employer.id"
+                            :customProject="formData.customProject"
+                            :project="getProject(formData.customProject)"
+                        />
+                    </div>
                 </div>
+                <div class="row mb-2">
+                    <div class="mb-3 col-12">
+                        <label class="form-label">
+                            Assessment Email To Candidate
+                            <InfoToolTip :elId="getNewElUid()"
+                                         content="This email will be sent to give the candidate instructions on how to complete the assessment. You can modify the language as you see fit"/>
+                        </label>
+                        <p class="-text-medium">From: {{ formData.companyContactEmail }}</p>
+                        <p class="-text-medium">CC: {{ globalData.CANDIDATE_SUPPORT_EMAIL }}</p>
+                        <p class="-text-medium">To:
+                            {{ (initData.candidate.emails) ? initData.candidate.emails.join('; ') : '' }}</p>
+                        <div class="mb-3">
+                            <span class="-text-medium">Subject:&nbsp;</span>
+                            <input
+                                id="assessmentEmailTitle"
+                                type="text" class="form-control w-75"
+                                placeholder="Email subject" v-model="assessmentEmailTitle"
+                                style="display: inline-block;"
+                            >
+                        </div>
+                        <InputWsiwyg :elId="assessmentEmail" v-model="assessmentEmail"/>
+                    </div>
+                </div>
+                <row class="mb-3">
+                    <div class="col-12 btn btn-primary" @click="saveChange">
+                        <i class="fas fa-paper-plane"></i> Send assessment email
+                    </div>
+                </row>
             </div>
-            <row class="mb-3">
-                <div class="col-12 btn btn-primary" @click="saveChange">
-                    <i class="fas fa-paper-plane"></i> Send assessment email
-                </div>
-            </row>
         </BasePage>
     </div>
 </template>
@@ -129,7 +139,8 @@ export default {
                 companyContactEmail: '#companyContactEmail',
                 companyContactName: '#companyContactName',
                 customProject: null
-            }
+            },
+            isMsgSent: false
         }
     },
     computed: {
@@ -157,7 +168,7 @@ export default {
     },
     methods: {
         getSuccessMessage() {
-            return `Message successfully sent to ${this.initData.candidate.emails.join('; ')}`;
+            return `Message successfully sent to ${this.initData.candidate.emails.join('; ')}. You can close this page now.`;
         },
         getAjaxCfgOverride() {
             return {
@@ -200,19 +211,19 @@ export default {
         isGoodFormFields(formData) {
             if (!formData.customProject.skillLevelBit) {
                 this.addPopover($(this.$refs.customProjectCfg.getSkillLevelTargetEl()),
-                {severity: SEVERITY.WARN, content: 'You must select a skill level', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'You must select a skill level', isOnce: true}
                 );
                 return false;
             }
             if (!formData.emailBody.includes('redirectLink')) {
                 this.addPopover($('#assessmentEmail'),
-                {severity: SEVERITY.WARN, content: 'Email must contain a link to the assessment', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Email must contain a link to the assessment', isOnce: true}
                 );
                 return false;
             }
             if (!formData.emailTitle) {
                 this.addPopover($('#assessmentEmailTitle'),
-                {severity: SEVERITY.WARN, content: 'Email title cannot be blank', isOnce: true}
+                    {severity: SEVERITY.WARN, content: 'Email title cannot be blank', isOnce: true}
                 );
                 return false;
             }
@@ -232,6 +243,10 @@ export default {
             this.formData.customProject.skillIds = this.formData.customProject.skills.map((s) => s.id);
         }
         this.requiredFields.customProject = this.$refs.customProject.getTargetEl();
+
+        this.eventBus.on('ajaxSuccess', () => {
+            this.isMsgSent = true;
+        });
     }
 }
 </script>

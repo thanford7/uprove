@@ -131,17 +131,20 @@ export default {
             return 'Create new user';
         },
         processRawData(rawData) {
-            const userTypes = Object.keys(this.globalData.USER_TYPES)
-                .reduce((userTypes, t) => {
-                    const val = parseInt(t);
-                    if (val & rawData.formData.userTypeBits) {
-                        userTypes.push(val);
-                    }
-                    return userTypes;
-                }, []);
-            this.$refs.userTypes.elSel.setValue(userTypes);
-            this.$refs.userEmployer.elSel.setValue(rawData.formData.employerId);
-            return Object.assign(rawData.formData, {userTypes});
+            let userTypes;
+            if (this.isShowAdminFields) {
+                userTypes = Object.keys(this.globalData.USER_TYPES)
+                    .reduce((userTypes, t) => {
+                        const val = parseInt(t);
+                        if (val & rawData.userTypeBits) {
+                            userTypes.push(val);
+                        }
+                        return userTypes;
+                    }, []);
+                this.$refs.userTypes.elSel.setValue(userTypes);
+                this.$refs.userEmployer.elSel.setValue(rawData.employerId);
+            }
+            return Object.assign(rawData, {userTypes});
         },
         processFormData() {
             const formData = this.readForm();

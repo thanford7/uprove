@@ -340,7 +340,6 @@ class UserView(UproveAPIView):
             })
 
         EmailView.sendFormattedEmail(request, contactType=EmailView.TYPE_CANDIDATE_SIGNUP)
-        UserProfileView.createUserProfile(user.id, isPrimary=True)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedUser(user))
 
@@ -435,8 +434,10 @@ class UserView(UproveAPIView):
             raise e
 
     @staticmethod
-    def getUsers():
-        return User.objects.select_related('djangoUser').prefetch_related('image', 'profile').all()
+    def getUsers(filter=None):
+        if not filter:
+            filter = Q()
+        return User.objects.select_related('djangoUser').prefetch_related('image', 'profile').filter(filter)
 
     @staticmethod
     def updateUser(user, data):
@@ -489,6 +490,7 @@ class UserView(UproveAPIView):
             createdDateTime=timezone.now()
         )
         user.save()
+        UserProfileView.createUserProfile(user.id, isPrimary=True)
         saveActivity(ActivityKey.CREATE_ACCOUNT, user.id)
 
         return user, bool(password)
@@ -542,13 +544,6 @@ class UserPreferenceView(UproveAPIView):
 
 class UserProfileView(UproveAPIView):
     USER_SKILL_LIMIT = 5
-
-    def get(self, request, profileId=None):
-        pass
-
-    @atomic
-    def post(self, request):
-        pass
 
     @atomic
     def put(self, request):

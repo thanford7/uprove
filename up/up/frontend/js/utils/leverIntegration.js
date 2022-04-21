@@ -11,6 +11,20 @@ class LeverIntegration {
         delete: 'delete'
     }
 
+    /**
+     * Link a Uprove user with their Lever account
+     * @param employerId
+     */
+    connectUsers(employerId) {
+        makeAjaxRequest(globalData.API_URL + `lever/users/${employerId}/`, {
+            method: 'POST',
+            success: () => {
+                window.location.reload();
+            },
+            error: addErrorAlert
+        });
+    }
+
     getWebhookUrl(type, employerId) {
         return `${globalData.BASE_URL}${globalData.API_URL}lever/change/${type}/${employerId}/`;
     }
@@ -19,8 +33,8 @@ class LeverIntegration {
         window.location.replace(encodeURI(globalData.LEVER_REDIRECT_URL));
     }
 
-    logout(successHook) {
-        makeAjaxRequest(globalData.API_URL + 'lever/logout/', {
+    logout(employerId, successHook) {
+        makeAjaxRequest(globalData.API_URL + `lever/logout/${employerId}`, {
             method: 'POST',
             success: () => {
                 store.commit('addAlert', {
@@ -35,14 +49,14 @@ class LeverIntegration {
         });
     }
 
-    loadJobPostings() {
-        makeAjaxRequest(globalData.API_URL + 'lever/postings/', {
+    loadJobPostings(employerId) {
+        makeAjaxRequest(globalData.API_URL + `lever/postings/${employerId}`, {
             method: 'POST',
             success: () => {
                 window.location.reload();
             },
             error: addErrorAlert
-        })
+        });
     }
 
     saveToken(target$, employerId, modelName, modelValue) {
