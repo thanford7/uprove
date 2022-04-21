@@ -609,7 +609,7 @@ export default {
         this.leverData = dataUtil.pick(this.initData.employer, [
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);
-        if ('isLeverOn') {
+        if (this.leverData.isLeverOn) {
             await this.loadData([{route: `lever/stages/${this.initData.employer.id}/`, dataKey: 'leverStages'}]);
             this.$refs.leverStage.resetOptions(this.cData.leverStages);
             this.$refs.leverStage.elSel.setValue(this.initData.employer.leverTriggerStageKey, true);
