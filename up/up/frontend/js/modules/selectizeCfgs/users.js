@@ -1,30 +1,25 @@
 import globalData from "../../globalData";
 
-class OrganizationSelectize {
-    getOrgCfg({isMulti = false, orgType=null} = {}) {
+class UsersSelectize {
+    getUsersCfg({isMulti = false} = {}) {
         const cfg = {
             valueField: 'id',
-            labelField: 'name',
-            sortField: 'name',
-            searchField: 'name',
-            create: true,
+            sortField: ['firstName', 'lastName'],
+            searchField: ['firstName', 'lastName', 'email'],
             loadThrottle: 500,
-            placeholder: 'Start typing to see existing orgs'
+            placeholder: 'Start typing to search users'
         };
         cfg.load = (query, callback) => {
             if (!query.length) return callback();
-            let url = `${globalData.API_URL}/organization/?search=${encodeURIComponent(query)}`;
-            if (orgType) {
-                url += `&orgType=${encodeURIComponent(orgType)}`
-            }
+            let url = `${globalData.API_URL}account-user/?search=${encodeURIComponent(query)}`;
             $.ajax({
                 url,
                 type: 'GET',
                 error: function () {
                     callback();
                 },
-                success: function (res) {
-                    callback(res);
+                success: function (users) {
+                    callback(users);
                 },
             });
         }
@@ -32,7 +27,7 @@ class OrganizationSelectize {
             option: (data, escape) => {
                 return `
                     <div class="option" data-selectable data-value="${data.id}" style="cursor: pointer;">
-                        ${escape(data.name)}
+                        ${escape(data.firstName)} ${escape(data.lastName)} (${escape(data.email)})
                     </div>
                 `;
             }
@@ -47,6 +42,6 @@ class OrganizationSelectize {
     }
 }
 
-const orgSelectize = new OrganizationSelectize();
+const usersSelectize = new UsersSelectize();
 
-export default orgSelectize;
+export default usersSelectize;

@@ -44,9 +44,6 @@ def admin(request):
         return _getUnauthorizedPage(request)
     return render(request, 'admin.html', {'data': dumps({
         'projects': [getSerializedProject(p, isIncludeDetails=True, isAdmin=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)],
-        # TODO: Lazy load employers and users since this will get long
-        'employers': [getSerializedEmployer(e, isEmployer=True) for e in EmployerView.getEmployers()],
-        'users': [getSerializedUser(u) for u in UserView.getUsers()],
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
         'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],

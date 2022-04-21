@@ -83,26 +83,28 @@
             </div>
         </div>
     </BasePage>
-    <EditEmployerModal/>
+    <EditEmployerModal :isUpdateDataOverride="false"/>
     <EditRoleModal/>
     <EditJobTemplateModal/>
     <EditProjectModal/>
     <EditSkillModal/>
-    <EditUserModal :isShowAdminFields="true"/>
+    <EditUserModal :isShowAdminFields="true" :isUpdateDataOverride="false"/>
 </template>
 
 <script>
 import BannerAlert from "../../components/BannerAlert";
+import BasePage from "../base/BasePage";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditRoleModal from "../../modals/EditRoleModal";
 import EditJobTemplateModal from "../../modals/EditJobTemplateModal";
 import EditProjectModal from "../../modals/EditProjectModal";
 import EditSkillModal from "../../modals/EditSkillModal";
 import EditUserModal from "../../modals/EditUserModal";
+import employersSelectize from "../../selectizeCfgs/employers";
 import InputSelectize from "../../inputs/InputSelectize";
 import skillSelectize from "../../selectizeCfgs/skill";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
-import BasePage from "../base/BasePage";
+import usersSelectize from "../../selectizeCfgs/users";
 
 export default {
     name: "AdminPage.vue",
@@ -115,28 +117,19 @@ export default {
             deep: true,
             handler(initData) {
                 [
-                    ['editEmployer', this.getEmployerOptions],
                     ['editRole', this.getRoleOptions],
                     ['editJobTemplate', this.getJobTemplateOptions],
                     ['editProject', this.getProjectOptions],
                     ['editSkill', this.getSkillOptions],
-                    ['editUser', this.getUserOptions]
                 ].forEach(([ref, optionFn]) => {
-                    const sel = this.$refs[ref].elSel;
-                    sel.clearOptions(true);
-                    sel.addOption(optionFn());
-                    sel.refreshOptions(false);
+                    this.$refs[ref].resetOptions(optionFn());
                 })
             }
         }
     },
     computed: {
         employerCfg() {
-            return {
-                maxItems: 1,
-                sortField: 'text',
-                options: this.getEmployerOptions()
-            }
+            return employersSelectize.getEmployersCfg();
         },
         roleCfg() {
             return {
@@ -160,20 +153,13 @@ export default {
             }
         },
         userCfg() {
-            return {
-                maxItems: 1,
-                sortField: 'text',
-                options: this.getUserOptions()
-            }
+            return usersSelectize.getUsersCfg();
         }
     },
     methods: {
         getEmployer(employerId) {
             // Copy so the form doesn't mutate the original data
-            return Object.assign({}, this.initData.employers.find((e) => e.id === employerId));
-        },
-        getEmployerOptions() {
-            return this.initData.employers.map((e) => ({value: e.id, text: e.companyName}));
+            return Object.assign({}, this.$refs.editEmployer.elSel.options[employerId]);
         },
         getJobTemplate(templateId) {
             return Object.assign({}, this.initData.jobTemplates.find((jt) => jt.id === templateId));
@@ -200,34 +186,28 @@ export default {
             return skillSelectize.getSkillOptions(this.initData.skills, null, true);
         },
         getUser(userId) {
-            return Object.assign({}, this.initData.users.find((u) => u.id === userId));
-        },
-        getUserOptions() {
-            return this.initData.users.map((u) => ({value: u.id, text: `${u.firstName} ${u.lastName} (${u.id})`}));
+            return Object.assign({}, this.$refs.editUser.elSel.options[userId]);
         },
         openEditEmployerModal(employerId) {
             if (!employerId) {
                 return;
             }
             this.eventBus.emit('open:editEmployerModal', this.getEmployer(employerId));
-            const sel = this.$refs['editEmployer'];
-            sel.elSel.clear(true);
+            this.$refs.editEmployer.elSel.clear(true);
         },
         openEditRoleModal(roleId) {
             if (!roleId) {
                 return;
             }
             this.eventBus.emit('open:editRoleModal', this.getRole(roleId));
-            const sel = this.$refs.editRole;
-            sel.elSel.clear(true);
+            this.$refs.editRole.elSel.clear(true);
         },
         openEditJobTemplateModal(templateId) {
             if (!templateId) {
                 return;
             }
             this.eventBus.emit('open:editJobTemplateModal', this.getJobTemplate(templateId));
-            const sel = this.$refs['editJobTemplate'];
-            sel.elSel.clear(true);
+            this.$refs.editJobTemplate.elSel.clear(true);
         },
         openEditProjectModal(projectId, isEdit) {
             if (!projectId && isEdit) {
@@ -237,23 +217,20 @@ export default {
                 formData: this.getProject(projectId),
                 employers: this.initData.employers
             });
-            const sel = this.$refs['editProject'];
-            sel.elSel.clear(true);
+            this.$refs.editProject.elSel.clear(true);
         },
         openEditSkillModal(skillId) {
             if (!skillId) {
                 return;
             }
             this.eventBus.emit('open:editSkillModal', this.getSkill(skillId));
-            const sel = this.$refs['editSkill'];
-            sel.elSel.clear(true);
+            this.$refs.editSkill.elSel.clear(true);
         },
         openEditUserModal(userId) {
             if (!userId) {
                 return;
             }
-            const sel = this.$refs['editUser'];
-            sel.elSel.clear(true);
+            this.$refs.editUser.elSel.clear(true);
             this.eventBus.emit('open:editUserModal', this.getUser(userId));
         },
     },

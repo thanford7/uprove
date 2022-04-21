@@ -19,13 +19,17 @@ import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
 
-class EmployerView(APIView):
+class EmployerView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
 
     def get(self, request, employerId=None):
         if employerId:
             isEmployer = security.isPermittedEmployer(request, employerId)
             data = getSerializedEmployer(self.getEmployer(employerId), isEmployer=isEmployer)
+        elif searchText := self.data.get('search'):
+            searchText = searchText[0]
+            employerFilter = Q(companyName__iregex=f'^.*{searchText}.*$')
+            data = [getSerializedEmployer(e, isEmployer=False) for e in self.getEmployers(employerFilter)]
         else:
             data = [getSerializedEmployer(e, isEmployer=False) for e in self.getEmployers()]
         return Response(status=status.HTTP_200_OK, data=data)
@@ -110,8 +114,9 @@ class EmployerView(APIView):
             raise e
 
     @staticmethod
-    def getEmployers():
-        return Employer.objects.all()
+    def getEmployers(filter=None):
+        filter = filter or Q()
+        return Employer.objects.filter(filter)
 
 
 class JobPostingView(UproveAPIView):

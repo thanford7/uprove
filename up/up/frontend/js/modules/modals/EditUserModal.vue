@@ -79,6 +79,7 @@
 import {SEVERITY, USER_BITS} from '../../globalData';
 import BaseModal from "./BaseModal";
 import dataUtil from "../../utils/data";
+import employersSelectize from "../selectizeCfgs/employers";
 import InfoToolTip from "../components/InfoToolTip";
 import InputCheckBox from "../inputs/InputCheckBox";
 import InputEmail from "../inputs/InputEmail";
@@ -88,7 +89,7 @@ export default {
     name: "EditUserModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    props: ['isContentOnly', 'isShowAdminFields'],
+    props: ['isContentOnly', 'isShowAdminFields', 'isUpdateDataOverride'],
     components: {BaseModal, InfoToolTip, InputCheckBox, InputEmail, InputSelectize},
     data() {
         return {
@@ -107,10 +108,7 @@ export default {
     },
     computed: {
         userEmployerCfg() {
-            return {
-                maxItems: 1,
-                options: this.initData.employers.map((e) => ({value: e.id, text: e.companyName}))
-            }
+            return employersSelectize.getEmployersCfg();
         },
         userTypesCfg() {
             return {
@@ -142,7 +140,9 @@ export default {
                         return userTypes;
                     }, []);
                 this.$refs.userTypes.elSel.setValue(userTypes);
-                this.$refs.userEmployer.elSel.setValue(rawData.employerId);
+                this.$refs.userEmployer.elSel.load(
+                    employersSelectize.loadEmployerByIdFn(rawData.employerId, this.$refs.userEmployer)
+                );
             }
             return Object.assign(rawData, {userTypes});
         },
@@ -191,6 +191,9 @@ export default {
     mounted() {
         if (this.$refs.userTypes) {
             this.requiredFields.userTypes = this.$refs.userTypes.targetEl;
+        }
+        if (!dataUtil.isNil(this.isUpdateDataOverride)) {
+            this.isUpdateData = this.isUpdateDataOverride;
         }
     }
 }

@@ -299,13 +299,22 @@ class UserContentItemView(APIView):
 class UserView(UproveAPIView):
 
     def get(self, request, userId=None):
-        return Response(getSerializedUser(self.getUser(userId)), status=status.HTTP_200_OK)
+        if userId:
+            return Response(status=status.HTTP_200_OK, data=getSerializedUser(self.getUser(userId)))
+        elif searchText := self.data.get('search'):
+            searchText = searchText[0]
+            userFilter = Q(firstName__iregex=f'^.*{searchText}.*$')
+            userFilter |= Q(lastName__iregex=f'^.*{searchText}.*$')
+            userFilter |= Q(email__iregex=f'^.*{searchText}.*$')
+            return Response(status=status.HTTP_200_OK, data=[getSerializedUser(u) for u in self.getUsers(userFilter)])
+
+        return Response('Please provide a user ID or search text', status=status.HTTP_400_BAD_REQUEST)
 
     @atomic
     def put(self, request, userId=None):
         from upapp.viewsAuth import setUproveUser
 
-        userId = userId or request.data.get('id')
+        userId = userId or self.data.get('id')
         if not userId:
             return Response('User ID is required to perform this operation', status=status.HTTP_400_BAD_REQUEST)
         if not (security.isPermittedAdmin(request) or security.isSelf(userId, request=request)):
@@ -437,7 +446,18 @@ class UserView(UproveAPIView):
     def getUsers(filter=None):
         if not filter:
             filter = Q()
-        return User.objects.select_related('djangoUser').prefetch_related('image', 'profile').filter(filter)
+        return User.objects\
+            .select_related('djangoUser')\
+            .prefetch_related(
+                'image',
+                'profile',
+                'userTag__tag',
+                'preferenceCompanySizes',
+                'preferenceRoles',
+                'preferenceState',
+                'preferenceCountry'
+            )\
+            .filter(filter)
 
     @staticmethod
     def updateUser(user, data):
