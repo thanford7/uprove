@@ -6,10 +6,6 @@
         @saveChange="saveChange"
     >
         <div class="mb-3">
-            <label for="formProfileName" class="form-label">Profile name</label>
-            <input type="text" class="form-control" placeholder="Add name..." id="formProfileName" v-model="formData.profileName">
-        </div>
-        <div class="mb-3">
             <InputOrViewMedia
                 :inputId="getNewElUid()"
                 :mediaTypes="[contentTypes.IMAGE]"
@@ -42,9 +38,6 @@ export default {
             crudUrl: 'user-profile/',
             isUpdateData: true,
             mediaFields: new Set(['newProfilePicture']),
-            requiredFields: {
-                profileName: '#formProfileName'
-            },
             contentTypes: CONTENT_TYPES,
             tagTypes: TAG_TYPES
         }
@@ -59,15 +52,6 @@ export default {
                 );
                 return false;
             }
-            for(let i = 0; i < formData.userSkills.length; i++) {
-                const userSkill = formData.userSkills[i];
-                if (!userSkill.skillLevelBit) {
-                    this.addPopover($(this.$refs.userSkills.$el),
-                    {severity: SEVERITY.WARN, content: `${userSkill.title} skill must have a skill level`, isOnce: true}
-                    );
-                    return false;
-                }
-            }
             if(this.$refs.userInterests.hasDuplicate()) {
                 this.addPopover($(this.$refs.userInterests.$el),
                 {severity: SEVERITY.WARN, content: 'Cannot have the same interest multiple times', isOnce: true}
@@ -80,7 +64,7 @@ export default {
             const userSkills = this.$refs.userSkills.getTags();
             const userInterests = this.$refs.userInterests.getTags();
             return Object.assign(
-                dataUtil.pick(this.readForm(), ['id', 'profileName', 'profilePicture', 'newProfilePicture']),
+                dataUtil.pick(this.readForm(), ['id', 'profilePicture', 'newProfilePicture']),
                 {userInterests, userSkills}
             );
         },

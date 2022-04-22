@@ -85,7 +85,6 @@ def candidateBoard(request):
         'candidates': [{
             'id': candidate.id,
             'profileId': candidate.primaryProfile.id,
-            'profileName': candidate.primaryProfile.profileName,
             'firstName': candidate.firstName,
             'lastName': candidate.lastName,
             'email': candidate.email,
@@ -268,7 +267,7 @@ def jobs(request):
 
 
 def jobPosting(request, jobId):
-    job = JobPostingView.getEmployerJobs(jobId=jobId)
+    job = JobPostingView.getEmployerJobs(jobId=jobId, isIncludeDemo=True)
     projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=[p.project_id for p in job.allowedProjects.all()])
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
     user = security.getSessionUser(request)

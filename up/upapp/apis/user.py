@@ -575,10 +575,6 @@ class UserProfileView(UproveAPIView):
         if not security.isSelf(profile.user_id, user=self.user):
             return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
 
-        dataUtil.setObjectAttributes(profile, self.data, {
-            'profileName': None
-        })
-
         if profilePicture := self.data.get('newProfilePicture'):
             profile.profilePicture = UserImageView.createUserImage(self.user, {'image': profilePicture})
 
@@ -602,6 +598,15 @@ class UserProfileView(UproveAPIView):
             modifiedDateTime=timezone.now()
         )
         profile.save()
+
+        # Add the necessary sections
+        for sectionOrder, section in enumerate(UserProfileSection.ALL_SECTIONS):
+            UserProfileSection(
+                userProfile=profile,
+                sectionType=section,
+                sectionOrder=sectionOrder
+            ).save()
+
         return profile
 
     @staticmethod
@@ -999,7 +1004,7 @@ class UserProfileContentItemView(UproveAPIView):
                     ).save()
                     sectionIdx += 1
             return contentItem
-        elif contentType == ContentTypes.EXISTING.value:
+        elif contentType == ContentTypes.PROJECT.value:
             contentModel = CONTENT_TYPE_MODELS[self.data['existingContentType']]['model']
             try:
                 return contentModel.objects.get(id=self.data['existingContentId'])
@@ -1093,6 +1098,17 @@ class UserProjectView(UproveAPIView):
         for jobApplication in project.jobApplication.all():
             jobApplication.withdrawDateTime = timezone.now()
             jobApplication.save()
+
+        # Remove references to the user project in the user's profile
+        profileContentItems = [
+            u for u in
+            UserProfileSectionItem.objects \
+            .select_related('userProfileSection__userProfile__user') \
+            .filter(userProfileSection__userProfile__user_id=project.user_id)
+            if isinstance(u.contentObject, UserProject) and u.contentItemId == project.id
+        ]
+        for item in profileContentItems:
+            item.delete()
 
         project.delete()
         return Response(status=status.HTTP_200_OK, data=userProjectId)

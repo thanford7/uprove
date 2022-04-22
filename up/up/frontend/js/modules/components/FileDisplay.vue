@@ -1,10 +1,10 @@
 <template>
     <i class="far" :class="`fa-${fileIcon}`"></i>&nbsp;
     <span>{{(isUseFileName || !file.title) ? file.fileName : file.title}}&nbsp;</span>
-    <a v-if="file.file && !isPreventDownload" :href="file.file" download style="overflow-wrap: break-word;">
+    <a v-if="fileUrl && !isPreventDownload" :href="file.file" download style="overflow-wrap: break-word;">
         <i class="fas fa-download"></i>
     </a>&nbsp;
-    <span v-if="!file.file">{{file.title}}</span>&nbsp;<BadgesSkillLevels v-if="isIncludeSkillLevels" :skillLevels="getSkillLevelsFromBits(file.skillLevelBits)"/>
+    <span v-if="!fileUrl">{{file.title}}</span>&nbsp;<BadgesSkillLevels v-if="isIncludeSkillLevels" :skillLevels="getSkillLevelsFromBits(file.skillLevelBits)"/>
     <p v-if="isIncludeDescription" class="-sub-text">{{file.description}}</p>
 </template>
 
@@ -27,8 +27,11 @@ export default {
     props: ['file', 'isIncludeDescription', 'isIncludeSkillLevels', 'isUseFileName', 'isPreventDownload'],
     components: {BadgesSkillLevels},
     computed: {
+        fileUrl() {
+            return this.file.file || this.file.image || this.file.video;
+        },
         fileType() {
-            const fileExtension = dataUtil.getFileType(this.file.fileName);
+            const fileExtension = dataUtil.getFileType(this.fileUrl);
             if (!fileExtension) {
                 return FILE_TYPES.FILE;
             }

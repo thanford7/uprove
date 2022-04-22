@@ -131,9 +131,15 @@ class UserProfile(AuditFields):
 
 
 class UserProfileSection(models.Model):
+    SECTION_TYPE_PROJECTS = 'PROJECTS'
+    SECTION_TYPE_EXPERIENCE = 'EXPERIENCE'
+    SECTION_TYPE_EDUCATION = 'EDUCATION'
+
+    # These are in the order they should appear
+    ALL_SECTIONS = (SECTION_TYPE_PROJECTS, SECTION_TYPE_EXPERIENCE, SECTION_TYPE_EDUCATION)
+
     userProfile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, editable=False, related_name='section')
-    title = models.CharField(max_length=200)
-    description = models.TextField(null=True)
+    sectionType = models.CharField(max_length=15)
     sectionOrder = models.SmallIntegerField()
 
 
@@ -228,6 +234,7 @@ class UserFile(AuditFields):
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_UPLOADS_FILE)]
     )
     title = models.CharField(max_length=100)
+    thumbnail = models.ImageField(upload_to=getUserUploadLocation, null=True)
 
 
 class UserImage(AuditFields):

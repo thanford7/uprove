@@ -214,12 +214,14 @@ class JobPostingView(UproveAPIView):
         return Response(status=status.HTTP_200_OK, data=jobId)
 
     @staticmethod
-    def getEmployerJobs(jobId=None, employerId=None, jobFilter=None):
+    def getEmployerJobs(jobId=None, employerId=None, jobFilter=None, isIncludeDemo=False):
         jobFilter = jobFilter or Q()
         if jobId:
             jobFilter &= Q(id=jobId)
         if employerId:
             jobFilter &= Q(employer_id=employerId)
+        elif not isIncludeDemo:
+            jobFilter &= Q(employer__isDemo=False)
 
         jobs = EmployerJob.objects\
             .select_related(
