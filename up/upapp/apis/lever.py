@@ -39,15 +39,6 @@ def leverIntegrate(request):
 
     user = security.getSessionUser(request)
     employer = Employer.objects.get(id=user.employer_id)
-    print(user)
-    print(employer)
-    print({
-        'client_id': os.getenv('LEVER_CLIENT_ID'),
-        'client_secret': os.getenv('LEVER_CLIENT_SECRET'),
-        'grant_type': 'authorization_code',
-        'code': request.GET.get('code'),
-        'redirect_uri': request.build_absolute_uri('/integrate/')
-    })
     response = requests.post(os.getenv('LEVER_AUTH_TOKEN_URL'), {
         'client_id': os.getenv('LEVER_CLIENT_ID'),
         'client_secret': os.getenv('LEVER_CLIENT_SECRET'),
@@ -56,7 +47,9 @@ def leverIntegrate(request):
         'redirect_uri': request.build_absolute_uri('/integrate/')
     })
 
-    print(response)
+    print(response.status_code)
+    print(response.reason)
+    print(response.text)
     if response.status_code != 200:
         raise ConnectionError()
 
