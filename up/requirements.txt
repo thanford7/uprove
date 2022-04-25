@@ -43,6 +43,7 @@ numpy==1.22.1
 opencv-python==4.5.5.62
 outcome==1.1.0
 parsel==1.6.0
+Pillow==9.1.0
 preview-generator==0.29
 proglog==0.1.9
 Protego==0.2.1
