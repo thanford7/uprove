@@ -222,6 +222,7 @@ def getSerializedUserFile(userFile: UserFile):
         'type': ContentTypes.FILE.value,
         'title': userFile.title,
         'file': userFile.file.url,
+        'thumbnail': userFile.thumbnail.url if userFile.thumbnail else None,
         'fileName': userFile.file.name.split('/')[-1],
         **serializeAuditFields(userFile)
     }
