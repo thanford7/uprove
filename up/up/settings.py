@@ -280,3 +280,14 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = ('upapp.viewsAuth.EmailAuthentication',)
+
+# SQL Logging
+if env('SQL_LOG', cast=bool, default=False):
+    LOGGING = {
+        'version': 1,
+        'loggers': {
+            'django.db.backends': {
+                'level': 'DEBUG',
+            }
+        }
+    }

@@ -193,7 +193,7 @@ class DataUtil {
     }
 
     capitalize(string) {
-        return (string) ? string.charAt(0).toUpperCase() + string.slice(1) : '';
+        return (string) ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : '';
     }
 
     debounce(func, waitMS, immediate=false) {

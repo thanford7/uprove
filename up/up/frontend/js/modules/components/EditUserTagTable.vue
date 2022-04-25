@@ -4,9 +4,6 @@
             <template v-for="(tag, idx) in allTags">
                 <tr v-if="!tag.isEdit" @click="updateEdit(idx)">
                     <td>{{tag.title}}</td>
-                    <td v-if="tagType === tagTypes.SKILL">
-                        <BadgesSkillLevels v-if="tag.skillLevelBit" :skillLevels="tag.skillLevels"/>
-                    </td>
                     <td>{{tag.description}}</td>
                     <td><i class="fas fa-trash -color-red-text" @click="deleteTag(idx)" :title="`Remove ${tag.tagType}`"></i></td>
                 </tr>
@@ -19,14 +16,6 @@
                                 :elId="getNewElUid()"
                                 :items="tag.id"
                                 @selected="setTag(tag, $event)"
-                            />
-                        </td>
-                        <td v-if="tagType === tagTypes.SKILL" class="border-bottom-0">
-                            <SkillLevelsSelectize
-                                :items="getSkillLevelNumbersFromBits(tag.skillLevelBit)"
-                                :cfg="{isMulti: false}"
-                                placeholder="Select a skill level"
-                                @selected="setTagSkillLevel(tag, $event)"
                             />
                         </td>
                         <td class="border-bottom-0"></td>
@@ -48,7 +37,9 @@
             </template>
         </template>
         <template v-slot:footer>
-            <a v-if="tagType !== tagTypes.SKILL || allTags.length <= skillLimit" href="#" @click="addTag"><i class="fas fa-plus -color-green-text"></i> Add {{tagType}}</a>
+            <a v-if="tagType !== tagTypes.SKILL || allTags.length <= skillLimit" href="#" @click="addTag">
+                <i class="fas fa-plus -color-green-text"></i> Add {{tagType}}
+            </a>
             <div v-else>
                 Skill limit of {{skillLimit}} met
                 <InfoToolTip :elId="getNewElUid()" content="Skills are limited to make sure that the most relevant ones are displayed to employers"/>
@@ -103,7 +94,6 @@ export default {
             } else if (this.tagType === TAG_TYPES.SKILL) {
                 headers.unshift(
                     {value: dataUtil.capitalize(TAG_TYPES.SKILL)},
-                    {value: 'Skill level'}
                 );
             }
             return [headers];
@@ -118,10 +108,6 @@ export default {
                 tagSelectize.getTagCfg(this.tagType, {isMulti: false}),
                 {options: [initialItems]}
             );
-        },
-        setTagSkillLevel(tag, skillLevelBit) {
-            tag.skillLevelBit = skillLevelBit;
-            skillLevelSelectize.setSkillLevels([tag], true);
         },
         setTag(tag, tagId) {
             tag.id = parseInt(tagId) || tagId;
@@ -167,7 +153,6 @@ export default {
                     type: ut.tagType,
                     id: ut.tagId,
                     description: ut.description,
-                    skillLevelBit: ut.skillLevelBit,
                     title: ut.title
                 });
             });

@@ -24,7 +24,12 @@ def initBaseVariables(context):
 
     baseUrl = get_current_site(request).domain
     protocol = 'http://' if settings.DEBUG else 'https://'
-    leverRedirectUrl = f'{protocol}{baseUrl}{os.getenv("LEVER_CALLBACK_URL")}'
+
+    # Lever requires the www. for non-local sites
+    leverProtocol = protocol
+    if 'localhost' not in baseUrl:
+        leverProtocol += 'www.'
+    leverRedirectUrl = f'{leverProtocol}{baseUrl}{os.getenv("LEVER_CALLBACK_URL")}'
 
     baseVariables = json.dumps({
         'uproveUser': uproveUser,

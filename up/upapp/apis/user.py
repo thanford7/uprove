@@ -19,6 +19,7 @@ from django.utils import crypto, timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from moviepy.editor import clips_array, VideoFileClip
+from preview_generator.manager import PreviewManager
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -201,24 +202,39 @@ class UserFileView(UproveAPIView):
 
     @staticmethod
     @atomic
-    def createUserFiles(user, data):
+    def createUserFiles(userId, data):
         files = data['file']
         if not isinstance(files, list):
             files = [files]
 
         savedFiles = []
         for fileData in files:
-            file = UserFile(
-                user=user,
-                file=fileData,
-                title=data.get('title') or fileData.name,
-                createdDateTime=timezone.now(),
-                modifiedDateTime=timezone.now()
-            )
-            file.save()
-            savedFiles.append(file)
+            savedFiles.append(UserFileView.createUserFile(userId, fileData, data))
 
         return savedFiles
+
+    @staticmethod
+    @atomic
+    def createUserFile(userId, fileData, metaData):
+        file = UserFile(
+            user_id=userId,
+            file=fileData,
+            title=metaData.get('title') or fileData.name,
+            createdDateTime=timezone.now(),
+            modifiedDateTime=timezone.now()
+        )
+        file.save()
+
+        # Add an image thumbnail for the file
+        filePath = settings.MEDIA_ROOT.replace('media', '') + file.file.url
+        with tempfile.TemporaryDirectory() as tmpDirectory:
+            manager = PreviewManager(tmpDirectory)
+            fileThumbnailPath = manager.get_jpeg_preview(filePath)
+            with open(fileThumbnailPath, 'rb') as fileThumbnail:
+                file.thumbnail = File(fileThumbnail, name=f'thumbnail-{file.title}')
+                file.save()
+
+        return file
 
 
 class UserImageView(UproveAPIView):
@@ -576,10 +592,6 @@ class UserProfileView(UproveAPIView):
         if not security.isSelf(profile.user_id, user=self.user):
             return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
 
-        dataUtil.setObjectAttributes(profile, self.data, {
-            'profileName': None
-        })
-
         if profilePicture := self.data.get('newProfilePicture'):
             profile.profilePicture = UserImageView.createUserImage(self.user, {'image': profilePicture})
 
@@ -603,6 +615,15 @@ class UserProfileView(UproveAPIView):
             modifiedDateTime=timezone.now()
         )
         profile.save()
+
+        # Add the necessary sections
+        for sectionOrder, section in enumerate(UserProfileSection.ALL_SECTIONS):
+            UserProfileSection(
+                userProfile=profile,
+                sectionType=section,
+                sectionOrder=sectionOrder
+            ).save()
+
         return profile
 
     @staticmethod
@@ -978,7 +999,7 @@ class UserProfileContentItemView(UproveAPIView):
                 elif section['type'] == 'file':
                     if mediaKey:
                         section['file'] = self.files[mediaKey]
-                        contentItems = UserFileView.createUserFiles(self.user, section)
+                        contentItems = UserFileView.createUserFiles(self.user.id, section)
                     elif fileVal := section['value']:
                         if not isinstance(fileVal, list):
                             section['value'] = [fileVal]
@@ -1000,7 +1021,7 @@ class UserProfileContentItemView(UproveAPIView):
                     ).save()
                     sectionIdx += 1
             return contentItem
-        elif contentType == ContentTypes.EXISTING.value:
+        elif contentType == ContentTypes.PROJECT.value:
             contentModel = CONTENT_TYPE_MODELS[self.data['existingContentType']]['model']
             try:
                 return contentModel.objects.get(id=self.data['existingContentId'])
@@ -1095,11 +1116,25 @@ class UserProjectView(UproveAPIView):
             jobApplication.withdrawDateTime = timezone.now()
             jobApplication.save()
 
+        # Remove references to the user project in the user's profile
+        profileContentItems = [
+            u for u in
+            UserProfileSectionItem.objects \
+            .select_related('userProfileSection__userProfile__user') \
+            .filter(userProfileSection__userProfile__user_id=project.user_id)
+            if isinstance(u.contentObject, UserProject) and u.contentItemId == project.id
+        ]
+        for item in profileContentItems:
+            item.delete()
+
         project.delete()
         return Response(status=status.HTTP_200_OK, data=userProjectId)
 
     @staticmethod
     def getCreateFileFn(objClass, fileAttr):
+        if fileAttr == 'file':
+            return UserFileView.createUserFile
+
         def createFileFn(userId, fileData, fileMetaData):
             file = objClass(
                 user_id=userId,
@@ -1145,7 +1180,12 @@ class UserProjectView(UproveAPIView):
         # Remove files that are no longer included
         for file in existingProjectFilesDict.values():
             if file.id not in usedFileIds:
-                project.files.remove(file)
+                if isinstance(file, UserFile):
+                    project.files.remove(file)
+                elif isinstance(file, UserVideo):
+                    project.videos.remove(file)
+                elif isinstance(file, UserImage):
+                    project.images.remove(file)
                 isChanged = True
 
         return isChanged

@@ -71,10 +71,11 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
 
     employer = Employer.objects.get(id=employerId)
     try:
-        opportunity = getLeverRequestWithRefresh(
+        resp = getLeverRequestWithRefresh(
             employer,
             f'opportunities/{opportunityId}?expand=applications&expand=owner&expand=followers&expand=sourcedBy'
-        )['data']
+        )
+        opportunity = resp['data']
     except ConnectionError:
         return _getLeverConnectionErrorPage(request)
 
@@ -102,6 +103,8 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
 
     contacts = {}
     for idx, contactData in enumerate([opportunity['owner']] + opportunity['followers'] + [opportunity['sourcedBy']]):
+        if not contactData:
+            continue
         if not contacts.get(contactData['id']):
             contacts[contactData['id']] = {**serializeLeverContact(contactData), 'priority': idx}
 

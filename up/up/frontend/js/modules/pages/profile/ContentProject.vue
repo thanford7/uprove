@@ -1,18 +1,24 @@
 <template>
-    <div v-if="contentItem">
-        <div class="card-body pt-1 pb-1">
-            <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
-            <BadgesSkills :skills="contentItem.customProject.skills"/>
+    <div class="pb-1">
+        <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
+        <BadgesSkills :skills="contentItem.customProject.skills"/>
+        <div class="mt-2 mb-1">
             <div v-html="contentItem.customProject.projectDescription"></div>
-            <div v-for="file in contentItem.videos">
-                <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+        </div>
+        <div class="row">
+            <div v-for="video in contentItem.videos" class="col-md-4">
+                <h6>{{ video.title }}</h6>
+                <video controls :src="video.video"></video>
             </div>
-            <div v-for="file in contentItem.images">
-                <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+            <div v-for="image in contentItem.images" class="col-md-4">
+                <h6>{{ image.title }}</h6>
+                <img class="img-150" :src="image.image">
             </div>
-            <div v-for="file in contentItem.files">
+        </div>
+        <div>
+            <template v-for="file in contentItem.files">
                 <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
-            </div>
+            </template>
         </div>
     </div>
 </template>

@@ -11,27 +11,43 @@
                     @click="eventBus.emit('open:editProfileModal', initData)"
                 />
             </span>
-            <h4 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h4>
+            <h5 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h5>
         </div>
-        <div class="mt-3">
-            <span class="-sub-text">SKILLS</span>
-            <div v-for="skill in user.skills">
-                <span class="-sub-text">{{skill.title}}&nbsp;</span>
-                <InfoToolTip v-if="skill.description" :elId="getNewElUid()" :content="skill.description"/>
-                <ProgressPill
-                    color="darkblue"
-                    :pctComplete="getSkillPct(skill)"
-                    :text="getSkillText(skill)"
-                    :hoverText="getSkillDescription(skill)"
-                />
-            </div>
+        <div v-if="user.skills?.length" class="mt-2">
+            <div class="-sub-text">SKILLS</div>
+            <template v-for="skill in user.skills">
+                <InfoToolTip
+                    v-if="skill.description"
+                    :elId="getNewElUid()"
+                    :content="skill.description"
+                    :isExcludeInfoCircle="true"
+                    style="display: inline-block;"
+                    class="me-1"
+                >
+                    <span class="-sub-text badge rounded-pill -color-darkblue -color-white-text">{{skill.title}}</span>
+                </InfoToolTip>
+                <div v-else class="-sub-text badge rounded-pill -color-darkblue -color-white-text me-1" style="display: inline-block;">
+                    {{skill.title}}
+                </div>
+            </template>
         </div>
-        <div class="mt-3">
-            <span class="-sub-text">INTERESTS</span>
+        <div v-if="user.interests?.length" class="mt-2">
+            <div class="-sub-text">INTERESTS</div>
             <div>
                 <template v-for="interest in user.interests">
-                    <span class="-sub-text">{{interest.title}}&nbsp;</span>
-                    <InfoToolTip v-if="interest.description" :elId="getNewElUid()" :content="interest.description"/>&nbsp;
+                    <InfoToolTip
+                        v-if="interest.description"
+                        :elId="getNewElUid()"
+                        :content="interest.description"
+                        :isExcludeInfoCircle="true"
+                        style="display: inline-block;"
+                        class="me-1"
+                    >
+                        <span class="-sub-text badge rounded-pill -color-orange -color-white-text">{{interest.title}}</span>
+                    </InfoToolTip>
+                    <div v-else class="-sub-text badge rounded-pill -color-orange -color-white-text me-1" style="display: inline-block;">
+                        {{interest.title}}
+                    </div>
                 </template>
             </div>
         </div>

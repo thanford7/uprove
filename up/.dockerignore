@@ -3,5 +3,4 @@ node_modules
 docker-compose*
 Dockerfile*
 *.crt
-db_backup
 secrets

@@ -49,6 +49,18 @@ img {
     &.line-height {
         height: 30px;
     }
+
+    &.img-100 {
+        max-height: 100px;
+    }
+
+    &.img-150 {
+        max-height: 150px;
+    }
+
+    &.img-200 {
+        max-height: 200px;
+    }
 }
 
 textarea {

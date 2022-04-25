@@ -46,3 +46,28 @@
         }
     }
 }
+
+.content-item {
+    .item-header {
+        position: relative;
+        .item-edit-options {
+            padding: 3px;
+            background-color: colors.$color-lightgrey;
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            visibility: hidden;
+            border-radius: 10px;
+            border: 1px solid colors.$color-moderategrey;
+
+            i {
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+        }
+    }
+
+    &:hover .item-edit-options {
+        visibility: visible;
+    }
+}

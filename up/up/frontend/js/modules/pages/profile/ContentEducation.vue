@@ -1,5 +1,5 @@
 <template>
-    <div class="card-body">
+    <div>
         <div class="row mb-2">
             <div class="col-3 p-0">
                 <img v-if="contentItem.school.logo" :src="contentItem.school.logo">

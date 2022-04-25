@@ -108,7 +108,6 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
 def getSerializedUserProfile(userProfile: UserProfile, isOwner=None):
     serializedProfile = {
         'id': userProfile.id,
-        'profileName': userProfile.profileName,
         'makePublic': userProfile.makePublic,
         'isOwner': isOwner,
         'profilePicture': getSerializedUserImage(userProfile.profilePicture) if userProfile.profilePicture else None,
@@ -130,8 +129,7 @@ def getSerializedUserProfile(userProfile: UserProfile, isOwner=None):
 def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
     return {
         'id': userProfileSection.id,
-        'title': userProfileSection.title,
-        'description': userProfileSection.description,
+        'sectionType': userProfileSection.sectionType,
         'sectionOrder': userProfileSection.sectionOrder,
         'sectionItems': sorted(
             [getSerializedUserProfileSectionItem(psi) for psi in userProfileSection.sectionItem.all()],
@@ -224,6 +222,7 @@ def getSerializedUserFile(userFile: UserFile):
         'type': ContentTypes.FILE.value,
         'title': userFile.title,
         'file': userFile.file.url,
+        'thumbnail': userFile.thumbnail.url if userFile.thumbnail else None,
         'fileName': userFile.file.name.split('/')[-1],
         **serializeAuditFields(userFile)
     }
