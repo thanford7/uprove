@@ -47,9 +47,6 @@ def leverIntegrate(request):
         'redirect_uri': request.build_absolute_uri('/integrate/')
     })
 
-    print(response.status_code)
-    print(response.reason)
-    print(response.text)
     if response.status_code != 200:
         raise ConnectionError()
 
@@ -417,6 +414,10 @@ class BaseLeverChange(APIView):
         isAuthorizedRequest = validateLeverRequest(data, hookKey)
         if not isAuthorizedRequest:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        # If data is empty, it was just a test connection
+        if not data['data']:
+            return Response(status=status.HTTP_200_OK)
 
         return data['data']
 

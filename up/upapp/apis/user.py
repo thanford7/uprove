@@ -1,6 +1,7 @@
 import tempfile
 import urllib.request
 from email.mime.image import MIMEImage
+from subprocess import CalledProcessError
 
 import ffmpeg as ffmpeg
 from django.conf import settings
@@ -226,13 +227,29 @@ class UserFileView(UproveAPIView):
         file.save()
 
         # Add an image thumbnail for the file
-        filePath = settings.MEDIA_ROOT.replace('media', '') + file.file.url
-        with tempfile.TemporaryDirectory() as tmpDirectory:
-            manager = PreviewManager(tmpDirectory)
-            fileThumbnailPath = manager.get_jpeg_preview(filePath)
-            with open(fileThumbnailPath, 'rb') as fileThumbnail:
-                file.thumbnail = File(fileThumbnail, name=f'thumbnail-{file.title}')
-                file.save()
+        file = UserFileView.addFileThumbnail(file)
+
+        # Add thumbnails to any other files that don't already have one
+        for otherFile in UserFile.objects.filter(thumbnail__isnull=True):
+            UserFileView.addFileThumbnail(otherFile)
+
+        return file
+
+    @staticmethod
+    @atomic
+    def addFileThumbnail(file):
+        try:
+            filePath = settings.MEDIA_ROOT.replace('/media', '') + file.file.url
+            with tempfile.TemporaryDirectory() as tmpDirectory:
+                manager = PreviewManager(tmpDirectory)
+                fileThumbnailPath = manager.get_jpeg_preview(filePath)
+                with open(fileThumbnailPath, 'rb') as fileThumbnail:
+                    file.thumbnail = File(fileThumbnail, name=f'thumbnail-{file.title}')
+                    file.save()
+        except CalledProcessError:
+            # File path is bad. The file may have been deleted.
+            pass
+
 
         return file
 
