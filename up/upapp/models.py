@@ -139,7 +139,6 @@ class UserProfileSection(models.Model):
     ALL_SECTIONS = (SECTION_TYPE_PROJECTS, SECTION_TYPE_EXPERIENCE, SECTION_TYPE_EDUCATION)
 
     userProfile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, editable=False, related_name='section')
-    title = models.CharField(max_length=75, null=True)
     sectionType = models.CharField(max_length=15)
     sectionOrder = models.SmallIntegerField()
 
