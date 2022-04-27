@@ -78,7 +78,7 @@ def leverIntegrate(request):
     if localUrl := os.getenv('LEVER_LOCAL_URL_OVERRIDE'):
         baseWebhookUrl = f'https://{localUrl}/{apiPath}lever/change/'
     else:
-        baseWebhookUrl = request.build_absolute_uri(f'{apiPath}lever/change/')
+        baseWebhookUrl = request.build_absolute_uri(f'/{apiPath}lever/change/')
     if 'https' not in baseWebhookUrl:
         baseWebhookUrl = baseWebhookUrl.replace('http', 'https')
 
