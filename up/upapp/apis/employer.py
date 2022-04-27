@@ -8,7 +8,7 @@ from rest_framework import authentication, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apis.lever import getLeverRequestWithRefresh
+from upapp.apis.lever import getLeverRequestWithRefresh
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView, SkillView
 from upapp.models import *
