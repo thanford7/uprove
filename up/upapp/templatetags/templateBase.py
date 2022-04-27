@@ -27,7 +27,7 @@ def initBaseVariables(context):
 
     # Lever requires the www. for non-local sites
     leverProtocol = 'http://'
-    if 'localhost' not in baseUrl:
+    if ('localhost' not in baseUrl) and ('www.' not in baseUrl):
         leverProtocol += 'www.'
     leverRedirectUrl = f'{leverProtocol}{baseUrl}{os.getenv("LEVER_CALLBACK_URL")}'
 
