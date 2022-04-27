@@ -48,7 +48,10 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 PREPEND_WWW = False  # not DEBUG
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,0.0.0.0,a330-98-38-45-11.ngrok.io").split(",")
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0').split(',')
+if leverUrl := env('LEVER_LOCAL_URL_OVERRIDE'):
+    ALLOWED_HOSTS.append(leverUrl)
+
 CSRF_USE_SESSIONS = True
 
 logger.info(f'Base directory is: {BASE_DIR}')

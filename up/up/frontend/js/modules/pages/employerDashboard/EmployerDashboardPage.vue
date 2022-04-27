@@ -314,24 +314,15 @@
                         <h5>Webhooks</h5>
                         <div class="-text-medium mb-3">
                             Webhooks allow us to automatically update candidate information and send Uprove assessments
-                            to candidates based on changes in Lever. This means less clicks for you! Go to <code>Settings
+                            to candidates based on changes in Lever. This means less clicks for you! To enable webhooks,
+                            a Lever user with "Super Admin" privileges must go to <code>Settings
                             ->
-                            Integrations and API -> Webhooks</code> to get and set the necessary fields described below.
-                            For
-                            each webhook:
-                            <ul class="mt-2">
-                                <li>Click the toggle button next to the webhook in Lever to turn it on</li>
-                                <li>Click the "Add webhook" button</li>
-                                <li>Copy the signature token from Lever and paste it into the form field for the
-                                    corresponding webhook in Uprove
-                                </li>
-                                <li>Copy the webhook URL from Uprove and paste it into the URL field for the
-                                    corresponding
-                                    webhook in Lever (it's a gray box that begins with "https://")
-                                </li>
-                                <li>Click the "Verify connection" button in Lever to confirm the webhook is working
-                                    properly
-                                </li>
+                            Integrations and API -> Webhooks</code> and toggle on the webhooks for:
+                            <ul>
+                                <li>Candidate stage change</li>
+                                <li>Candidate archive state change</li>
+                                <li>Candidate hired</li>
+                                <li>Candidate deleted</li>
                             </ul>
                             <div class="mt-2">
                                 A <span class="badge -color-moderategrey">uprove</span> tag must be added to all job
@@ -341,95 +332,49 @@
                                 all candidates assigned to that job posting will automatically inherit that tag.
                             </div>
                         </div>
-                        <LeverWebhook
-                            hookName="Candidate Stage Change"
-                            hookInfo="
-                                This webhook automatically notifies Uprove when a candidate is moved to another stage
-                                of the hiring process. When the candidate is moved to the specified stage for the
-                                Uprove assessment, they will receive an email from us to initiate the assessment.
-                            "
-                            :hookType="leverWebhookTypes.stageChange"
-                            :employer="initData.employer"
-                            :leverData="leverData"
-                            modelName="leverHookStageChangeToken"
-                        >
-                            <div class="col-md-6">
-                                <span id="leverStageLabel" class="-text-medium">
-                                    Stage to send Uprove assessment
-                                    <InfoToolTip :elId="getNewElUid()" content="
-                                    When a candidate is moved to this stage and has the 'uprove' tag, a link will be
-                                    generated in the candidate's links which will allow you to select and send an
-                                    assessment to the candidate.
-                                    "/>
-                                </span>
-                                <InputSelectize
-                                    ref="leverStage"
-                                    :elId="getNewElUid()"
-                                    placeholder="Required"
-                                    :cfg="{
-                                        valueField: 'id',
-                                        labelField: 'text',
-                                        searchField: 'text',
-                                        maxItems: 1
-                                    }"
-                                    @selected="saveToken($event, 'leverTriggerStageKey', '#leverStageLabel')"
-                                />
-                            </div>
-                            <div class="col-md-6">
-                                <span id="leverStageCompleteLabel" class="-text-medium">
-                                    Stage after assessment complete
-                                    <InfoToolTip :elId="getNewElUid()" content="
-                                    When a candidate has completed an assessment they will automatically be moved to this
-                                    stage in Lever.
-                                    "/>
-                                </span>
-                                <InputSelectize
-                                    ref="leverStageComplete"
-                                    :elId="getNewElUid()"
-                                    placeholder="Optional"
-                                    :cfg="{
-                                        valueField: 'id',
-                                        labelField: 'text',
-                                        searchField: 'text',
-                                        maxItems: 1
-                                    }"
-                                    @selected="saveToken($event, 'leverCompleteStageKey', '#leverStageCompleteLabel')"
-                                />
-                            </div>
-                        </LeverWebhook>
-                        <LeverWebhook
-                            hookName="Candidate Archive State Change"
-                            hookInfo="
-                                This webhook automatically notifies Uprove when a candidate is archived. When this event
-                                occurs, all of the candidate's applications will be archived in Uprove.
-                            "
-                            :hookType="leverWebhookTypes.archive"
-                            :employer="initData.employer"
-                            :leverData="leverData"
-                            modelName="leverHookArchive"
-                        />
-                        <LeverWebhook
-                            hookName="Candidate Hired"
-                            hookInfo="
-                                This webhook automatically notifies Uprove when a candidate is hired. When this event
-                                occurs, the candidate's employment status is updated in Uprove.
-                            "
-                            :hookType="leverWebhookTypes.hire"
-                            :employer="initData.employer"
-                            :leverData="leverData"
-                            modelName="leverHookHired"
-                        />
-                        <LeverWebhook
-                            hookName="Candidate Deleted"
-                            hookInfo="
-                                This webhook automatically notifies Uprove when a candidate is deleted. When this event
-                                occurs, all of the candidate's applications will be archived in Uprove.
-                            "
-                            :hookType="leverWebhookTypes.delete"
-                            :employer="initData.employer"
-                            :leverData="leverData"
-                            modelName="leverHookDeleted"
-                        />
+                        <div class="col-md-6">
+                            <span id="leverStageLabel" class="-text-medium">
+                                Stage to send Uprove assessment
+                                <InfoToolTip :elId="getNewElUid()" content="
+                                When a candidate is moved to this stage and has the 'uprove' tag, a link will be
+                                generated in the candidate's links which will allow you to select and send an
+                                assessment to the candidate.
+                                "/>
+                            </span>
+                            <InputSelectize
+                                ref="leverStage"
+                                :elId="getNewElUid()"
+                                placeholder="Required"
+                                :cfg="{
+                                    valueField: 'id',
+                                    labelField: 'text',
+                                    searchField: 'text',
+                                    maxItems: 1
+                                }"
+                                @selected="saveToken($event, 'leverTriggerStageKey', '#leverStageLabel')"
+                            />
+                        </div>
+                        <div class="col-md-6">
+                            <span id="leverStageCompleteLabel" class="-text-medium">
+                                Stage after assessment complete
+                                <InfoToolTip :elId="getNewElUid()" content="
+                                When a candidate has completed an assessment they will automatically be moved to this
+                                stage in Lever.
+                                "/>
+                            </span>
+                            <InputSelectize
+                                ref="leverStageComplete"
+                                :elId="getNewElUid()"
+                                placeholder="Optional"
+                                :cfg="{
+                                    valueField: 'id',
+                                    labelField: 'text',
+                                    searchField: 'text',
+                                    maxItems: 1
+                                }"
+                                @selected="saveToken($event, 'leverCompleteStageKey', '#leverStageCompleteLabel')"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

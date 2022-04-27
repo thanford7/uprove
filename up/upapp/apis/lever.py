@@ -31,12 +31,19 @@ from upapp.utils import dataUtil
 RECORD_LIMIT = 20000
 LEVER_UPROVE_TAG = 'uprove'
 LEVER_TIMESTAMP_START = datetime(1970, 1, 1, 0, 0, 0)
+LEVER_WEBHOOK_STAGE_CHANGE = 'stage-change'
+LEVER_WEBHOOK_ARCHIVE = 'archive'
+LEVER_WEBHOOK_HIRE = 'hire'
+LEVER_WEBHOOK_DELETE = 'delete'
 
 
 def leverIntegrate(request):
+    from upapp.urls import apiPath  # Avoid circular import
+
     if request.GET.get('state') != os.getenv('LEVER_STATE'):
         raise ConnectionError()
 
+    # Begin oAuth
     user = security.getSessionUser(request)
     employer = Employer.objects.get(id=user.employer_id)
     response = requests.post(os.getenv('LEVER_AUTH_TOKEN_URL'), {
@@ -55,6 +62,107 @@ def leverIntegrate(request):
     employer.isLeverOn = True
     employer.leverAccessToken = data['access_token']
     employer.leverRefreshToken = data.get('refresh_token')
+    # End oAuth
+
+    # Begin webhooks
+    response = getLeverRequestWithRefresh(
+        employer,
+        'webhooks/',
+    )
+    currentWebhooks = response.get('data')
+    if currentWebhooks is None:
+        raise ConnectionError('Unable to get existing webhooks')
+
+    currentWebhooks = {w['url']: w for w in currentWebhooks}
+
+    if localUrl := os.getenv('LEVER_LOCAL_URL_OVERRIDE'):
+        baseWebhookUrl = f'https://{localUrl}/{apiPath}lever/change/'
+    else:
+        baseWebhookUrl = request.build_absolute_uri(f'{apiPath}lever/change/')
+    if 'https' not in baseWebhookUrl:
+        baseWebhookUrl = baseWebhookUrl.replace('http', 'https')
+
+    baseConfig = {
+        'conditions': {
+            'origins': [
+                'applied',
+                'sourced',
+                'referred',
+                'university',
+                'agency',
+                'internal'
+            ]
+        },
+    }
+
+    stageChangeUrl = f'{baseWebhookUrl}{LEVER_WEBHOOK_STAGE_CHANGE}/{employer.id}/'
+    if stageChangeUrl not in currentWebhooks:
+        response = getLeverRequestWithRefresh(
+            employer,
+            'webhooks/',
+            bodyCfg={
+                'url': stageChangeUrl,
+                'event': 'candidateStageChange',
+                'configuration': baseConfig
+            },
+            isJSON=True,
+            method='POST'
+        )
+        if not (webhookData := response.get('data')):
+            raise ConnectionError('Unable to establish webhook for candidate stage change phase')
+        employer.leverHookStageChangeToken = webhookData['configuration']['signatureToken']
+
+    hireUrl = f'{baseWebhookUrl}{LEVER_WEBHOOK_HIRE}/{employer.id}/'
+    if hireUrl not in currentWebhooks:
+        response = getLeverRequestWithRefresh(
+            employer,
+            'webhooks/',
+            bodyCfg={
+                'url': hireUrl,
+                'event': 'candidateHired',
+                'configuration': baseConfig
+            },
+            isJSON=True,
+            method='POST'
+        )
+        if not (webhookData := response.get('data')):
+            raise ConnectionError('Unable to establish webhook for candidate hired phase')
+        employer.leverHookHired = webhookData['configuration']['signatureToken']
+
+    archiveUrl = f'{baseWebhookUrl}{LEVER_WEBHOOK_ARCHIVE}/{employer.id}/'
+    if archiveUrl not in currentWebhooks:
+        response = getLeverRequestWithRefresh(
+            employer,
+            'webhooks/',
+            bodyCfg={
+                'url': archiveUrl,
+                'event': 'candidateArchiveChange',
+                'configuration': baseConfig
+            },
+            isJSON=True,
+            method='POST'
+        )
+        if not (webhookData := response.get('data')):
+            raise ConnectionError('Unable to establish webhook for candidate archived phase')
+        employer.leverHookArchive = webhookData['configuration']['signatureToken']
+
+    deleteUrl = f'{baseWebhookUrl}{LEVER_WEBHOOK_DELETE}/{employer.id}/'
+    if deleteUrl not in currentWebhooks:
+        response = getLeverRequestWithRefresh(
+            employer,
+            'webhooks/',
+            bodyCfg={
+                'url': deleteUrl,
+                'event': 'candidateDeleted',
+            },
+            isJSON=True,
+            method='POST'
+        )
+        if not (webhookData := response.get('data')):
+            raise ConnectionError('Unable to establish webhook for candidate deleted phase')
+        employer.leverHookArchive = webhookData['configuration']['signatureToken']
+    # End webhooks
+
     employer.save()
 
     return HttpResponseRedirect('/employerDashboard/?tab=integrations')
@@ -90,8 +198,8 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
         return _getLeverConnectionErrorPage(request)
 
     try:
-        uproveJob = EmployerJob.objects\
-            .prefetch_related('allowedProjects', 'allowedProjects__project', 'allowedProjects__skills')\
+        uproveJob = EmployerJob.objects \
+            .prefetch_related('allowedProjects', 'allowedProjects__project', 'allowedProjects__skills') \
             .get(leverPostingKey=postingKey)
         allowedProjects = sorted(uproveJob.allowedProjects.all(), key=lambda p: p.id)
         primaryProject = allowedProjects[0] if allowedProjects else None
@@ -141,7 +249,8 @@ class BaseLeverAPIView(UproveAPIView):
         self.employer = Employer.objects.get(id=kwargs['employerId'])
 
         if (not security.isPermittedEmployer(request, self.employer.id)) or self.isAdmin:
-            return Response('You do not have permission to make updates for this employer', status=status.HTTP_401_UNAUTHORIZED)
+            return Response('You do not have permission to make updates for this employer',
+                            status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LeverSendAssessment(UproveAPIView):
@@ -229,16 +338,17 @@ class LeverOpportunities(BaseLeverAPIView):
 
         # Check if opportunity already exists. If so, shortcircuit
         try:
-            currentApplication = UserJobApplication.objects.get(user_id=self.data['id'], employerJob_id=self.data['jobId'])
+            currentApplication = UserJobApplication.objects.get(user_id=self.data['id'],
+                                                                employerJob_id=self.data['jobId'])
             if currentApplication.leverOpportunityKey:
-                return Response('Candidate has already been added to this opportunity on Lever', status=status.HTTP_400_BAD_REQUEST)
+                return Response('Candidate has already been added to this opportunity on Lever',
+                                status=status.HTTP_400_BAD_REQUEST)
         except UserJobApplication.DoesNotExist:
             currentApplication = UserJobApplication(
                 user_id=self.data['id'],
                 employerJob_id=self.data['jobId'],
                 inviteDateTime=timezone.now(),
             )
-
 
         resp = getLeverRequestWithRefresh(
             self.employer,
@@ -317,12 +427,14 @@ class LeverPostings(BaseLeverAPIView):
             for jobList in posting['content']['lists']:
                 jobLists.append(f'<h5>{jobList["text"]}</h5>')
                 jobLists.append(f'<ul>{jobList["content"]}</ul>')
-            jobDescription = posting['content']['descriptionHtml'] + ''.join(jobLists) + posting['content']['closingHtml']
+            jobDescription = posting['content']['descriptionHtml'] + ''.join(jobLists) + posting['content'][
+                'closingHtml']
             isUpdated = updateAndGetIsChanged(currentJob, 'jobDescription', jobDescription) or isUpdated
 
             state = posting['state']
             isConfidential = posting['confidentiality'] == 'confidential'
-            isUpdated = updateAndGetIsChanged(currentJob, 'isInternal', state == 'internal' or isConfidential) or isUpdated
+            isUpdated = updateAndGetIsChanged(currentJob, 'isInternal',
+                                              state == 'internal' or isConfidential) or isUpdated
 
             closeDate = None
             if state in ('closed', 'rejected'):
@@ -409,7 +521,8 @@ class BaseLeverChange(APIView):
         self.employer = Employer.objects.get(id=employerId)
         hookKey = getattr(self.employer, hookAttr)
         if not hookKey:
-            return Response('The signature token for this webhook has not been configured', status=status.HTTP_400_BAD_REQUEST)
+            return Response('The signature token for this webhook has not been configured',
+                            status=status.HTTP_400_BAD_REQUEST)
 
         isAuthorizedRequest = validateLeverRequest(data, hookKey)
         if not isAuthorizedRequest:
@@ -440,12 +553,14 @@ class LeverChangeStage(BaseLeverChange):
         resp = getLeverRequestWithRefresh(
             self.employer,
             f'opportunities/{data["opportunityId"]}/addLinks',
-            bodyCfg={'links': [request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/'),]},
+            bodyCfg={
+                'links': [request.build_absolute_uri(f'/lever/customize-assessment/{employerId}/{opportunityId}/'), ]},
             isJSON=True,
             method='POST'
         )
 
-        return Response(status=resp.get('status_code') or (status.HTTP_200_OK if resp.get('data') else status.HTTP_400_BAD_REQUEST))
+        return Response(
+            status=resp.get('status_code') or (status.HTTP_200_OK if resp.get('data') else status.HTTP_400_BAD_REQUEST))
 
 
 class LeverArchive(BaseLeverChange):
@@ -577,7 +692,7 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
     response = requestMethodFn(url, **requestKwargs)
 
     # Update the access tokens if they have expired
-    if response.status_code != 200 and response.reason != 'Bad Request':
+    if (not is200Code(response)) and response.reason != 'Bad Request':
         response = requests.post(os.getenv('LEVER_AUTH_TOKEN_URL'), {
             'client_id': os.getenv('LEVER_CLIENT_ID'),
             'client_secret': os.getenv('LEVER_CLIENT_SECRET'),
@@ -585,7 +700,7 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
             'refresh_token': employer.leverRefreshToken
         })
 
-        if response.status_code != 200:
+        if not is200Code(response):
             raise ConnectionError()
 
         data = response.json()
@@ -595,6 +710,10 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
         response = requestMethodFn(url, **requestKwargs)
 
     return response.json()
+
+
+def is200Code(response):
+    return 300 > response.status_code >= 200
 
 
 def getLeverDateTime(timestamp):
@@ -657,6 +776,8 @@ def updateLeverAssessmentComplete(request, jobApplication):
                 isJSON=True,
                 method='PUT'
             )
+
+    return Response(status=status.HTTP_200_OK)
 
 
 def _getLeverConnectionErrorPage(request):
