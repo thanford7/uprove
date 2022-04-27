@@ -28,7 +28,7 @@ from rest_framework.response import Response
 from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
-from upapp.apis.lever import getLeverRequestWithRefresh, updateLeverAssessmentComplete
+from upapp.apis.lever import updateLeverAssessmentComplete
 from upapp.apis.project import SkillView
 from upapp.apis.sendEmail import EmailView
 from upapp.apis.tag import TagView

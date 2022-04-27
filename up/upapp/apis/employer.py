@@ -8,6 +8,7 @@ from rest_framework import authentication, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apis.lever import getLeverRequestWithRefresh
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView, SkillView
 from upapp.models import *
@@ -496,6 +497,7 @@ class UserProjectEvaluationView(UproveAPIView):
 
     @atomic
     def put(self, request):
+        from upapp.apis.user import UserProjectView  # Avoid circular import
         employerId = self.data.get('employerId')
         if not any([self.isAdmin, security.isPermittedEmployer(request, employerId)]):
             return Response('You are not permitted to evaluate this project', status=status.HTTP_401_UNAUTHORIZED)
@@ -523,9 +525,21 @@ class UserProjectEvaluationView(UproveAPIView):
                 ).save()
 
         if employerId:
+            employer = EmployerView.getEmployer(employerId)
             data = {
-                'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), isEmployer=True)
+                'employer': getSerializedEmployer(employer, isEmployer=True)
             }
+            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
+            for app in userProject.jobApplication.all():
+                if app.leverOpportunityKey:
+                    getLeverRequestWithRefresh(
+                        employer,
+                        f'opportunities/{app.leverOpportunityKey}/addTags',
+                        bodyCfg={
+                            'tags': ['uprove-assessment-scored']},
+                        isJSON=True,
+                        method='POST'
+                    )
         else:
             from upapp.apis.user import UserProjectView  # Avoid circular import
             userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)

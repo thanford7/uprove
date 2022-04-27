@@ -20,7 +20,6 @@ from rest_framework.views import APIView
 
 from upapp import security
 from upapp.apis import UproveAPIView
-from upapp.apis.employer import JobPostingView
 from upapp.apis.project import ProjectView
 from upapp.apis.sendEmail import EmailView
 from upapp.models import Employer, EmployerJob, RoleTitle, User, UserJobApplication
@@ -258,6 +257,7 @@ class LeverSendAssessment(UproveAPIView):
     @atomic
     def post(self, request):
         from upapp.apis.user import UserView, UprovePasswordResetForm  # Avoid circular import
+        from upapp.apis.employer import JobPostingView
         user = None
         htmlBody = self.data['emailBody']
         for userEmail in self.data['candidateEmails']:
@@ -302,6 +302,15 @@ class LeverSendAssessment(UproveAPIView):
                 inviteDateTime=timezone.now(),
                 leverOpportunityKey=leverOpportunityKey
             ).save()
+
+        getLeverRequestWithRefresh(
+            job.employer,
+            f'opportunities/{leverOpportunityKey}/addTags',
+            bodyCfg={
+                'tags': ['uprove-assessment-sent']},
+            isJSON=True,
+            method='POST'
+        )
 
         response = EmailView.sendEmail(
             self.data['emailTitle'],
@@ -391,6 +400,8 @@ class LeverPostings(BaseLeverAPIView):
 
     @atomic
     def post(self, request, employerId=None):
+        from upapp.apis.employer import JobPostingView  # Avoid circular import
+
         postings = getLeverItems('postings', self.employer)
         currentLeverJobs = {
             j.leverPostingKey: j for j in
@@ -763,7 +774,16 @@ def updateLeverAssessmentComplete(request, jobApplication):
             employer,
             f'opportunities/{opportunityKey}/notes',
             bodyCfg={
-                'value': 'Candidate has completed the Uprove assessment. A link was added to this opportunity to view the assessment.'},
+                'value': 'Candidate has completed the Uprove assessment. A link was added to this opportunity to view the assessment. A "uprove-assessment-scored" tag will be added to this opportunity once the Uprove team has scored the assessment.'},
+            isJSON=True,
+            method='POST'
+        )
+
+        getLeverRequestWithRefresh(
+            employer,
+            f'opportunities/{opportunityKey}/addTags',
+            bodyCfg={
+                'tags': ['uprove-assessment-complete']},
             isJSON=True,
             method='POST'
         )
