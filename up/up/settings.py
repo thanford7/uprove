@@ -49,7 +49,7 @@ logger.addHandler(handler)
 
 PREPEND_WWW = False  # not DEBUG
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0').split(',')
-if leverUrl := env('LEVER_LOCAL_URL_OVERRIDE'):
+if leverUrl := env('LEVER_LOCAL_URL_OVERRIDE', default=None):
     ALLOWED_HOSTS.append(leverUrl)
 
 CSRF_USE_SESSIONS = True
