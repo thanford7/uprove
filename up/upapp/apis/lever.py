@@ -160,7 +160,7 @@ def leverIntegrate(request):
         )
         if not (webhookData := response.get('data')):
             raise ConnectionError('Unable to establish webhook for candidate deleted phase')
-        employer.leverHookArchive = webhookData['configuration']['signatureToken']
+        employer.leverHookDeleted = webhookData['configuration']['signatureToken']
     # End webhooks
 
     employer.save()
