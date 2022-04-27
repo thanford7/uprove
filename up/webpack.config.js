@@ -157,7 +157,7 @@ module.exports = function (env, argv) {
         cfg.devtool = 'source-map';
         cfg.devServer = {
             host: '0.0.0.0',
-            allowedHosts: ['177d-65-155-190-226.ngrok.io'],
+            allowedHosts: ['a330-98-38-45-11.ngrok.io'],
             historyApiFallback: {
                 index: '/404/'
             },

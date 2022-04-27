@@ -179,7 +179,7 @@ class LeverSendAssessment(UproveAPIView):
                 'href'] = f'{resetContext["protocol"]}://{resetContext["domain"]}/password-reset-email/{resetContext["uid"]}/{resetContext["token"]}/?{encodedUrlParams}'
             htmlBody = str(htmlBody)
 
-        job = JobPostingView.getEmployerJobs(jobId=self.data['jobId'])
+        job = JobPostingView.getEmployerJobs(jobId=self.data['jobId'], isIncludeDemo=True)
         JobPostingView.setCustomProjects(job, [self.data['customProject']], isDeleteExisting=False)
 
         # Create an application for the user if it doesn't exist
@@ -445,7 +445,7 @@ class LeverChangeStage(BaseLeverChange):
             method='POST'
         )
 
-        return Response(status=resp['status_code'])
+        return Response(status=resp.get('status_code') or (status.HTTP_200_OK if resp.get('data') else status.HTTP_400_BAD_REQUEST))
 
 
 class LeverArchive(BaseLeverChange):

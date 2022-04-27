@@ -157,8 +157,10 @@ class PasswordResetView(PasswordResetConfirmView):
         context['data'] = dumps({'isNew': isNewUser, 'next': sessionData.get('next')})
 
         # Remove session variables that are no longer needed
-        del sessionData['isNewUser']
-        del sessionData['next']
+        if 'isNewUser' in sessionData:
+            del sessionData['isNewUser']
+        if 'next' in sessionData:
+            del sessionData['next']
 
         if isNewUser:
             saveActivity(

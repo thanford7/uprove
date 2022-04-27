@@ -71,7 +71,7 @@
                         <ProjectsSelectize
                             ref="customProject"
                             :employerId="initData.employer.id"
-                            :allowedProjects="(initData.primaryCustomProject) ? [initData.primaryCustomProject] : []"
+                            :allowedProjects="selectedProject"
                             @projectChange="formData.customProject = $event"
                         />
                     </div>
@@ -95,7 +95,7 @@
                         <p class="-text-medium">From: {{ formData.companyContactEmail }}</p>
                         <p class="-text-medium">CC: {{ globalData.CANDIDATE_SUPPORT_EMAIL }}</p>
                         <p class="-text-medium">To:
-                            {{ (initData.candidate.emails) ? initData.candidate.emails.join('; ') : '' }}</p>
+                            {{ (initData.candidate.emails && Array.isArray(initData.candidate.emails)) ? initData.candidate.emails.join('; ') : initData.candidate.emails }}</p>
                         <div class="mb-3">
                             <span class="-text-medium">Subject:&nbsp;</span>
                             <input
@@ -108,11 +108,11 @@
                         <InputWsiwyg :elId="assessmentEmail" v-model="assessmentEmail"/>
                     </div>
                 </div>
-                <row class="mb-3">
+                <div class="row mb-3">
                     <div class="col-12 btn btn-primary" @click="saveChange">
                         <i class="fas fa-paper-plane"></i> Send assessment email
                     </div>
-                </row>
+                </div>
             </div>
         </BasePage>
     </div>
@@ -164,11 +164,18 @@ export default {
         },
         assessmentEmailTitle() {
             return `${this.initData.employer.companyName} | Interview next steps for ${this.initData.jobTitle} position`;
+        },
+        selectedProject() {
+            if (this.formData.customProject) {
+                return [this.formData.customProject];
+            }
+            return (initData.primaryCustomProject) ? [initData.primaryCustomProject] : [];
         }
     },
     methods: {
         getSuccessMessage() {
-            return `Message successfully sent to ${this.initData.candidate.emails.join('; ')}. You can close this page now.`;
+            const emails = (Array.isArray(this.initData.candidate.emails)) ? this.initData.candidate.emails.join('; ') : this.initData.candidate.emails;
+            return `Message successfully sent to ${emails}. You can close this page now.`;
         },
         getAjaxCfgOverride() {
             return {

@@ -89,6 +89,9 @@ export default {
                 this.$emit('projectChange', customProject);
             }
             // Remove projects that are no longer selected
+            if (projectIds && !Array.isArray(projectIds)) {
+                projectIds = [projectIds]
+            }
             projectIds = projectIds || [];
             const removedProjects = (this.allowedProjects|| []).filter((ap) => !projectIds.includes(ap.projectId));
             if (removedProjects.length) {
@@ -105,7 +108,8 @@ export default {
                 }
             });
 
-            this.$emit('projectChange', this.allowedProjects);
+            const projects = (this.isAllowMulti) ? this.allowedProjects : (this.allowedProjects?.length) ? this.allowedProjects[0] : null;
+            this.$emit('projectChange', projects);
         },
         getTargetEl() {
             return this.$refs.projects.targetEl;
