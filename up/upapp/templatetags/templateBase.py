@@ -35,7 +35,7 @@ def initBaseVariables(context):
         'BASE_URL': protocol + baseUrl,
         'STATIC_URL': static,
         'MEDIA_URL': media,
-        'LEVER_REDIRECT_URL': f'https://sandbox-lever.auth0.com/authorize?client_id={settings.LEVER_CLIENT_ID}&redirect_uri={leverRedirectUrl}&state={settings.LEVER_STATE}&response_type=code&scope={settings.LEVER_SCOPE}&prompt=consent&audience={settings.LEVER_BASE_URL}'
+        'LEVER_REDIRECT_URL': f'{settings.LEVER_REDIRECT_BASE}?client_id={settings.LEVER_CLIENT_ID}&redirect_uri={leverRedirectUrl}&state={settings.LEVER_STATE}&response_type=code&scope={settings.LEVER_SCOPE}&prompt=consent&audience={settings.LEVER_BASE_URL}'
     })
 
     return mark_safe(baseVariables)

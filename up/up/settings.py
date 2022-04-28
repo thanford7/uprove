@@ -179,10 +179,12 @@ LEVER_STATE = env('LEVER_STATE')
 
 if env('LEVER_DEBUG', cast=bool, default=True):
     LEVER_BASE_URL = 'https://api.sandbox.lever.co/v1/'
+    LEVER_REDIRECT_BASE = 'https://sandbox-lever.auth0.com/authorize'
     LEVER_AUTH_TOKEN_URL = 'https://sandbox-lever.auth0.com/oauth/token'
 else:
     LEVER_BASE_URL = 'https://api.lever.co/v1/'
-    LEVER_AUTH_TOKEN_URL = 'https://auth.lever.co/authorize'
+    LEVER_REDIRECT_BASE = 'https://auth.lever.co/authorize'
+    LEVER_AUTH_TOKEN_URL = 'https://auth.lever.co/oauth/token'
 
 
 # Password validation
