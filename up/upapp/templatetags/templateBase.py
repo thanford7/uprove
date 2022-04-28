@@ -1,5 +1,4 @@
 import json
-import os
 
 from django import template
 from django.conf import settings
@@ -29,14 +28,14 @@ def initBaseVariables(context):
     leverProtocol = 'http://'
     if ('localhost' not in baseUrl) and ('www.' not in baseUrl):
         leverProtocol += 'www.'
-    leverRedirectUrl = f'{leverProtocol}{baseUrl}{os.getenv("LEVER_CALLBACK_URL")}'
+    leverRedirectUrl = f'{leverProtocol}{baseUrl}{settings.LEVER_CALLBACK_URL}'
 
     baseVariables = json.dumps({
         'uproveUser': uproveUser,
         'BASE_URL': protocol + baseUrl,
         'STATIC_URL': static,
         'MEDIA_URL': media,
-        'LEVER_REDIRECT_URL': f'https://sandbox-lever.auth0.com/authorize?client_id={os.getenv("LEVER_CLIENT_ID")}&redirect_uri={leverRedirectUrl}&state={os.getenv("LEVER_STATE")}&response_type=code&scope={os.getenv("LEVER_SCOPE")}&prompt=consent&audience={os.getenv("LEVER_AUDIENCE")}'
+        'LEVER_REDIRECT_URL': f'https://sandbox-lever.auth0.com/authorize?client_id={settings.LEVER_CLIENT_ID}&redirect_uri={leverRedirectUrl}&state={settings.LEVER_STATE}&response_type=code&scope={settings.LEVER_SCOPE}&prompt=consent&audience={settings.LEVER_BASE_URL}'
     })
 
     return mark_safe(baseVariables)

@@ -49,8 +49,8 @@ logger.addHandler(handler)
 
 PREPEND_WWW = False  # not DEBUG
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0').split(',')
-if leverUrl := env('LEVER_LOCAL_URL_OVERRIDE', default=None):
-    ALLOWED_HOSTS.append(leverUrl)
+if LEVER_LOCAL_URL_OVERRIDE := env('LEVER_LOCAL_URL_OVERRIDE', default=None):
+    ALLOWED_HOSTS.append(LEVER_LOCAL_URL_OVERRIDE)
 
 CSRF_USE_SESSIONS = True
 
@@ -153,6 +153,36 @@ elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
     DATABASES = {
         "default": dj_database_url.parse(os.environ.get("DATABASE_URL")),
     }
+
+
+LEVER_SCOPE = ' '.join([
+    'offline_access',
+    'feedback:write:admin',
+    'archive_reasons:read:admin',
+    'contact:read:admin',
+    'feedback:write:admin',
+    'feedback_templates:write:admin',
+    'files:write:admin',
+    'notes:write:admin',
+    'opportunities:write:admin',
+    'postings:read:admin',
+    'stages:read:admin',
+    'tags:read:admin',
+    'uploads:write:admin',
+    'users:read:admin',
+    'webhooks:write:admin'
+])
+LEVER_CALLBACK_URL = '/integrate'
+LEVER_CLIENT_ID = env('LEVER_CLIENT_ID')
+LEVER_CLIENT_SECRET = env('LEVER_CLIENT_SECRET')
+LEVER_STATE = env('LEVER_STATE')
+
+if env('LEVER_DEBUG', cast=bool, default=True):
+    LEVER_BASE_URL = 'https://api.sandbox.lever.co/v1/'
+    LEVER_AUTH_TOKEN_URL = 'https://sandbox-lever.auth0.com/oauth/token'
+else:
+    LEVER_BASE_URL = 'https://api.lever.co/v1/'
+    LEVER_AUTH_TOKEN_URL = 'https://auth.lever.co/authorize'
 
 
 # Password validation

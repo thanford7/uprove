@@ -8,6 +8,7 @@ import requests
 from datetime import datetime, timedelta
 
 import bs4
+from django.conf import settings
 from django.db.models import Q
 from django.db.transaction import atomic
 from django.http import HttpResponseRedirect
@@ -39,15 +40,15 @@ LEVER_WEBHOOK_DELETE = 'delete'
 def leverIntegrate(request):
     from upapp.urls import apiPath  # Avoid circular import
 
-    if request.GET.get('state') != os.getenv('LEVER_STATE'):
-        raise ConnectionError()
+    if request.GET.get('state') != settings.LEVER_STATE:
+        raise ConnectionError('State does not match')
 
     # Begin oAuth
     user = security.getSessionUser(request)
     employer = Employer.objects.get(id=user.employer_id)
-    response = requests.post(os.getenv('LEVER_AUTH_TOKEN_URL'), {
-        'client_id': os.getenv('LEVER_CLIENT_ID'),
-        'client_secret': os.getenv('LEVER_CLIENT_SECRET'),
+    response = requests.post(settings.LEVER_AUTH_TOKEN_URL, {
+        'client_id': settings.LEVER_CLIENT_ID,
+        'client_secret': settings.LEVER_CLIENT_SECRET,
         'grant_type': 'authorization_code',
         'code': request.GET.get('code'),
         'redirect_uri': request.build_absolute_uri('/integrate/')
@@ -74,7 +75,7 @@ def leverIntegrate(request):
 
     currentWebhooks = {w['url']: w for w in currentWebhooks}
 
-    if localUrl := os.getenv('LEVER_LOCAL_URL_OVERRIDE'):
+    if localUrl := settings.LEVER_LOCAL_URL_OVERRIDE:
         baseWebhookUrl = f'https://{localUrl}/{apiPath}lever/change/'
     else:
         baseWebhookUrl = request.build_absolute_uri(f'/{apiPath}lever/change/')
@@ -683,7 +684,7 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
         body = {**bodyCfg, **body}
     if nextKey:
         body['offset'] = nextKey
-    url = f'{os.getenv("LEVER_BASE_URL")}{relativeUrl}'
+    url = f'{settings.LEVER_BASE_URL}{relativeUrl}'
     if method == 'GET':
         requestMethodFn = requests.get
     elif method == 'POST':
@@ -704,9 +705,9 @@ def getLeverRequestWithRefresh(employer, relativeUrl, nextKey=None, method='GET'
 
     # Update the access tokens if they have expired
     if (not is200Code(response)) and response.reason != 'Bad Request':
-        response = requests.post(os.getenv('LEVER_AUTH_TOKEN_URL'), {
-            'client_id': os.getenv('LEVER_CLIENT_ID'),
-            'client_secret': os.getenv('LEVER_CLIENT_SECRET'),
+        response = requests.post(settings.LEVER_AUTH_TOKEN_URL, {
+            'client_id': settings.LEVER_CLIENT_ID,
+            'client_secret': settings.LEVER_CLIENT_SECRET,
             'grant_type': 'refresh_token',
             'refresh_token': employer.leverRefreshToken
         })
