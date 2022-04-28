@@ -1,6 +1,5 @@
 import hashlib
 import hmac
-import os
 from json import dumps
 from urllib import parse
 
@@ -47,9 +46,8 @@ def leverIntegrate(request):
     user = security.getSessionUser(request)
     employer = Employer.objects.get(id=user.employer_id)
     redirectUrl = request.build_absolute_uri('/integrate/')
-    if 'http' in redirectUrl and 'https' not in redirectUrl:
-        redirectUrl.replace('http', 'https')
-    print(request.build_absolute_uri('/integrate/'))
+    if 'http' in redirectUrl and ('https' not in redirectUrl) and not settings.LEVER_DEBUG:
+        redirectUrl = redirectUrl.replace('http', 'https')
 
     response = requests.post(settings.LEVER_AUTH_TOKEN_URL, {
         'client_id': settings.LEVER_CLIENT_ID,
@@ -58,10 +56,6 @@ def leverIntegrate(request):
         'code': request.GET.get('code'),
         'redirect_uri': redirectUrl
     })
-
-    print(response.reason)
-    print(response.status_code)
-    print(response.text)
 
     if response.status_code != 200:
         raise ConnectionError()
