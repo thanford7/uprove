@@ -50,7 +50,7 @@ def leverIntegrate(request):
     if 'http' in redirectUrl and 'https' not in redirectUrl:
         redirectUrl.replace('http', 'https')
     print(request.build_absolute_uri('/integrate/'))
-    
+
     response = requests.post(settings.LEVER_AUTH_TOKEN_URL, {
         'client_id': settings.LEVER_CLIENT_ID,
         'client_secret': settings.LEVER_CLIENT_SECRET,
