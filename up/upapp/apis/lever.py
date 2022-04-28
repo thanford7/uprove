@@ -54,6 +54,10 @@ def leverIntegrate(request):
         'redirect_uri': request.build_absolute_uri('/integrate/')
     })
 
+    print(response.reason)
+    print(response.status_code)
+    print(response.text)
+
     if response.status_code != 200:
         raise ConnectionError()
 
