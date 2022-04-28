@@ -172,12 +172,12 @@ LEVER_SCOPE = ' '.join([
     'users:read:admin',
     'webhooks:write:admin'
 ])
-LEVER_CALLBACK_URL = '/integrate/'
+LEVER_CALLBACK_URL = '/integrate'
 LEVER_CLIENT_ID = env('LEVER_CLIENT_ID')
 LEVER_CLIENT_SECRET = env('LEVER_CLIENT_SECRET')
 LEVER_STATE = env('LEVER_STATE')
 
-if env('LEVER_DEBUG', cast=bool, default=True):
+if LEVER_DEBUG := env('LEVER_DEBUG', cast=bool, default=True):
     LEVER_BASE_URL = 'https://api.sandbox.lever.co/v1/'
     LEVER_REDIRECT_BASE = 'https://sandbox-lever.auth0.com/authorize'
     LEVER_AUTH_TOKEN_URL = 'https://sandbox-lever.auth0.com/oauth/token'
