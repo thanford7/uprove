@@ -295,7 +295,9 @@ class LeverSendAssessment(UproveAPIView):
         # Create an application for the user if it doesn't exist
         leverOpportunityKey = self.data['opportunityId']
         try:
-            UserJobApplication.objects.get(leverOpportunityKey=leverOpportunityKey)
+            userJobApp = UserJobApplication.objects.get(user_id=user.id, employerJob=job)
+            userJobApp.leverOpportunityKey = leverOpportunityKey
+            userJobApp.sve()
         except UserJobApplication.DoesNotExist:
             UserJobApplication(
                 user=user,
