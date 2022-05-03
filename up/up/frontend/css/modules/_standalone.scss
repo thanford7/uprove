@@ -51,6 +51,7 @@
 
 .-hover-display {
     display: none;
+
     &:hover {
         display: inline-block;
     }
@@ -144,42 +145,55 @@
     &0 {
         z-index: 0;
     }
+
     &1 {
         z-index: 1;
     }
+
     &2 {
         z-index: 2;
     }
+
     &3 {
         z-index: 3;
     }
+
     &4 {
         z-index: 4;
     }
+
     &5 {
         z-index: 5;
     }
+
     &6 {
         z-index: 6;
     }
+
     &10 {
         z-index: 10;
     }
+
     &20 {
         z-index: 20;
     }
+
     &30 {
         z-index: 30;
     }
+
     &40 {
         z-index: 40;
     }
+
     &50 {
         z-index: 50;
     }
+
     &60 {
         z-index: 60;
     }
+
     &1000 {
         z-index: 1000;
     }
@@ -189,12 +203,15 @@
     &16 {
         max-height: 16px;
     }
+
     &32 {
         max-height: 32px;
     }
+
     &64 {
         max-height: 64px;
     }
+
     &128 {
         max-height: 128px;
     }
@@ -204,13 +221,49 @@
     &1 {
         margin-top: -1rem;
     }
+
     &2 {
         margin-top: -2rem;
     }
+
     &3 {
         margin-top: -3rem;
     }
+
     &4 {
         margin-top: -4rem;
     }
+}
+
+.-w- {
+    &150 {
+        width: 150px;
+    }
+
+    &200 {
+        width: 200px;
+    }
+
+    &250 {
+        width: 250px;
+    }
+}
+
+.-no-wrap {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.after-border-middle:after {
+    content: "";
+    border-color: colors.$color-lightgrey;
+    border-style: solid;
+    border-bottom-width: 1px;
+    height: 1px;
+    flex-grow: 1;
+}
+
+.-no-child-margin * {
+    margin: 0
 }

@@ -31,6 +31,13 @@
     }
 }
 
+.profile-location {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 #profilePic {
     #editProfile {
         width: 1rem;
@@ -55,7 +62,7 @@
             background-color: colors.$color-lightgrey;
             position: absolute;
             right: 5px;
-            top: 5px;
+            top: 16px;
             visibility: hidden;
             border-radius: 10px;
             border: 1px solid colors.$color-moderategrey;
@@ -69,5 +76,28 @@
 
     &:hover .item-edit-options {
         visibility: visible;
+    }
+}
+
+.project-showcase {
+    border-radius: 10px;
+    border: 1px solid colors.$color-lightgrey;
+    position: relative;
+    padding: 2em 0 0 0;
+
+    .project-showcase-title {
+        font-size: 1rem;
+        width: auto;
+        font-weight: 600;
+        position: absolute;
+        background-color: colors.$color-white;
+        top: 0;
+        left: 1em;
+        transform: translateY(-50%);
+    }
+
+    .project-file-image {
+        max-height: 150px;
+        width: auto;
     }
 }

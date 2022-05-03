@@ -76,6 +76,9 @@ class User(AuditFields):
     lastName = models.CharField(max_length=30)
     birthDate = models.DateField(null=True)
     email = models.EmailField(unique=True)
+    city = models.CharField(max_length=50, null=True)
+    state = models.ForeignKey('State', null=True, on_delete=models.SET_NULL)  # Can be state, province, or region
+    country = models.ForeignKey('Country', null=True, on_delete=models.SET_NULL)
     userTypeBits = models.SmallIntegerField(default=USER_TYPE_CANDIDATE)
     employer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True)
     inviteEmployer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True, related_name='inviteEmployer')
@@ -84,8 +87,8 @@ class User(AuditFields):
     preferenceCompanySizes = models.ManyToManyField('CompanySize')
     preferenceRoles = models.ManyToManyField('RoleTitle')
     preferenceRemoteBits = models.SmallIntegerField(default=REMOTE_PREF_DEFAULT)  # 1 = Non-remote, 2 = Remote
-    preferenceCountry = models.ManyToManyField('Country')
-    preferenceState = models.ManyToManyField('State')
+    preferenceCountry = models.ManyToManyField('Country', related_name='preferenceCountry')
+    preferenceState = models.ManyToManyField('State', related_name='preferenceState')
 
     leverUserKey = models.CharField(max_length=75, null=True)
 
@@ -399,7 +402,7 @@ class CustomProject(models.Model):
 
 class EmployerCustomProjectCriterion(models.Model):
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
-    customProject = models.ForeignKey(CustomProject, on_delete=models.CASCADE)
+    customProject = models.ForeignKey(CustomProject, on_delete=models.CASCADE, related_name='employerCustomCriterion')
     evaluationCriterion = models.ForeignKey(ProjectEvaluationCriterion, on_delete=models.CASCADE)
 
 

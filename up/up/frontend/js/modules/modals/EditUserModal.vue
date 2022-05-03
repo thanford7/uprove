@@ -13,12 +13,52 @@
             <input type="text" class="form-control" placeholder="Required" id="userFName" v-model="formData.firstName">
         </div>
         <div class="mb-3">
-            <label for="userFName" class="form-label">Last name</label>
+            <label for="userLName" class="form-label">Last name</label>
             <input type="text" class="form-control" placeholder="Required" id="userLName" v-model="formData.lastName">
         </div>
         <div class="mb-3">
             <label for="userEmail" class="form-label">Email</label>
             <InputEmail elId="userEmail" placeholder="Required" v-model="formData.email"/>
+        </div>
+        <div class="mb-3">
+            <label for="userCity" class="form-label">City</label>
+            <input type="text" class="form-control" placeholder="Optional" id="userCity" v-model="formData.city">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">State / Province / Region</label>
+            <InputSelectize
+                ref="userState"
+                elId="userState"
+                :isParseAsInt="true"
+                placeholder="Optional"
+                :cfg="{
+                    maxItems: 1,
+                    valueField: 'id',
+                    labelField: 'name',
+                    sortField: 'name',
+                    create: function(input) {
+                        formData.state = input;
+                    },
+                    createOnBlur: true
+                }"
+                @selected="formData.stateId = $event"
+            />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Country</label>
+            <InputSelectize
+                ref="userCountry"
+                elId="userCountry"
+                :isParseAsInt="true"
+                placeholder="Optional"
+                :cfg="{
+                    maxItems: 1,
+                    valueField: 'id',
+                    labelField: 'name',
+                    sortField: 'name',
+                }"
+                @selected="formData.countryId = $event"
+            />
         </div>
         <template v-if="isAdmin && isShowAdminFields" >
             <div class="mb-3">
@@ -89,7 +129,7 @@ export default {
     name: "EditUserModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    props: ['isContentOnly', 'isShowAdminFields', 'isUpdateDataOverride'],
+    props: ['isContentOnly', 'isShowAdminFields', 'isUpdateDataOverride', 'isHardRefreshOverride'],
     components: {BaseModal, InfoToolTip, InputCheckBox, InputEmail, InputSelectize},
     data() {
         return {
@@ -144,6 +184,8 @@ export default {
                     employersSelectize.loadEmployerByIdFn(rawData.employerId, this.$refs.userEmployer)
                 );
             }
+            this.$refs.userState.elSel.setValue(rawData.stateId);
+            this.$refs.userCountry.elSel.setValue(rawData.countryId);
             return Object.assign(rawData, {userTypes});
         },
         processFormData() {
@@ -188,13 +230,18 @@ export default {
             return 'Deleted account';
         },
     },
-    mounted() {
+    async mounted() {
+        this.isHardRefresh = this.isHardRefreshOverride;
         if (this.$refs.userTypes) {
             this.requiredFields.userTypes = this.$refs.userTypes.targetEl;
         }
         if (!dataUtil.isNil(this.isUpdateDataOverride)) {
             this.isUpdateData = this.isUpdateDataOverride;
         }
-    }
+
+        await this.loadData([{route: 'locations/', dataKey: 'locations'}]);
+        this.$refs.userState.resetOptions(this.cData.locations.states);
+        this.$refs.userCountry.resetOptions(this.cData.locations.countries);
+    },
 }
 </script>

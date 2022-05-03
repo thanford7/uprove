@@ -19,6 +19,20 @@ body {
     background-color: #fff;
 	color: #333;
 	overflow-x: hidden;
+
+    .loading-spinner {
+        visibility: hidden;
+    }
+
+    &.loading {
+        .loading-spinner {
+            visibility: visible;
+        }
+        
+        .loading-container :not(.loading-spinner) {
+            visibility: hidden;
+        }
+    }
 }
 
 main {
@@ -48,18 +62,6 @@ img {
 
     &.line-height {
         height: 30px;
-    }
-
-    &.img-100 {
-        max-height: 100px;
-    }
-
-    &.img-150 {
-        max-height: 150px;
-    }
-
-    &.img-200 {
-        max-height: 200px;
     }
 }
 

@@ -1,57 +1,14 @@
 <template>
     <BasePage>
         <div class="row mt-4" :class="(isMobile) ? 'mobile-top' : ''">
-            <div class="col-md-8 card-custom">
-                <h4 style="margin-left: -2rem; margin-top: -1.5rem;" class="me-2">
-                    <span class="badge -color-darkblue">{{initData.project.role}}</span>
-                </h4>
-                <ProjectJobs :jobs="initData.project.jobs" class="mt-3 mb-2"/>
-                <h4>{{initData.project.title}}</h4>
-                <div v-html="initData.project.description" class="-border-bottom--light mb-2"></div>
-                <CollapseDiv :elId="getNewElUid()" :class="(initData.project.isLimited) ? '' : '-border-bottom--light mb-2'">
-                    <template v-slot:header>
-                        <h4>Project brief</h4>
-                    </template>
-                    <div v-html="initData.project.background"></div>
-                    <div v-if="initData.project.isLimited">
-                        <a href="/sign-up/">Get started to see the full project brief</a>
-                    </div>
-                </CollapseDiv>
-                <CollapseDiv v-if="isLoggedIn" :elId="getNewElUid()" class="-border-bottom--light mb-2">
-                    <template v-slot:header>
-                        <h4>Instructions</h4>
-                    </template>
-                    <div v-if="formData.skillLevelBit" class="pb-2">
-                        <div v-html="projectInstructions"></div>
-                        <ul v-if="skillInstructions.length" class="pb-2">
-                            <li v-for="i in skillInstructions">{{i}}</li>
-                        </ul>
-                    </div>
-                    <div v-else class="-sub-text pb-2">Select career level to view instructions</div>
-                </CollapseDiv>
-                <CollapseDiv
-                    v-if="isLoggedIn && isEmployer && evaluationCriteria"
-                    :elId="getNewElUid()"
-                    :isClosed="true"
-                    class="-border-bottom--light mb-2"
-                >
-                    <template v-slot:header>
-                        <h4>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h4>
-                    </template>
-                    <ul>
-                        <li v-for="criterion in evaluationCriteria">{{criterion.criterion}}</li>
-                    </ul>
-                </CollapseDiv>
-                <CollapseDiv v-if="projectFiles.length">
-                    <template v-slot:header>
-                        <h4>Files</h4>
-                    </template>
-                    <div v-for="file in projectFiles">
-                        <FileDisplay :file="file" :isIncludeDescription="true" :isIncludeSkillLevels="true"/>
-                    </div>
-                </CollapseDiv>
-            </div>
-            <div v-if="this.initData.project.isLimited" class="col-md-3 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
+            <ProjectAccordion
+                class="col-md-8"
+                :project="initData.project"
+                :skills="initData.skills"
+                :skillLevelBit="formData.skillLevelBit"
+                :skillIds="formData.skillIds"
+            />
+            <div v-if="initData.project.isLimited" class="col-md-3 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
                 <div class="-text-center">
                     Want to view the full project brief and files?
                 </div>
@@ -159,13 +116,13 @@ import SkillsSelectize from "../../inputs/SkillsSelectize";
 import ProjectJobs from "../projects/ProjectJobs";
 import BasePage from "../base/BasePage";
 import {getAjaxFormData} from "../../../vueMixins";
+import ProjectAccordion from "./ProjectAccordion";
 
 export default {
     name: "ProjectPage.vue",
     components: {
-        BasePage,
-        AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CollapseDiv, EditUserModal,
-        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize, ProjectJobs, SkillsSelectize
+        BasePage, AccordionItem, BannerAlert, BadgesSkillLevels, BadgesSkills, CollapseDiv, EditUserModal,
+        EmployerRequestInfoModal, FileDisplay, InfoToolTip, InputSelectize, ProjectAccordion, ProjectJobs, SkillsSelectize
     },
     data() {
         return {
@@ -204,11 +161,6 @@ export default {
                 return uniqueProjects;
             }, {});
         },
-        evaluationCriteria() {
-            return this.initData.project.evaluationCriteria.filter((ec) => {
-                return !ec.skillLevelBits || !this.formData.skillLevelBit || ec.skillLevelBits & this.formData.skillLevelBit;
-            });
-        },
         employerJobsCfg() {
             return {
                 plugins: ['remove_button'],
@@ -228,25 +180,6 @@ export default {
                 options
             }
         },
-        projectFiles() {
-            return this.initData.project.files.filter((file) => !this.formData.skillLevelBit || file.skillLevelBits & this.formData.skillLevelBit);
-        },
-        projectInstructions() {
-            const instructions = this.initData.project.instructions.find((i) => i.skillLevelBit & this.formData.skillLevelBit)
-            return (instructions) ? instructions.instructions : '';
-        },
-        skillInstructions() {
-            if (!this.formData.skillIds) {
-                return [];
-            }
-            return this.formData.skillIds.reduce((instructions, sId) => {
-                const skill = this.initData.skills.find((skill) => skill.id === sId);
-                if (skill.instruction) {
-                    instructions.push(skill.instruction);
-                }
-                return instructions;
-            }, [])
-        }
     },
     methods: {
         getSuccessMessage() {

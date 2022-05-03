@@ -5,7 +5,7 @@ from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
-from upapp.apis import blog, employer, job, lever, project, sendEmail, storage, tag, user
+from upapp.apis import blog, employer, job, lever, locations, project, sendEmail, storage, tag, user
 from upapp.sitemaps import sitemaps
 
 apiPath = 'api/v1/'
@@ -31,12 +31,12 @@ urlpatterns = [
     path('login-page/', views.login, name='loginPage'),
     path('privacy/', views.privacy, name='privacy'),
     path('profile/<int:profileId>/', views.profile, name='profile'),
-    path('profiles/<int:userId>/', views.profiles, name='profiles'),
     path('project/<int:projectId>/', views.project, name='project'),
     re_path('^projects/$', views.projects, name='projects'),
     path('sign-up/', views.signUp, name='signUp'),
     re_path('^sign-up/employer/(?P<type>[a-z]+)?/?$', views.signUpEmployer, name='signUpEmployer'),
     path('terms-of-service/', views.termsOfService, name='termsOfService'),
+    re_path('^user-project/(?P<userProjectId>[0-9]+)?/?$', views.userProject, name='userProject'),
 
     # Sales views
     path('mentor/', views.salesMentor, name="salesMentor"),
@@ -49,6 +49,7 @@ urlpatterns = [
     re_path(apiPath + 'job-posting/(?P<jobId>[0-9]+)?/?$', employer.JobPostingView.as_view()),
     re_path(apiPath + 'job-project-link/(?P<projectId>[0-9]+)?/?$', employer.JobProjectLinkView.as_view()),
     re_path(apiPath + 'job-template/(?P<templateId>[0-9]+)?/?$', job.JobTemplateView.as_view()),
+    re_path(apiPath + 'locations/$', locations.LocationView.as_view()),
     re_path(apiPath + 'organization/$', employer.OrganizationView.as_view()),
     re_path(apiPath + 'preferences/$', user.PreferencesView.as_view()),
     re_path(apiPath + 'project/(?P<projectId>[0-9]+)?/?$', project.ProjectView.as_view()),

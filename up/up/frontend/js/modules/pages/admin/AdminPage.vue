@@ -88,7 +88,7 @@
     <EditJobTemplateModal/>
     <EditProjectModal/>
     <EditSkillModal/>
-    <EditUserModal :isShowAdminFields="true" :isUpdateDataOverride="false"/>
+    <EditUserModal :isShowAdminFields="true" :isUpdateDataOverride="false" :isHardRefreshOverride="true"/>
 </template>
 
 <script>

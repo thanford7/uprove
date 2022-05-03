@@ -20,6 +20,7 @@ from django.utils import crypto, timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from moviepy.editor import clips_array, VideoFileClip
+from preview_generator.exception import UnavailablePreviewType, UnsupportedMimeType
 from preview_generator.manager import PreviewManager
 from rest_framework import status, authentication
 from rest_framework.views import APIView
@@ -246,8 +247,8 @@ class UserFileView(UproveAPIView):
                 with open(fileThumbnailPath, 'rb') as fileThumbnail:
                     file.thumbnail = File(fileThumbnail, name=f'thumbnail-{file.title}')
                     file.save()
-        except CalledProcessError:
-            # File path is bad. The file may have been deleted.
+        except (CalledProcessError, UnavailablePreviewType, UnsupportedMimeType):
+            # File path is bad or the file type is not supported.
             pass
 
 
@@ -415,7 +416,7 @@ class UserView(UproveAPIView):
     def getUser(userId):
         try:
             return User.objects \
-                .select_related('djangoUser') \
+                .select_related('djangoUser', 'country', 'state') \
                 .prefetch_related(
                     'profile',
                     'profile__section',
@@ -494,6 +495,13 @@ class UserView(UproveAPIView):
 
     @staticmethod
     def updateUser(user, data):
+
+        # Create a new state object if this is a new state from user input
+        if (state := data.get('state')) and not data.get('stateId'):
+            state = State(stateName=state)
+            state.save()
+            data['stateId'] = state.id
+
         dataUtil.setObjectAttributes(user, data, {
             'firstName': None,
             'middleName': None,
@@ -501,6 +509,9 @@ class UserView(UproveAPIView):
             'birthDate': {
                 'propFunc': lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)},
             'email': None,
+            'city': None,
+            'state_id': {'formName': 'stateId'},
+            'country_id': {'formName': 'countryId'},
             'userTypeBits': None,
             'employer_id': {'formName': 'employerId'},
             'isDemo': {'isProtectExisting': True}
@@ -536,6 +547,9 @@ class UserView(UproveAPIView):
             lastName=data['lastName'],
             birthDate=dateUtil.deserializeDateTime(data.get('birthDate'), dateUtil.FormatType.DATE, allowNone=True),
             email=data['email'],
+            city=data.get('city'),
+            state_id=data.get('stateId'),
+            country_id=data.get('countryId'),
             employer_id=data.get('employerId'),
             inviteEmployer_id=data.get('inviteEmployerId'),
             isDemo=data.get('isDemo') or False,
@@ -1293,6 +1307,21 @@ class UserProjectView(UproveAPIView):
             return projects[0]
 
         return projects
+
+    @staticmethod
+    def getUserProjectScorePct(userProject):
+        # Keep logic in sync with userProject.js
+        score = 0
+        bestScorePerEvalCriteria = 3
+        evalCriteria = userProject.userProjectEvaluationCriterion.all()
+        if not evalCriteria:
+            return None
+
+        for criterion in evalCriteria:
+            score += criterion.value
+
+        return round((score / (bestScorePerEvalCriteria * len(evalCriteria))) * 100)
+
 
 
 class UserProjectStatusView(UproveAPIView):

@@ -15,6 +15,12 @@ const PROJECT_EVAL_CUTOFFS = [
     {cutoff: 100, color: 'success'}
 ]
 
+const PROFILE_SECTIONS = {
+    PROJECTS: 'PROJECTS',
+    EXPERIENCE: 'EXPERIENCE',
+    EDUCATION: 'EDUCATION'
+}
+
 const CONTENT_TYPES = {
     EXISTING: 'existing',
     EXPERIENCE: 'experience',
@@ -124,5 +130,5 @@ const globalDataGetter = () => {
 
 const globalData = globalDataGetter();
 
-export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROJECT_EVAL_CUTOFFS,
+export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROFILE_SECTIONS, PROJECT_EVAL_CUTOFFS,
     PROJECT_STATUSES, REMOTE_BITS, SEVERITY, TAG_TYPES, USER_BITS};

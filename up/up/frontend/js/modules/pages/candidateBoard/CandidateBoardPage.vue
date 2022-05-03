@@ -33,7 +33,7 @@
         </template>
         <div class="row mb-3">
             <div class="card-custom card-custom--no-side-margin">
-                <Table :data="filteredCandidates" :headers="headers" emptyDataMessage="No current profiles">
+                <Table :data="initData.candidates" :headers="headers" emptyDataMessage="No current profiles">
                     <template v-slot:body>
                         <tr v-for="candidate in filteredCandidates">
                             <td>

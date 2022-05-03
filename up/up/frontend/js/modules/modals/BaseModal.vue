@@ -12,7 +12,8 @@
                         <slot name="headerHtml"></slot>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body loading-container">
+                        <LoadingSpinner/>
                         <div v-if="headerSubtext" class="modal-body-banner modal-body-banner--top">{{headerSubtext}}</div>
                         <BannerAlert/>
                         <div class="container-fluid">
@@ -34,11 +35,12 @@
 <script>
 import BannerAlert from "../components/BannerAlert";
 import ButtonDelete from "../buttons/ButtonDelete";
+import LoadingSpinner from "../components/LoadingSpinner";
 import Modal from "bootstrap/js/dist/modal";
 import dataUtil from "../../utils/data";
 
 export default {
-    components: {BannerAlert, ButtonDelete},
+    components: {BannerAlert, ButtonDelete, LoadingSpinner},
     props: [
         'modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable',
         'isFooterHidden', 'isLargeDisplay', 'isFullScreenDisplay', 'isAllowDelete', 'isContentOnly'

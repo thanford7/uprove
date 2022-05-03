@@ -165,6 +165,11 @@ $form-label-fontweight:600;
     &-full-width {
         width: 100%;
     }
+
+    &-flat-top {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
 }
 
 .form-section {
@@ -350,5 +355,12 @@ tr {
 .col-12.outer {
     @include media-breakpoint-down(md) {
         margin-left: calc(var(--bs-gutter-x) * 0.5);
+    }
+}
+
+.-skew-top-left {
+    @include media-breakpoint-up(md) {
+        margin-left: -2rem;
+        margin-top: -1.5rem;
     }
 }

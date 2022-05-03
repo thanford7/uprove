@@ -80,7 +80,7 @@ const getAjaxFormData = (data, mediaFields=null) => {
         }
         const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
             if (idx !== 0) {
-                fieldPart = dataUtil.capitalize(fieldPart);
+                fieldPart = dataUtil.capitalize(fieldPart, false);
             }
             return finalField + fieldPart;
         }, ''); // If field uses dot notation, we need to use the last subfield

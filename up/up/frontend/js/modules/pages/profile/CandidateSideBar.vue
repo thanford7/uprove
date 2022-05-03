@@ -11,7 +11,11 @@
                     @click="eventBus.emit('open:editProfileModal', initData)"
                 />
             </span>
-            <h5 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h5>
+            <h6 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h6>
+            <div v-if="location" class="-text-medium profile-location" :title="location">
+                <i class="fas fa-map-marker-alt"></i>&nbsp;
+                {{location}}
+            </div>
         </div>
         <div v-if="user.skills?.length" class="mt-2">
             <div class="-sub-text">SKILLS</div>
@@ -61,15 +65,23 @@ export default {
     name: "CandidateSideBar",
     props: ['user', 'profilePicture', 'isOwner'],
     components: {InfoToolTip, ProgressPill},
+    computed: {
+        location() {
+            const locationParts = ['city', 'state', 'country'].reduce((locationParts, loc) => {
+                if (this.user[loc]) {
+                    locationParts.push(this.user[loc]);
+                }
+                return locationParts;
+            }, []);
+            if (!locationParts.length) {
+                return null;
+            }
+            return locationParts.join(', ');
+        }
+    },
     methods: {
         getSkillPct(skill) {
             return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.pct;
-        },
-        getSkillText(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.title;
-        },
-        getSkillDescription(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.description;
         },
     }
 }
