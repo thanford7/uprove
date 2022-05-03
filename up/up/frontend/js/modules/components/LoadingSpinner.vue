@@ -1,6 +1,6 @@
 <template>
-    <div class="loading-spinner">
-        <i class="fas fa-spinner fa-spin"></i>
+    <div class="spinner-border text-info" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
 </template>
 

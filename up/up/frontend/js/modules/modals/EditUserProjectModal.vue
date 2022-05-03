@@ -97,13 +97,14 @@
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             <button
                 @click="saveChange"
-                type="button" class="btn btn-primary"
+                type="button" class="btn btn-primary loading-hidden"
                 :disabled="formData.isLocked"
                 :title="getProjectLockedNote(formData)"
             >
                 <span v-if="formData.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
                 {{(formData.id) ? 'Save changes' : 'Create project'}}
             </button>
+            <LoadingSpinnerButton/>
         </template>
     </BaseModal>
 </template>
@@ -116,6 +117,7 @@ import dataUtil from "../../utils/data";
 import InfoToolTip from "../components/InfoToolTip";
 import InputSelectOrUploadMedia from "../inputs/InputSelectOrUploadMedia";
 import InputWsiwyg from "../inputs/InputWsiwyg";
+import LoadingSpinnerButton from "../components/LoadingSpinnerButton";
 import RemoveIcon from "../components/RemoveIcon";
 import userProjectUtil from "../../utils/userProject";
 import $ from "jquery";
@@ -124,7 +126,7 @@ export default {
     name: "EditUserProjectModal",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {AddNewLink, BaseModal, InfoToolTip, InputSelectOrUploadMedia, InputWsiwyg, RemoveIcon},
+    components: {AddNewLink, BaseModal, InfoToolTip, InputSelectOrUploadMedia, InputWsiwyg, LoadingSpinnerButton, RemoveIcon},
     data() {
         return {
             modalName: 'editUserProjectModal',

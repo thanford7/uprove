@@ -20,17 +20,17 @@ body {
 	color: #333;
 	overflow-x: hidden;
 
-    .loading-spinner {
-        visibility: hidden;
+    .spinner-border, .spinner-btn {
+        display: none;
     }
 
     &.loading {
-        .loading-spinner {
-            visibility: visible;
+        .spinner-border, .spinner-btn {
+            display: inline-block;
         }
         
-        .loading-container :not(.loading-spinner) {
-            visibility: hidden;
+        .loading-hidden:not(.spinner-border):not(.spinner-btn) {
+            display: none;
         }
     }
 }

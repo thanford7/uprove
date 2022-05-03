@@ -167,7 +167,7 @@ def candidateProject(request, userProjectId=None):
     userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
     return render(request, 'candidateProject.html', context={'data': dumps({
         'user': getSerializedUser(UserView.getUser(userProject.user_id), isIncludeAssets=True),
-        'userProject': getSerializedUserProject(userProject, isEmployer=True),
+        'userProject': getSerializedUserProject(userProject, employerId=None if user.isAdmin else user.employer_id),
         'projects': [getSerializedProject(
             userProject.customProject.project,
             isIncludeDetails=True,
@@ -377,13 +377,15 @@ def userProject(request, userProjectId=None):
     if not (security.isSelf(userProject.user_id, user=user) or user.isEmployer or user.isAdmin):
         return _getUnauthorizedPage(request)
 
+    employerId = None if user.isAdmin else user.employer_id
+
     data = {
-        'userProject': getSerializedUserProject(userProject, employerId=user.employer_id, isIncludeEvaluation=True),
+        'userProject': getSerializedUserProject(userProject, employerId=employerId, isIncludeEvaluation=True),
         'project': getSerializedProject(
             ProjectView.getProject(userProject.customProject.project_id),
             isIncludeDetails=True,
             isAdmin=user.isAdmin,
-            evaluationEmployerId=user.employer_id
+            evaluationEmployerId=employerId
         )
     }
 

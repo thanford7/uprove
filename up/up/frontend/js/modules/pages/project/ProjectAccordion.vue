@@ -31,7 +31,8 @@
             v-if="isLoggedIn && isEmployer && evaluationCriteria"
             :elId="getNewElUid()"
             :isClosed="true"
-            class="-border-bottom--light mb-2"
+            class="mb-2"
+            :class="(projectFiles.length) ? '-border-bottom--light' : ''"
         >
             <template v-slot:header>
                 <h5>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h5>

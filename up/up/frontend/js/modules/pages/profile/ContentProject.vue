@@ -8,14 +8,16 @@
         <div class="row justify-content-around project-showcase mt-4">
             <span class="badge project-showcase-title -color-lightgrey -color-black-text">Project submission</span>
             <template v-for="file in featuredFiles">
-                <div class="col-md col-12 mb-3">
-                    <h6 class="text-center">
-                        <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
-                    </h6>
-                    <div class="row justify-content-center">
-                        <video v-if="file.type === CONTENT_TYPES.VIDEO" controls :src="file.video" class="project-file-image"></video>
-                        <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image" class="project-file-image">
-                        <img v-if="file.type === CONTENT_TYPES.FILE" :src="file.thumbnail" class="project-file-image">
+                <div class="col-md-6 col-12 mb-3">
+                    <div class="project-item">
+                        <h6 class="text-center project-item-title">
+                            <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+                        </h6>
+                        <div class="d-flex justify-content-center">
+                            <video v-if="file.type === CONTENT_TYPES.VIDEO" controls :src="file.video"></video>
+                            <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image" class="project-file-image">
+                            <img v-if="file.type === CONTENT_TYPES.FILE" :src="file.thumbnail" class="project-file-image">
+                        </div>
                     </div>
                 </div>
             </template>
@@ -24,8 +26,12 @@
                     +{{pluralize('additional file', allFiles.length - featuredFiles.length)}}
                 </span>
             </div>
-            <div class="btn btn-info btn-flat-top w-100 mt-3" @click="redirectUrl(`/user-project/${contentItem.id}/`, true)">
-                View full project submission <i class="fas fa-external-link-alt -color-white-text"></i>
+            <div
+                class="btn btn-outline-secondary btn-flat-top w-100 mt-3 -color-darkgrey-text"
+                style="font-weight: 600"
+                @click="redirectUrl(`/user-project/${contentItem.id}/`, true)"
+            >
+                View full project submission <i class="fas fa-external-link-alt"></i>
             </div>
         </div>
     </div>

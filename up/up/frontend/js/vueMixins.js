@@ -114,6 +114,9 @@ const makeAjaxRequest = (url, cfg) => {
         headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
         contentType: false,
         processData: false,
+        complete: () => {
+            $('body').removeClass('loading');
+        }
     }, cfg));
 };
 
@@ -294,6 +297,7 @@ const ajaxRequestMixin = {
             if (e && !allowDefault) {
                 e.preventDefault();
             }
+            $('body').addClass('loading');
             this.isAjaxModal = (e) ? Boolean($(e.currentTarget).parents('.modal').length) : false;
             return this.readAndSubmitForm();
         },

@@ -1,10 +1,13 @@
 <template>
-    <div :id="elId" class="col-12 mb-4 content-item">
+    <div :id="elId" class="col-12 content-item">
         <div class="item-header">
-            <h6 class="after-border-middle d-flex align-items-center">
+            <h6 class="after-border-middle d-flex align-items-center fw-bolder">
                 {{cardTitle}}&nbsp;
                 <span v-if="item.type === contentTypes.PROJECT">
-                    <EvaluationScoreBadge :evalScorePct="item.projectEvalScorePct"/>
+                    <EvaluationScoreBadge v-if="item.projectEvalScorePct" :evalScorePct="item.projectEvalScorePct"/>
+                    <span v-else class="badge bg-secondary">
+                        No evaluation score
+                    </span>
                 </span>
             </h6>
             <div>

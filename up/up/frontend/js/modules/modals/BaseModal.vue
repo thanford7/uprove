@@ -12,8 +12,7 @@
                         <slot name="headerHtml"></slot>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body loading-container">
-                        <LoadingSpinner/>
+                    <div class="modal-body">
                         <div v-if="headerSubtext" class="modal-body-banner modal-body-banner--top">{{headerSubtext}}</div>
                         <BannerAlert/>
                         <div class="container-fluid">
@@ -24,7 +23,12 @@
                         <slot name="footer">
                             <ButtonDelete v-if="isAllowDelete" class="-pull-left" @click="$emit('deleteObject', $event)"/>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button v-if="!isReadOnly" @click="$emit('saveChange', $event)" type="button" class="btn btn-primary">{{primaryButtonText || 'Save changes'}}</button>
+                            <button
+                                v-if="!isReadOnly"
+                                @click="$emit('saveChange', $event)"
+                                type="button" class="btn btn-primary loading-hidden"
+                            >{{primaryButtonText || 'Save changes'}}</button>
+                            <LoadingSpinnerButton/>
                         </slot>
                     </div>
                 </div>
@@ -35,12 +39,12 @@
 <script>
 import BannerAlert from "../components/BannerAlert";
 import ButtonDelete from "../buttons/ButtonDelete";
-import LoadingSpinner from "../components/LoadingSpinner";
+import LoadingSpinnerButton from "../components/LoadingSpinnerButton";
 import Modal from "bootstrap/js/dist/modal";
 import dataUtil from "../../utils/data";
 
 export default {
-    components: {BannerAlert, ButtonDelete, LoadingSpinner},
+    components: {BannerAlert, ButtonDelete, LoadingSpinnerButton},
     props: [
         'modalId', 'modalTitle', 'headerSubtext', 'primaryButtonText', 'isReadOnly', 'isScrollable',
         'isFooterHidden', 'isLargeDisplay', 'isFullScreenDisplay', 'isAllowDelete', 'isContentOnly'

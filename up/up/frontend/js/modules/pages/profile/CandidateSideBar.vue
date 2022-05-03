@@ -1,5 +1,5 @@
 <template>
-    <div class="col-md-3 col-lg-2 card-custom">
+    <div class="col-md-3 col-lg-2 card-custom card-custom--no-side-margin">
         <div class="profile-picture">
             <span id="profilePic">
                 <img v-if="profilePicture" :src="profilePicture.image">
@@ -12,9 +12,15 @@
                 />
             </span>
             <h6 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h6>
-            <div v-if="location" class="-text-medium profile-location" :title="location">
-                <i class="fas fa-map-marker-alt"></i>&nbsp;
-                {{location}}
+            <div v-if="location" class="-text-medium" :title="location">
+                <div class="row">
+                    <div class="col-1">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="col-10">
+                        {{location}}
+                    </div>
+                </div>
             </div>
         </div>
         <div v-if="user.skills?.length" class="mt-2">

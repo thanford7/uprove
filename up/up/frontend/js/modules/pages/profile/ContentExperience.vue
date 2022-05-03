@@ -12,11 +12,12 @@
                 </div>
             </div>
         </div>
-        <div v-if="hasDescription">
+        <div v-if="hasDescription" class="see-more-container">
             <div class="col-12 pt-2 -no-child-margin" v-html="truncatedDescription"></div>
             <a
                 v-if="truncatedDescription.length !== contentItem.description.length"
                 href="#"
+                class="see-more"
                 @click="eventBus.emit('open:displayContentModal', contentItem)"
             >See more</a>
         </div>

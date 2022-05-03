@@ -120,13 +120,25 @@
     }
 }
 
+.position-relative {
+    position: relative;
+
+    .position-absolute-center-x {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .position-absolute-center-y {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+
 .-vertical-align {
     &-top {
         vertical-align: top;
-    }
-
-    &-center {
-        vertical-align: center;
     }
 }
 

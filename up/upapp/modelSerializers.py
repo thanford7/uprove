@@ -67,6 +67,36 @@ def serializeGenericItem(item):
     raise ValueError(f'Unknown content type: {item.contentType}')
 
 
+def getItemPrimarySort(item):
+    if not item.contentObject:
+        return None
+    if (
+        isinstance(item.contentObject, UserVideo)
+        or isinstance(item.contentObject, UserFile)
+        or isinstance(item.contentObject, UserImage)
+        or isinstance(item.contentObject, UserContentItem)
+        or isinstance(item.contentObject, UserProject)
+    ):
+        return item.contentObject.modifiedDateTime
+    if isinstance(item.contentObject, UserEducation) or isinstance(item.contentObject, UserExperience):
+        return item.contentObject.endDate or date.today()
+    if isinstance(item.contentObject, UserCertification):
+        return item.contentObject.expirationDate or date.today()
+    raise ValueError(f'Unknown content type: {item.contentType}')
+
+
+def getItemSecondarySort(item):
+    if isinstance(item.contentObject, UserEducation) or isinstance(item.contentObject, UserExperience):
+        return item.contentObject.startDate or date.today()
+    if isinstance(item.contentObject, UserCertification):
+        return item.contentObject.issueDate
+    return None
+
+
+def getGenericItemSort(item):
+    return (getItemPrimarySort(item), getItemSecondarySort(item))
+
+
 def getSerializedUser(user: User, isIncludeAssets: bool=False):
     profileImage = next((i.image.url for i in user.image.all() if i.isDefault), None)
     serializedUser = {
@@ -136,10 +166,10 @@ def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
         'id': userProfileSection.id,
         'sectionType': userProfileSection.sectionType,
         'sectionOrder': userProfileSection.sectionOrder,
-        'sectionItems': sorted(
-            [getSerializedUserProfileSectionItem(psi) for psi in userProfileSection.sectionItem.all()],
-            key=itemgetter('contentOrder')
-        )
+        'sectionItems': [
+            getSerializedUserProfileSectionItem(psi)
+            for psi in sorted(userProfileSection.sectionItem.all(), key=getGenericItemSort, reverse=True)
+        ],
     }
 
 
