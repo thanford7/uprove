@@ -9,17 +9,13 @@
             <span class="badge project-showcase-title -color-lightgrey -color-black-text">Project submission</span>
             <template v-for="file in featuredFiles">
                 <div class="col-md-6 col-12 mb-3">
-                    <div class="project-item">
-                        <h6 class="text-center project-item-title">
-                            <FileDisplay :file="file" :isPreventDownload="!(isEmployer || initData.isOwner)"/>
-                        </h6>
-                        <div class="d-flex justify-content-center">
-                            <video v-if="file.type === CONTENT_TYPES.VIDEO" controls>
-                                <source :src="file.video">
-                            </video>
-                            <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image" class="project-file-image">
-                            <img v-if="file.type === CONTENT_TYPES.FILE" :src="file.thumbnail" class="project-file-image">
-                        </div>
+                    <h6 class="text-center project-item-title">
+                        <FileDisplay :file="file" :isPreventDownload="!(isEmployer || initData.isOwner)"/>
+                    </h6>
+                    <div class="project-item d-flex align-items-center justify-content-center">
+                        <video v-if="file.type === CONTENT_TYPES.VIDEO" controls :src="file.video"/>
+                        <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image" class="project-file-image">
+                        <img v-if="file.type === CONTENT_TYPES.FILE" :src="file.thumbnail" class="project-file-image">
                     </div>
                 </div>
             </template>
@@ -75,6 +71,18 @@ export default {
         hasText(text) {
             return !form.isEmptyWysiwyg(text);
         },
+        setProjectItemHeight() {
+            let containerMaxHeight = 0;
+            const projectItems = $('.project-item');
+            projectItems.each((idx, el) => {
+                const height = $(el).height();
+                containerMaxHeight = Math.max(containerMaxHeight, height);
+            });
+
+            projectItems.each((idx, el) => {
+                $(el).height(containerMaxHeight);
+            });
+        },
         updateSkillLevels() {
             if (!this.contentItem.customProject.skillLevels) {
                 skillLevels.setSkillLevels([this.contentItem.customProject], true);
@@ -83,6 +91,10 @@ export default {
     },
     mounted() {
         this.updateSkillLevels();
+        this.setProjectItemHeight();
+        $(window).on('resize', () => {
+            this.setProjectItemHeight();
+        });
     },
     updated() {
         this.updateSkillLevels();

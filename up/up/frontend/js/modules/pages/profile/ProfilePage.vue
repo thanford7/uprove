@@ -2,7 +2,7 @@
     <BasePage>
         <div class="row">
             <CandidateSideBar :user="initData.user" :isOwner="initData.isOwner" :profilePicture="initData.profilePicture"/>
-            <div class="col-md-8 ms-md-2">
+            <div class="col-md-6 ms-md-2">
                 <div
                     v-for="(section, idx) in initData.sections"
                     class="card-custom card-custom--no-padding card-custom--no-side-margin card-custom--no-top-margin
@@ -11,7 +11,11 @@
                     <div class="card-custom_body">
                         <div class="row ps-3 pe-3">
                             <div class="col-12">
-                                <h5 class="d-inline-block">{{capitalize(section.sectionType)}}</h5>
+                                <h5
+                                    :data-idx="idx"
+                                    :id="`section-${idx}`"
+                                    class="d-inline-block section"
+                                >{{capitalize(section.sectionType)}}</h5>
                                 <button
                                     v-if="initData.isOwner" type="button"
                                     class="btn btn-sm btn-outline-dark ms-2"
@@ -43,6 +47,15 @@
                     </div>
                 </div>
             </div>
+            <div v-if="!isMobile" class="col-md-2">
+                <div class="card-custom card-custom--no-side-margin card-custom--no-top-margin sticky-top section-nav">
+                    <h6>Sections</h6>
+                    <a
+                        v-for="(section, idx) in initData.sections"
+                        class="nav-link" :data-idx="idx" :href="`#section-${idx}`"
+                    >{{capitalize(section.sectionType)}}</a>
+                </div>
+            </div>
         </div>
     </BasePage>
     <template v-if="initData.isOwner">
@@ -51,7 +64,6 @@
         <EditExperienceModal/>
         <EditProfileModal/>
         <EditMediaModal/>
-        <EditUserProjectModal/>
     </template>
     <DisplayContentModal/>
 </template>
@@ -65,14 +77,12 @@ import EditEducationModal from '../../modals/EditEducationModal.vue';
 import EditExperienceModal from '../../modals/EditExperienceModal.vue';
 import EditProfileModal from '../../modals/EditProfileModal.vue';
 import EditMediaModal from '../../modals/EditMediaModal.vue';
-import EditUserProjectModal from "../../modals/EditUserProjectModal";
 import BasePage from "../base/BasePage";
 import dataUtil from "../../../utils/data";
 
 export default {
     components: {
         BasePage,
-        EditUserProjectModal,
         AddContentModal,
         BannerAlert,
         CandidateSideBar,
@@ -105,5 +115,26 @@ export default {
             return type;
         }
     },
+    mounted() {
+        const sections$ = $('.section');
+        const sectionObserver = new IntersectionObserver((entries) => {
+            const targetEl = dataUtil.findTopVisibleElement(sections$);
+            if (!targetEl) {
+                return;
+            }
+            const targetIdx = $(targetEl).data('idx');
+            console.log(targetIdx);
+            $('.section-nav a').each((idx, sectionNavItem) => {
+                const sectionNavItem$ = $(sectionNavItem);
+                console.log(sectionNavItem$.data('idx') === targetIdx);
+                sectionNavItem$.toggleClass('active-section', sectionNavItem$.data('idx') === targetIdx);
+            });
+        }, {
+            threshold: 1.0
+        });
+        sections$.each((idx, s) => {
+            sectionObserver.observe(s);
+        })
+    }
 }
 </script>
