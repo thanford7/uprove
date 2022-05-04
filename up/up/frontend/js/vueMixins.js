@@ -80,7 +80,7 @@ const getAjaxFormData = (data, mediaFields=null) => {
         }
         const finalField = field.split('.').reduce((finalField, fieldPart, idx) => {
             if (idx !== 0) {
-                fieldPart = dataUtil.capitalize(fieldPart);
+                fieldPart = dataUtil.capitalize(fieldPart, false);
             }
             return finalField + fieldPart;
         }, ''); // If field uses dot notation, we need to use the last subfield
@@ -114,6 +114,9 @@ const makeAjaxRequest = (url, cfg) => {
         headers: {'X-CSRFTOKEN': $('[name=csrfmiddlewaretoken]').val()},
         contentType: false,
         processData: false,
+        complete: () => {
+            $('body').removeClass('loading');
+        }
     }, cfg));
 };
 
@@ -294,6 +297,7 @@ const ajaxRequestMixin = {
             if (e && !allowDefault) {
                 e.preventDefault();
             }
+            $('body').addClass('loading');
             this.isAjaxModal = (e) ? Boolean($(e.currentTarget).parents('.modal').length) : false;
             return this.readAndSubmitForm();
         },

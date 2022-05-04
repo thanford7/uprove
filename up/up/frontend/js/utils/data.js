@@ -192,8 +192,16 @@ class DataUtil {
         }
     }
 
-    capitalize(string) {
-        return (string) ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : '';
+    capitalize(string, isLowercaseRest=true) {
+        if (!string) {
+            return '';
+        }
+        const firstLetter = string.charAt(0).toUpperCase();
+        let restOfString = string.slice(1);
+        if (isLowercaseRest) {
+            restOfString = restOfString.toLowerCase();
+        }
+        return firstLetter + restOfString;
     }
 
     debounce(func, waitMS, immediate=false) {
@@ -374,6 +382,23 @@ class DataUtil {
             total += val;
             return total;
         }, 0)
+    }
+
+    truncateText(text, charCount, isWholeWord=true) {
+        if (!text) {
+            return '';
+        }
+
+        charCount = Math.min(charCount, text.length);
+        let currentCharCount = 0;
+        let truncatedText = '';
+        let endOfWord = false;
+        while (currentCharCount < charCount && (!isWholeWord || endOfWord)) {
+            truncatedText += text.slice(currentCharCount);
+            endOfWord = (currentCharCount + 1 === charCount) || text.slice(currentCharCount + 1).match(/\s/);
+            currentCharCount++;
+        }
+        return truncatedText;
     }
 
     uniqWith(targetList, uniqFn) {

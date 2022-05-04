@@ -1,8 +1,14 @@
 <template>
-    <div :id="elId" class="col-12 mb-2 content-item">
+    <div :id="elId" class="col-12 content-item">
         <div class="item-header">
-            <h6>
-                {{cardTitle}}
+            <h6 class="after-border-middle d-flex align-items-center fw-bolder">
+                {{cardTitle}}&nbsp;
+                <span v-if="item.type === contentTypes.PROJECT">
+                    <EvaluationScoreBadge v-if="item.projectEvalScorePct" :evalScorePct="item.projectEvalScorePct"/>
+                    <span v-else class="badge bg-secondary">
+                        No evaluation score
+                    </span>
+                </span>
             </h6>
             <div>
                 <span v-if="initData.isOwner" class="item-edit-options">
@@ -16,22 +22,6 @@
                         class="fas fa-trash"
                         @click="removeCard"
                     />
-                    <template v-if="item.type !== contentTypes.PROJECT">
-                        <i
-                            v-if="contentItem.contentOrder !== 1"
-                            @click="move(-1)"
-                            class="fas"
-                            :class="`fa-arrow-${(isMobile) ? 'up' : 'left'}`"
-                            :title="`Move content card ${(isMobile) ? 'up' : 'left'}`"
-                        />
-                        <i
-                            v-if="contentItem.contentOrder !== contentSection.sectionItems.length"
-                            @click="move(1)"
-                            class="fas"
-                            :class="`fa-arrow-${(isMobile) ? 'down' : 'right'}`"
-                            :title="`Move content card ${(isMobile) ? 'down' : 'right'}`"
-                        />
-                    </template>
                 </span>
             </div>
         </div>
@@ -40,7 +30,6 @@
             <ContentEducation v-if="item.type === contentTypes.EDUCATION" :contentItem="item"/>
             <ContentExperience v-if="item.type === contentTypes.EXPERIENCE" :contentItem="item"/>
             <ContentProject v-if="item.type === contentTypes.PROJECT" :contentItem="item"/>
-            <ViewMoreLink v-if="isHeightExceeded || item.type === contentTypes.PROJECT" @click="eventBus.emit('open:displayContentModal', item)"/>
         </template>
     </div>
 </template>
@@ -52,7 +41,7 @@ import ContentExperience from './ContentExperience.vue';
 import ContentProject from "./ContentProject";
 import contentUtil from "../../../utils/content";
 import dataUtil from "../../../utils/data";
-import Layout from '../../../utils/layout';
+import EvaluationScoreBadge from "./EvaluationScoreBadge";
 import ViewMoreLink from '../../components/ViewMoreLink.vue';
 
 export default {
@@ -63,8 +52,6 @@ export default {
             isUpdateData: true,
             updateDeleteMethod: 'POST',
             el$: null,
-            cardInner$: null,
-            isHeightExceeded: null,
             contentTypes: CONTENT_TYPES
         }
     },
@@ -73,6 +60,7 @@ export default {
         ContentEducation,
         ContentExperience,
         ContentProject,
+        EvaluationScoreBadge,
         ViewMoreLink
     },
     computed: {
@@ -94,11 +82,6 @@ export default {
             return `open:edit${openType}Modal`
         },
     },
-    watch: {
-        contentItem() {
-            this.adjustCardHeight();
-        }
-    },
     props: ['contentItem', 'contentSection'],
     methods: {
         getDeleteConfirmationMessage() {
@@ -110,31 +93,6 @@ export default {
             }
             this.deleteObject();
         },
-        adjustCardHeight() {
-            if (this.cardInner$ && this.el$) {
-                this.el$.css('height', `${this.cardInner$.outerHeight(true)}px`); // Hack to get each card to be a different height
-                this.cardInner$.css('column-width', this.cardInner$.width());
-                this.isHeightExceeded = Layout.isElHeightExceeded(this.el$);
-            }
-        },
-        move(direction) {
-            this.formData = {
-                id: this.contentItem.id,
-                contentOrder: this.contentItem.contentOrder + direction,
-                sectionId: this.contentSection.id
-            }
-            this.saveChange(null, true);
-        }
-    },
-    mounted() {
-        if (!this.el$) {
-            this.el$ = $(`#${this.elId}`);
-            this.cardInner$ = this.el$.find('.card-inner');
-            this.adjustCardHeight();
-            this.isHeightExceeded = Layout.isElHeightExceeded(this.el$);
-        }
-
-        this.eventBus.on('resize', () => { this.adjustCardHeight(); });
     },
 }
 </script>

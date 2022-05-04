@@ -32,10 +32,11 @@ $fa-font-path: 'webfonts';
     @import "~bootstrap-ie11/scss/bootstrap-ie11.scss";
 }
 
-* {
+*, :after, :before {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    border: 0 solid white;
 }
 
 body {

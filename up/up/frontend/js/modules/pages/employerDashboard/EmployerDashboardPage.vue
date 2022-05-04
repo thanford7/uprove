@@ -145,8 +145,8 @@
                                     {value: 'Last name', sortFn: 'user.lastName'},
                                     {value: 'Status', sortFn: getApplicationStatus},
                                     {value: 'Job title', sortFn: 'job.jobTitle'},
-                                    {value: 'Project', sortFn: 'userProject.customProject.projectTitle'},
-                                    {value: 'Project score', sortFn: 'userProject.evaluationScorePct'}
+                                    {value: 'Project', sortFn: 'userProjectTitle'},
+                                    {value: 'Project score', sortFn: 'userProjectScorePct'}
                                 ]
                             ]"
                         emptyDataMessage="No job applications"
@@ -154,40 +154,18 @@
                         <template v-slot:body>
                             <tr v-for="application in applications" class="hover-menu">
                                 <td>
-                                    <HamburgerDropdown :elId="getNewElUid()">
-                                        <li>
-                                            <a class="dropdown-item" href="#"><i class="far fa-envelope"></i>
-                                                Message</a>
-                                        </li>
-                                        <li
-                                            v-if="getApplicationStatus(application) !== APPLICATION_STATUS.NOT_SUBMITTED"
-                                            @click="eventBus.emit('open:viewCandidateApplicationModal', {application})"
-                                        >
-                                            <a class="dropdown-item" href="#">
-                                                <i class="far fa-eye"></i> Quick view application
-                                            </a>
-                                        </li>
-                                        <li @click="approveApplication(application)">
-                                            <a class="dropdown-item" href="#">
-                                                <i class="far fa-thumbs-up -color-green-text"></i> Approve
-                                                <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerApprove"/>
-                                            </a>
-                                        </li>
-                                        <li @click="declineApplication(application)">
-                                            <a class="dropdown-item" href="#">
-                                                <i class="far fa-thumbs-down -color-red-text"></i> Decline
-                                                <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerDecline"/>
-                                            </a>
-                                        </li>
-                                    </HamburgerDropdown>
+                                    <ApplicationDropdownOpts :application="application" :applications="applications"/>
                                 </td>
                                 <td>{{ application.user.firstName }}</td>
                                 <td>{{ application.user.lastName }}</td>
                                 <td>{{ getApplicationStatus(application) }}</td>
                                 <td>{{ application.job.jobTitle }}</td>
-                                <td>{{ application?.userProject?.customProject?.projectTitle || '-None-' }}</td>
+                                <td v-if="application.userProjectTitle" @click="redirectUrl(`/user-project/${application.userProjectId}/`, true)">
+                                    {{application.userProjectTitle}} <i class="fas fa-external-link-alt"></i>
+                                </td>
+                                <td v-else>-None-</td>
                                 <td>
-                                    {{ (application?.userProject?.evaluationScorePct) ? `${application?.userProject?.evaluationScorePct}%` : 'None' }}
+                                    {{ (application.userProjectScorePct) ? `${application.userProjectScorePct}%` : 'None' }}
                                 </td>
                             </tr>
                         </template>
@@ -392,9 +370,8 @@
 </template>
 
 <script>
-import dateUtil from "../../../utils/dateUtil";
 import dataUtil, {APPLICATION_STATUS} from "../../../utils/data";
-import dayjs from "dayjs/esm";
+import ApplicationDropdownOpts from "./ApplicationDropdownOpts";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
@@ -409,24 +386,23 @@ import InputSelectize from "../../inputs/InputSelectize";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 import leverIntegration from "../../../utils/leverIntegration";
 import Table from "../../components/Table";
-import userProjectUtil from "../../../utils/userProject";
 import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 import LeverWebhook from "./LeverWebhook";
-import {getAjaxFormData} from "../../../vueMixins";
+import userProject from "../../../utils/userProject";
 
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
         LeverWebhook,
-        BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditCustomProjectModal, EditEmployerModal,
+        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditCustomProjectModal, EditEmployerModal,
         EditJobPostingModal, EditUserModal, HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal,
         Table, ViewCandidateApplicationModal
     },
     data() {
         return {
             APPLICATION_STATUS,
-            applications: null,
-            customProjects: null,
+            applications: [],
+            customProjects: [],
             sortKeysJobPostingTable: [],
             leverData: {},
             leverWebhookTypes: leverIntegration.TYPES,
@@ -434,35 +410,6 @@ export default {
         }
     },
     computed: {
-        applications() {
-            return this.initData.employer.jobs.reduce((applications, job) => {
-                return [...applications, ...job.applications.map((app) => {
-                    if (app.userProject) {
-                        app.userProject.evaluationScorePct = userProjectUtil.getEvaluationScore(app.userProject.evaluationCriteria);
-                    }
-                    app.job = {
-                        id: job.id,
-                        jobTitle: job.jobTitle
-                    };
-                    return app;
-                })];
-            }, []);
-        },
-        customProjects() {
-            const customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
-                job.allowedProjects.forEach((ap) => {
-                    if (ap.id in customProjects) {
-                        customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
-                    } else {
-                        ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
-                        ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
-                        customProjects[ap.id] = ap;
-                    }
-                });
-                return customProjects;
-            }, {});
-            return Object.values(customProjects);
-        },
         userTableHeaders() {
             const baseHeaders = [
                     {},
@@ -482,6 +429,8 @@ export default {
         }
     },
     methods: {
+        declineApplication: userProject.declineApplication,
+        approveApplication: userProject.approveApplication,
         getApplicationStatus: dataUtil.getApplicationStatus,
         leverLogin: function (isOn) {
             if (isOn) {
@@ -513,40 +462,36 @@ export default {
             }
             return 'DRAFT';
         },
-        approveApplication(application) {
-            const ajaxData = getAjaxFormData({
-                id: application.id,
-                approveDateTime: dateUtil.serializeDateTime(dayjs())
-            }, []);
-            this.submitAjaxRequest(ajaxData, {
-                url: this.apiUrl + 'user-job-application/',
-                success: (data) => {
-                    const updateApp = this.applications.find((app) => app.id === application.id);
-                    updateApp.approveDateTime = data.approveDateTime;
-                    updateApp.declineDateTime = null;
-                }
-            });
-        },
-        declineApplication(application) {
-            const ajaxData = getAjaxFormData({
-                id: application.id,
-                declineDateTime: dateUtil.serializeDateTime(dayjs())
-            }, []);
-            this.submitAjaxRequest(ajaxData, {
-                url: this.apiUrl + 'user-job-application/',
-                success: (data) => {
-                    const updateApp = this.applications.find((app) => app.id === application.id);
-                    updateApp.approveDateTime = null;
-                    updateApp.declineDateTime = data.declineDateTime;
-                }
-            });
-        },
         setTabParam(tabName) {
             this.currentTab = tabName;
             dataUtil.setQueryParams([{key: 'tab', val: tabName}])
         }
     },
     async mounted() {
+        this.applications = this.initData.employer.jobs.reduce((applications, job) => {
+            return [...applications, ...job.applications.map((app) => {
+                app.job = {
+                    id: job.id,
+                    jobTitle: job.jobTitle
+                };
+                return app;
+            })];
+        }, []);
+
+        this.customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
+                job.allowedProjects.forEach((ap) => {
+                    if (ap.id in customProjects) {
+                        customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
+                    } else {
+                        ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
+                        ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
+                        customProjects[ap.id] = ap;
+                    }
+                });
+                return customProjects;
+            }, {});
+        this.customProjects = Object.values(this.customProjects);
+
         const {tab} = dataUtil.getQueryParams();
         if (tab) {
             this.currentTab = tab;

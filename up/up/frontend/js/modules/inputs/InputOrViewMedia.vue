@@ -29,7 +29,7 @@ export default {
     components: {InputMedia},
     computed: {
         capitalizedItemLabel() {
-            return dataUtil.capitalize(this.itemLabel);
+            return dataUtil.capitalize(this.itemLabel, false);
         },
         isNewUpload() {
             return this.currentItem && this.currentItem instanceof File

@@ -1,5 +1,5 @@
 <template>
-    <div class="col-md-3 col-lg-2 card-custom">
+    <div class="col-md-3 col-lg-2 card-custom card-custom--no-side-margin">
         <div class="profile-picture">
             <span id="profilePic">
                 <img v-if="profilePicture" :src="profilePicture.image">
@@ -11,7 +11,17 @@
                     @click="eventBus.emit('open:editProfileModal', initData)"
                 />
             </span>
-            <h5 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h5>
+            <h6 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h6>
+            <div v-if="location" class="-text-medium" :title="location">
+                <div class="row">
+                    <div class="col-1">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="col-10">
+                        {{location}}
+                    </div>
+                </div>
+            </div>
         </div>
         <div v-if="user.skills?.length" class="mt-2">
             <div class="-sub-text">SKILLS</div>
@@ -61,15 +71,23 @@ export default {
     name: "CandidateSideBar",
     props: ['user', 'profilePicture', 'isOwner'],
     components: {InfoToolTip, ProgressPill},
+    computed: {
+        location() {
+            const locationParts = ['city', 'state', 'country'].reduce((locationParts, loc) => {
+                if (this.user[loc]) {
+                    locationParts.push(this.user[loc]);
+                }
+                return locationParts;
+            }, []);
+            if (!locationParts.length) {
+                return null;
+            }
+            return locationParts.join(', ');
+        }
+    },
     methods: {
         getSkillPct(skill) {
             return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.pct;
-        },
-        getSkillText(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.title;
-        },
-        getSkillDescription(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.description;
         },
     }
 }

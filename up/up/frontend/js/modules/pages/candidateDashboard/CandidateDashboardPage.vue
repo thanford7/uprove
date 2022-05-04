@@ -131,8 +131,8 @@
                                     :href="`/job-posting/${jobApplication.job.id}/`">{{ jobApplication.job.jobTitle }}</a>
                                 </td>
                                 <td>
-                                    <a :href="`/project/${jobApplication.userProject.customProject.projectId}/?${getCustomProjectQueryParams(jobApplication.userProject.customProject)}`">
-                                        {{ jobApplication.userProject.customProject.projectTitle }}
+                                    <a :href="`/project/${jobApplication.customProject.projectId}/?${getCustomProjectQueryParams(jobApplication.customProject)}`">
+                                        {{ jobApplication.customProject.projectTitle }}
                                     </a>
                                 </td>
                                 <td>{{ getApplicationStatus(jobApplication) }}</td>
@@ -385,7 +385,7 @@ export default {
                 $(e.currentTarget).prop('checked', false);
                 return;
             }
-            if (userProject.jobApplicationCount && window.confirm(`Do you want to submit the ${this.pluralize('application', userProject.jobApplicationCount)} associated with this project? You can always submit each application later using the applications section in your dashboard.`)) {
+            if (userProject.applications.length && window.confirm(`Do you want to submit the ${this.pluralize('application', userProject.applications.length)} associated with this project? You can always submit each application later using the applications section in your dashboard.`)) {
                 this.formData.isSubmitApplications = true;
             }
             this.readAndSubmitForm();

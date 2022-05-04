@@ -167,7 +167,7 @@ class JobPostingView(UproveAPIView):
         self.setCustomProjects(employerJob, self.data['allowedProjects'])
 
         return Response(status=status.HTTP_200_OK,
-                        data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
+                        data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), employerId=employerJob.employer_id))
 
     @atomic
     def put(self, request, jobId=None):
@@ -196,7 +196,7 @@ class JobPostingView(UproveAPIView):
 
         self.setCustomProjects(employerJob, self.data['allowedProjects'])
         return Response(status=status.HTTP_200_OK,
-                        data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), isEmployer=True))
+                        data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), employerId=employerJob.employer_id))
 
     @atomic
     def delete(self, request, jobId=None):
@@ -392,7 +392,7 @@ class JobProjectLinkView(APIView):
 
         user = security.getSessionUser(request)
         return Response(status=status.HTTP_200_OK,
-                        data=[getSerializedEmployerJob(job, isEmployer=False) for job in
+                        data=[getSerializedEmployerJob(job) for job in
                               JobPostingView.getEmployerJobs(employerId=user['employerId'])])
 
     @atomic
@@ -527,7 +527,7 @@ class UserProjectEvaluationView(UproveAPIView):
         if employerId:
             employer = EmployerView.getEmployer(employerId)
             data = {
-                'employer': getSerializedEmployer(employer, isEmployer=True)
+                'employer': getSerializedEmployer(employer, employerId=employerId)
             }
             userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
             for app in userProject.jobApplication.all():
@@ -544,7 +544,7 @@ class UserProjectEvaluationView(UproveAPIView):
             from upapp.apis.user import UserProjectView  # Avoid circular import
             userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
             data = {
-                'userProject': getSerializedUserProject(userProject, isEmployer=True)
+                'userProject': getSerializedUserProject(userProject, employerId=employerId)
             }
 
         return Response(status=status.HTTP_200_OK, data=data)

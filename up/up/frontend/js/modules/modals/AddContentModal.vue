@@ -28,7 +28,7 @@
                 ref="contentProject"
                 :isParseAsInt="true"
                 :cfg="projectsCfg"
-                placeholder="Select a project"
+                :placeholder="(projectOptions.length) ? 'Select a project' : 'No projects available to select'"
                 @selected="setContentValue"
             />
         </div>
@@ -50,7 +50,7 @@
     </BaseModal>
 </template>
 <script>
-import {CONTENT_TYPES, SEVERITY} from '../../globalData';
+import {CONTENT_TYPES, PROFILE_SECTIONS, SEVERITY} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import ContentSelectize from '../inputs/ContentSelectize.vue';
 import EditCertificationModal from "./EditCertificationModal";
@@ -83,10 +83,16 @@ export default {
         modalTitle() {
             return `Add ${this.addContentType}`;
         },
-        projectsCfg() {
-            const options = (this.initData.assets[this.contentTypes.PROJECT] || []).map(
-                (p) => ({id: p.id, title: p.customProject.projectTitle, role: p.customProject.role})
+        projectOptions() {
+            const alreadySelectedIds = this.initData.sections
+                .find((s) => s.sectionType === PROFILE_SECTIONS.PROJECTS)
+                .sectionItems.map((si) => si.item.id)
+            return (this.initData.assets[this.contentTypes.PROJECT] || [])
+                .filter((p) => !alreadySelectedIds.includes(p.id))
+                .map((p) => ({id: p.id, title: p.customProject.projectTitle, role: p.customProject.role})
             );
+        },
+        projectsCfg() {
             return {
                 valueField: 'id',
                 labelField: 'title',
@@ -94,8 +100,8 @@ export default {
                 optgroupField: 'role',
                 optgroupValueField: 'role',
                 optgroupLabelField: 'role',
-                options,
-                optgroups: dataUtil.uniqBy(options, 'role'),
+                options: this.projectOptions,
+                optgroups: dataUtil.uniqBy(this.projectOptions, 'role'),
                 maxItems: 1,
                 closeAfterSelect: true
             }
@@ -166,6 +172,10 @@ export default {
                 this.$refs.contentExperience,
                 this.$refs.contentProject
             ]
+
+            if (this.$refs.contentProject && !this.projectOptions.length) {
+                this.$refs.contentProject.elSel.disable();
+            }
         }
     },
     mounted() {

@@ -22,6 +22,10 @@ $card-radius: 10px;
         margin: 20px;
     }
 
+    &_body {
+        padding: 10px;
+    }
+
     &.filter {
         margin-bottom: 8px;
     }
@@ -33,6 +37,14 @@ $card-radius: 10px;
     &--no-side-margin {
         margin-left: 0;
         margin-right: 0;
+    }
+
+    &--no-top-margin {
+        margin-top: 0;
+    }
+
+    &--no-padding {
+        padding: 0;
     }
 }
 

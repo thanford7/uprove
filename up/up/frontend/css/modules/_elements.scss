@@ -19,6 +19,20 @@ body {
     background-color: #fff;
 	color: #333;
 	overflow-x: hidden;
+
+    .spinner-border, .spinner-btn {
+        display: none;
+    }
+
+    &.loading {
+        .spinner-border, .spinner-btn {
+            display: inline-block;
+        }
+        
+        .loading-hidden:not(.spinner-border):not(.spinner-btn) {
+            display: none;
+        }
+    }
 }
 
 main {
@@ -48,18 +62,6 @@ img {
 
     &.line-height {
         height: 30px;
-    }
-
-    &.img-100 {
-        max-height: 100px;
-    }
-
-    &.img-150 {
-        max-height: 150px;
-    }
-
-    &.img-200 {
-        max-height: 200px;
     }
 }
 

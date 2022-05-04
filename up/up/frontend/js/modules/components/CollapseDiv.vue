@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div data-bs-toggle="collapse" :data-bs-target="`#${uid}`">
+        <div data-bs-toggle="collapse" :data-bs-target="`#${uid}`" :class="(isClosed) ? 'collapsed' : ''">
             <div style="display: inline-block">
                 <slot name="header"/>
             </div>

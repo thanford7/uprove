@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 
 import inflect
 from django.utils import timezone
@@ -57,3 +58,11 @@ def intOrNone(val):
         return int(val)
     except ValueError:
         return None
+
+
+def groupBy(values, groupByAttrFn, valTransformFn=None):
+    groupedDict = defaultdict(list)
+    for val in values:
+        groupedDict[groupByAttrFn(val)].append(valTransformFn(val) if valTransformFn else val)
+
+    return groupedDict

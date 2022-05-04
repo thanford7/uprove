@@ -33,16 +33,17 @@
         </template>
         <div class="row mb-3">
             <div class="card-custom card-custom--no-side-margin">
-                <Table :data="filteredCandidates" :headers="headers" emptyDataMessage="No current profiles">
+                <Table :data="initData.candidates" :headers="headers" emptyDataMessage="No current profiles">
                     <template v-slot:body>
                         <tr v-for="candidate in filteredCandidates">
                             <td>
-                                <a :href="`/profile/${candidate.profileId}/`" title="Candidate profile">{{candidate.firstName}}</a>
+                                <a :href="`/profile/${candidate.profileId}/`" title="Candidate profile">
+                                    {{candidate.firstName}} {{candidate.lastName}}
+                                </a>
                             </td>
-                            <td>{{candidate.lastName}}</td>
                             <td>
                                 <div v-for="p in candidate.userProjects" class="mb-2">
-                                    <button type="button" class="btn btn-info text-start w-75" @click="redirectUrl(`/candidate-project/${p.id}/`, true)">
+                                    <button type="button" class="btn btn-info text-start w-75" @click="redirectUrl(`/user-project/${p.id}/`, true)">
                                         <div class="row">
                                             <div class="col-10 border-end">
                                                 <div>
@@ -135,8 +136,7 @@ export default {
     data() {
         return {
             headers: [[
-                {'value': 'First name', 'sortFn': 'firstName'},
-                {'value': 'Last name', 'sortFn': 'lastName'},
+                {'value': 'Name', 'sortFn': 'firstName'},
                 {'value': 'Projects'},
                 {'value': 'Actions'}
             ]]

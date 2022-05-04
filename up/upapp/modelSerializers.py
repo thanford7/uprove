@@ -3,7 +3,7 @@ from enum import Enum
 from operator import itemgetter
 
 from upapp.models import *
-from upapp.utils.dataUtil import getFileNameFromUrl
+from upapp.utils.dataUtil import getFileNameFromUrl, groupBy
 from upapp.utils.htmlTruncate import truncate
 
 
@@ -67,6 +67,36 @@ def serializeGenericItem(item):
     raise ValueError(f'Unknown content type: {item.contentType}')
 
 
+def getItemPrimarySort(item):
+    if not item.contentObject:
+        return None
+    if (
+        isinstance(item.contentObject, UserVideo)
+        or isinstance(item.contentObject, UserFile)
+        or isinstance(item.contentObject, UserImage)
+        or isinstance(item.contentObject, UserContentItem)
+        or isinstance(item.contentObject, UserProject)
+    ):
+        return item.contentObject.modifiedDateTime
+    if isinstance(item.contentObject, UserEducation) or isinstance(item.contentObject, UserExperience):
+        return item.contentObject.endDate or date.today()
+    if isinstance(item.contentObject, UserCertification):
+        return item.contentObject.expirationDate or date.today()
+    raise ValueError(f'Unknown content type: {item.contentType}')
+
+
+def getItemSecondarySort(item):
+    if isinstance(item.contentObject, UserEducation) or isinstance(item.contentObject, UserExperience):
+        return item.contentObject.startDate or date.today()
+    if isinstance(item.contentObject, UserCertification):
+        return item.contentObject.issueDate
+    return None
+
+
+def getGenericItemSort(item):
+    return (getItemPrimarySort(item), getItemSecondarySort(item))
+
+
 def getSerializedUser(user: User, isIncludeAssets: bool=False):
     profileImage = next((i.image.url for i in user.image.all() if i.isDefault), None)
     serializedUser = {
@@ -80,6 +110,11 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'defaultProfileId': next((p.id for p in user.profile.all() if p.isPrimary), None),
         'employerId': user.employer_id,
         'inviteEmployerId': user.inviteEmployer_id,
+        'city': user.city,
+        'state': user.state.stateName if user.state else None,
+        'stateId': user.state.id if user.state else None,
+        'country': user.country.countryName if user.country else None,
+        'countryId': user.country.id if user.country else None,
         'userTypeBits': user.userTypeBits,
         'isStaff': user.djangoUser.is_staff,
         'isActive': user.djangoUser.is_active,
@@ -131,10 +166,10 @@ def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
         'id': userProfileSection.id,
         'sectionType': userProfileSection.sectionType,
         'sectionOrder': userProfileSection.sectionOrder,
-        'sectionItems': sorted(
-            [getSerializedUserProfileSectionItem(psi) for psi in userProfileSection.sectionItem.all()],
-            key=itemgetter('contentOrder')
-        )
+        'sectionItems': [
+            getSerializedUserProfileSectionItem(psi)
+            for psi in sorted(userProfileSection.sectionItem.all(), key=getGenericItemSort, reverse=True)
+        ],
     }
 
 
@@ -341,7 +376,7 @@ def getSerializedSkill(skill: Skill):
     }
 
 
-def getSerializedEmployer(employer: Employer, isEmployer=False):
+def getSerializedEmployer(employer: Employer, employerId=None):
     from upapp.apis.employer import JobPostingView  # Avoid circular import
     baseFields = {
         'id': employer.id,
@@ -353,8 +388,8 @@ def getSerializedEmployer(employer: Employer, isEmployer=False):
         'glassDoorUrl': employer.glassDoorUrl,
         'isDemo': employer.isDemo,
         'jobs': [
-            getSerializedEmployerJob(ej, isEmployer=isEmployer)
-            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=isEmployer))
+            getSerializedEmployerJob(ej, employerId=employerId)
+            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=bool(employerId)))
         ],
     }
     employerFields = {
@@ -367,7 +402,7 @@ def getSerializedEmployer(employer: Employer, isEmployer=False):
         'leverHookHired': employer.leverHookHired,
         'leverHookDeleted': employer.leverHookDeleted
     }
-    return baseFields if not isEmployer else {**baseFields, **employerFields}
+    return baseFields if not employerId else {**baseFields, **employerFields}
 
 
 def getSerializedCustomProject(customProject: CustomProject):
@@ -389,7 +424,7 @@ def getSerializedEmployerCustomProjectCriterion(criterion: EmployerCustomProject
     }
 
 
-def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
+def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None):
     baseFields = {
         'id': employerJob.id,
         'employerId': employerJob.employer_id,
@@ -421,11 +456,11 @@ def getSerializedEmployerJob(employerJob: EmployerJob, isEmployer=False):
         'leverPostingKey': employerJob.leverPostingKey,
     }
     employerFields = {
-        'applications': [getSerializedJobApplication(app, isEmployer=True) for app in employerJob.jobApplication.all()],
+        'applications': [getSerializedJobApplication(app, employerId=employerId) for app in employerJob.jobApplication.all()],
         **serializeAuditFields(employerJob)
     }
 
-    return baseFields if not isEmployer else {**baseFields, **employerFields}
+    return baseFields if not employerId else {**baseFields, **employerFields}
 
 
 def getSerializedJobTemplate(template: JobTemplate):
@@ -436,7 +471,9 @@ def getSerializedJobTemplate(template: JobTemplate):
     }
 
 
-def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False, isEmployer=False):
+def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False, employerId=None):
+    from upapp.apis.user import UserProjectView
+
     val = {
         'id': jobApplication.id,
         'user': {
@@ -446,7 +483,15 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
             'lastName': jobApplication.user.lastName,
             'email': jobApplication.user.email
         },
-        'userProject': getSerializedUserProject(jobApplication.userProject, isEmployer=isEmployer) if jobApplication.userProject else None,
+        'userProjectId': jobApplication.userProject_id,
+        'userProjectTitle': jobApplication.userProject.customProject.project.title if jobApplication.userProject else None,
+        'userProjectScorePct': UserProjectView.getUserProjectScorePct(jobApplication.userProject) if jobApplication.userProject else None,
+        'customProject': {
+            'projectId': jobApplication.userProject.customProject.project_id,
+            'projectTitle': jobApplication.userProject.customProject.project.title,
+            'skillLevelBit': jobApplication.userProject.customProject.skillLevelBit,
+            'skills': [getSerializedSkill(s) for s in jobApplication.userProject.customProject.skills.all()]
+        } if jobApplication.userProject else {},
         'inviteDateTime': getDateTimeFormatOrNone(jobApplication.inviteDateTime),
         'submissionDateTime': getDateTimeFormatOrNone(jobApplication.submissionDateTime),
         'approveDateTime': getDateTimeFormatOrNone(jobApplication.approveDateTime),
@@ -486,8 +531,8 @@ def getSerializedUserProjectEvaluationCriterion(criterion: UserProjectEvaluation
     }
 
 
-def getSerializedUserProject(userProject: UserProject, isEmployer=False):
-    from upapp.apis.user import isUserProjectLocked, getDaysUntilProjectUnlock
+def getSerializedUserProject(userProject: UserProject, isIncludeEvaluation=False, employerId=None):
+    from upapp.apis.user import isUserProjectLocked, getDaysUntilProjectUnlock, UserProjectView
 
     isLocked = isUserProjectLocked(userProject)
     baseData = {
@@ -498,7 +543,7 @@ def getSerializedUserProject(userProject: UserProject, isEmployer=False):
         'isLocked': isLocked,
         'isHidden': userProject.isHidden,
         'daysUntilUnlock': getDaysUntilProjectUnlock(userProject) if isLocked else None,
-        'jobApplicationCount': userProject.jobApplication.all().count(),
+        'applications': [getSerializedJobApplication(app, employerId=employerId, includeJob=True) for app in userProject.jobApplication.all()],
         'user': {
             'id': userProject.user.id,
             'firstName': userProject.user.firstName,
@@ -522,13 +567,31 @@ def getSerializedUserProject(userProject: UserProject, isEmployer=False):
             'role': userProject.customProject.project.role.name,
         },
         'projectNotes': userProject.projectNotes,
+        'projectEvalScorePct': UserProjectView.getUserProjectScorePct(userProject),
         'files': [getSerializedUserFile(f) for f in userProject.files.all()],
         'videos': [getSerializedUserVideo(v) for v in userProject.videos.all()],
         'images': [getSerializedUserImage(i) for i in userProject.images.all()]
     }
 
-    if isEmployer:
-        baseData['evaluationCriteria'] = [getSerializedUserProjectEvaluationCriterion(upec) for upec in userProject.userProjectEvaluationCriterion.all()]
+    if isIncludeEvaluation:
+        evaluationCriteria = [
+            getSerializedProjectEvaluationCriterion(ec)
+            for ec in userProject.customProject.project.evaluationCriteria.all()
+            if ec.employer_id is None or ec.employer_id == employerId
+        ]
+
+        if employerId:
+            evaluationCriteria = [
+                getSerializedProjectEvaluationCriterion(ec.evaluationCriterion)
+                for ec in userProject.customProject.employerCustomCriterion.filter(employer_id=employerId)
+            ]
+
+        baseData['evaluationCriteria'] = evaluationCriteria
+        baseData['evaluations'] = groupBy(
+            userProject.userProjectEvaluationCriterion.all(),
+            lambda x: x.evaluator_id,
+            valTransformFn=getSerializedUserProjectEvaluationCriterion
+        )
 
     return baseData
 

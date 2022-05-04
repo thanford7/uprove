@@ -55,7 +55,7 @@
             background-color: colors.$color-lightgrey;
             position: absolute;
             right: 5px;
-            top: 5px;
+            top: 16px;
             visibility: hidden;
             border-radius: 10px;
             border: 1px solid colors.$color-moderategrey;
@@ -69,5 +69,63 @@
 
     &:hover .item-edit-options {
         visibility: visible;
+    }
+}
+
+.project-showcase {
+    border-radius: 10px;
+    border: 1px solid colors.$color-lightgrey;
+    position: relative;
+    padding: 2em 0 0 0;
+
+    .project-showcase-title {
+        font-size: 1rem;
+        width: auto;
+        font-weight: 600;
+        position: absolute;
+        background-color: colors.$color-white;
+        top: 0;
+        left: 1em;
+        transform: translateY(-50%);
+    }
+
+    .project-file-image {
+        max-height: 150px;
+        width: auto;
+    }
+}
+
+.project-item {
+    border-radius: 10px;
+    border: 1px solid colors.$color-lightgrey;
+    padding: 0;
+    height: 100%;
+
+    .project-item-title {
+        background-color: colors.$color-lightgrey;
+        border-top-right-radius: 10px;
+        border-top-left-radius: 10px;
+        margin-bottom: 0;
+        padding: 4px 0;
+    }
+
+    img, video {
+        margin: 0;
+        padding: 0;
+        border-bottom-right-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+}
+
+.see-more-container {
+    position: relative;
+
+    .see-more {
+        display: inline-block;
+        padding: 0 8px;
+        position: absolute;
+        background-color: adjust-color(colors.$color-white, $alpha: -0.1);
+        bottom: 0;
+        right: 0;
     }
 }
