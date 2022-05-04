@@ -309,6 +309,49 @@ class DataUtil {
         return !this.isNil(val) && typeof val.valueOf() === 'string';
     }
 
+    isVisibleInViewport(el) {
+        const el$ = $(el);
+        const window$ = $(window);
+
+        const elTop = el$.offset().top;
+        const elBottom = elementTop + el$.outerHeight();
+
+        const viewportTop = window$.scrollTop();
+        const viewportBottom = viewportTop + window$.height();
+
+        return elBottom > viewportTop && elTop < viewportBottom;
+    }
+
+    findTopVisibleElement(els$, pctTop=0.7) {
+        const window$ = $(window);
+        const viewportTop = window$.scrollTop();
+        const viewportBottom = viewportTop + window$.height();
+        const viewportHeight = viewportBottom - viewportTop;
+
+        const visibleEls = els$
+            .filter((idx, el) => {
+                const el$ = $(el);
+                const elTop = el$.offset().top;
+                const elBottom = elTop + el$.outerHeight();
+                const isVisible = elBottom > viewportTop && elTop < viewportBottom
+                if (!isVisible) {
+                    return false;
+                }
+
+                const distFromTop = elTop - viewportTop;
+                return (distFromTop / viewportHeight) < pctTop;
+            })
+            .map((idx, el) => {
+                return {top: $(el).offset().top, el};
+            })
+
+        if (!visibleEls.length) {
+            return null;
+        }
+        this.sortBy(visibleEls, {key: 'top', direction: -1}, true);
+        return visibleEls[0].el;
+    }
+
     removeItemFromList(targetList, itemFindFn) {
         const listIdx = targetList.findIndex(itemFindFn);
         if (listIdx !== -1) {

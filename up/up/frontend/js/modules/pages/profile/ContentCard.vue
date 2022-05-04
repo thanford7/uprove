@@ -13,6 +13,7 @@
             <div>
                 <span v-if="initData.isOwner" class="item-edit-options">
                     <i
+                        v-if="item.type !== contentTypes.PROJECT"
                         title="Edit content"
                         class="fas fa-pencil-alt"
                         @click="eventBus.emit(openEvent, item)"

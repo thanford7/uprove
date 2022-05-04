@@ -290,3 +290,8 @@ div.skewer-container {
         width: 100%;
     }
 }
+
+.active-section {
+    font-weight: 900;
+    border-left: 2px solid colors.$color-darkblue;
+}
