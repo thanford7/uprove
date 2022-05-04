@@ -76,7 +76,7 @@ const globalDataGetter = () => {
     return Object.assign({
         API_URL: '/api/v1/',
         ALLOWED_UPLOADS: {
-            VIDEO: ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg'],
+            VIDEO: ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg', 'webm'],
             IMAGE: ['png', 'jpeg', 'jpg', 'gif'],
             FILE: ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet']
         },

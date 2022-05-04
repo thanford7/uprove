@@ -11,10 +11,12 @@
                 <div class="col-md-6 col-12 mb-3">
                     <div class="project-item">
                         <h6 class="text-center project-item-title">
-                            <FileDisplay :file="file" :isPreventDownload="!isEmployer && !initData.isOwner"/>
+                            <FileDisplay :file="file" :isPreventDownload="!(isEmployer || initData.isOwner)"/>
                         </h6>
                         <div class="d-flex justify-content-center">
-                            <video v-if="file.type === CONTENT_TYPES.VIDEO" controls :src="file.video"></video>
+                            <video v-if="file.type === CONTENT_TYPES.VIDEO" controls>
+                                <source :src="file.video">
+                            </video>
                             <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image" class="project-file-image">
                             <img v-if="file.type === CONTENT_TYPES.FILE" :src="file.thumbnail" class="project-file-image">
                         </div>

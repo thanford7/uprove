@@ -23,7 +23,7 @@ export default {
         return {
             supportedFormats: {
                 image: ['png', 'jpeg', 'jpg', 'gif'],
-                video: ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg'],
+                video: ['mp4', 'm4v', 'mov', 'wmv', 'avi', 'mpg', 'webm'],
                 file: ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet', 'py']
             }
         }

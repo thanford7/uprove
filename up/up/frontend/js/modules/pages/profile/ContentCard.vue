@@ -22,22 +22,6 @@
                         class="fas fa-trash"
                         @click="removeCard"
                     />
-                    <template v-if="item.type !== contentTypes.PROJECT">
-                        <i
-                            v-if="contentItem.contentOrder !== 1"
-                            @click="move(-1)"
-                            class="fas"
-                            :class="`fa-arrow-${(isMobile) ? 'up' : 'left'}`"
-                            :title="`Move content card ${(isMobile) ? 'up' : 'left'}`"
-                        />
-                        <i
-                            v-if="contentItem.contentOrder !== contentSection.sectionItems.length"
-                            @click="move(1)"
-                            class="fas"
-                            :class="`fa-arrow-${(isMobile) ? 'down' : 'right'}`"
-                            :title="`Move content card ${(isMobile) ? 'down' : 'right'}`"
-                        />
-                    </template>
                 </span>
             </div>
         </div>
@@ -109,14 +93,6 @@ export default {
             }
             this.deleteObject();
         },
-        move(direction) {
-            this.formData = {
-                id: this.contentItem.id,
-                contentOrder: this.contentItem.contentOrder + direction,
-                sectionId: this.contentSection.id
-            }
-            this.saveChange(null, true);
-        }
     },
 }
 </script>
