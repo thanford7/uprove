@@ -112,21 +112,6 @@ export default {
         BasePage, SkillsSelectize, BannerAlert, EditEmployerModal, EditRoleModal, EditProjectModal,
         EditJobTemplateModal, EditSkillModal, EditUserModal, InputSelectize
     },
-    watch: {
-        initData: {
-            deep: true,
-            handler(initData) {
-                [
-                    ['editRole', this.getRoleOptions],
-                    ['editJobTemplate', this.getJobTemplateOptions],
-                    ['editProject', this.getProjectOptions],
-                    ['editSkill', this.getSkillOptions],
-                ].forEach(([ref, optionFn]) => {
-                    this.$refs[ref].resetOptions(optionFn());
-                })
-            }
-        }
-    },
     computed: {
         employerCfg() {
             return employersSelectize.getEmployersCfg();
@@ -181,9 +166,6 @@ export default {
         },
         getSkill(skillId) {
             return Object.assign({}, this.initData.skills.find((s) => s.id === skillId));
-        },
-        getSkillOptions() {
-            return skillSelectize.getSkillOptions(this.initData.skills, null, true);
         },
         getUser(userId) {
             return Object.assign({}, this.$refs.editUser.elSel.options[userId]);

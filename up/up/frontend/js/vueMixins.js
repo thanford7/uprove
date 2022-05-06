@@ -297,7 +297,6 @@ const ajaxRequestMixin = {
             if (e && !allowDefault) {
                 e.preventDefault();
             }
-            $('body').addClass('loading');
             this.isAjaxModal = (e) ? Boolean($(e.currentTarget).parents('.modal').length) : false;
             return this.readAndSubmitForm();
         },
@@ -335,6 +334,8 @@ const ajaxRequestMixin = {
                     return;
                 }
             }
+
+            $('body').addClass('loading');
             return makeAjaxRequest(this.apiUrl + this.crudUrl, Object.assign({
                 method,
                 data: requestData,
@@ -361,9 +362,6 @@ const globalVarsMixin = {
         },
         log(val) {
             console.log(val);  // Easy way to debug Vue html code
-        },
-        trackAndDoAction() {
-
         },
         getSkillLevelNumbersFromBits(skillLevelBits) {
             return Object.keys(this.globalData.SKILL_LEVEL).filter((level) => parseInt(level) & skillLevelBits);

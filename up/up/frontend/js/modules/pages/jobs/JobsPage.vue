@@ -70,7 +70,7 @@
             <div class="p-0" :class="(selectedJob) ? 'col-md-6' : 'col-md-12'">
                 <div v-for="job in pageJobs" class="card-custom card-custom--no-side-margin">
                     <div class="row mb-2">
-                        <div class="job-role -color-darkblue -color-white-text">{{ job.role }}</div>
+                        <div class="job-role -color-darkblue -color-white-text">{{ job.roleName }}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-2 d-flex align-items-center justify-content-center">
@@ -171,8 +171,8 @@ export default {
         roleCfg() {
             return {
                 valueField: 'id',
-                labelField: 'roleTitle',
-                sortField: 'roleTitle',
+                labelField: 'name',
+                sortField: 'name',
                 maxItems: null,
                 plugins: ['remove_button'],
                 options: this.initData.roles

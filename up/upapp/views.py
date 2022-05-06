@@ -111,10 +111,12 @@ def candidateBoard(request):
                 .select_related('djangoUser')
                 .prefetch_related('profile', 'userProject', 'userProject__customProject', 'jobApplication', 'jobApplication__employerJob')
                 .annotate(isCandidateF=F('userTypeBits').bitand(User.USER_TYPE_CANDIDATE))
+                .annotate(isAdminF=F('userTypeBits').bitand(User.USER_TYPE_ADMIN))
                 .filter(
                     djangoUser__is_active=True,
                     isDemo=False,
-                    isCandidateF__gt=0
+                    isCandidateF__gt=0,
+                    isAdminF=0
                 )
         ],
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
@@ -205,6 +207,7 @@ def employerDashboard(request, employerId=None):
         'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), employerId=employerId),
         'projects': [getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in ProjectView.getProjects(employerId=employerId)],
         'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
+        'roleLevels': [getSerializedRoleLevel(rl) for rl in RoleLevel.objects.select_related('role').all()],
         'users': [{
             'id': u.id,
             'firstName': u.firstName,
@@ -233,13 +236,12 @@ def jobs(request):
     jobs = JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter())
     employers = Employer.objects.filter(isDemo=False)
     projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)]
-    projectIdsByRole, projectRoleIdsByRole = JobPostingView.getProjectRoleMaps()
+    projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
 
     return render(request, 'jobs.html', context={'data': dumps({
         'jobs': [{
             **getSerializedEmployerJob(job),
-            'projectIds': projectIdsByRole[job.role.roleTitle],
-            'projectRoleIds': list(projectRoleIdsByRole[job.role.roleTitle])
+            'projectIds': [p.id for p in projectsByRoleId[job.roleLevel.role_id]],
         } for job in jobs],
         'employers': {e.id: {
             'id': e.id,
@@ -256,7 +258,7 @@ def jobs(request):
         },
         'states': [{'id': s.id, 'stateName': s.stateName} for s in State.objects.all()],
         'countries': [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.filter(countryName__in=JobPostingView.permittedCountries)],
-        'roles': [{'id': r.id, 'roleTitle': r.roleTitle} for r in RoleTitle.objects.all()],
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'projects': projects,
         'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
     })})
@@ -271,8 +273,8 @@ def jobPosting(request, jobId):
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
     user = security.getSessionUser(request)
     employerId = user.employer_id if isEmployer else None
-    projectIdsByRole, _ = JobPostingView.getProjectRoleMaps()
-    recommendedProjects = ProjectView.getProjects(projectIds=projectIdsByRole[job.role.roleTitle]) if job.role else []
+    projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
+    recommendedProjects = ProjectView.getProjects(projectIds=projectsByRoleId[job.roleLevel.role_id]) if job.role else []
     data = {
         'job': {
             **getSerializedEmployerJob(job, employerId=employerId),
@@ -346,7 +348,7 @@ def projects(request):
     return render(request, 'projects.html', context={'data': dumps({
         'projects': [{
             **getSerializedProject(p),
-            'jobs': jobMapByRole[p.role.name.lower()]
+            'jobs': jobMapByRole[p.role_id]
         } for p in ProjectView.getProjects()],
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]

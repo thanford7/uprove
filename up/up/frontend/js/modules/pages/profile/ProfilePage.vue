@@ -1,6 +1,6 @@
 <template>
     <BasePage>
-        <div class="row">
+        <div class="row justify-content-center">
             <CandidateSideBar :user="initData.user" :isOwner="initData.isOwner" :profilePicture="initData.profilePicture"/>
             <div class="col-md-6 ms-md-2">
                 <div
@@ -23,13 +23,32 @@
                                 >
                                     <i class="fas fa-plus"></i> Add {{getContentType(section.sectionType)}}
                                 </button>
-                                <div class="row mt-2 justify-content-center">
+                                <div v-if="section.sectionItems.length" class="row mt-2 justify-content-center">
                                     <ContentCard
                                         v-for="(sectionItem, idx) in section.sectionItems.slice(0,contentItemLimit)"
                                         :class="(idx !== contentItemLimit - 1) ? 'mb-4' : ''"
                                         :contentItem="sectionItem"
                                         :contentSection="section"
                                     />
+                                </div>
+                                <div v-else-if="isSelf(initData?.user?.id)" class="row mt-2 blank-section">
+                                    <div class="col-1">
+                                        <i class="fas fa-lightbulb fa-2x -color-yellow-text"></i>
+                                    </div>
+                                    <div class="col-11">
+                                        <span v-if="section.sectionType === PROFILE_SECTIONS.PROJECTS">
+                                            Employers search for candidates based on projects that match the roles they are hiring
+                                            for. Make sure your profile stands out by adding your first project.
+                                        </span>
+                                        <span v-if="section.sectionType === PROFILE_SECTIONS.EXPERIENCE">
+                                            While Uprove emphasizes your project work, your past experience is also important
+                                            to employers. Show off what you've accomplished!
+                                        </span>
+                                        <span v-if="section.sectionType === PROFILE_SECTIONS.EDUCATION">
+                                            Education rounds out the picture for employers. Formal training is a good indicator
+                                            that you are passionate and knowledgeable about a certain subject area.
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -53,6 +72,7 @@
                     <a
                         v-for="(section, idx) in initData.sections"
                         class="nav-link" :data-idx="idx" :href="`#section-${idx}`"
+                        @click="selectSection"
                     >{{capitalize(section.sectionType)}}</a>
                 </div>
             </div>
@@ -68,6 +88,7 @@
     <DisplayContentModal/>
 </template>
 <script>
+import {PROFILE_SECTIONS} from '../../../globalData';
 import AddContentModal from '../../modals/AddContentModal.vue';
 import BannerAlert from "../../components/BannerAlert";
 import CandidateSideBar from "./CandidateSideBar";
@@ -95,7 +116,8 @@ export default {
     },
     data() {
         return {
-            contentItemLimit: 2
+            contentItemLimit: 2,
+            PROFILE_SECTIONS
         }
     },
     methods: {
@@ -113,6 +135,16 @@ export default {
                 return 'education item';
             }
             return type;
+        },
+        selectSection(e) {
+            const sectionItemIdx = $(e.currentTarget).data('idx');
+            this.toggleSections(sectionItemIdx);
+        },
+        toggleSections(targetIdx) {
+            $('.section-nav a').each((idx, sectionNavItem) => {
+                const sectionNavItem$ = $(sectionNavItem);
+                sectionNavItem$.toggleClass('active-section', sectionNavItem$.data('idx') === targetIdx);
+            });
         }
     },
     mounted() {
@@ -123,12 +155,7 @@ export default {
                 return;
             }
             const targetIdx = $(targetEl).data('idx');
-            console.log(targetIdx);
-            $('.section-nav a').each((idx, sectionNavItem) => {
-                const sectionNavItem$ = $(sectionNavItem);
-                console.log(sectionNavItem$.data('idx') === targetIdx);
-                sectionNavItem$.toggleClass('active-section', sectionNavItem$.data('idx') === targetIdx);
-            });
+            this.toggleSections(targetIdx);
         }, {
             threshold: 1.0
         });

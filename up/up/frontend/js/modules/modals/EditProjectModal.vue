@@ -174,8 +174,7 @@ export default {
         return {
             modalName: 'editProjectModal',
             crudUrl: 'project/',
-            isUpdateData: true,
-            initDataKey: 'projects',
+            isHardRefresh: true,
             requiredFields: {
                 title: '#projectTitle',
                 description: '#projectDescription',

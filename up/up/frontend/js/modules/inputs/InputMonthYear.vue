@@ -68,6 +68,12 @@ export default {
     },
     mounted() {
         this.initInput();
+        this.eventBus.on('formClear', () => {
+            this.month = null;
+            this.year = null;
+            this.internalDate.month(null);
+            this.internalDate.year(null);
+        });
     },
     updated() {
         this.initInput();

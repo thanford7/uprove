@@ -20,46 +20,7 @@
             <label for="userEmail" class="form-label">Email</label>
             <InputEmail elId="userEmail" placeholder="Required" v-model="formData.email"/>
         </div>
-        <div class="mb-3">
-            <label for="userCity" class="form-label">City</label>
-            <input type="text" class="form-control" placeholder="Optional" id="userCity" v-model="formData.city">
-        </div>
-        <div class="mb-3">
-            <label class="form-label">State / Province / Region</label>
-            <InputSelectize
-                ref="userState"
-                elId="userState"
-                :isParseAsInt="true"
-                placeholder="Optional"
-                :cfg="{
-                    maxItems: 1,
-                    valueField: 'id',
-                    labelField: 'name',
-                    sortField: 'name',
-                    create: function(input) {
-                        formData.state = input;
-                    },
-                    createOnBlur: true
-                }"
-                @selected="formData.stateId = $event"
-            />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Country</label>
-            <InputSelectize
-                ref="userCountry"
-                elId="userCountry"
-                :isParseAsInt="true"
-                placeholder="Optional"
-                :cfg="{
-                    maxItems: 1,
-                    valueField: 'id',
-                    labelField: 'name',
-                    sortField: 'name',
-                }"
-                @selected="formData.countryId = $event"
-            />
-        </div>
+        <LocationInputs ref="locationInputs" :formData="formData"/>
         <template v-if="isAdmin && isShowAdminFields" >
             <div class="mb-3">
                 <label for="userTypes" class="form-label">User Types</label>
@@ -124,13 +85,14 @@ import InfoToolTip from "../components/InfoToolTip";
 import InputCheckBox from "../inputs/InputCheckBox";
 import InputEmail from "../inputs/InputEmail";
 import InputSelectize from "../inputs/InputSelectize";
+import LocationInputs from "../inputs/LocationInputs";
 
 export default {
     name: "EditUserModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
     props: ['isContentOnly', 'isShowAdminFields', 'isUpdateDataOverride', 'isHardRefreshOverride'],
-    components: {BaseModal, InfoToolTip, InputCheckBox, InputEmail, InputSelectize},
+    components: {BaseModal, InfoToolTip, InputCheckBox, InputEmail, InputSelectize, LocationInputs},
     data() {
         return {
             modalName: 'editUserModal',
@@ -184,8 +146,8 @@ export default {
                     employersSelectize.loadEmployerByIdFn(rawData.employerId, this.$refs.userEmployer)
                 );
             }
-            this.$refs.userState.elSel.setValue(rawData.stateId);
-            this.$refs.userCountry.elSel.setValue(rawData.countryId);
+            this.$refs.locationInputs.setStateVal(rawData.stateId);
+            this.$refs.locationInputs.setCountryVal(rawData.countryId);
             return Object.assign(rawData, {userTypes});
         },
         processFormData() {
@@ -238,10 +200,6 @@ export default {
         if (!dataUtil.isNil(this.isUpdateDataOverride)) {
             this.isUpdateData = this.isUpdateDataOverride;
         }
-
-        await this.loadData([{route: 'locations/', dataKey: 'locations'}]);
-        this.$refs.userState.resetOptions(this.cData.locations.states);
-        this.$refs.userCountry.resetOptions(this.cData.locations.countries);
     },
 }
 </script>

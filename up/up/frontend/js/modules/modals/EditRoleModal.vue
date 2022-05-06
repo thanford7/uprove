@@ -26,8 +26,7 @@ export default {
         return {
             modalName: 'editRoleModal',
             crudUrl: 'project-role/',
-            isUpdateData: true,
-            initDataKey: 'roles',
+            isHardRefresh: true,
             requiredFields: {
                 name: 'name',
             },
