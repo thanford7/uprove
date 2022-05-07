@@ -14,6 +14,25 @@
             <input type="text" class="form-control" placeholder="Required" id="modalJobTitle" v-model="formData.jobTitle">
         </div>
         <div class="mb-3">
+            <label class="form-label">Standardized Role</label>
+            <InputSelectize
+                ref="role"
+                :elId="getNewElUid()"
+                :items="formData.roleLevelId"
+                :cfg="{
+                    valueField: 'id',
+                    labelField: 'roleTitle',
+                    searchField: 'roleTitle',
+                    maxItems: 1,
+                    options: initData.roleLevels
+                }"
+                :isParseAsInt="true"
+                placeholder="Optional"
+                @selected="formData.roleLevelId = $event"
+            />
+        </div>
+        <LocationInputs ref="locationInputs" :formData="formData"/>
+        <div class="mb-3">
             <label for="modalJobDescription" class="form-label">Job Description</label>
             <InputWsiwyg
                 ref="jobDescription"
@@ -78,6 +97,7 @@ import form from "../../utils/form";
 import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
+import LocationInputs from "../inputs/LocationInputs";
 import ProjectConfigSelectize from "../inputs/ProjectConfigSelectize";
 import ProjectsSelectize from "../inputs/ProjectsSelectize";
 import $ from "jquery";
@@ -86,7 +106,10 @@ export default {
     name: "EditJobPostingModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {ProjectsSelectize, ProjectConfigSelectize, BaseModal, InfoToolTip, InputSelectize, InputWsiwyg},
+    components: {
+        BaseModal, InfoToolTip, InputSelectize, InputWsiwyg, LocationInputs,
+        ProjectsSelectize, ProjectConfigSelectize
+    },
     data() {
         return {
             modalName: 'editJobPostingModal',
@@ -130,7 +153,8 @@ export default {
                 // Format data for ajax request
                 ap.skillIds = ap.skills.map((s) => s.id);
             });
-
+            this.$refs.locationInputs.setStateVal(this.formData.stateId);
+            this.$refs.locationInputs.setCountryVal(this.formData.countryId);
         },
         getEmptyFormData() {
             return {

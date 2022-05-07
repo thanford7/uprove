@@ -35,8 +35,7 @@ export default {
         return {
             modalName: 'editJobTemplateModal',
             crudUrl: 'job-template/',
-            isUpdateData: true,
-            initDataKey: 'jobTemplates',
+            isHardRefresh: true,
             requiredFields: {
                 title: '#templateJobTitle',
             },

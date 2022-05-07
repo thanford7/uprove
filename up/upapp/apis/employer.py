@@ -15,7 +15,6 @@ from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
     getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject, \
     getSerializedUserProject
-from upapp.scraper.scraper.utils.normalize import ROLE_PROJECT_MAP, normalizeJobTitle
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -26,13 +25,13 @@ class EmployerView(UproveAPIView):
     def get(self, request, employerId=None):
         if employerId:
             isEmployer = security.isPermittedEmployer(request, employerId)
-            data = getSerializedEmployer(self.getEmployer(employerId), isEmployer=isEmployer)
+            data = getSerializedEmployer(self.getEmployer(employerId), employerId=employerId)
         elif searchText := self.data.get('search'):
             searchText = searchText[0]
             employerFilter = Q(companyName__iregex=f'^.*{searchText}.*$')
-            data = [getSerializedEmployer(e, isEmployer=False) for e in self.getEmployers(employerFilter)]
+            data = [getSerializedEmployer(e) for e in self.getEmployers(employerFilter)]
         else:
-            data = [getSerializedEmployer(e, isEmployer=False) for e in self.getEmployers()]
+            data = [getSerializedEmployer(e) for e in self.getEmployers()]
         return Response(status=status.HTTP_200_OK, data=data)
 
     @atomic
@@ -53,7 +52,7 @@ class EmployerView(UproveAPIView):
                 createdDateTime=timezone.now()
             )
             employer.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, isEmployer=True))
+            return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, employerId=employer.id))
         except IntegrityError:
             return Response(f'Company with name={data["companyName"]} already exists.', status=status.HTTP_409_CONFLICT)
 
@@ -78,7 +77,7 @@ class EmployerView(UproveAPIView):
                 'isDemo': {'isProtectExisting': True}
             })
             employer.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, isEmployer=True))
+            return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, employerId=employerId))
         except IntegrityError:
             return Response(f'Company with name={data["companyName"]} already exists.', status=status.HTTP_409_CONFLICT)
 
@@ -120,6 +119,34 @@ class EmployerView(UproveAPIView):
         return Employer.objects.filter(filter)
 
 
+class EmployerCandidateFavoriteView(UproveAPIView):
+
+    def post(self, request):
+        employerId = self.data.get('employerId')
+        if not security.isPermittedEmployer(request, employerId):
+            return Response('You do not have permission to edit this employer', status=status.HTTP_401_UNAUTHORIZED)
+
+        if not (candidateId := self.data.get('candidateId')):
+            return Response('A candidate ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            candidateFavorite = EmployerCandidateFavorite.objects.get(
+                employer_id=employerId, candidate_id=candidateId
+            )
+            for job in candidateFavorite.jobs.all():
+                candidateFavorite.remove(job)
+        except EmployerCandidateFavorite.DoesNotExist:
+            candidateFavorite = EmployerCandidateFavorite(
+                employer_id=employerId,
+                candidate_id=candidateId,
+                createDate=timezone.now().date()
+            )
+            candidateFavorite.save()
+
+        for jobId in self.data.get('jobIds', []):
+            candidateFavorite.jobs.add(jobId)
+
+
 class JobPostingView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
     permittedCountries = ['USA', 'UK', 'Canada']
@@ -146,25 +173,15 @@ class JobPostingView(UproveAPIView):
 
     @atomic
     def post(self, request):
-        if not security.isPermittedEmployer(request, self.data['employerId']):
+        if not (security.isPermittedEmployer(request, self.data['employerId']) or self.isAdmin):
             return Response('You do not have permission to post for this employer', status=status.HTTP_401_UNAUTHORIZED)
 
-        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
         employerJob = EmployerJob(
             employer_id=self.data['employerId'],
-            jobTitle=self.data['jobTitle'],
-            role=normalizeJobTitle(self.data['jobTitle'], roleTitles),
-            jobDescription=self.data['jobDescription'],
-            openDate=dateUtil.deserializeDateTime(self.data.get('openDate'), dateUtil.FormatType.DATE, allowNone=True),
-            salaryFloor=self.data.get('salaryFloor'),
-            salaryCeiling=self.data.get('salaryCeiling'),
-            salaryUnit=self.data.get('salaryUnit'),
             modifiedDateTime=timezone.now(),
             createdDateTime=timezone.now()
         )
-        employerJob.save()
-
-        self.setCustomProjects(employerJob, self.data['allowedProjects'])
+        self.updateEmployerJob(employerJob)
 
         return Response(status=status.HTTP_200_OK,
                         data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), employerId=employerJob.employer_id))
@@ -172,29 +189,14 @@ class JobPostingView(UproveAPIView):
     @atomic
     def put(self, request, jobId=None):
         jobId = jobId or self.data['id']
-        if not security.isPermittedEmployer(request, self.data['employerId']):
+        if not (security.isPermittedEmployer(request, self.data['employerId']) or self.isAdmin):
             return Response('You do not have permission to post for this employer', status=status.HTTP_401_UNAUTHORIZED)
 
         if not jobId:
             return Response('Job ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         employerJob = self.getEmployerJobs(jobId=jobId)
-        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
-        dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
-        dataUtil.setObjectAttributes(employerJob, self.data, {
-            'jobTitle': None,
-            'jobDescription': None,
-            'openDate': {'propFunc': dateGetter},
-            'pauseDate': {'propFunc': dateGetter},
-            'closeDate': {'propFunc': dateGetter},
-            'salaryFloor': None,
-            'salaryCeiling': None,
-            'salaryUnit': None
-        })
-        employerJob.role = normalizeJobTitle(employerJob.jobTitle, roleTitles)
-        employerJob.save()
-
-        self.setCustomProjects(employerJob, self.data['allowedProjects'])
+        self.updateEmployerJob(employerJob)
         return Response(status=status.HTTP_200_OK,
                         data=getSerializedEmployerJob(self.getEmployerJobs(jobId=employerJob.id), employerId=employerJob.employer_id))
 
@@ -214,6 +216,28 @@ class JobPostingView(UproveAPIView):
         job.delete()
         return Response(status=status.HTTP_200_OK, data=jobId)
 
+    @atomic
+    def updateEmployerJob(self, employerJob):
+        roleLevels = {r.roleTitle: r for r in RoleLevel.objects.all()}
+        dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
+        dataUtil.setObjectAttributes(employerJob, self.data, {
+            'jobTitle': None,
+            'jobDescription': None,
+            'openDate': {'propFunc': dateGetter},
+            'pauseDate': {'propFunc': dateGetter},
+            'closeDate': {'propFunc': dateGetter},
+            'salaryFloor': None,
+            'salaryCeiling': None,
+            'salaryUnit': None,
+            'city': None,
+            'state_id': {'formName': 'stateId'},
+            'country_id': {'formName': 'countryId'},
+            'roleLevel_id': {'formName': 'roleLevelId'}
+        })
+        employerJob.save()
+
+        self.setCustomProjects(employerJob, self.data['allowedProjects'])
+
     @staticmethod
     def getEmployerJobs(jobId=None, employerId=None, jobFilter=None, isIncludeDemo=False):
         jobFilter = jobFilter or Q()
@@ -228,7 +252,8 @@ class JobPostingView(UproveAPIView):
             .select_related(
                 'state',
                 'country',
-                'role',
+                'roleLevel',
+                'roleLevel__role',
                 'employer',
                 'employer__companySize'
             )\
@@ -269,44 +294,27 @@ class JobPostingView(UproveAPIView):
         if not isEmployer:
             filter &= Q(isInternal=False)
             filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
-            filter &= Q(role__isnull=False)
+            filter &= Q(roleLevel__isnull=False)
 
         return filter
 
     @staticmethod
     def getJobMapByRole():
-        jobCountByRoleTitle = defaultdict(int)
+        jobMapByRole = defaultdict(lambda: {'roleId': None, 'jobCount': 0})
         for job in JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter()):
-            jobCountByRoleTitle[job.role.roleTitle] += 1
-
-        roleTitleIds = {r.roleTitle: r.id for r in RoleTitle.objects.all()}
-        jobMapByRole = defaultdict(lambda: {'roleTitleIds': [], 'jobCount': 0})
-        for roleTitle, roles in ROLE_PROJECT_MAP.items():
-            for role in roles:
-                roleTitleId = roleTitleIds[roleTitle]
-                if roleTitleId not in jobMapByRole[role]['roleTitleIds']:
-                    jobMapByRole[role]['roleTitleIds'].append(roleTitleIds[roleTitle])
-                    jobMapByRole[role]['jobCount'] += jobCountByRoleTitle[roleTitle]
+            jobData = jobMapByRole[job.roleLevel.role_id]
+            jobData['roleId'] = job.roleLevel.role_id
+            jobData['jobCount'] += 1
 
         return jobMapByRole
 
     @staticmethod
-    def getProjectRoleMaps():
-        projects = [getSerializedProject(p, isIncludeDetails=True) for p in
-                    ProjectView.getProjects(isIgnoreEmployerId=True)]
-        roles = [r.roleTitle for r in RoleTitle.objects.all()]
-        projectIdsByRole = {}
-        projectRoleIdsByRole = {}
-        for role in roles:
-            acceptedProjectTypes = ROLE_PROJECT_MAP[role]
-            projectIdsByRole[role] = []
-            projectRoleIdsByRole[role] = set()
-            for project in projects:
-                if project['role'].lower() in acceptedProjectTypes:
-                    projectIdsByRole[role].append(project['id'])
-                    projectRoleIdsByRole[role].add(project['roleId'])
+    def getProjectsByRoleIdMap():
+        projectsByRole = defaultdict(list)
+        for project in ProjectView.getProjects(isIgnoreEmployerId=True):
+            projectsByRole[project.role.id].append(project)
 
-        return projectIdsByRole, projectRoleIdsByRole
+        return projectsByRole
 
     @staticmethod
     def getCustomProjects(asDict=True):

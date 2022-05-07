@@ -71,7 +71,7 @@
                         <h5>Project evaluation</h5>
                     </template>
                     <div v-if="userProject?.evaluationCriteria?.length">
-                        <div v-if="!hasEvaluated && !isAddEvaluation">
+                        <div v-if="canEvaluate && !hasEvaluated && !isAddEvaluation">
                             <a href="#" @click="isAddEvaluation = true">
                                 <i class="fas fa-plus-circle"></i> Add evaluation
                             </a>
@@ -179,6 +179,9 @@ export default {
     name: "UserProjectPage",
     components: {ApplicationDropdownOpts, BasePage, CollapseDiv, EvaluationScoreBadge, FileDisplay, InfoToolTip, ProjectAccordion},
     computed: {
+        canEvaluate() {
+            return this.isAdmin || (this.isEmployer  && !this.isSelf(this.initData.userProject.user.id))
+        },
         userProject() {
             return this.initData.userProject;
         },

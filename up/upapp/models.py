@@ -12,9 +12,9 @@ __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserCertification', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
-    'ProjectFile', 'Employer', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
+    'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
-    'CompanySize', 'Country', 'State', 'RoleTitle'
+    'CompanySize', 'Country', 'State', 'RoleLevel'
 )
 
 
@@ -85,7 +85,7 @@ class User(AuditFields):
     isDemo = models.BooleanField(default=False)
 
     preferenceCompanySizes = models.ManyToManyField('CompanySize')
-    preferenceRoles = models.ManyToManyField('RoleTitle')
+    preferenceRoles = models.ManyToManyField('RoleLevel')
     preferenceRemoteBits = models.SmallIntegerField(default=REMOTE_PREF_DEFAULT)  # 1 = Non-remote, 2 = Remote
     preferenceCountry = models.ManyToManyField('Country', related_name='preferenceCountry')
     preferenceState = models.ManyToManyField('State', related_name='preferenceState')
@@ -312,6 +312,27 @@ class EmployerInterest(AuditFields):
 class Role(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+    class Meta:
+        ordering = ('name', )
+
+
+class RoleLevel(models.Model):
+    class Level(IntEnum):
+        ENTRY = 0x1
+        SENIOR = 0x2
+
+    LABELS = {
+        Level.ENTRY.value: 'Entry-Intermediate Level',
+        Level.SENIOR.value: 'Mid-Senior Level'
+    }
+
+    roleTitle = models.CharField(max_length=75, unique=True)
+    role = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)
+    roleLevelBit = models.SmallIntegerField(null=True)
+
+    class Meta:
+        ordering = ('role__name', 'roleLevelBit')
+
 
 class Skill(models.Model):
     name = models.CharField(max_length=100)
@@ -387,6 +408,16 @@ class Employer(AuditFields):
     leverHookDeleted = models.CharField(max_length=75, null=True)
 
 
+class EmployerCandidateFavorite(models.Model):
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name='candidateFavorite')
+    candidate = models.ForeignKey(User, on_delete=models.CASCADE)
+    createDate = models.DateField()
+    jobs = models.ManyToManyField('EmployerJob')
+
+    class Meta:
+        unique_together = ('employer', 'candidate')
+
+
 class CustomProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='customProject')
     skillLevelBit = models.SmallIntegerField()
@@ -434,7 +465,7 @@ class EmployerJob(AuditFields):
     region = models.CharField(max_length=200, null=True)
 
     # Normalized from jobTitle
-    role = models.ForeignKey('RoleTitle', null=True, on_delete=models.SET_NULL)
+    roleLevel = models.ForeignKey('RoleLevel', null=True, on_delete=models.SET_NULL)
 
     isScraped = models.BooleanField(default=False)
 
@@ -541,10 +572,6 @@ class Waitlist(models.Model):
 # Job preference criteria
 class CompanySize(models.Model):
     companySize = models.CharField(max_length=25, unique=True)
-
-
-class RoleTitle(models.Model):
-    roleTitle = models.CharField(max_length=75, unique=True)
 
 
 class Country(models.Model):

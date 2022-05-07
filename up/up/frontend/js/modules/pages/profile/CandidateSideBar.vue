@@ -1,5 +1,5 @@
 <template>
-    <div class="col-md-3 col-lg-2">
+    <div class="col-md-3">
         <div class="card-custom card-custom--no-side-margin card-custom--no-top-margin" :class="(isMobile) ? '' : 'sticky-top'">
             <div class="profile-picture">
                 <span id="profilePic">

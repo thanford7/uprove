@@ -185,6 +185,10 @@ $form-label-fontweight:600;
     display: none;
 }
 
+.dropdown-menu {
+    z-index: 1030;
+}
+
 .popover[data-popper-placement="top"], .popover[data-popper-placement="bottom"] {
     &.warn {
         background-color: $warning;

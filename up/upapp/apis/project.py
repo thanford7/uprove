@@ -244,21 +244,18 @@ class ProjectView(UproveAPIView):
         return isChanged
 
 
-class RoleView(APIView):
+class RoleView(UproveAPIView):
 
     def post(self, request):
-        if not security.isPermittedAdmin(request):
+        if not self.isAdmin:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        try:
-            role = Role(name=request.data['name'])
-            role.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedRole(role))
-        except IntegrityError as e:
-            raise e
+        role = Role()
+        self.updateRole(role)
+        return Response(status=status.HTTP_200_OK, data=getSerializedRole(self.getRole(role.id)))
 
     def put(self, request, roleId=None):
-        if not security.isPermittedAdmin(request):
+        if not self.isAdmin:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         roleId = roleId or request.data.get('id')
@@ -266,12 +263,8 @@ class RoleView(APIView):
             return Response('A project role ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         role = self.getRole(roleId)
-        try:
-            role.name = request.data['name']
-            role.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedRole(role))
-        except IntegrityError as e:
-            raise e
+        self.updateRole(role)
+        return Response(status=status.HTTP_200_OK, data=getSerializedRole(self.getRole(role.id)))
 
     def delete(self, request, roleId=None):
         if not security.isPermittedAdmin(request):
@@ -281,6 +274,16 @@ class RoleView(APIView):
         role = self.getRole(roleId)
         role.delete()
         return Response(status=status.HTTP_200_OK, data=roleId)
+
+    @atomic
+    def updateRole(self, role):
+        role.name = self.data['name']
+
+        # Try saving role. Integrity error indicates role name already exists
+        try:
+            role.save()
+        except IntegrityError as e:
+            raise e
 
     @staticmethod
     def getRole(roleId):

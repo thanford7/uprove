@@ -37,7 +37,8 @@ from upapp.models import *
 from upapp.modelSerializers import ContentTypes, getSerializedUser, getSerializedJobApplication, \
     getSerializedUserProject, \
     getSerializedUserVideo, getSerializedUserProfile, getSerializedUserExperience, \
-    getSerializedUserEducation, getSerializedUserCertification, getSerializedUserContentItem, getSerializedEmployerJob
+    getSerializedUserEducation, getSerializedUserCertification, getSerializedUserContentItem, getSerializedEmployerJob, \
+    getSerializedRoleLevel
 from upapp.utils import dataUtil, dateUtil
 
 CONTENT_TYPE_MODELS = {
@@ -573,7 +574,7 @@ class PreferencesView(UproveAPIView):
         return {
             'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
             'roleTitles': sorted(
-                [{'id': j.id, 'roleTitle': j.roleTitle} for j in RoleTitle.objects.all()],
+                [getSerializedRoleLevel(rl) for rl in RoleLevel.objects.select_related('role').all()],
                 key=lambda x: x['roleTitle']
             ),
             'countries': sorted(
@@ -1529,11 +1530,10 @@ class UserJobSuggestions(UproveAPIView):
 
         user = UserView.getUser(self.user.id)
         jobSuggestions = self.getUserSuggestedJobs(user)
-        projectIdsByRole, projectRoleIdsByRole = JobPostingView.getProjectRoleMaps()
+        projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
         return Response(status=status.HTTP_200_OK, data=[{
                 **getSerializedEmployerJob(job),
-                'projectIds': projectIdsByRole[job.role.roleTitle],
-                'projectRoleIds': list(projectRoleIdsByRole[job.role.roleTitle])
+                'projectIds': [p.id for p in projectsByRoleId[job.roleLevel.role_id]],
             } for job in jobSuggestions])
 
     @staticmethod
@@ -1556,8 +1556,8 @@ class UserJobSuggestions(UproveAPIView):
         companySizeIds = [c.id for c in user.preferenceCompanySizes.all()]
         filter &= Q(employer__companySize_id__in=companySizeIds)
 
-        roleIds = [r.id for r in user.preferenceRoles.all()]
-        filter &= Q(role_id__in=roleIds)
+        roleLevelIds = [r.id for r in user.preferenceRoles.all()]
+        filter &= Q(roleLevel_id__in=roleLevelIds)
         return JobPostingView.getEmployerJobs(jobFilter=filter)[:jobLimit]
 
 

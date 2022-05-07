@@ -22,7 +22,7 @@ from upapp import security
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView
 from upapp.apis.sendEmail import EmailView
-from upapp.models import Employer, EmployerJob, RoleTitle, User, UserJobApplication
+from upapp.models import Employer, EmployerJob, RoleLevel, User, UserJobApplication
 from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject
 from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
@@ -413,7 +413,7 @@ class LeverPostings(BaseLeverAPIView):
             j.leverPostingKey: j for j in
             JobPostingView.getEmployerJobs(employerId=self.employer.id, jobFilter=Q(leverPostingKey__isnull=False))
         }
-        roleTitles = {r.roleTitle: r for r in RoleTitle.objects.all()}
+        roleTitles = {r.roleTitle: r for r in RoleLevel.objects.all()}
 
         processedLeverKeys = []
         for posting in postings:

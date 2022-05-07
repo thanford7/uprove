@@ -1,7 +1,7 @@
 <template>
     <div v-if="jobs.jobCount">
         <i class="fas fa-lightbulb -color-orange-text"></i>&nbsp;
-        <a v-if="isLoggedIn" :href="getUrlWithParams([{key: 'roles', val: jobs.roleTitleIds}], '/jobs/')">{{getJobsText()}}</a>
+        <a v-if="isLoggedIn" :href="getUrlWithParams([{key: 'roles', val: [jobs.roleId]}], '/jobs/')">{{getJobsText()}}</a>
         <InfoToolTip
             v-else
             :isExcludeInfoCircle="true"

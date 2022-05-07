@@ -361,7 +361,20 @@ def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails:bool=Fal
 
 
 def getSerializedRole(role: Role):
-    return {'id': role.id, 'name': role.name}
+    return {
+        'id': role.id,
+        'name': role.name,
+    }
+
+
+def getSerializedRoleLevel(roleLevel: RoleLevel):
+    return {
+        'id': roleLevel.id,
+        'roleLevelBit': roleLevel.roleLevelBit,
+        'roleId': roleLevel.role.id,
+        'roleName': roleLevel.role.name,
+        'roleTitle': f'{roleLevel.role.name} ({RoleLevel.LABELS[roleLevel.roleLevelBit]})'
+    }
 
 
 def getSerializedSkill(skill: Skill):
@@ -433,8 +446,10 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None):
         'companySize': employerJob.employer.companySize.companySize if employerJob.employer.companySize else None,
         'companySizeId': employerJob.employer.companySize.id if employerJob.employer.companySize else None,
         'jobTitle': employerJob.jobTitle,
-        'role': employerJob.role.roleTitle if employerJob.role else None,
-        'roleId': employerJob.role.id if employerJob.role else None,
+        'roleLevelId': employerJob.roleLevel_id,
+        'roleName': employerJob.roleLevel.role.name if employerJob.roleLevel else None,
+        'roleId': employerJob.roleLevel.role.id if employerJob.roleLevel else None,
+        'roleLevelBit': employerJob.roleLevel.roleLevelBit if employerJob.roleLevel else None,
         'jobDescription': employerJob.jobDescription,
         'allowedProjects': [getSerializedCustomProject(ep) for ep in employerJob.allowedProjects.all()],
         'salaryFloor': employerJob.salaryFloor,

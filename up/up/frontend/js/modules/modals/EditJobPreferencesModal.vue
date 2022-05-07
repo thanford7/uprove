@@ -80,6 +80,7 @@
 import {REMOTE_BITS} from '../../globalData';
 import BaseModal from "./BaseModal";
 import InputSelectize from "../inputs/InputSelectize";
+import dataUtil from "../../utils/data";
 
 export default {
     name: "EditJobPreferencesModal.vue",

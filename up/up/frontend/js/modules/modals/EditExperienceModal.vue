@@ -42,11 +42,11 @@
             />
         </div>
         <div class="row mb-3">
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-4">
                 <label class="form-label">Start month</label>
                 <InputMonthYear ref="startDate"  :value="formData.startDate" @change="formData.startDate = $event"/>
             </div>
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-4">
                 <label class="form-label">End month</label>
                 <InputMonthYear ref="endDate" :value="formData.endDate" @change="formData.endDate = $event"/>
             </div>

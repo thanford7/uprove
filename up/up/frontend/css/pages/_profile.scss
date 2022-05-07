@@ -91,16 +91,21 @@
 }
 
 .project-item-title {
-    background-color: colors.$color-lightgrey;
+    background-color: adjust-color(colors.$color-lightgrey, $alpha: -0.5);
     border-top-right-radius: 10px;
     border-top-left-radius: 10px;
+    border-top: 1px solid colors.$color-lightgrey;
+    border-left: 1px solid colors.$color-lightgrey;
+    border-right: 1px solid colors.$color-lightgrey;
     margin-bottom: 0;
     padding: 4px 0;
 }
 
 .project-item {
     border-radius: 0 0 10px 10px;
-    border: 1px solid colors.$color-lightgrey;
+    border-bottom: 1px solid colors.$color-lightgrey;
+    border-left: 1px solid colors.$color-lightgrey;
+    border-right: 1px solid colors.$color-lightgrey;
     padding: 0;
 
     .project-file-image {
@@ -129,4 +134,11 @@
         bottom: 0;
         right: 0;
     }
+}
+
+.blank-section {
+    background-color: colors.$color-lightgrey;
+    border: 1px solid colors.$color-darkgrey;
+    border-radius: 10px;
+    padding: 8px;
 }

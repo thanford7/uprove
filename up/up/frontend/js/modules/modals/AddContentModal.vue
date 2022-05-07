@@ -9,6 +9,7 @@
             <input type="radio" class="btn-check" name="btnradio"
                    id="btn-education" autocomplete="off"
                    @change="toggleContentType($event, contentTypes.EDUCATION)"
+                   checked
             >
             <label class="btn btn-outline-dark" for="btn-education">Education</label>
 
@@ -180,6 +181,12 @@ export default {
     },
     mounted() {
         this.setFormRefs();
+        this.eventBus.on('formClear', () => {
+            const educationToggleButton$ = $('#btn-education');
+            if(educationToggleButton$.length) {
+                educationToggleButton$.click();
+            }
+        })
     },
     updated() {
         this.setFormRefs();
