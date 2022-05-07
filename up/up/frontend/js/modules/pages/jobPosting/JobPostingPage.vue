@@ -10,6 +10,7 @@
                 class="col-md-8"
                 :employer="initData.employer"
                 :job="initData.job"
+                :isJobDescriptionOpen="true"
                 :customProjectId="formData.customProjectId"
             />
             <div class="col-md-4 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
@@ -55,6 +56,7 @@
                 <template v-else>
                     <template v-if="initData.job.projects">
                         <InfoToolTip
+                            v-if="!initData.job.isClient"
                             :elId="getNewElUid()"
                             :isExcludeInfoCircle="true"
                             content="This employer is not part of the Uprove network. You can still complete a project

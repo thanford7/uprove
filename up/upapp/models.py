@@ -395,6 +395,7 @@ class Employer(AuditFields):
     companySize = models.ForeignKey('CompanySize', null=True, on_delete=models.SET_NULL)
     glassDoorUrl = models.CharField(max_length=200, null=True)
     isDemo = models.BooleanField(default=False)
+    isClient = models.BooleanField(default=False)
 
     # Lever integration
     isLeverOn = models.BooleanField(default=False)
@@ -471,6 +472,7 @@ class EmployerJob(AuditFields):
 
     class Meta:
         unique_together = ('employer', 'jobTitle', 'location')
+        ordering = ('-employer__isClient', '-openDate')
 
 
 class JobTemplate(models.Model):

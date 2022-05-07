@@ -192,13 +192,16 @@
                 <div class="card-custom card-custom--no-side-margin">
                     <h5 class="mb-3">Job suggestions</h5>
                     <div v-for="job in cData.jobSuggestions" class="row">
-                        <div class="job-role -color-darkblue -color-white-text mb-2">{{job.role}}</div>
+                        <div class="job-role -color-darkblue -color-white-text mb-2">
+                            <UprovePartner v-if="job.isClient"/>
+                            {{job.roleName}}
+                        </div>
                         <div class="col-3">
                             <img v-if="job.employerLogo" :src="job.employerLogo" class="logo">
                             <i v-else class="far fa-building fa-4x"></i>
                         </div>
                         <div class="col-9">
-                            <h5><a :href="`/job-posting/${job.id}`">{{job.jobTitle}}</a></h5>
+                            <h6><a :href="`/job-posting/${job.id}`">{{job.jobTitle}}</a></h6>
                             <h6>{{job.companyName}}</h6>
                             <h6>{{getLocationStr(job)}}</h6>
                         </div>
@@ -243,10 +246,12 @@ import Table from "../../components/Table";
 import userProjectUtil from "../../../utils/userProject";
 import BasePage from "../base/BasePage";
 import jobUtil from "../../../utils/jobs";
+import UprovePartner from "../jobs/UprovePartner";
 
 export default {
     name: "CandidateDashboardPage",
     components: {
+        UprovePartner,
         BasePage, AddVideoRecordingModal, BadgesSkillLevels, BadgesSkills, BannerAlert, BaseCard, ButtonDelete,
         EditJobApplicationModal, EditJobPreferencesModal, EditUserProjectModal, FileDisplay, HamburgerDropdown, InfoToolTip, PageHeader, Table
     },

@@ -1,85 +1,87 @@
 <template>
-    <BasePage headerTitle="Admin page">
-        <div class="row mb-3">
-            <h3>Create</h3>
-            <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editEmployerModal')">Employer account</button>
+    <BasePage>
+        <div class="card-custom">
+            <div class="row mb-3 ms-md-2">
+                <h5>Create</h5>
+                <div class="col-md-3 me-2 mb-2">
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editEmployerModal')">Employer account</button>
+                </div>
+                <div class="col-md-3 me-2 mb-2">
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="openEditProjectModal.bind(this)(null, false)">Project</button>
+                </div>
+                <div class="col-md-3 me-2 mb-2">
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editUserModal')">User</button>
+                </div>
+                <div class="col-md-3 me-2 mb-2">
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editRoleModal')">Role</button>
+                </div>
+                <div class="col-md-3 me-2 mb-2">
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editSkillModal')">Skill</button>
+                </div>
+                <div class="col-md-3 me-2 mb-2">
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editJobTemplateModal')">Job template</button>
+                </div>
             </div>
-            <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="openEditProjectModal.bind(this)(null, false)">Project</button>
-            </div>
-            <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editUserModal')">User</button>
-            </div>
-            <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editRoleModal')">Role</button>
-            </div>
-            <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editSkillModal')">Skill</button>
-            </div>
-            <div class="col-md-3 me-2 mb-2">
-                <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editJobTemplateModal')">Job template</button>
-            </div>
-        </div>
-        <div class="row mb-3">
-            <h3>Edit</h3>
-            <div class="col-md-3 me-2">
-                <InputSelectize
-                    ref="editEmployer"
-                    elId="editEmployer"
-                    placeholder="Select employer"
-                    :cfg="employerCfg"
-                    :isParseAsInt="true"
-                    @selected="openEditEmployerModal.bind(this)($event)"
-                />
-            </div>
-            <div class="col-md-3 me-2">
-                <InputSelectize
-                    ref="editProject"
-                    elId="editProject"
-                    placeholder="Select project"
-                    :cfg="projectCfg"
-                    :isParseAsInt="true"
-                    @selected="openEditProjectModal.bind(this)($event, true)"
-                />
-            </div>
-            <div class="col-md-3 me-2">
-                <InputSelectize
-                    ref="editUser"
-                    elId="editUser"
-                    placeholder="Select user"
-                    :cfg="userCfg"
-                    :isParseAsInt="true"
-                    @selected="openEditUserModal.bind(this)($event)"
-                />
-            </div>
-            <div class="col-md-3 me-2">
-                <InputSelectize
-                    ref="editRole"
-                    elId="editRole"
-                    placeholder="Select role"
-                    :cfg="roleCfg"
-                    :isParseAsInt="true"
-                    @selected="openEditRoleModal.bind(this)($event)"
-                />
-            </div>
-            <div class="col-md-3 me-2">
-                <SkillsSelectize
-                    ref="editSkill"
-                    :skills="initData.skills"
-                    :cfg="{isMulti: false, isShowRequired: true, placeholder:'Select skill'}"
-                    @selected="openEditSkillModal.bind(this)($event)"
-                />
-            </div>
-            <div class="col-md-3 me-2">
-                <InputSelectize
-                    ref="editJobTemplate"
-                    elId="editJobTemplate"
-                    placeholder="Select job template"
-                    :cfg="templateCfg"
-                    :isParseAsInt="true"
-                    @selected="openEditJobTemplateModal.bind(this)($event)"
-                />
+            <div class="row ms-md-2">
+                <h5>Edit</h5>
+                <div class="col-md-3 me-2">
+                    <InputSelectize
+                        ref="editEmployer"
+                        elId="editEmployer"
+                        placeholder="Select employer"
+                        :cfg="employerCfg"
+                        :isParseAsInt="true"
+                        @selected="openEditEmployerModal.bind(this)($event)"
+                    />
+                </div>
+                <div class="col-md-3 me-2">
+                    <InputSelectize
+                        ref="editProject"
+                        elId="editProject"
+                        placeholder="Select project"
+                        :cfg="projectCfg"
+                        :isParseAsInt="true"
+                        @selected="openEditProjectModal.bind(this)($event, true)"
+                    />
+                </div>
+                <div class="col-md-3 me-2">
+                    <InputSelectize
+                        ref="editUser"
+                        elId="editUser"
+                        placeholder="Select user"
+                        :cfg="userCfg"
+                        :isParseAsInt="true"
+                        @selected="openEditUserModal.bind(this)($event)"
+                    />
+                </div>
+                <div class="col-md-3 me-2">
+                    <InputSelectize
+                        ref="editRole"
+                        elId="editRole"
+                        placeholder="Select role"
+                        :cfg="roleCfg"
+                        :isParseAsInt="true"
+                        @selected="openEditRoleModal.bind(this)($event)"
+                    />
+                </div>
+                <div class="col-md-3 me-2">
+                    <SkillsSelectize
+                        ref="editSkill"
+                        :skills="initData.skills"
+                        :cfg="{isMulti: false, isShowRequired: true, placeholder:'Select skill'}"
+                        @selected="openEditSkillModal.bind(this)($event)"
+                    />
+                </div>
+                <div class="col-md-3 me-2">
+                    <InputSelectize
+                        ref="editJobTemplate"
+                        elId="editJobTemplate"
+                        placeholder="Select job template"
+                        :cfg="templateCfg"
+                        :isParseAsInt="true"
+                        @selected="openEditJobTemplateModal.bind(this)($event)"
+                    />
+                </div>
             </div>
         </div>
     </BasePage>

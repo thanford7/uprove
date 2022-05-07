@@ -400,6 +400,7 @@ def getSerializedEmployer(employer: Employer, employerId=None):
         'companySizeId': employer.companySize.id if employer.companySize else None,
         'glassDoorUrl': employer.glassDoorUrl,
         'isDemo': employer.isDemo,
+        'isClient': employer.isClient,
         'jobs': [
             getSerializedEmployerJob(ej, employerId=employerId)
             for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=bool(employerId)))
@@ -442,6 +443,7 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None):
         'id': employerJob.id,
         'employerId': employerJob.employer_id,
         'companyName': employerJob.employer.companyName,
+        'isClient': employerJob.employer.isClient,
         'employerLogo': employerJob.employer.logo.url if employerJob.employer.logo else None,
         'companySize': employerJob.employer.companySize.companySize if employerJob.employer.companySize else None,
         'companySizeId': employerJob.employer.companySize.id if employerJob.employer.companySize else None,
