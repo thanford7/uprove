@@ -140,7 +140,7 @@
             />
         </div>
     </BasePage>
-    <EditJobPreferencesModal/>
+    <EditJobPreferencesModal :isResetUrl="true"/>
 </template>
 
 <script>

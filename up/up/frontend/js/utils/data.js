@@ -62,6 +62,10 @@ class DataUtil {
         return fileName;
     }
 
+    getUrlWithoutQueryParams() {
+        return window.location.origin + window.location.pathname;
+    }
+
     getQueryParams() {
         const searchParams = new URLSearchParams(window.location.search);
         const paramDict = {};
