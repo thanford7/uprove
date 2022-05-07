@@ -2,8 +2,14 @@
     <BasePage>
         <template v-slot:filter>
             <BaseFilter>
-                <div class="col-12">
-                    <h6>Search jobs</h6>
+                <div class="col-12 d-flex justify-content-between mb-3">
+                    <h6 style="display: inline-block;">Search jobs</h6>
+                    <div
+                        class="btn btn-sm btn-secondary ms-2"
+                        @click="eventBus.emit('open:editJobPreferencesModal', initData.preferences)"
+                    >
+                        <i class="fas fa-sliders-h"></i> Update job preferences
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-12 col-md-3 filter-item">
@@ -12,6 +18,7 @@
                             :elId="getNewElUid()"
                             :cfg="roleCfg"
                             :isParseAsInt="true"
+                            :isPreserveValue="true"
                             placeholder="All roles"
                             @selected="updateFilters($event, 'roles')"
                         />
@@ -22,6 +29,7 @@
                             :elId="getNewElUid()"
                             :cfg="countryCfg"
                             :isParseAsInt="true"
+                            :isPreserveValue="true"
                             placeholder="All countries"
                             @selected="updateFilters($event, 'countries')"
                         />
@@ -32,6 +40,7 @@
                             :elId="getNewElUid()"
                             :cfg="stateCfg"
                             :isParseAsInt="true"
+                            :isPreserveValue="true"
                             placeholder="All states"
                             @selected="updateFilters($event, 'states')"
                         />
@@ -42,6 +51,7 @@
                             :elId="getNewElUid()"
                             :cfg="companySizeCfg"
                             :isParseAsInt="true"
+                            :isPreserveValue="true"
                             placeholder="All sizes"
                             @selected="updateFilters($event, 'companySizes')"
                         />
@@ -52,6 +62,7 @@
                             :elId="getNewElUid()"
                             :cfg="employerCfg"
                             :isParseAsInt="true"
+                            :isPreserveValue="true"
                             placeholder="All employers"
                             @selected="updateFilters($event, 'employers')"
                         />
@@ -129,6 +140,7 @@
             />
         </div>
     </BasePage>
+    <EditJobPreferencesModal/>
 </template>
 
 <script>
@@ -137,6 +149,7 @@ import AccordionItem from "../../components/AccordionItem";
 import BaseFilter from "../base/BaseFilter";
 import BasePage from "../base/BasePage";
 import dataUtil from "../../../utils/data";
+import EditJobPreferencesModal from "../../modals/EditJobPreferencesModal";
 import InputCheckBox from "../../inputs/InputCheckBox";
 import InputSelectize from "../../inputs/InputSelectize";
 import JobApplyBtn from "./JobApplyBtn";
@@ -149,9 +162,8 @@ import jobUtil from "../../../utils/jobs";
 export default {
     name: "JobsPage",
     components: {
-        JobHelpLinks,
-        ListFontAwesome,
-        JobPosting, AccordionItem, BaseFilter, BasePage, InputCheckBox, InputSelectize, JobApplyBtn, Pagination
+        AccordionItem, BaseFilter, BasePage, EditJobPreferencesModal, InputCheckBox,
+        InputSelectize, JobApplyBtn, JobHelpLinks, JobPosting, ListFontAwesome, Pagination
     },
     data() {
         return {
@@ -171,11 +183,11 @@ export default {
         roleCfg() {
             return {
                 valueField: 'id',
-                labelField: 'name',
-                sortField: 'name',
+                labelField: 'roleTitle',
+                sortField: 'roleTitle',
                 maxItems: null,
                 plugins: ['remove_button'],
-                options: this.initData.roles
+                options: this.initData.roleLevels
             };
         },
         companySizeCfg() {
@@ -220,7 +232,7 @@ export default {
         },
         jobs() {
             return this.initData.jobs.filter((j) => {
-                if (this.filter.roles?.length && !this.filter.roles.includes(j.roleId)) {
+                if (this.filter.roles?.length && !this.filter.roles.includes(j.roleLevelId)) {
                     return false;
                 }
                 if (this.filter.countries?.length && !this.filter.countries.includes(j.countryId)) {
@@ -263,7 +275,7 @@ export default {
             const options = {roles: new Set(), countries: new Set(), employers: new Set(), states: new Set()};
             this.jobs.forEach((job) => {
                 if (job.roleId) {
-                    options.roles.add(this.initData.roles.find((r) => r.id === job.roleId));
+                    options.roles.add(this.initData.roleLevels.find((r) => r.id === job.roleLevelId));
                 }
                 if (job.stateId) {
                     options.states.add(this.initData.states.find((s) => s.id === job.stateId));
@@ -299,7 +311,11 @@ export default {
     mounted() {
         let queryParams = dataUtil.getQueryParams();
         if (dataUtil.isEmpty(queryParams) && this.hasUserPreferences()) {
-            queryParams = this.initData.preferences;
+            // Extract the ids from each preference
+            queryParams = Object.entries(this.initData.preferences).reduce((flattenedParams, [key, val]) => {
+                flattenedParams[key] = dataUtil.flattenObjects(val, 'id');
+                return flattenedParams;
+            }, {});
             this.addPopover($('.filter'),
                 {severity: SEVERITY.INFO, content: 'Filters set based on the your default job preferences', isOnce: true}
             );

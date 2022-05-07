@@ -239,6 +239,19 @@ class DataUtil {
         return clone(val);
     }
 
+    /**
+     * Takes an array of objects and flattens them to an array of values based on the object key
+     * @param objectArray: An array of objects
+     * @param objectKey: The key to get the object value
+     */
+    flattenObjects(objectArray, objectKey) {
+        if (!Array.isArray(objectArray)) {
+            return objectArray;
+        }
+
+        return objectArray.map((v) => this.get(v, objectKey));
+    }
+
     get(obj, path, defaultValue = undefined) {
         const keyPath = path.split('.');
         let currentTarget = obj;

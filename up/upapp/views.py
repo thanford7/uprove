@@ -251,14 +251,15 @@ def jobs(request):
             'glassDoorUrl': e.glassDoorUrl
         } for e in employers},
         'preferences': {
-            'companySizes': [v.id for v in user.preferenceCompanySizes.all()],
-            'roles': [v.id for v in user.preferenceRoles.all()],
+            'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in user.preferenceCompanySizes.all()],
+            'roles': [getSerializedRoleLevel(v) for v in user.preferenceRoles.all()],
             'remoteBits': user.preferenceRemoteBits,
-            'countries': [v.id for v in user.preferenceCountry.all()],
+            'states': [{'id': v.id, 'stateName': v.stateName} for v in user.preferenceState.all()],
+            'countries': [{'id': v.id, 'countryName': v.countryName} for v in user.preferenceCountry.all()],
         },
         'states': [{'id': s.id, 'stateName': s.stateName} for s in State.objects.all()],
         'countries': [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.filter(countryName__in=JobPostingView.permittedCountries)],
-        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'roleLevels': [getSerializedRoleLevel(r) for r in RoleLevel.objects.select_related('role').all()],
         'projects': projects,
         'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
     })})
