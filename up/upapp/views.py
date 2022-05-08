@@ -275,7 +275,10 @@ def jobPosting(request, jobId):
     user = security.getSessionUser(request)
     employerId = user.employer_id if isEmployer else None
     projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
-    recommendedProjects = ProjectView.getProjects(projectIds=projectsByRoleId[job.roleLevel.role_id]) if job.role else []
+    recommendedProjects = ProjectView.getProjects(
+        projectIds=[p.id for p in projectsByRoleId[job.roleLevel.role_id]]
+    ) if job.roleLevel else []
+
     data = {
         'job': {
             **getSerializedEmployerJob(job, employerId=employerId),

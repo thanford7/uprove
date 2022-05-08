@@ -3,7 +3,7 @@
         :modalId="modalName"
         modalTitle="Edit job preferences"
         primaryButtonText="Save changes"
-        @saveChange="saveChange($event)"
+        @saveChange="savePreferences"
     >
         <div class="mb-3">
             <label class="form-label">Company size</label>
@@ -87,6 +87,7 @@ export default {
     extends: BaseModal,
     inheritAttrs: false,
     components: {BaseModal, InputSelectize},
+    props: ['isResetUrl'],
     data() {
         return {
             modalName: 'editJobPreferencesModal',
@@ -107,6 +108,13 @@ export default {
             this.$refs.role.elSel.setValue(this.formData?.roles?.map((r) => r.id));
             this.$refs.country.elSel.setValue(this.formData?.countries?.map((c) => c.id));
             this.$refs.remote.elSel.setValue(this.getSplitRemoteBits(this.formData.remoteBits));
+        },
+        savePreferences(val) {
+            this.saveChange(val)
+            if (this.isResetUrl) {
+                this.isHardRefresh = false;
+                this.pageRedirect = dataUtil.getUrlWithoutQueryParams();
+            }
         }
     },
     async created() {

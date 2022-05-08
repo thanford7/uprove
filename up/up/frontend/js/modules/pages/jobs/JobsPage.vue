@@ -81,7 +81,10 @@
             <div class="p-0" :class="(selectedJob) ? 'col-md-6' : 'col-md-12'">
                 <div v-for="job in pageJobs" class="card-custom card-custom--no-side-margin">
                     <div class="row mb-2">
-                        <div class="job-role -color-darkblue -color-white-text">{{ job.roleName }}</div>
+                        <div class="job-role -color-darkblue -color-white-text">
+                            <UprovePartner v-if="job.isClient"/>
+                            {{ job.roleName }}
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-2 d-flex align-items-center justify-content-center">
@@ -140,7 +143,7 @@
             />
         </div>
     </BasePage>
-    <EditJobPreferencesModal/>
+    <EditJobPreferencesModal :isResetUrl="true"/>
 </template>
 
 <script>
@@ -158,12 +161,13 @@ import Pagination from "../../components/Pagination";
 import ListFontAwesome from "../../components/ListFontAwesome";
 import JobHelpLinks from "./JobHelpLinks";
 import jobUtil from "../../../utils/jobs";
+import UprovePartner from "./UprovePartner";
 
 export default {
     name: "JobsPage",
     components: {
         AccordionItem, BaseFilter, BasePage, EditJobPreferencesModal, InputCheckBox,
-        InputSelectize, JobApplyBtn, JobHelpLinks, JobPosting, ListFontAwesome, Pagination
+        InputSelectize, JobApplyBtn, JobHelpLinks, JobPosting, ListFontAwesome, Pagination, UprovePartner
     },
     data() {
         return {

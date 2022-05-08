@@ -54,6 +54,13 @@
                 :isActiveLabel="true"
                 @click="formData.isDemo = $event"
             />
+            <InputCheckBox
+                elId="employerIsClient"
+                label="Is Client"
+                :isChecked="formData.isClient"
+                :isActiveLabel="true"
+                @click="formData.isClient = $event"
+            />
         </div>
     </BaseModal>
 </template>
@@ -77,8 +84,7 @@ export default {
         return {
             modalName: 'editEmployerModal',
             crudUrl: 'account-employer/',
-            isUpdateData: true,
-            initDataKey: 'employers',
+            isHardRefresh: true,
             requiredFields: {
                 companyName: '#employerCompanyName',
             },

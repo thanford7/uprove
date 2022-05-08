@@ -24,7 +24,6 @@ class EmployerView(UproveAPIView):
 
     def get(self, request, employerId=None):
         if employerId:
-            isEmployer = security.isPermittedEmployer(request, employerId)
             data = getSerializedEmployer(self.getEmployer(employerId), employerId=employerId)
         elif searchText := self.data.get('search'):
             searchText = searchText[0]
@@ -39,22 +38,10 @@ class EmployerView(UproveAPIView):
         if not security.isPermittedAdmin(request):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        data = request.data
-        try:
-            employer = Employer(
-                companyName=data['companyName'],
-                logo=data.get('logo'),
-                description=data.get('description'),
-                companySize_id=data.get('companySizeId'),
-                glassDoorUrl=data.get('glassDoorUrl'),
-                isDemo=data.get('isDemo') or False,
-                modifiedDateTime=timezone.now(),
-                createdDateTime=timezone.now()
-            )
-            employer.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, employerId=employer.id))
-        except IntegrityError:
-            return Response(f'Company with name={data["companyName"]} already exists.', status=status.HTTP_409_CONFLICT)
+        employer = Employer(createdDateTime=timezone.now())
+        self.updateEmployer(employer)
+
+        return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, employerId=employer.id))
 
     @atomic
     def put(self, request, employerId=None):
@@ -66,21 +53,11 @@ class EmployerView(UproveAPIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         employer = self.getEmployer(employerId)
-        data = request.data
-        try:
-            dataUtil.setObjectAttributes(employer, request.data, {
-                'companyName': None,
-                'logo': {'isProtectExisting': True},
-                'description': None,
-                'companySize_id': {'formName': 'companySizeId'},
-                'glassDoorUrl': None,
-                'isDemo': {'isProtectExisting': True}
-            })
-            employer.save()
-            return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, employerId=employerId))
-        except IntegrityError:
-            return Response(f'Company with name={data["companyName"]} already exists.', status=status.HTTP_409_CONFLICT)
+        self.updateEmployer(employer)
 
+        return Response(status=status.HTTP_200_OK, data=getSerializedEmployer(employer, employerId=employerId))
+
+    @atomic
     def delete(self, request, employerId=None):
         employerId = employerId or request.data.get('id')
         if not security.isPermittedAdmin(request):
@@ -91,6 +68,23 @@ class EmployerView(UproveAPIView):
 
         self.getEmployer(employerId).delete()
         return Response(status=status.HTTP_200_OK, data=employerId)
+
+    @atomic
+    def updateEmployer(self, employer):
+        try:
+            dataUtil.setObjectAttributes(employer, self.data, {
+                'companyName': None,
+                'logo': {'isProtectExisting': True},
+                'description': None,
+                'companySize_id': {'formName': 'companySizeId'},
+                'glassDoorUrl': None,
+                'isDemo': {'isProtectExisting': True},
+                'isClient': {'isProtectExisting': True}
+            })
+            employer.save()
+        except IntegrityError:
+            raise ValueError(f'Company with name={self.data["companyName"]} already exists.')
+
 
     @staticmethod
     def getEmployer(employerId):
@@ -272,7 +266,6 @@ class JobPostingView(UproveAPIView):
                 'jobApplication__userProject__images',
             )\
             .filter(jobFilter)\
-            .order_by('-openDate')
 
         if jobId:
             if not jobs:
