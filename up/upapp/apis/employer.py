@@ -13,7 +13,7 @@ from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView, SkillView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
-    getSerializedEmployerCustomProjectCriterion, getSerializedOrganization, getSerializedProject, \
+    getSerializedOrganization, getSerializedProject, \
     getSerializedUserProject
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
@@ -347,23 +347,6 @@ class JobPostingView(UproveAPIView):
             newAllowedProjectIds.append(customProject.id)
             SkillView.setSkillIds(customProject, customProjectData['skillIds'])
 
-            # Set default evaluation criteria
-            if customProject.id not in existingAllowedProjectIds:
-                defaultEvaluationCriteria = ProjectEvaluationCriterion.objects.filter(project_id=customProject.project_id)
-                existingEvaluationCriteria = {(e.employer_id, e.customProject_id): e for e in
-                    EmployerCustomProjectCriterion.objects.filter(
-                        employer=employerJob.employer,
-                        customProject=customProject
-                    )
-                }
-                for criterion in defaultEvaluationCriteria:
-                    if not existingEvaluationCriteria.get((employerJob.employer_id, customProject.id)):
-                        EmployerCustomProjectCriterion(
-                            employer=employerJob.employer,
-                            customProject=customProject,
-                            evaluationCriterion=criterion
-                        ).save()
-
             if customProject.id in existingAllowedProjectIds:
                 continue
             employerJob.allowedProjects.add(customProject)
@@ -446,10 +429,6 @@ class EmployerCustomProject(UproveAPIView):
             if not isLinked and job.id in linkedJobIds:
                 job.allowedProjects.add(customProject)
 
-        existingEmployerCriteria = {
-            c.id: c for c in
-            EmployerCustomProjectCriterion.objects.filter(customProject_id=self.data['id'], employer_id=employerId)
-        }
         projectCriteriaFilter = Q(employer_id=None) | Q(employer_id=employerId)
         existingProjectCriteria = {
             pc.id: pc for pc in
@@ -460,7 +439,6 @@ class EmployerCustomProject(UproveAPIView):
                 dataUtil.setObjectAttributes(projectCriterion, criterionData, {
                     'criterion': None,
                     'category': None,
-                    'skillLevelBits': None,
                 })
                 projectCriterion.save()
             else:
@@ -468,28 +446,13 @@ class EmployerCustomProject(UproveAPIView):
                     project_id=customProject.project_id,
                     criterion=criterionData['criterion'],
                     category=criterionData.get('category'),
-                    skillLevelBits=criterionData.get('skillLevelBits'),
                     employer_id=employerId
                 )
                 projectCriterion.save()
 
-            employerCriterion = existingEmployerCriteria.get(criterionData.get('customProjectCriterionId'))
-            if criterionData['isUsed'] and not employerCriterion:
-                EmployerCustomProjectCriterion(
-                    employer_id=employerId,
-                    customProject_id=customProjectId,
-                    evaluationCriterion_id=projectCriterion.id
-                ).save()
-            if not criterionData['isUsed'] and employerCriterion:
-                employerCriterion.delete()
-
         return Response(status=status.HTTP_200_OK, data={
             'projects': [getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in
                          ProjectView.getProjects(employerId=employerId)],
-            'customProjectEvaluationCriteria': [
-                getSerializedEmployerCustomProjectCriterion(ec)
-                for ec in EmployerCustomProjectCriterion.objects.filter(employer_id=employerId)
-            ]
         })
 
 

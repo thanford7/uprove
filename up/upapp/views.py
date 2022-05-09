@@ -12,7 +12,7 @@ from upapp.apis.employer import EmployerView, JobPostingView
 from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import PreferencesView, UserJobApplicationView, UserView, UserProfileView, UserProjectView
-from upapp.models import EmployerCustomProjectCriterion, Role, Skill
+from upapp.models import Role, Skill
 from upapp.viewsAuth import getLoginRedirectUrl
 
 
@@ -176,10 +176,6 @@ def candidateProject(request, userProjectId=None):
             isAdmin=user.isAdmin,
             evaluationEmployerId=None if user.isAdmin else user.employer_id
         )],
-        'customProjectEvaluationCriteria': [
-            getSerializedEmployerCustomProjectCriterion(ec)
-            for ec in EmployerCustomProjectCriterion.objects.filter(employer_id=user.employer_id)
-        ],
     })})
 
 

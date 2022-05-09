@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from upapp import security
 from upapp.apis import UproveAPIView
 from upapp.modelSerializers import getSerializedProject, getSerializedRole, getSerializedSkill
-from upapp.models import Project, Role, Skill, ProjectFile, ProjectInstructions, ProjectEvaluationCriterion
+from upapp.models import Project, Role, Skill, ProjectFile, ProjectEvaluationCriterion
 from upapp.utils import dataUtil
 
 
@@ -44,6 +44,7 @@ class ProjectView(UproveAPIView):
             'skillLevelBits': None,
             'description': None,
             'background': None,
+            'instructions': None,
             'employer_id': {'formName': 'employerId'},
         })
         project.save()
@@ -52,7 +53,6 @@ class ProjectView(UproveAPIView):
             SkillView.setProjectSkills(project, self.data.get('skills'))
         except ValueError as e:
             return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
-        self.setInstructions(project, self.data.get('instructions'))
         self.setEvaluationCriteria(project, self.data.get('evaluationCriteria'))
         self.setFiles(project, self.files.get('files', []), self.data.get('filesMetaData', []), request)
 
@@ -74,6 +74,7 @@ class ProjectView(UproveAPIView):
             'skillLevelBits': None,
             'description': None,
             'background': None,
+            'instructions': None,
             'employer_id': {'formName': 'employerId'}
         })
         if image := self.data.get('image'):
@@ -82,7 +83,6 @@ class ProjectView(UproveAPIView):
         try:
             isChanged = any([
                 SkillView.setProjectSkills(project, self.data.get('skills')),
-                self.setInstructions(project, self.data.get('instructions')),
                 self.setEvaluationCriteria(project, self.data.get('evaluationCriteria')),
                 self.setFiles(project, self.files.get('files', []), self.data.get('filesMetaData', []), request)
             ])
@@ -112,7 +112,7 @@ class ProjectView(UproveAPIView):
         try:
             return Project.objects \
                 .select_related('employer', 'role') \
-                .prefetch_related('evaluationCriteria', 'projectFile', 'projectInstructions', 'skills') \
+                .prefetch_related('evaluationCriteria', 'projectFile', 'skills') \
                 .get(id=projectId)
         except Project.DoesNotExist as e:
             raise e
@@ -129,7 +129,7 @@ class ProjectView(UproveAPIView):
             q &= Q(id__in=projectIds)
         return Project.objects\
             .select_related('employer', 'role')\
-            .prefetch_related('evaluationCriteria', 'projectFile', 'projectInstructions', 'skills')\
+            .prefetch_related('evaluationCriteria', 'projectFile', 'skills')\
             .filter(q)
 
     @staticmethod
@@ -181,36 +181,6 @@ class ProjectView(UproveAPIView):
         return isChanged
 
     @staticmethod
-    def setInstructions(project, instructions):
-        usedInstructionIds = []
-        existingInstructions = {pi.id: pi for pi in ProjectInstructions.objects.filter(project=project)}
-        isChanged = False
-        for instruction in instructions:
-            if existingInstruction := existingInstructions.get(instruction.get('id')):
-                isChanged = isChanged or dataUtil.setObjectAttributes(existingInstruction, instruction, {
-                    'instructions': None,
-                    'skillLevelBit': None
-                })
-                existingInstruction.save()
-                usedInstructionIds.append(instruction['id'])
-            else:
-                newInstruction = ProjectInstructions(
-                    project=project,
-                    instructions=instruction['instructions'],
-                    skillLevelBit=instruction['skillLevelBit'],
-                    modifiedDateTime=timezone.now(),
-                    createdDateTime=timezone.now()
-                )
-                newInstruction.save()
-                isChanged = True
-        deleteInstructionIds = [id for id in existingInstructions.keys() if id not in usedInstructionIds]
-        if deleteInstructionIds:
-            isChanged = True
-            ProjectInstructions.objects.filter(id__in=deleteInstructionIds).delete()
-
-        return isChanged
-
-    @staticmethod
     def setEvaluationCriteria(project, evaluationCriteria):
         usedCriteriaIds = []
         existingCriteria = {ec.id: ec for ec in ProjectEvaluationCriterion.objects.filter(project_id=project.id)}
@@ -220,7 +190,6 @@ class ProjectView(UproveAPIView):
                 isChanged = isChanged or dataUtil.setObjectAttributes(existingCriterion, criterion, {
                     'criterion': None,
                     'category': None,
-                    'skillLevelBits': None,
                     'employer_id': {'formName': 'employerId'}
                 })
                 existingCriterion.save()
@@ -230,7 +199,6 @@ class ProjectView(UproveAPIView):
                     project_id=project.id,
                     criterion=criterion['criterion'],
                     category=criterion.get('category'),
-                    skillLevelBits=criterion.get('skillLevelBits'),
                     employer_id=criterion.get('employerId')
                 )
                 newCriterion.save()

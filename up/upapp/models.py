@@ -11,8 +11,8 @@ from django.utils import timezone
 __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserCertification', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
-    'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectInstructions', 'ProjectEvaluationCriterion',
-    'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerCustomProjectCriterion', 'EmployerJob', 'JobTemplate',
+    'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectEvaluationCriterion',
+    'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerJob', 'JobTemplate',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
     'CompanySize', 'Country', 'State', 'RoleLevel'
 )
@@ -360,6 +360,7 @@ class Project(AuditFields):
     employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
     background = models.TextField(null=True)
+    instructions = models.TextField(null=True)
     image = models.ImageField(upload_to=getUploadLocation('uploads-project'), null=True)
 
 
@@ -376,8 +377,6 @@ class ProjectEvaluationCriterion(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='evaluationCriteria')
     criterion = models.TextField()
     category = models.CharField(max_length=100, null=True)
-    skillLevelBits = models.SmallIntegerField(null=True)  # Null value indicates all skill levels
-    employer = models.ForeignKey('Employer', on_delete=models.CASCADE, null=True)
 
 
 class ProjectFile(AuditFields):
@@ -430,12 +429,6 @@ class CustomProject(models.Model):
             and self.project == otherProject.project
             and self.skillLevelBit == otherProject.skillLevelBit
         )
-
-
-class EmployerCustomProjectCriterion(models.Model):
-    employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
-    customProject = models.ForeignKey(CustomProject, on_delete=models.CASCADE, related_name='employerCustomCriterion')
-    evaluationCriterion = models.ForeignKey(ProjectEvaluationCriterion, on_delete=models.CASCADE)
 
 
 class EmployerJob(AuditFields):
