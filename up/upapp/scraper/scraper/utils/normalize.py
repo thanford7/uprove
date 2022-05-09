@@ -91,6 +91,7 @@ def normalizeJobTitle(jobTitle, roleLevels):
             or ('director' in jobTitle)
             or ('principal' in jobTitle)
             or ('lead' in jobTitle)
+            or ('head' in jobTitle)
     )
 
     if (

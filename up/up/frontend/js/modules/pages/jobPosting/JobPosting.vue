@@ -17,7 +17,7 @@
                 <div class="job-description" v-html="job.jobDescription"></div>
             </template>
         </AccordionItem>
-        <template v-for="(ap, idx) in job.allowedProjects">
+        <template v-if="!isHideProjects" v-for="(ap, idx) in job.allowedProjects">
             <AccordionItem :ref="`accordionItem-${ap.id}`" :accordionElId="accordionElId" :elId="getNewElUid()" :isOpen="true">
                 <template v-slot:header>
                     Project Option {{idx + 1}}: {{getProject(ap).title}}
@@ -52,7 +52,7 @@ import FileDisplay from "../../components/FileDisplay";
 export default {
     name: "JobPosting",
     components: {AccordionItem, FileDisplay},
-    props: ['employer', 'job', 'customProjectId', 'isJobDescriptionOpen', 'isCompanyDescriptionOpen'],
+    props: ['employer', 'job', 'customProjectId', 'isJobDescriptionOpen', 'isCompanyDescriptionOpen', 'isHideProjects'],
     data() {
         return {
             accordionElId: this.getNewElUid(),

@@ -110,6 +110,7 @@
                     :employer="getEmployer(selectedJob.employerId)"
                     :job="selectedJob"
                     :isJobDescriptionOpen="true"
+                    :isHideProjects="true"
                 >
                     <template v-slot:top>
                         <AccordionItem :accordionElId="$refs.jobPosting.accordionElId" :elId="getNewElUid()"
@@ -125,7 +126,10 @@
                                             {{ getLocationStr(selectedJob) }}</h6>
                                     </div>
                                     <div class="col-3">
-                                        <JobApplyBtn :applicationUrl="selectedJob.applicationUrl"/>
+                                        <JobApplyBtn
+                                            v-if="getApplicationUrl(selectedJob)"
+                                            :applicationUrl="getApplicationUrl(selectedJob)"
+                                        />
                                     </div>
                                 </div>
                                 <JobHelpLinks :job="selectedJob" :employer="getEmployer(selectedJob.employerId)"/>
@@ -264,6 +268,12 @@ export default {
     methods: {
         getQueryParams: dataUtil.getQueryParams,
         getLocationStr: jobUtil.getLocationStr,
+        getApplicationUrl(job) {
+            if (job.isClient && job.allowedProjects.length) {
+                return `/job-posting/${job.id}`;
+            }
+            return job.applicationUrl;
+        },
         getEmployer(employerId) {
             return this.initData['employers'][employerId];
         },
