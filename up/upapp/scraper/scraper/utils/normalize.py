@@ -72,13 +72,12 @@ def normalizeJobTitles(employerJobs=None):
         isScraped=True,
         # role__isnull=True
     )
-    roleTitles = {r.roleTitle: r for r in RoleLevel.objects.all()}
     roleLevels = {(r.role.name.lower(), r.roleLevelBit): r for r in RoleLevel.objects.prefetch_related('role').all()}
 
     for job in nonNormalizedJobs:
-        job.role = normalizeJobTitle(job.jobTitle, roleLevels)
+        job.roleLevel = normalizeJobTitle(job.jobTitle, roleLevels)
 
-    EmployerJob.objects.bulk_update(nonNormalizedJobs, ['role'], 500)
+    EmployerJob.objects.bulk_update(nonNormalizedJobs, ['roleLevel'], 500)
 
 
 def normalizeJobTitle(jobTitle, roleLevels):
