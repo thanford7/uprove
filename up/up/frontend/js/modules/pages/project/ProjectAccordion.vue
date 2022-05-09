@@ -20,7 +20,7 @@
                 <h5>Instructions</h5>
             </template>
             <div v-if="skillLevelBit" class="pb-2">
-                <div v-html="projectInstructions"></div>
+                <div v-html="project.instructions"></div>
                 <ul v-if="skillInstructions.length" class="pb-2">
                     <li v-for="i in skillInstructions">{{i}}</li>
                 </ul>
@@ -72,10 +72,6 @@ export default {
         },
         projectFiles() {
             return this.project.files.filter((file) => !this.skillLevelBit || file.skillLevelBits & this.skillLevelBit);
-        },
-        projectInstructions() {
-            const instructions = this.project.instructions.find((i) => i.skillLevelBit & this.skillLevelBit)
-            return (instructions) ? instructions.instructions : '';
         },
         skillInstructions() {
             if (!this.skillIds) {

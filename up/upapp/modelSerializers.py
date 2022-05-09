@@ -314,11 +314,10 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=
         'skillLevelBits': project.skillLevelBits,
         'description': project.description,
         'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
-        'instructions': [getSerializedProjectInstructions(pi) for pi in project.projectInstructions.all()],
+        'instructions': project.instructions,
         'evaluationCriteria': [
             getSerializedProjectEvaluationCriterion(ec)
             for ec in project.evaluationCriteria.all()
-            if ec.employer_id is None or ec.employer_id == evaluationEmployerId
         ] if (evaluationEmployerId or isAdmin) else None,
         'employer': {
             'id': project.employer.id,
@@ -329,22 +328,11 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=
     }
 
 
-def getSerializedProjectInstructions(projectInstructions: ProjectInstructions):
-    return {
-        'id': projectInstructions.id,
-        'instructions': projectInstructions.instructions,
-        'skillLevelBit': projectInstructions.skillLevelBit,
-        **serializeAuditFields(projectInstructions)
-    }
-
-
 def getSerializedProjectEvaluationCriterion(evaluationCriterion: ProjectEvaluationCriterion):
     return {
         'id': evaluationCriterion.id,
         'criterion': evaluationCriterion.criterion,
-        'category': evaluationCriterion.category,
-        'skillLevelBits': evaluationCriterion.skillLevelBits,
-        'employerId': evaluationCriterion.employer_id
+        'category': evaluationCriterion.category
     }
 
 
@@ -426,15 +414,6 @@ def getSerializedCustomProject(customProject: CustomProject):
         'skills': [getSerializedSkill(s) for s in customProject.skills.all()],
         'projectId': customProject.project_id,
         'projectTitle': customProject.project.title
-    }
-
-
-def getSerializedEmployerCustomProjectCriterion(criterion: EmployerCustomProjectCriterion):
-    return {
-        'id': criterion.id,
-        'employerId': criterion.employer_id,
-        'customProjectId': criterion.customProject_id,
-        'evaluationCriterionId': criterion.evaluationCriterion_id
     }
 
 
@@ -577,10 +556,7 @@ def getSerializedUserProject(userProject: UserProject, isIncludeEvaluation=False
             'projectImage': getattr(userProject.customProject.project.image, 'url', None),
             'projectDescription': userProject.customProject.project.description,
             'projectBackground': userProject.customProject.project.background,
-            'projectInstructions': next(
-                (pi.instructions for pi in userProject.customProject.project.projectInstructions.all() if pi.skillLevelBit & userProject.customProject.skillLevelBit),
-                None
-            ),
+            'projectInstructions': userProject.customProject.project.instructions,
             'role': userProject.customProject.project.role.name,
         },
         'projectNotes': userProject.projectNotes,
@@ -594,14 +570,7 @@ def getSerializedUserProject(userProject: UserProject, isIncludeEvaluation=False
         evaluationCriteria = [
             getSerializedProjectEvaluationCriterion(ec)
             for ec in userProject.customProject.project.evaluationCriteria.all()
-            if ec.employer_id is None or ec.employer_id == employerId
         ]
-
-        if employerId:
-            evaluationCriteria = [
-                getSerializedProjectEvaluationCriterion(ec.evaluationCriterion)
-                for ec in userProject.customProject.employerCustomCriterion.filter(employer_id=employerId)
-            ]
 
         baseData['evaluationCriteria'] = evaluationCriteria
         baseData['evaluations'] = groupBy(

@@ -65,33 +65,24 @@
             />
         </div>
         <div class="mb-3">
-            <label for="projectBackground" class="form-label">Background</label>
+            <label class="form-label">Background</label>
             <InputWsiwyg
                 elId="projectBackground"
                 placeholder="Add background..."
                 v-model="formData.background"
             />
         </div>
-        <div class="mb-3 pt-1" v-for="(instruction, skillLevelBit) in formData.newInstructions">
-            <label :for="`projectInstruction-${skillLevelBit}`" class="form-label">
-                Instructions for {{globalData.SKILL_LEVEL[skillLevelBit].title}} Level
-            </label>
+        <div class="mb-3">
+            <label class="form-label">Instructions</label>
             <InputWsiwyg
-                :elId="`projectInstruction-${skillLevelBit}`"
+                elId="`projectInstructions"
                 placeholder="Add instructions..."
-                v-model="instruction.instructions"
+                v-model="formData.instructions"
             />
         </div>
         <div class="mb-3">
             <label class="form-label">Evaluation criteria</label>
             <div v-for="criterion in formData.evaluationCriteria" class="mb-3 pt-1 -hover-highlight-border position-relative">
-                <SkillLevelsSelectize
-                    class="mt-3"
-                    :ref="`projectCriterion-skillBits-${criterion.id}`"
-                    :items="getSkillLevelNumbersFromBits(criterion.skillLevelBits)"
-                    placeholder="Skill levels (leave blank for all)"
-                    @selected="criterion.skillLevelBits = $event"
-                />
                 <InputSelectize
                     :ref="`projectCriterion-category-${criterion.id}`"
                     :elId="`projectCriterion-category-${criterion.id}`"
@@ -246,23 +237,6 @@ export default {
         },
         setProjectSkillLevelBits(skillLevelBits) {
             this.formData.skillLevelBits = skillLevelBits;
-            this.updateSkillLevelInstructions(this.formData, skillLevelBits);
-        },
-        updateSkillLevelInstructions(formData, skillLevelBits) {
-            let skillLevelNumbers = this.getSkillLevelNumbersFromBits(skillLevelBits);
-            // Keep any instructions that exist for selected skill levels
-            formData.newInstructions = Object.entries(formData.newInstructions).reduce((instructions, [bit, instruction]) => {
-                if (skillLevelNumbers.includes(bit)) {
-                    instructions[bit] = instruction;
-                    skillLevelNumbers = skillLevelNumbers.filter((n) => n !== bit);
-                }
-                return instructions;
-            }, {});
-
-            // Add new instruction fields for skill levels that are new
-            skillLevelNumbers.forEach((bit) => {
-                formData.newInstructions[bit] = {skillLevelBit: bit};
-            });
         },
         setEvaluationCategoryAndUpdateOptions(criterion, category) {
             criterion.category = category;
@@ -298,13 +272,8 @@ export default {
                     formId: file.id
                 });
                 return newFiles;
-            }, {})
-
-            formData.newInstructions = formData.instructions.reduce((newInstructions, instruction) => {
-                newInstructions[instruction.skillLevelBit] = instruction;
-                return newInstructions;
             }, {});
-            this.updateSkillLevelInstructions(formData, formData.skillLevelBits);
+
             return Object.assign(formData, {newFiles});
         },
         getEmptyFormData() {
@@ -323,8 +292,8 @@ export default {
             const formData = this.readForm();
             const skills = this.$refs.skillsTable.getSkills();
             return Object.assign({},
-                dataUtil.omit(formData, ['files', 'newFiles', 'instructions', 'newInstructions', 'skills']),
-                {instructions: Object.values(formData.newInstructions), skills},
+                dataUtil.omit(formData, ['files', 'newFiles', 'skills']),
+                {skills},
                 dataUtil.getFileFormatForAjaxRequest(formData.newFiles, 'filesMetaData', 'files', 'file')
             );
         },
@@ -367,31 +336,6 @@ export default {
                 if (fileMetaData.fileKey) {
                     uniqueFileKeys.push(fileMetaData.fileKey);
                 }
-            }
-
-            let skillLevelBits = formData.skillLevelBits;
-            for (let i=0; i<formData.instructions.length; i++) {
-                const instruction = formData.instructions[i];
-                if (!instruction.instructions || FormChecker.isEmptyWysiwyg(instruction.instructions)) {
-                    this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
-                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
-                    );
-                    return false;
-                }
-                if (!(skillLevelBits & instruction.skillLevelBit)) {
-                    this.addPopover($(`#projectInstruction-${instruction.skillLevelBit}`),
-                {severity: SEVERITY.WARN, content: 'Skill level must be included at the project level', isOnce: true}
-                    );
-                    return false;
-                }
-                // Negate the skill level bits on the project so we can check whether there are any skill levels without instructions
-                skillLevelBits = skillLevelBits & ~instruction.skillLevelBit;
-            }
-            if (skillLevelBits) {
-                this.addPopover($('#projectSkillLevels'),
-            {severity: SEVERITY.WARN, content: 'Skill level must have instructions', isOnce: true}
-                );
-                return false;
             }
 
              for (let i=0; i<formData.evaluationCriteria.length; i++) {

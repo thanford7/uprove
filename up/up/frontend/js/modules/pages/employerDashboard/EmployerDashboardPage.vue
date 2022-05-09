@@ -23,16 +23,6 @@
             </li>
             <li class="nav-item">
                 <button
-                    class="nav-link" id="projects-tab"
-                    :class="(currentTab === 'projects') ? 'active': ''"
-                    data-bs-toggle="tab" data-bs-target="#projects"
-                    type="button" role="tab" aria-selected="false"
-                    @click="setTabParam('projects')"
-                >Projects
-                </button>
-            </li>
-            <li class="nav-item">
-                <button
                     class="nav-link" id="settings-tab"
                     :class="(currentTab === 'settings') ? 'active': ''"
                     data-bs-toggle="tab" data-bs-target="#settings"
@@ -166,49 +156,6 @@
                                 <td v-else>-None-</td>
                                 <td>
                                     {{ (application.userProjectScorePct) ? `${application.userProjectScorePct}%` : 'None' }}
-                                </td>
-                            </tr>
-                        </template>
-                    </Table>
-                </div>
-            </div>
-            <div class="tab-pane fade" :class="(currentTab === 'projects') ? 'show active': ''" id="projects" role="tabpanel">
-                <div class="table-responsive-md">
-                    <Table
-                        class="mt-3"
-                        :data="customProjects"
-                        :headers="[
-                                [
-                                    {},
-                                    {value: 'Project', sortFn: 'projectTitle'},
-                                    {value: 'Career level', sortFn: 'skillLevelBit'},
-                                    {value: 'Skills'},
-                                    {value: 'Linked jobs'},
-                                ]
-                            ]"
-                        emptyDataMessage="<a href='/projects/'>Find a project to get started</a>"
-                    >
-                        <template v-slot:body>
-                            <tr v-for="customProject in customProjects" class="hover-menu">
-                                <td>
-                                    <HamburgerDropdown :elId="getNewElUid()">
-                                        <li @click="eventBus.emit('open:editCustomProjectModal', customProject)">
-                                            <a class="dropdown-item" href="#"><i class="fas fa-pencil-alt"></i> Edit
-                                                project</a>
-                                        </li>
-                                    </HamburgerDropdown>
-                                </td>
-                                <td>{{ customProject.projectTitle }}</td>
-                                <td>
-                                    <BadgesSkillLevels :skillLevels="customProject.skillLevel"/>
-                                </td>
-                                <td>
-                                    <BadgesSkills :skills="customProject.skills"/>
-                                </td>
-                                <td>
-                                    <ul>
-                                        <li v-for="job in customProject.jobs">{{ job.jobTitle }}</li>
-                                    </ul>
                                 </td>
                             </tr>
                         </template>
@@ -358,7 +305,6 @@
             </div>
         </div>
     </BasePage>
-    <EditCustomProjectModal/>
     <EditEmployerModal/>
     <EditJobPostingModal/>
     <EditUserModal/>
@@ -376,7 +322,6 @@ import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
-import EditCustomProjectModal from "../../modals/EditCustomProjectModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import EditUserModal from "../../modals/EditUserModal";
@@ -394,7 +339,7 @@ export default {
     name: "EmployerDashboardPage.vue",
     components: {
         LeverWebhook,
-        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditCustomProjectModal, EditEmployerModal,
+        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditEmployerModal,
         EditJobPostingModal, EditUserModal, HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal,
         Table, ViewCandidateApplicationModal
     },

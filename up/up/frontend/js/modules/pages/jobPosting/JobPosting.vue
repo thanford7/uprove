@@ -72,7 +72,7 @@ export default {
         },
         getProjectInstructions(customProject) {
             const project = this.getProject(customProject);
-            return project.instructions.find((i) => i.skillLevelBit === customProject.skillLevelBit).instructions
+            return project.instructions;
         },
         getSkillInstructions(customProject) {
             return customProject.skills.reduce((instructions, skill) => {
