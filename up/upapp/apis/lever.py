@@ -1,6 +1,5 @@
 import hashlib
 import hmac
-import os
 from json import dumps
 from urllib import parse
 
@@ -46,12 +45,16 @@ def leverIntegrate(request):
     # Begin oAuth
     user = security.getSessionUser(request)
     employer = Employer.objects.get(id=user.employer_id)
+    redirectUrl = request.build_absolute_uri('/integrate/')
+    if 'http' in redirectUrl and ('https' not in redirectUrl) and not settings.LEVER_DEBUG:
+        redirectUrl = redirectUrl.replace('http', 'https')
+
     response = requests.post(settings.LEVER_AUTH_TOKEN_URL, {
         'client_id': settings.LEVER_CLIENT_ID,
         'client_secret': settings.LEVER_CLIENT_SECRET,
         'grant_type': 'authorization_code',
         'code': request.GET.get('code'),
-        'redirect_uri': request.build_absolute_uri('/integrate/')
+        'redirect_uri': redirectUrl
     })
 
     if response.status_code != 200:
