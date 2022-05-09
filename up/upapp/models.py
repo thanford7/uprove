@@ -364,15 +364,6 @@ class Project(AuditFields):
     image = models.ImageField(upload_to=getUploadLocation('uploads-project'), null=True)
 
 
-class ProjectInstructions(AuditFields):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='projectInstructions')
-    instructions = models.TextField()
-    skillLevelBit = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
-
-    class Meta:
-        unique_together = ('project', 'skillLevelBit')
-
-
 class ProjectEvaluationCriterion(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='evaluationCriteria')
     criterion = models.TextField()

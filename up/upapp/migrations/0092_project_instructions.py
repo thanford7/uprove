@@ -2,20 +2,20 @@
 
 from django.db import migrations, models
 
-from upapp.models import ProjectInstructions, Project
+# from upapp.models import ProjectInstructions, Project
 
 
-def moveInstructions(_x, _y):
-    consolidatedInstructions = {}
-    for instructions in ProjectInstructions.objects.all():
-        if not (existingInstructions := consolidatedInstructions.get(instructions.project_id)):
-            consolidatedInstructions[instructions.project_id] = instructions
-        elif existingInstructions.skillLevelBit < instructions.skillLevelBit:
-            consolidatedInstructions[instructions.project_id] = instructions
-
-    for project in Project.objects.all():
-        project.instructions = consolidatedInstructions.get(project.id).instructions
-        project.save()
+# def moveInstructions(_x, _y):
+#     consolidatedInstructions = {}
+#     for instructions in ProjectInstructions.objects.all():
+#         if not (existingInstructions := consolidatedInstructions.get(instructions.project_id)):
+#             consolidatedInstructions[instructions.project_id] = instructions
+#         elif existingInstructions.skillLevelBit < instructions.skillLevelBit:
+#             consolidatedInstructions[instructions.project_id] = instructions
+#
+#     for project in Project.objects.all():
+#         project.instructions = consolidatedInstructions.get(project.id).instructions
+#         project.save()
 
 
 class Migration(migrations.Migration):
@@ -30,5 +30,5 @@ class Migration(migrations.Migration):
             name='instructions',
             field=models.TextField(null=True),
         ),
-        migrations.RunPython(moveInstructions)
+        # migrations.RunPython(moveInstructions)
     ]
