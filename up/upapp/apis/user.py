@@ -25,12 +25,13 @@ from preview_generator.manager import PreviewManager
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from wand.exceptions import BlobError
 
 from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
 from upapp.apis.lever import updateLeverAssessmentComplete
-from upapp.apis.project import SkillView
+from upapp.apis.project import SkillView, ProjectView
 from upapp.apis.sendEmail import EmailView
 from upapp.apis.tag import TagView
 from upapp.models import *
@@ -248,7 +249,7 @@ class UserFileView(UproveAPIView):
                 with open(fileThumbnailPath, 'rb') as fileThumbnail:
                     file.thumbnail = File(fileThumbnail, name=f'thumbnail-{file.title}')
                     file.save()
-        except (CalledProcessError, UnavailablePreviewType, UnsupportedMimeType):
+        except (CalledProcessError, UnavailablePreviewType, UnsupportedMimeType, FileNotFoundError, BlobError):
             # File path is bad or the file type is not supported.
             pass
 
@@ -1227,28 +1228,15 @@ class UserProjectView(UproveAPIView):
         if not security.isSelf(data['userId'], request=request):
             return Response('You are not authorized to post this project', status=status.HTTP_401_UNAUTHORIZED)
 
-        if not (customProjectId := data.get('customProjectId')):
-            existingCustomProjects = JobPostingView.getCustomProjects()
-            customProject = CustomProject(
-                project_id=data['projectId'],
-                skillLevelBit=data['skillLevelBit']
-            )
+        if customProjectId := data.get('customProjectId'):
+            customProject = CustomProject.objects.get(id=customProjectId)
+        else:
+            customProject = CustomProject.objects.get(project_id=data['projectId'])
+            customProjectId = customProject.id
 
-            if not (existingCustomProject := existingCustomProjects.get(
-                    JobPostingView.generateUniqueCustomProjectKey(customProject, skillIds=data['skillIds'])
-            )
-            ):
-                customProject.save()
-                SkillView.setSkillIds(customProject, data['skillIds'])
-
-            customProjectId = existingCustomProject.id if existingCustomProject else customProject.id
-
-        existingProjects = {
-            (up.user_id, up.customProject_id): up
-            for up in UserProjectView.getUserProjects(userId=data['userId'])
-        }
-        if project := existingProjects.get((data['userId'], customProjectId)):
-            return Response(f'User project for {project.customProject.project.title} already exists',
+        existingProject = UserProjectView.getUserProjects(userId=data['userId'], projectId=customProject.project_id)
+        if existingProject:
+            return Response(f'User project for {existingProject.customProject.project.title} already exists',
                             status=status.HTTP_409_CONFLICT)
 
         project = UserProject(
@@ -1273,7 +1261,7 @@ class UserProjectView(UproveAPIView):
         return project
 
     @staticmethod
-    def getUserProjects(userProjectId=None, userId=None):
+    def getUserProjects(userProjectId=None, userId=None, projectId=None):
         if not any([userProjectId, userId]):
             return Response('An ID is required', status=status.HTTP_400_BAD_REQUEST)
 
@@ -1282,6 +1270,8 @@ class UserProjectView(UproveAPIView):
             projectFilter &= Q(id=userProjectId)
         if userId:
             projectFilter &= Q(user_id=userId)
+        if projectId:
+            projectFilter &= Q(customProject__project_id=projectId)
         projects = UserProject.objects \
             .select_related(
             'customProject',
@@ -1506,10 +1496,6 @@ class UserJobApplicationView(UproveAPIView):
             'userProject__images',
             'userProject__videos',
             'userProject__customProject__skills',
-            'employerJob__allowedProjects',
-            'employerJob__allowedProjects__project',
-            'employerJob__allowedProjects__project__role',
-            'employerJob__allowedProjects__skills',
         ) \
             .filter(applicationFilter)
 
@@ -1530,8 +1516,9 @@ class UserJobSuggestions(UproveAPIView):
         user = UserView.getUser(self.user.id)
         jobSuggestions = self.getUserSuggestedJobs(user)
         projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
+        customProjects = CustomProject.objects.select_related('project').all()
         return Response(status=status.HTTP_200_OK, data=[{
-                **getSerializedEmployerJob(job),
+                **getSerializedEmployerJob(job, customProjects=customProjects),
                 'projectIds': [p.id for p in projectsByRoleId[job.roleLevel.role_id]],
             } for job in jobSuggestions])
 

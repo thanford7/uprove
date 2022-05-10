@@ -16,6 +16,9 @@
             <div class="col-md-4 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
                 <template v-if="initData.job?.allowedProjects?.length">
                     <h5 class="-text-bold">Applicant instructions</h5>
+                    <div v-if="initData?.userProjects?.length" class="mb-2 ps-2 -color-yellow">
+                        <i class="fas fa-info"></i> You have already started a project
+                    </div>
                     <ol class="-border-bottom--light mb-3 pb-3">
                         <li v-if="!isLoggedIn" id="loginInstruction">
                             <a href="#" @click="signUpWithContext">Create an account</a>
@@ -80,8 +83,8 @@
                             </li>
                         </ul>
                     </template>
-                    <div class="mt-3">
-                        <JobApplyBtn :applicationUrl="initData.job.applicationUrl" class="w-100"/>
+                    <div v-if="getApplicationUrl(initData.job)" class="mt-3">
+                        <JobApplyBtn :applicationUrl="getApplicationUrl(initData.job)" class="w-100"/>
                     </div>
                 </template>
             </div>
@@ -133,6 +136,12 @@ export default {
         }
     },
     methods: {
+        getApplicationUrl(job) {
+            if (job.isClient && job.allowedProjects.length) {
+                return `/job-posting/${job.id}`;
+            }
+            return job.applicationUrl;
+        },
         processFormData() {
             return Object.assign(this.readForm(), {
                 'userId': this.globalData.uproveUser.id,
@@ -161,9 +170,9 @@ export default {
         }
     },
     mounted() {
-        if (this.initData.job.allowedProjects.length > 1) {
+        if (this.initData.job.allowedProjects.length > 1 && !this.hasProjectSaved) {
             this.requiredFields.customProjectId = this.$refs.allowedProjects.targetEl;
-        } else if (this.initData.job.allowedProjects.length) {
+        } else if (this.initData.job.allowedProjects.length === 1) {
             this.formData.customProjectId = this.initData.job.allowedProjects[0].id;
         }
     }

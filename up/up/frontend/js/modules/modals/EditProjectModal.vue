@@ -44,7 +44,8 @@
             <SkillLevelsSelectize
                 ref="projectSkillLevels"
                 placeholder="Required"
-                @selected="setProjectSkillLevelBits"
+                :cfg="{maxItems: 1}"
+                @selected="formData.skillLevelBit = $event"
             />
         </div>
         <div class="mb-3">
@@ -119,12 +120,6 @@
                 :id="`projectFile-description-${fileId}`"
                 v-model="file.description"
             />
-            <SkillLevelsSelectize
-                :ref="`projectFile-skillBits-${fileId}`"
-                :items="getSkillLevelNumbersFromBits(file.skillLevelBits)"
-                placeholder="Required"
-                @selected="file.skillLevelBits = $event"
-            />
             <a v-if="file.oldFile || file.id" href="#" @click="changeFile(fileId)">
                 <i class="fas fa-exchange-alt"></i>
                 &nbsp;{{(file.isShowUpload) ? 'Use existing file' : 'Change file'}}
@@ -172,7 +167,7 @@ export default {
                 background: '#projectBackground',
                 // Add on mounted
                 roleId: null,
-                skillLevelBits: null
+                skillLevelBit: null
             },
             mediaFields: new Set(['image', 'files']),
             newFileUniqueIdx: 0,
@@ -205,7 +200,6 @@ export default {
         addCriterionInput() {
             this.formData.evaluationCriteria.push({
                 id: `new-${this.newCriterionUniqueIdx}`,
-                skillLevelBits: null,
                 category: null,
                 criterion: null
             });
@@ -235,9 +229,6 @@ export default {
         removeFileInput(fileId) {
             delete this.formData.newFiles[fileId];
         },
-        setProjectSkillLevelBits(skillLevelBits) {
-            this.formData.skillLevelBits = skillLevelBits;
-        },
         setEvaluationCategoryAndUpdateOptions(criterion, category) {
             criterion.category = category;
             Object.entries(this.$refs).forEach(([key, ref]) => {
@@ -259,7 +250,7 @@ export default {
             this.$refs.projectEmployer.elSel.refreshOptions(false);
 
             this.requiredFields.roleId = this.$refs.role.targetEl;
-            this.requiredFields.skillLevelBits = this.$refs.projectSkillLevels.targetEl;
+            this.requiredFields.skillLevelBit = this.$refs.projectSkillLevels.targetEl;
 
             const formData = rawData.formData;
             if (!formData || dataUtil.isEmpty(formData)) {
@@ -281,8 +272,8 @@ export default {
             return {};
         },
         setFormFields() {
-            const {skillLevelBits, roleId, skills, employer} = this.formData;
-            this.$refs.projectSkillLevels.elSel.setValue(this.getSkillLevelNumbersFromBits(skillLevelBits));
+            const {skillLevelBit, roleId, employer} = this.formData;
+            this.$refs.projectSkillLevels.elSel.setValue(this.getSkillLevelNumbersFromBits(skillLevelBit));
 
             // Set other selectize elements
             this.$refs.role.elSel.setValue(roleId);
@@ -316,13 +307,6 @@ export default {
                 }
                 if (!fileMetaData.title) {
                     this.addPopover($(`#projectFile-title-${fileMetaData.formId}`),
-                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
-                    );
-                    return false;
-                }
-                if (!fileMetaData.skillLevelBits) {
-                    const targetEl = this.$refs[`projectFile-skillBits-${fileMetaData.formId}`].targetEl;
-                    this.addPopover($(targetEl),
                 {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                     return false;

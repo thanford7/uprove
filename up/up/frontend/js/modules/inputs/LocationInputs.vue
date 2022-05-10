@@ -16,6 +16,7 @@
                     valueField: 'id',
                     labelField: 'name',
                     sortField: 'name',
+                    searchField: 'name',
                     create: function(input) {
                         formData.state = input;
                     },
@@ -36,6 +37,7 @@
                     valueField: 'id',
                     labelField: 'name',
                     sortField: 'name',
+                    searchField: 'name',
                 }"
                 @selected="formData.countryId = $event"
             />

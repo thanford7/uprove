@@ -356,7 +356,7 @@ class Project(AuditFields):
     title = models.CharField(max_length=250)
     role = models.ForeignKey(Role, on_delete=models.PROTECT)
     skills = models.ManyToManyField(Skill)
-    skillLevelBits = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
+    skillLevelBit = models.SmallIntegerField(default=1)  # See RoleLevel
     employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
     background = models.TextField(null=True)
@@ -375,7 +375,7 @@ class ProjectFile(AuditFields):
     title = models.CharField(max_length=100)
     description = models.TextField(null=True)
     file = models.FileField(upload_to=getUploadLocation('uploads-project'))
-    skillLevelBits = models.SmallIntegerField(default=1)  # See UserTag.SKILL_LEVELS
+    skillLevelBits = models.SmallIntegerField(default=1)  # TODO: Delete
 
 
 class Employer(AuditFields):
@@ -427,7 +427,6 @@ class EmployerJob(AuditFields):
     jobTitle = models.CharField(max_length=100)
     jobDescription = models.TextField()
     jobDepartment = models.CharField(max_length=50, null=True)
-    allowedProjects = models.ManyToManyField(CustomProject, related_name='employerJobProjects')
     openDate = models.DateField(null=True)
     pauseDate = models.DateField(null=True)
     closeDate = models.DateField(null=True)

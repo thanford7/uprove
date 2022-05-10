@@ -11,8 +11,8 @@ from rest_framework.views import APIView
 
 from upapp import security
 from upapp.apis import UproveAPIView
-from upapp.modelSerializers import getSerializedProject, getSerializedRole, getSerializedSkill
-from upapp.models import Project, Role, Skill, ProjectFile, ProjectEvaluationCriterion
+from upapp.modelSerializers import getSerializedProject, getSerializedRole, getSerializedSkill, getAllowedProjects
+from upapp.models import Project, Role, Skill, ProjectFile, ProjectEvaluationCriterion, CustomProject, EmployerJob
 from upapp.utils import dataUtil
 
 
@@ -29,7 +29,17 @@ class ProjectView(UproveAPIView):
             return Response(getSerializedProject(self.getProject(projectId), isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId), status=status.HTTP_200_OK)
 
         employerId = int(self.data.get('employerId')[0])
-        return Response([getSerializedProject(p, isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId) for p in self.getProjects(employerId=employerId)])
+        allowedProjectIds = None
+        if jobId := self.data.get('jobId'):
+            job = EmployerJob.objects.get(id=int(jobId[0]))
+            customProjects = CustomProject.objects.select_related('project').all()
+            allowedCustomProjects = getAllowedProjects(customProjects, job)
+            allowedProjectIds = [p.project_id for p in allowedCustomProjects]
+
+        return Response([
+            getSerializedProject(p, isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId)
+            for p in self.getProjects(employerId=employerId, projectIds=allowedProjectIds)
+        ])
 
     @atomic
     def post(self, request):
@@ -41,7 +51,7 @@ class ProjectView(UproveAPIView):
             'title': None,
             'image': None,
             'role_id': {'formName': 'roleId'},
-            'skillLevelBits': None,
+            'skillLevelBit': None,
             'description': None,
             'background': None,
             'instructions': None,
@@ -55,6 +65,7 @@ class ProjectView(UproveAPIView):
             return Response(status=status.HTTP_409_CONFLICT, data=e.__str__())
         self.setEvaluationCriteria(project, self.data.get('evaluationCriteria'))
         self.setFiles(project, self.files.get('files', []), self.data.get('filesMetaData', []), request)
+        self.createOrUpdateCustomProject(project)
 
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
 
@@ -71,7 +82,7 @@ class ProjectView(UproveAPIView):
         dataUtil.setObjectAttributes(project, self.data, {
             'title': None,
             'role_id': {'formName': 'roleId'},
-            'skillLevelBits': None,
+            'skillLevelBit': None,
             'description': None,
             'background': None,
             'instructions': None,
@@ -93,6 +104,7 @@ class ProjectView(UproveAPIView):
             project.modifiedDateTime = timezone.now()
 
         project.save()
+        self.createOrUpdateCustomProject(project)
         return Response(status=status.HTTP_200_OK, data=getSerializedProject(self.getProject(project.id), isIncludeDetails=True, isAdmin=True))
 
     def delete(self, request, projectId=None):
@@ -106,6 +118,30 @@ class ProjectView(UproveAPIView):
         project = self.getProject(projectId)
         project.delete()
         return Response(status=status.HTTP_200_OK, data=projectId)
+
+    @atomic
+    def createOrUpdateCustomProject(self, project):
+        """ Keep custom project in sync with project. These are one for one. Custom project is technically not needed
+        but leaving in place for now to allow for more flexibility if needed in the future.
+        """
+        from upapp.apis.employer import JobPostingView
+        customProjects = JobPostingView.getCustomProjects(True)
+        customProject = customProjects.get(JobPostingView.generateUniqueCustomProjectKey(project))
+        if not customProject:
+            customProject = CustomProject(
+                project=project,
+                skillLevelBit=project.skillLevelBit
+            )
+            customProject.save()
+
+        # Remove existing skills
+        for skill in customProject.skills.all():
+            customProject.skills.remove(skill)
+
+        # Update new skills
+        for skill in project.skills.all():
+            customProject.skills.add(skill)
+
 
     @staticmethod
     def getProject(projectId):
@@ -147,7 +183,6 @@ class ProjectView(UproveAPIView):
                     project=project,
                     title=metaData['title'],
                     description=metaData.get('description'),
-                    skillLevelBits=metaData['skillLevelBits'],
                     file=file,
                     modifiedDateTime=timezone.now(),
                     createdDateTime=timezone.now()
@@ -166,7 +201,6 @@ class ProjectView(UproveAPIView):
                 isChanged = isChanged or dataUtil.setObjectAttributes(existingProjectFile, metaData, {
                     'title': None,
                     'description': None,
-                    'skillLevelBits': None
                 })
                 if file:
                     existingProjectFile.file = file

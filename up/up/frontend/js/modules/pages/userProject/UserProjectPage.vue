@@ -71,12 +71,12 @@
                         <h5>Project evaluation</h5>
                     </template>
                     <div v-if="userProject?.evaluationCriteria?.length">
-                        <div v-if="canEvaluate && !hasEvaluated && !isAddEvaluation">
+                        <div v-if="canEvaluate && !hasEvaluated && !isAddEvaluation" class="mb-2">
                             <a href="#" @click="isAddEvaluation = true">
                                 <i class="fas fa-plus-circle"></i> Add evaluation
                             </a>
                         </div>
-                        <div v-if="isAddEvaluation">
+                        <div v-if="isAddEvaluation" class="mb-2">
                             <div>
                                 <span class="-text-bold">Evaluation Guide&nbsp;</span>
                                 <span

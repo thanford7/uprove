@@ -347,7 +347,6 @@ export default {
         return {
             APPLICATION_STATUS,
             applications: [],
-            customProjects: [],
             sortKeysJobPostingTable: [],
             leverData: {},
             leverWebhookTypes: leverIntegration.TYPES,
@@ -422,20 +421,6 @@ export default {
                 return app;
             })];
         }, []);
-
-        this.customProjects = this.initData.employer.jobs.reduce((customProjects, job) => {
-                job.allowedProjects.forEach((ap) => {
-                    if (ap.id in customProjects) {
-                        customProjects[ap.id].jobs.push({id: job.id, jobTitle: job.jobTitle});
-                    } else {
-                        ap.jobs = [{id: job.id, jobTitle: job.jobTitle}];
-                        ap.skillLevel = this.getSkillLevelsFromBits(ap.skillLevelBit);
-                        customProjects[ap.id] = ap;
-                    }
-                });
-                return customProjects;
-            }, {});
-        this.customProjects = Object.values(this.customProjects);
 
         const {tab} = dataUtil.getQueryParams();
         if (tab) {

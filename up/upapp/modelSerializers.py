@@ -45,6 +45,14 @@ def _addSerializedUserAssets(dataDict, user):
     dataDict['images'] = [getSerializedUserImage(i) for i in user.image.all()]
 
 
+def getAllowedProjects(customProjects, job):
+    return [
+        cp for cp
+        in customProjects
+        if cp.skillLevelBit == job.roleLevel.roleLevelBit and cp.project.role_id == job.roleLevel.role_id
+    ] if job.roleLevel else []
+
+
 def serializeGenericItem(item):
     if not item.contentObject:
         return None
@@ -311,7 +319,7 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=
         'role': project.role.name,
         'roleId': project.role.id,
         'skills': [getSerializedSkill(s) for s in project.skills.all()],
-        'skillLevelBits': project.skillLevelBits,
+        'skillLevelBit': project.skillLevelBit,
         'description': project.description,
         'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
         'instructions': project.instructions,
@@ -343,7 +351,6 @@ def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails:bool=Fal
         'description': projectFile.description,
         'file': projectFile.file.url if isIncludeDetails else None,
         'fileName': getFileNameFromUrl(projectFile.file.url),
-        'skillLevelBits': projectFile.skillLevelBits,
         **serializeAuditFields(projectFile)
     }
 
@@ -379,6 +386,7 @@ def getSerializedSkill(skill: Skill):
 
 def getSerializedEmployer(employer: Employer, employerId=None):
     from upapp.apis.employer import JobPostingView  # Avoid circular import
+    customProjects = CustomProject.objects.select_related('project').all()
     baseFields = {
         'id': employer.id,
         'companyName': employer.companyName,
@@ -390,7 +398,7 @@ def getSerializedEmployer(employer: Employer, employerId=None):
         'isDemo': employer.isDemo,
         'isClient': employer.isClient,
         'jobs': [
-            getSerializedEmployerJob(ej, employerId=employerId)
+            getSerializedEmployerJob(ej, employerId=employerId, customProjects=customProjects)
             for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=bool(employerId)))
         ],
     }
@@ -417,7 +425,10 @@ def getSerializedCustomProject(customProject: CustomProject):
     }
 
 
-def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None):
+def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customProjects=None):
+    customProjects = customProjects or CustomProject.objects.select_related('project').all()
+    allowedProjects = getAllowedProjects(customProjects, employerJob)
+
     baseFields = {
         'id': employerJob.id,
         'employerId': employerJob.employer_id,
@@ -432,7 +443,7 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None):
         'roleId': employerJob.roleLevel.role.id if employerJob.roleLevel else None,
         'roleLevelBit': employerJob.roleLevel.roleLevelBit if employerJob.roleLevel else None,
         'jobDescription': employerJob.jobDescription,
-        'allowedProjects': [getSerializedCustomProject(ep) for ep in employerJob.allowedProjects.all()],
+        'allowedProjects': [getSerializedCustomProject(ap) for ap in allowedProjects],
         'salaryFloor': employerJob.salaryFloor,
         'salaryCeiling': employerJob.salaryCeiling,
         'salaryUnit': employerJob.salaryUnit,
@@ -452,7 +463,7 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None):
         'leverPostingKey': employerJob.leverPostingKey,
     }
     employerFields = {
-        'applications': [getSerializedJobApplication(app, employerId=employerId) for app in employerJob.jobApplication.all()],
+        'applications': [getSerializedJobApplication(app) for app in employerJob.jobApplication.all()],
         **serializeAuditFields(employerJob)
     }
 
@@ -467,7 +478,7 @@ def getSerializedJobTemplate(template: JobTemplate):
     }
 
 
-def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False, employerId=None):
+def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):
     from upapp.apis.user import UserProjectView
 
     val = {
@@ -496,12 +507,14 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
     }
 
     if includeJob:
+        customProjects = CustomProject.objects.select_related('project').all()
+        allowedProjects = getAllowedProjects(customProjects, jobApplication.employerJob)
         val['job'] = {
             'id': jobApplication.employerJob.id,
             'jobTitle': jobApplication.employerJob.jobTitle,
             'employer': jobApplication.employerJob.employer.companyName,
             'employerLogo': jobApplication.employerJob.employer.logo.url if jobApplication.employerJob.employer.logo else None,
-            'allowedProjects': [getSerializedCustomProject(ep) for ep in jobApplication.employerJob.allowedProjects.all()]
+            'allowedProjects': [getSerializedCustomProject(ep) for ep in allowedProjects]
         }
 
     return val
@@ -539,7 +552,7 @@ def getSerializedUserProject(userProject: UserProject, isIncludeEvaluation=False
         'isLocked': isLocked,
         'isHidden': userProject.isHidden,
         'daysUntilUnlock': getDaysUntilProjectUnlock(userProject) if isLocked else None,
-        'applications': [getSerializedJobApplication(app, employerId=employerId, includeJob=True) for app in userProject.jobApplication.all()],
+        'applications': [getSerializedJobApplication(app, includeJob=True) for app in userProject.jobApplication.all()],
         'user': {
             'id': userProject.user.id,
             'firstName': userProject.user.firstName,

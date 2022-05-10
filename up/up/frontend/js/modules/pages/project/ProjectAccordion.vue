@@ -4,7 +4,11 @@
             <span class="badge -color-darkblue">{{project.role}}</span>
         </h5>
         <ProjectJobs v-if="project.jobs" :jobs="project.jobs" class="mt-3 mb-2"/>
-        <h5>{{project.title}}</h5>
+        <h5>
+            {{project.title}}
+            <slot name="headerAppend"></slot>
+        </h5>
+        <slot name="afterHeader"></slot>
         <div v-html="project.description" class="-border-bottom--light mb-2"></div>
         <CollapseDiv :elId="getNewElUid()" :class="(project.isLimited) ? '' : '-border-bottom--light mb-2'">
             <template v-slot:header>
@@ -19,33 +23,32 @@
             <template v-slot:header>
                 <h5>Instructions</h5>
             </template>
-            <div v-if="skillLevelBit" class="pb-2">
+            <div class="pb-2">
                 <div v-html="project.instructions"></div>
                 <ul v-if="skillInstructions.length" class="pb-2">
                     <li v-for="i in skillInstructions">{{i}}</li>
                 </ul>
             </div>
-            <div v-else class="-sub-text pb-2">Select career level to view instructions</div>
         </CollapseDiv>
         <CollapseDiv
-            v-if="isLoggedIn && isEmployer && evaluationCriteria"
+            v-if="isLoggedIn && isEmployer && project.evaluationCriteria"
             :elId="getNewElUid()"
             :isClosed="true"
             class="mb-2"
-            :class="(projectFiles.length) ? '-border-bottom--light' : ''"
+            :class="(project?.files?.length) ? '-border-bottom--light' : ''"
         >
             <template v-slot:header>
                 <h5>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h5>
             </template>
             <ul>
-                <li v-for="criterion in evaluationCriteria">{{criterion.criterion}}</li>
+                <li v-for="criterion in project.evaluationCriteria">{{criterion.criterion}}</li>
             </ul>
         </CollapseDiv>
-        <CollapseDiv v-if="projectFiles.length">
+        <CollapseDiv v-if="project?.files?.length">
             <template v-slot:header>
                 <h5>Files</h5>
             </template>
-            <div v-for="file in projectFiles">
+            <div v-for="file in project.files">
                 <FileDisplay :file="file" :isIncludeDescription="true" :isIncludeSkillLevels="true"/>
             </div>
         </CollapseDiv>
@@ -60,19 +63,11 @@ import ProjectJobs from "../projects/ProjectJobs";
 
 export default {
     name: "ProjectAccordion",
-    props: ['project', 'skillLevelBit', 'skillIds', 'skills'],
+    props: ['project', 'skillIds', 'skills'],
     components: {
         CollapseDiv, FileDisplay, InfoToolTip, ProjectJobs
     },
     computed: {
-        evaluationCriteria() {
-            return this.project.evaluationCriteria.filter((ec) => {
-                return !ec.skillLevelBits || !this.skillLevelBit || ec.skillLevelBits & this.skillLevelBit;
-            });
-        },
-        projectFiles() {
-            return this.project.files.filter((file) => !this.skillLevelBit || file.skillLevelBits & this.skillLevelBit);
-        },
         skillInstructions() {
             if (!this.skillIds) {
                 return [];

@@ -22,8 +22,8 @@ from upapp import security
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView
 from upapp.apis.sendEmail import EmailView
-from upapp.models import Employer, EmployerJob, RoleLevel, User, UserJobApplication
-from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject
+from upapp.models import Employer, EmployerJob, RoleLevel, User, UserJobApplication, CustomProject, UserProject
+from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject, getAllowedProjects
 from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
 
@@ -201,10 +201,9 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
         return _getLeverConnectionErrorPage(request)
 
     try:
-        uproveJob = EmployerJob.objects \
-            .prefetch_related('allowedProjects', 'allowedProjects__project', 'allowedProjects__skills') \
-            .get(leverPostingKey=postingKey)
-        allowedProjects = sorted(uproveJob.allowedProjects.all(), key=lambda p: p.id)
+        uproveJob = EmployerJob.objects.get(leverPostingKey=postingKey)
+        customProjects = CustomProject.objects.select_related('project').all()
+        allowedProjects = sorted(getAllowedProjects(customProjects, uproveJob), key=lambda p: p.id)
         primaryProject = allowedProjects[0] if allowedProjects else None
     except EmployerJob.DoesNotExist:
         return _getErrorPage(
@@ -293,18 +292,29 @@ class LeverSendAssessment(UproveAPIView):
             htmlBody = str(htmlBody)
 
         job = JobPostingView.getEmployerJobs(jobId=self.data['jobId'], isIncludeDemo=True)
-        JobPostingView.setCustomProjects(job, [self.data['customProject']], isDeleteExisting=False)
+
+        try:
+            userProject = UserProject.objects.get(user_id=user.id, customProject_id=self.data['customProject']['id'])
+        except UserProject.DoesNotExist:
+            userProject = UserProject(
+                user_id=user.id,
+                customProject_id=self.data['customProject']['id'],
+                modifiedDateTime=timezone.now(),
+                createdDateTime=timezone.now()
+            )
+            userProject.save()
 
         # Create an application for the user if it doesn't exist
         leverOpportunityKey = self.data['opportunityId']
         try:
             userJobApp = UserJobApplication.objects.get(user_id=user.id, employerJob=job)
             userJobApp.leverOpportunityKey = leverOpportunityKey
-            userJobApp.sve()
+            userJobApp.save()
         except UserJobApplication.DoesNotExist:
             UserJobApplication(
                 user=user,
                 employerJob=job,
+                userProject=userProject,
                 inviteDateTime=timezone.now(),
                 leverOpportunityKey=leverOpportunityKey
             ).save()
@@ -413,7 +423,7 @@ class LeverPostings(BaseLeverAPIView):
             j.leverPostingKey: j for j in
             JobPostingView.getEmployerJobs(employerId=self.employer.id, jobFilter=Q(leverPostingKey__isnull=False))
         }
-        roleTitles = {r.roleTitle: r for r in RoleLevel.objects.all()}
+        roleLevels = {(r.role.name.lower(), r.roleLevelBit): r for r in RoleLevel.objects.prefetch_related('role').all()}
 
         processedLeverKeys = []
         for posting in postings:
@@ -438,7 +448,7 @@ class LeverPostings(BaseLeverAPIView):
                 'isFullTime': {'formName': 'commitment', 'propFunc': lambda x: (not x) or ('full' in x.lower())},
                 'location': None
             })
-            currentJob.role = normalizeJobTitle(currentJob.jobTitle, roleTitles)
+            currentJob.roleLevel = normalizeJobTitle(currentJob.jobTitle, roleLevels)
 
             jobLists = []
             for jobList in posting['content']['lists']:

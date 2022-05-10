@@ -67,39 +67,17 @@
             <label for="closeDate" class="form-label">Close Date <InfoToolTip :content="TOOLTIPS.jobCloseDate" :elId="getNewElUid()"/></label>
             <input type="date" class="form-control" id="closeDate" v-model="formData.closeDate">
         </div>
-        <div class="mb-3">
-            <label for="modalJobProjects" class="form-label">
-                Applicant Project(s) <InfoToolTip :content="infoApplicantProject" :elId="getNewElUid()"/>
-            </label>
-            <ProjectsSelectize
-                ref="jobProjects"
-                :isAllowMulti="true"
-                :employerId="initData.employer.id"
-                :allowedProjects="formData.allowedProjects"
-                @projectChange="formData.allowedProjects = $event"
-            />
-        </div>
-        <div class="mb-3 pt-1 border-top" v-for="customProject in formData.allowedProjects">
-            <ProjectConfigSelectize
-                :employerId="initData.employer.id"
-                :customProject="customProject"
-                :project="getProject(customProject.projectId)"
-            />
-        </div>
     </BaseModal>
 </template>
 
 <script>
 import {SEVERITY} from '../../globalData';
 import BaseModal from "./BaseModal";
-import dataUtil from "../../utils/data";
 import form from "../../utils/form";
 import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import InputWsiwyg from "../inputs/InputWsiwyg";
 import LocationInputs from "../inputs/LocationInputs";
-import ProjectConfigSelectize from "../inputs/ProjectConfigSelectize";
-import ProjectsSelectize from "../inputs/ProjectsSelectize";
 import $ from "jquery";
 
 export default {
@@ -108,7 +86,6 @@ export default {
     inheritAttrs: false,
     components: {
         BaseModal, InfoToolTip, InputSelectize, InputWsiwyg, LocationInputs,
-        ProjectsSelectize, ProjectConfigSelectize
     },
     data() {
         return {
@@ -120,11 +97,6 @@ export default {
                 jobTitle: '#modalJobTitle',
                 jobDescription: '#modalJobDescription',
             },
-            infoApplicantProject: (
-                'Select one or more projects which applicants to this job position will need to complete. ' +
-                'If more than one project is selected, each applicant will only need to complete one project, but ' +
-                'will be able to select which project to complete.'
-            ),
             infoJobTemplate: (
                 'Selecting a job template will add suggested language for a job description to the job description ' +
                 'section above. If a description already exists, it will NOT be erased. The suggested language will ' +
@@ -142,24 +114,12 @@ export default {
         },
     },
     methods: {
-        getProject(projectId) {
-            return this.initData.projects.find((project) => project.id === projectId);
-        },
         processFormData() {
             return Object.assign(this.readForm(), {employerId: this.initData.employer.id})
         },
         setFormFields() {
-            this.formData.allowedProjects.forEach((ap) => {
-                // Format data for ajax request
-                ap.skillIds = ap.skills.map((s) => s.id);
-            });
             this.$refs.locationInputs.setStateVal(this.formData.stateId);
             this.$refs.locationInputs.setCountryVal(this.formData.countryId);
-        },
-        getEmptyFormData() {
-            return {
-                allowedProjects: []
-            }
         },
         isGoodFormFields(formData) {
             if (form.isEmptyWysiwyg(formData.jobDescription)) {
@@ -167,30 +127,6 @@ export default {
                 {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;
-            }
-
-            if (!formData.allowedProjects || !formData.allowedProjects.length) {
-                this.addPopover($(this.$refs.jobProjects.$refs.projects.targetEl),
-                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
-                    );
-                return false;
-            }
-
-            for (let i = 0; i < formData.allowedProjects.length; i++) {
-                const customProject = formData.allowedProjects[i];
-                if (dataUtil.isNil(customProject.skillLevelBit)) {
-                    this.addPopover($(this.$refs[`modalJobCustomProject-skillBits-${customProject.id}`].targetEl),
-                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
-                        );
-                    return false;
-                }
-
-                if (dataUtil.isNil(customProject.skillIds)) {
-                    this.addPopover($(this.$refs[`modalJobCustomProject-skills-${customProject.id}`].targetEl),
-                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
-                        );
-                    return false;
-                }
             }
 
             return true;

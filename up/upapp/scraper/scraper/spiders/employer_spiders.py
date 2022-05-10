@@ -22,9 +22,7 @@ def fontSizeToHeaderSanitizer(element):
         return element
 
     fontSize = float(fontSizePx.replace('px', '').strip())
-    if fontSize >= 32:
-        element.tag = 'h4'
-    elif fontSize >= 16:
+    if fontSize >= 16:
         element.tag = 'h5'
     else:
         element.tag = 'h6'
@@ -35,8 +33,8 @@ def fontSizeToHeaderSanitizer(element):
 
 
 def headerSizeReducerSanitizer(element):
-    if element.tag in ('h1', 'h2', 'h3'):
-        element.tag = 'h4'
+    if element.tag in ('h1', 'h2', 'h3', 'h4'):
+        element.tag = 'h5'
 
     return element
 

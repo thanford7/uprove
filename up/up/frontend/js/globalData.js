@@ -99,25 +99,13 @@ const globalDataGetter = () => {
         PROJECT_STATUSES,
         SKILL_LEVEL: {
             1: {
-                title: 'Entry',
-                description: 'Comparable with 0-2 years experience',
-                pct: 25
+                title: 'Entry-Intermediate Level',
+                description: 'Comparable with 0-5 years experience',
             },
             2: {
-                title: 'Intermediate',
-                description: 'Comparable with 3-5 years experience',
-                pct: 50
+                title: 'Mid-Senior Level',
+                description: 'Comparable with 6+ years experience',
             },
-            4: {
-                title: 'Advanced',
-                description: 'Comparable with 6-8 years experience',
-                pct: 75
-            },
-            8: {
-                title: 'Expert',
-                description: 'Comparable with 9+ years experience',
-                pct: 100
-            }
         },
         // Keep in sync with User model
         USER_TYPES: {

@@ -12,7 +12,7 @@
         <template v-slot:body>
             <ProjectJobs :jobs="cardItem.jobs" class="mb-2"/>
             <div class="mb-1 pb-1 -border-bottom--light">
-                <div class="text-label text-label-sm">CAREER LEVELS</div>
+                <div class="text-label text-label-sm">CAREER LEVEL</div>
                 <BadgesSkillLevels :skillLevels="cardItem.skillLevels"/>
             </div>
             <div class="mb-1 pb-1 -border-bottom--light">

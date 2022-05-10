@@ -71,17 +71,9 @@
                         <ProjectsSelectize
                             ref="customProject"
                             :employerId="initData.employer.id"
+                            :jobId="initData.jobId"
                             :allowedProjects="selectedProject"
                             @projectChange="formData.customProject = $event"
-                        />
-                    </div>
-                    <div class="mb-3 col-md-6">
-                        <ProjectConfigSelectize
-                            v-if="formData.customProject"
-                            ref="customProjectCfg"
-                            :employerId="initData.employer.id"
-                            :customProject="formData.customProject"
-                            :project="getProject(formData.customProject)"
                         />
                     </div>
                 </div>
@@ -120,17 +112,15 @@
 
 <script>
 import BasePage from "../base/BasePage";
-import customProjectUtil from "../../../utils/customProject";
 import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 import InputWsiwyg from "../../inputs/InputWsiwyg";
-import ProjectConfigSelectize from "../../inputs/ProjectConfigSelectize";
 import ProjectsSelectize from "../../inputs/ProjectsSelectize";
 import globalData, {SEVERITY} from "../../../globalData";
 
 export default {
     name: "LeverSendOpportunityPage",
-    components: {BasePage, InfoToolTip, InputSelectize, InputWsiwyg, ProjectConfigSelectize, ProjectsSelectize},
+    components: {BasePage, InfoToolTip, InputSelectize, InputWsiwyg, ProjectsSelectize},
     data() {
         return {
             crudUrl: 'lever/send-assessment/',

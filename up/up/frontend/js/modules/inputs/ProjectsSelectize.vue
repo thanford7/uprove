@@ -17,7 +17,7 @@ import skillSelectize from "../selectizeCfgs/skill";
 export default {
     name: "ProjectsSelectize",
     components: {InputSelectize},
-    props: ['isAllowMulti', 'employerId', 'allowedProjects'],
+    props: ['isAllowMulti', 'employerId', 'jobId', 'allowedProjects'],
     data() {
         return {
             newProjectCount: 0,
@@ -46,7 +46,7 @@ export default {
                             skillsHtml += `<div class="badge -color-lightblue -color-black-text me-1">${escape(skill.name)}</div>`
                         });
                         let skillLevelsHtml = '';
-                        this.getSkillLevelsFromBits(data.skillLevelBits).forEach((skillLevel) => {
+                        this.getSkillLevelsFromBits(data.skillLevelBit).forEach((skillLevel) => {
                             skillLevelsHtml += `<div class="badge -color-lightgrey -color-black-text me-1">${escape(skillLevel.title)}</div>`
                         });
                         const getProjectUrl = (projectId) => `/project/${projectId}/`;
@@ -58,7 +58,7 @@ export default {
                                 </div>
                                 <div class="-sub-text">${data.description}</div>
                                 <div><span class="-sub-text">Skills: </span>${skillsHtml}</div>
-                                <div class="mt-1"><span class="-sub-text">Role levels: </span>${skillLevelsHtml}</div>
+                                <div class="mt-1"><span class="-sub-text">Role level: </span>${skillLevelsHtml}</div>
                             </div>
                         `;
                     }
@@ -116,7 +116,11 @@ export default {
         }
     },
     async mounted() {
-        await this.loadData([{route: `project/?employerId=${this.employerId}`, dataKey: 'projects'}]);
+        let route = `project/?employerId=${this.employerId}`;
+        if (this.jobId) {
+            route += `&jobId=${this.jobId}`
+        }
+        await this.loadData([{route, dataKey: 'projects'}]);
         const optionGroups = dataUtil.sortBy(dataUtil.uniqBy(this.cData.projects.map((p) => ({key: p.role, data: {role: p.role}})), 'key'), 'key');
         this.$refs.projects.resetOptions(this.cData.projects, optionGroups);
         this.setAllowedProjects();

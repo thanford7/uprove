@@ -232,11 +232,12 @@ def jobs(request):
     jobs = JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter())
     employers = Employer.objects.filter(isDemo=False)
     projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)]
+    customProjects = CustomProject.objects.select_related('project').all()
     projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
 
     return render(request, 'jobs.html', context={'data': dumps({
         'jobs': [{
-            **getSerializedEmployerJob(job),
+            **getSerializedEmployerJob(job, customProjects=customProjects),
             'projectIds': [p.id for p in projectsByRoleId[job.roleLevel.role_id]],
         } for job in jobs],
         'employers': {e.id: {
@@ -266,19 +267,18 @@ def jobPosting(request, jobId):
     if not user or not security.isPermittedSessionUser(user=user):
         return _getUnauthorizedPage(request)
     job = JobPostingView.getEmployerJobs(jobId=jobId, isIncludeDemo=True)
-    projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=[p.project_id for p in job.allowedProjects.all()])
+    customProjects = CustomProject.objects.select_related('project').all()
+    allowedCustomProjects = getAllowedProjects(customProjects, job)
+    allowedProjectIds = [p.project_id for p in allowedCustomProjects]
+    projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=allowedProjectIds)
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
     user = security.getSessionUser(request)
     employerId = user.employer_id if isEmployer else None
-    projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
-    recommendedProjects = ProjectView.getProjects(
-        projectIds=[p.id for p in projectsByRoleId[job.roleLevel.role_id]]
-    ) if job.roleLevel else []
+    customProjects = CustomProject.objects.select_related('project').all()
 
     data = {
         'job': {
-            **getSerializedEmployerJob(job, employerId=employerId),
-            'projects': [getSerializedProject(p, isIncludeDetails=True) for p in recommendedProjects],
+            **getSerializedEmployerJob(job, employerId=employerId, customProjects=customProjects),
         },
         'employer': getSerializedEmployer(EmployerView.getEmployer(job.employer_id), employerId=employerId),
         'projects': {p.id: getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in projects},
@@ -286,11 +286,11 @@ def jobPosting(request, jobId):
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     }
     if user and user.userTypeBits & User.USER_TYPE_CANDIDATE:
-        allowedProjectIds = [ap.id for ap in job.allowedProjects.all()]
+        allowedCustomProjectIds = [cp.id for cp in allowedCustomProjects]
         data['userProjects'] = [
             getSerializedUserProject(up)
             for up in UserProjectView.getUserProjects(userId=user.id)
-            if up.customProject_id in allowedProjectIds
+            if up.customProject_id in allowedCustomProjectIds
         ]
     return render(request, 'jobPosting.html', context={'data': dumps(data)})
 
@@ -334,10 +334,17 @@ def project(request, projectId):
     extraData = {}
     user = security.getSessionUser(request)
     if employerId:
-        extraData['jobs'] = [getSerializedEmployerJob(j, employerId=employerId) for j in JobPostingView.getEmployerJobs(employerId=employerId)]
+        customProjects = CustomProject.objects.select_related('project').all()
+        jobFilter = JobPostingView.getEmployerJobFilter(isEmployer=True)
+        jobFilter &= Q(roleLevel__roleLevelBit=project.skillLevelBit) & Q(roleLevel__role_id=project.role_id)
+        extraData['jobs'] = [
+            getSerializedEmployerJob(j, employerId=employerId, customProjects=customProjects)
+            for j in JobPostingView.getEmployerJobs(employerId=employerId, jobFilter=jobFilter)
+        ]
 
     if user and (user.userTypeBits & User.USER_TYPE_CANDIDATE):
-        extraData['userProjects'] = [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId=user.id)]
+        userProject = UserProjectView.getUserProjects(userId=user.id, projectId=projectId)
+        extraData['userProject'] = getSerializedUserProject(userProject[0]) if userProject else None
 
     return render(request, 'project.html', context={'data': dumps({**baseData, **extraData})})
 

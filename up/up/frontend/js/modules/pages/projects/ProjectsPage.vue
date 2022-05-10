@@ -73,7 +73,7 @@ export default {
                 ) {
                     return filteredProjects;
                 }
-                if (this.filter.skillLevelBits && !(this.filter.skillLevelBits & project.skillLevelBits)
+                if (this.filter.skillLevelBits && !(this.filter.skillLevelBits & project.skillLevelBit)
                 ) {
                     return filteredProjects;
                 }
@@ -89,7 +89,7 @@ export default {
         },
     },
     mounted() {
-        skillLevelSelectize.setSkillLevels(this.initData.projects);
+        skillLevelSelectize.setSkillLevels(this.initData.projects, true);
         const queryParams = dataUtil.getQueryParams();
         this.$refs.role.elSel.setValue(queryParams.role);
         this.$refs.skills.elSel.setValue(queryParams.skill);
