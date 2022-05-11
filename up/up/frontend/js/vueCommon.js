@@ -6,7 +6,7 @@ import {
     globalVarsMixin,
     modalsMixin,
     popoverMixin,
-    store
+    store, tabsMixin
 } from './vueMixins';
 import Vue3Sanitize from "vue-3-sanitize";
 
@@ -19,6 +19,7 @@ const initVue = (mainComponent, el) => {
         .mixin(globalVarsMixin)
         .mixin(modalsMixin)
         .mixin(filterMixin)
+        .mixin(tabsMixin)
         .mixin(dataLoaderMixin);
 
     vueComponent.mount(el);

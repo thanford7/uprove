@@ -494,6 +494,26 @@ const filterMixin = {
     }
 }
 
+const tabsMixin = {
+    data() {
+        return {
+            currentTab: null
+        };
+    },
+    methods: {
+        setTabParam(tabName) {
+            this.currentTab = tabName;
+            dataUtil.setQueryParams([{key: 'tab', val: tabName}])
+        },
+        setTabFromParams() {
+            const {tab} = dataUtil.getQueryParams();
+            if (tab) {
+                this.currentTab = tab;
+            }
+        }
+    }
+}
+
 const loadCache = {};
 const dataLoaderMixin = {
     data() {
@@ -538,6 +558,6 @@ const dataLoaderMixin = {
 }
 
 export {
-    ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin,
+    ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, tabsMixin,
     store, addErrorAlert, getAjaxFormData, getNewElUid, makeAjaxRequest
 };

@@ -461,6 +461,12 @@ class DataUtil {
         return truncatedText;
     }
 
+    uniqArray(array) {
+        return array.filter((val, idx, arr) => {
+            return arr.indexOf(val) === idx;
+        });
+    }
+
     uniqWith(targetList, uniqFn) {
         return targetList.filter((el, idx) => targetList.findIndex((step) => uniqFn(el, step)) === idx);
     }

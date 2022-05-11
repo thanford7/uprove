@@ -7,12 +7,16 @@
         @deleteObject="deleteObject($event)"
     >
         <div class="mb-3">
-            <label for="applicationProject" class="form-label">Project to Submit</label>
+            <label class="form-label">Project to Submit</label>
             <InputSelectize
                 ref="applicationProject"
                 elId="applicationProject"
                 placeholder="Required"
-                :cfg="{maxItems: 1}"
+                :cfg="{
+                    maxItems: 1,
+                    valueField: 'id',
+                    labelField: 'projectTitle'
+                }"
                 @selected="formData.userProjectId = $event"
             />
             <div v-if="!isProjectAllowed" class="-sub-text">
@@ -44,8 +48,7 @@ export default {
         return {
             modalName: 'editJobApplicationModal',
             crudUrl: 'user-job-application/',
-            isUpdateData: true,
-            initDataKey: 'jobApplications',
+            isHardRefresh: true,
             requiredFields: {
                 userProjectId: null,
             },
@@ -78,27 +81,13 @@ export default {
             );
         },
         processRawData(applicationData) {
-            const applicationProjectSel = this.$refs.applicationProject.elSel;
             this.allowedProjectIds = applicationData.job.allowedProjects.map((ap) => ap.id);
 
             // Set project application options
-            applicationProjectSel.clearOptions(true);
-            const applicationProjects = this.initData.userProjects.filter((up) => {
-                return (
-                    this.allowedProjectIds.includes(up.customProject.id) ||
-                    up.customProject.id === applicationData.userProject.customProject.id
-                );
-            });
-            applicationProjectSel.addOption(applicationProjects.map((ap) => {
-                return {
-                    value: ap.id, text: ap.customProject.projectTitle
-                }
-            }));
-            applicationProjectSel.refreshOptions();
+            this.$refs.applicationProject.resetOptions(applicationData.job.allowedProjects)
 
             // Set currently selected project
-            applicationData.userProjectId = applicationData.userProject.id;
-            applicationProjectSel.setValue(applicationData.userProjectId);
+            this.$refs.applicationProject.elSel.setValue(applicationData?.customProject?.id);
 
             return applicationData;
         },

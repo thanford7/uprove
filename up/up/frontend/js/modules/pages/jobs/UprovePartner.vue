@@ -2,7 +2,7 @@
     <InfoToolTip
         :elId="getNewElUid()"
         :isExcludeInfoCircle="true"
-        content="Uprove talent experts work directly with this company to promote candidates who complete a Uprove project"
+        content="This company is a Uprove partner and actively reviews project submissions"
     >
         <i class="fas fa-star -color-orange-text"></i>
     </InfoToolTip>

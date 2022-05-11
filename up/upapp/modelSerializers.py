@@ -134,7 +134,13 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'interests': [getSerializedUserTag(t) for t in user.userTag.filter(tag__type=Tag.TYPE_INTEREST)],
         'preferences': {
             'companySizes': [{'id': p.id, 'companySize': p.companySize} for p in user.preferenceCompanySizes.all()],
-            'roles': [{'id': p.id, 'roleTitle': p.roleTitle} for p in user.preferenceRoles.all()],
+            'roles': [{
+                    'id': p.id,
+                    'roleTitle': p.roleTitle,
+                    'roleId': p.role_id,
+                    'roleLevelBit': p.roleLevelBit
+                } for p in user.preferenceRoles.all()
+            ],
             'countries': [{'id': p.id, 'countryName': p.countryName} for p in user.preferenceCountry.all()],
             'remoteBits': user.preferenceRemoteBits
         },
@@ -494,6 +500,7 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
         'userProjectTitle': jobApplication.userProject.customProject.project.title if jobApplication.userProject else None,
         'userProjectScorePct': UserProjectView.getUserProjectScorePct(jobApplication.userProject) if jobApplication.userProject else None,
         'customProject': {
+            'id': jobApplication.userProject.customProject.id,
             'projectId': jobApplication.userProject.customProject.project_id,
             'projectTitle': jobApplication.userProject.customProject.project.title,
             'skillLevelBit': jobApplication.userProject.customProject.skillLevelBit,

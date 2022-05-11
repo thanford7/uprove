@@ -350,7 +350,6 @@ export default {
             sortKeysJobPostingTable: [],
             leverData: {},
             leverWebhookTypes: leverIntegration.TYPES,
-            currentTab: 'job-openings'
         }
     },
     computed: {
@@ -406,10 +405,6 @@ export default {
             }
             return 'DRAFT';
         },
-        setTabParam(tabName) {
-            this.currentTab = tabName;
-            dataUtil.setQueryParams([{key: 'tab', val: tabName}])
-        }
     },
     async mounted() {
         this.applications = this.initData.employer.jobs.reduce((applications, job) => {
@@ -422,10 +417,9 @@ export default {
             })];
         }, []);
 
-        const {tab} = dataUtil.getQueryParams();
-        if (tab) {
-            this.currentTab = tab;
-        }
+        this.currentTab = 'job-openings';
+        this.setTabFromParams();
+
         this.leverData = dataUtil.pick(this.initData.employer, [
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);

@@ -380,6 +380,8 @@ class UserView(UproveAPIView):
                 'extra_email_context': {
                     'supportEmail': 'community@uprove.co',
                     'isNew': True,
+                    'isCandidate': user.isCandidate,
+                    'employerName': user.employer.companyName if user.employer else None,
                     'next': request.data.get('next')
                 }
             })
@@ -549,6 +551,7 @@ class UserView(UproveAPIView):
             lastName=data['lastName'],
             birthDate=dateUtil.deserializeDateTime(data.get('birthDate'), dateUtil.FormatType.DATE, allowNone=True),
             email=data['email'],
+            userTypeBits=data.get('userTypeBits'),
             city=data.get('city'),
             state_id=data.get('stateId'),
             country_id=data.get('countryId'),
@@ -1340,10 +1343,21 @@ class UserProjectStatusView(UproveAPIView):
                 application.withdrawDateTime = None
                 application.submissionDateTime = timezone.now()
                 application.save()
+                UserJobApplicationView.sendApplicationSubmissionEmail(request, self.user, application)
 
         if projectStatus:
             project.statusChangeDateTime = timezone.now()
             if projectStatus == UserProject.Status.COMPLETE.value:
+                EmailView.sendEmail(
+                    'User completed project',
+                    ['projects@uprove.co'],
+                    htmlContent=f'''
+                        <p>{self.user.firstName} {self.user.lastName} just completed a project for 
+                        {project.customProject.project.title}!
+                        </p>
+                        <p>View the <a href="{request.build_absolute_uri(f'/user-project/{project.id}/')}">project here</a>
+                    '''
+                )
                 saveActivity(ActivityKey.CANDIDATE_COMPLETE_PROJECT, project.user_id)
 
         project.save()
@@ -1435,6 +1449,7 @@ class UserJobApplicationView(UproveAPIView):
             })
 
             if data.get('submissionDateTime'):
+                self.sendApplicationSubmissionEmail(request, self.user, jobApplication)
                 updateLeverAssessmentComplete(request, jobApplication)
 
         if isEmployer:
@@ -1506,6 +1521,20 @@ class UserJobApplicationView(UproveAPIView):
 
         return userJobApplications
 
+    @staticmethod
+    def sendApplicationSubmissionEmail(request, user, application):
+        EmailView.sendEmail(
+            'User submitted application',
+            ['projects@uprove.co'],
+            htmlContent=f'''
+                <p>{user.firstName} {user.lastName} just submitted an application for the 
+                {application.employerJob.jobTitle} position at {application.employerJob.employer.companyName}!
+                </p>
+                <p>View {application.employerJob.employer.companyName} applications 
+                <a href="{request.build_absolute_uri(f'/employerDashboard/{application.employerJob.employer_id}/')}">here</a>
+            '''
+        )
+
 
 class UserJobSuggestions(UproveAPIView):
 
@@ -1544,6 +1573,11 @@ class UserJobSuggestions(UproveAPIView):
 
         roleLevelIds = [r.id for r in user.preferenceRoles.all()]
         filter &= Q(roleLevel_id__in=roleLevelIds)
+
+        # Filter out jobs the candidate has already applied to
+        currentJobIds = [j.employerJob_id for j in UserJobApplication.objects.filter(user_id=user.id)]
+        filter &= ~Q(id__in=currentJobIds)
+
         return JobPostingView.getEmployerJobs(jobFilter=filter)[:jobLimit]
 
 

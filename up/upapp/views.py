@@ -292,6 +292,10 @@ def jobPosting(request, jobId):
             for up in UserProjectView.getUserProjects(userId=user.id)
             if up.customProject_id in allowedCustomProjectIds
         ]
+
+        currentApplication = UserJobApplicationView.getUserJobApplications(employerJobId=jobId)
+        currentApplication = currentApplication[0] if currentApplication else None
+        data['userApplication'] = getSerializedJobApplication(currentApplication) if currentApplication else None
     return render(request, 'jobPosting.html', context={'data': dumps(data)})
 
 
@@ -351,12 +355,20 @@ def project(request, projectId):
 
 def projects(request):
     jobMapByRole = JobPostingView.getJobMapByRole()
+    user = security.getSessionUser(request)
 
     return render(request, 'projects.html', context={'data': dumps({
         'projects': [{
             **getSerializedProject(p),
             'jobs': jobMapByRole[p.role_id]
         } for p in ProjectView.getProjects()],
+        'preferredRoles': [{
+                'id': p.id,
+                'roleTitle': p.roleTitle,
+                'roleId': p.role_id,
+                'roleLevelBit': p.roleLevelBit
+            } for p in user.preferenceRoles.all()
+        ] if user else None,
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})

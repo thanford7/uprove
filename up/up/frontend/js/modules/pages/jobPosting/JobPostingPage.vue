@@ -16,8 +16,8 @@
             <div class="col-md-4 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
                 <template v-if="initData.job?.allowedProjects?.length">
                     <h5 class="-text-bold">Applicant instructions</h5>
-                    <div v-if="initData?.userProjects?.length" class="mb-2 ps-2 -color-yellow">
-                        <i class="fas fa-info"></i> You have already started a project
+                    <div v-if="initData.userApplication" class="mb-2 ps-2 -color-yellow">
+                        <i class="fas fa-info"></i> You have an application for this job
                     </div>
                     <ol class="-border-bottom--light mb-3 pb-3">
                         <li v-if="!isLoggedIn" id="loginInstruction">
@@ -25,12 +25,15 @@
                             or
                             <a href="#" @click="eventBus.emit('open:signInModal')">sign in</a>
                         </li>
-                        <li v-if="initData.job.allowedProjects.length > 1 && !hasProjectSaved">
+                        <li v-if="initData.job.allowedProjects.length > 1 && !initData.userApplication">
                             Select a project
                             <InputSelectize
                                 ref="allowedProjects"
                                 elId="allowedProjects"
-                                placeholder="Required" :cfg="allowedProjectsCfg" @selected="selectAndSetProject"
+                                placeholder="Required"
+                                :isParseAsInt="true"
+                                :cfg="allowedProjectsCfg"
+                                @selected="selectAndSetProject"
                             />
                         </li>
                         <li>
@@ -39,13 +42,13 @@
                         <li v-if="$refs?.jobPosting?.hasFiles">
                             Download project files
                         </li>
-                        <li v-if="!hasProjectSaved">
+                        <li v-if="!initData.userApplication">
                             <button
                                 @click="saveChange" type="button" class="btn btn-primary w-75"
                                 :disabled="(isLoggedIn) ? null : true"
                                 :title="(isLoggedIn) ? null : 'Must be logged in to save project'"
                             >
-                                Save project to your profile
+                                Start project and job application
                             </button>
                         </li>
                         <li>
@@ -126,13 +129,39 @@ export default {
     },
     computed: {
         allowedProjectsCfg() {
+            // Get projects that user has already started
+            const existingCustomProjectIds = (this.initData.userProjects) ?
+                this.initData.userProjects.map((up) => up.customProject.id) : [];
             return {
                 maxItems: 1,
-                options: this.initData.job.allowedProjects.map((ap) => ({value: ap.id, text: ap.projectTitle}))
+                options: this.initData.job.allowedProjects.map((ap) => {
+                    return {
+                        value: ap.id,
+                        text: ap.projectTitle,
+                        hasProject: existingCustomProjectIds.includes(ap.id)
+                    }
+                }),
+                render: {
+                    option: (data, escape) => {
+                        const extraText = (data.hasProject) ? `
+                            <div class="-text-small mt-2">
+                                <i class="fas fa-check-circle -color-green-text"></i>
+                                You have already started this project and can reuse it for this application
+                            </div>
+                        ` : '';
+
+                        return `
+                            <div class="option" data-selectable data-value="${data.value}" style="cursor: pointer;">
+                                ${escape(data.text)}
+                                ${extraText}
+                            </div>
+                        `;
+                    }
+                }
             }
         },
         hasProjectSaved() {
-            return initData.userProjects && initData.userProjects.length;
+            return Boolean(initData?.userProjects?.length);
         }
     },
     methods: {
@@ -154,8 +183,18 @@ export default {
         selectAndSetProject(customProjectId) {
             this.formData.customProjectId = customProjectId;
             if (!customProjectId) {
+                this.formData.userProjectId = null;
                 return;
             }
+
+            // Set existing user project if it exists
+            if (this.initData.userProjects) {
+                const existingUserProject = this.initData.userProjects.find((up) => up.customProject.id === customProjectId);
+                if (existingUserProject) {
+                    this.formData.userProjectId = existingUserProject.id;
+                }
+            }
+
             const accordionItem = this.$refs.jobPosting.$refs[`accordionItem-${customProjectId}`];
             $(`#${accordionItem.accordionElId}`).find('.accordion-header').each((idx, el) => {
                 const isShown = $(el).prop('id') === accordionItem.headerElId;
