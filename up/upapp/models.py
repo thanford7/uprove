@@ -356,7 +356,7 @@ class Project(AuditFields):
     title = models.CharField(max_length=250)
     role = models.ForeignKey(Role, on_delete=models.PROTECT)
     skills = models.ManyToManyField(Skill)
-    skillLevelBit = models.SmallIntegerField(default=1)  # See RoleLevel
+    skillLevelBits = models.SmallIntegerField(default=1)  # See RoleLevel
     employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
     background = models.TextField(null=True)
