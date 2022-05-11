@@ -401,7 +401,7 @@ def userProject(request, userProjectId=None):
     employerId = None if user.isAdmin else user.employer_id
 
     data = {
-        'userProject': getSerializedUserProject(userProject, employerId=employerId, isIncludeEvaluation=True),
+        'userProject': getSerializedUserProject(userProject, employerId=employerId, isIncludeEvaluation=user.isEmployer or user.isAdmin),
         'project': getSerializedProject(
             ProjectView.getProject(userProject.customProject.project_id),
             isIncludeDetails=True,

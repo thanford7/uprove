@@ -224,7 +224,6 @@ class ProjectView(UproveAPIView):
                 isChanged = isChanged or dataUtil.setObjectAttributes(existingCriterion, criterion, {
                     'criterion': None,
                     'category': None,
-                    'employer_id': {'formName': 'employerId'}
                 })
                 existingCriterion.save()
                 usedCriteriaIds.append(existingCriterion.id)
@@ -233,7 +232,6 @@ class ProjectView(UproveAPIView):
                     project_id=project.id,
                     criterion=criterion['criterion'],
                     category=criterion.get('category'),
-                    employer_id=criterion.get('employerId')
                 )
                 newCriterion.save()
                 isChanged = True
@@ -355,10 +353,7 @@ class SkillView(APIView):
         isUpdated = dataUtil.setObjectAttributes(skill, skillData, {
             'name': None,
             'instruction': None,
-            'isRequired': {'isProtectExisting': True},
-            'isRecommended': {'isProtectExisting': True},
             'skillProject_id': {'formName': 'projectId'},
-            'skillLevelBits': None
         })
         similarSkills = Skill.objects.select_related('skillProject').filter(name=skill.name, skillProject_id=skill.skillProject_id)
         for similarSkill in similarSkills:

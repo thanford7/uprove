@@ -40,11 +40,11 @@
             <EditSkillsTable ref="skillsTable" :skills="formData.skills"/>
         </div>
         <div class="mb-3">
-            <label for="projectSkillLevels" class="form-label">Skill levels</label>
+            <label for="projectSkillLevels" class="form-label">Skill level</label>
             <SkillLevelsSelectize
                 ref="projectSkillLevels"
                 placeholder="Required"
-                :cfg="{maxItems: 1}"
+                :cfg="{isMulti: false}"
                 @selected="formData.skillLevelBit = $event"
             />
         </div>

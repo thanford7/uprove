@@ -2,6 +2,8 @@ from datetime import date
 from enum import Enum
 from operator import itemgetter
 
+from django.db.models import Q
+
 from upapp.models import *
 from upapp.utils.dataUtil import getFileNameFromUrl, groupBy
 from upapp.utils.htmlTruncate import truncate
@@ -383,8 +385,6 @@ def getSerializedSkill(skill: Skill):
         'id': skill.id,
         'name': skill.name,
         'instruction': skill.instruction,
-        'isRequired': skill.isRequired,
-        'isRecommended': skill.isRecommended,
         'projectId': skill.skillProject_id,
         'skillLevelBits': skill.skillLevelBits
     }
@@ -487,6 +487,7 @@ def getSerializedJobTemplate(template: JobTemplate):
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):
     from upapp.apis.user import UserProjectView
 
+    employerId = jobApplication.employerJob.employer_id
     val = {
         'id': jobApplication.id,
         'user': {
@@ -498,7 +499,7 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
         },
         'userProjectId': jobApplication.userProject_id,
         'userProjectTitle': jobApplication.userProject.customProject.project.title if jobApplication.userProject else None,
-        'userProjectScorePct': UserProjectView.getUserProjectScorePct(jobApplication.userProject) if jobApplication.userProject else None,
+        'userProjectScorePct': UserProjectView.getUserProjectScorePct(jobApplication.userProject, employerId=employerId) if jobApplication.userProject else None,
         'customProject': {
             'id': jobApplication.userProject.customProject.id,
             'projectId': jobApplication.userProject.customProject.project_id,
@@ -580,7 +581,7 @@ def getSerializedUserProject(userProject: UserProject, isIncludeEvaluation=False
             'role': userProject.customProject.project.role.name,
         },
         'projectNotes': userProject.projectNotes,
-        'projectEvalScorePct': UserProjectView.getUserProjectScorePct(userProject),
+        'projectEvalScorePct': UserProjectView.getUserProjectScorePct(userProject, employerId=employerId),
         'files': [getSerializedUserFile(f) for f in userProject.files.all()],
         'videos': [getSerializedUserVideo(v) for v in userProject.videos.all()],
         'images': [getSerializedUserImage(i) for i in userProject.images.all()]
@@ -593,8 +594,12 @@ def getSerializedUserProject(userProject: UserProject, isIncludeEvaluation=False
         ]
 
         baseData['evaluationCriteria'] = evaluationCriteria
+
+        evaluationFilter = Q()
+        if employerId:
+            evaluationFilter = Q(employer_id__isnull=True) | Q(employer_id=employerId)
         baseData['evaluations'] = groupBy(
-            userProject.userProjectEvaluationCriterion.all(),
+            userProject.userProjectEvaluationCriterion.filter(evaluationFilter),
             lambda x: x.evaluator_id,
             valTransformFn=getSerializedUserProjectEvaluationCriterion
         )

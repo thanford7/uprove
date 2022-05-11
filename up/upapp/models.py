@@ -337,8 +337,6 @@ class RoleLevel(models.Model):
 class Skill(models.Model):
     name = models.CharField(max_length=100)
     instruction = models.TextField(null=True)
-    isRequired = models.BooleanField(default=0)
-    isRecommended = models.BooleanField(default=1)
     skillProject = models.ForeignKey('Project', on_delete=models.CASCADE, null=True)  # If not populated, it's the default skill
     skillLevelBits = models.SmallIntegerField(null=True)
 

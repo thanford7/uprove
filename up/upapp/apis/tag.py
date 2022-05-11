@@ -18,12 +18,6 @@ class TagView(UproveAPIView):
             tags = Tag.objects.filter(q)
             return Response(status=status.HTTP_200_OK, data=[getSerializedTag(t) for t in tags])
 
-    def post(self, request):
-        pass
-
-    def put(self, request):
-        pass
-
     @staticmethod
     def getTag(tagId):
         return Tag.objects.get(id=tagId)

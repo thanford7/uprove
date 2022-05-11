@@ -13,7 +13,7 @@ class TagSelectize {
         };
         cfg.load = (query, callback) => {
             if (!query.length) return callback();
-            const url = `${globalData.API_URL}/tag/?search=${encodeURIComponent(query)}&tagType=${encodeURIComponent(tagType)}`;
+            const url = `${globalData.API_URL}tag/?search=${encodeURIComponent(query)}&tagType=${encodeURIComponent(tagType)}`;
             $.ajax({
                 url,
                 type: 'GET',

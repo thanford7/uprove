@@ -72,7 +72,7 @@ export default {
             const customProject = {
                 id: `new-${this.newProjectCount}`,
                 projectId,
-                skillIds: skillSelectize.getDefaultSkills(proj.skills),
+                skillIds: proj.skills.map((s) => s.id),
             };
             this.newProjectCount++;
             return customProject;

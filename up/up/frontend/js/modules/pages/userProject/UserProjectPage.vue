@@ -31,7 +31,7 @@
                         </tbody>
                     </table>
                 </CollapseDiv>
-                <CollapseDiv :elId="getNewElUid()" class="mt-2 -border-bottom--light mb-2">
+                <CollapseDiv :elId="getNewElUid()" class="mt-2" :class="(canEvaluate) ? '-border-bottom--light mb-2' : ''">
                     <template v-slot:header>
                         <h5>Project submission</h5>
                     </template>
@@ -66,7 +66,7 @@
                         </div>
                     </div>
                 </CollapseDiv>
-                <CollapseDiv :elId="getNewElUid()">
+                <CollapseDiv v-if="canEvaluate" :elId="getNewElUid()">
                     <template v-slot:header>
                         <h5>Project evaluation</h5>
                     </template>

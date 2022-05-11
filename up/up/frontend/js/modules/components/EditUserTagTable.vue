@@ -11,7 +11,7 @@
                     <tr>
                         <td class="border-bottom-0">
                             <InputSelectize
-                                ref="tag"
+                                :ref="tagRef"
                                 :cfg="getTagSelectizeCfg(tag)"
                                 :elId="getNewElUid()"
                                 :items="tag.id"
@@ -37,7 +37,7 @@
             </template>
         </template>
         <template v-slot:footer>
-            <a v-if="tagType !== tagTypes.SKILL || allTags.length <= skillLimit" href="#" @click="addTag">
+            <a v-if="tagType !== tagTypes.SKILL || allTags.length < skillLimit" href="#" @click="addTag">
                 <i class="fas fa-plus -color-green-text"></i> Add {{tagType}}
             </a>
             <div v-else>
@@ -55,20 +55,20 @@ import dataUtil from "../../utils/data";
 import InfoToolTip from "./InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
 import skillLevelSelectize from "../selectizeCfgs/skillLevels";
-import SkillLevelsSelectize from "../inputs/SkillLevelsSelectize";
 import Table from "./Table";
 import tagSelectize from "../selectizeCfgs/tag";
 
 export default {
     name: "EditUserTagTable",
-    components: {BadgesSkillLevels, InfoToolTip, InputSelectize, SkillLevelsSelectize, Table},
+    components: {BadgesSkillLevels, InfoToolTip, InputSelectize, Table},
     props: ['userTags', 'tagType'],
     data() {
         return {
             headers: this.getHeaders(),
             allTags: [],
             tagTypes: TAG_TYPES,
-            skillLimit: 5
+            skillLimit: 5,
+            tagRef: `tag-${this.getNewElUid()}`
         }
     },
     watch: {
@@ -131,7 +131,7 @@ export default {
                 });
         },
         getTagById(tagId) {
-            return this.$refs.tag.elSel.options[tagId] || {}
+            return this.$refs[this.tagRef][0].elSel.options[tagId] || {};
         },
         hasDuplicate() {
             const tags = this.getTags();
