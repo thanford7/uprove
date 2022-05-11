@@ -2,10 +2,19 @@
     <div>
         <label :for="inputId" class="form-label">{{capitalizedItemLabel}}</label>
         <div v-if="!isUpload" class="mb-1">
-            <img :src="currentItem" style="height: 40px;"><br>
+            <div>
+                <img v-if="isImage" :src="currentItem" style="height: 40px;" :alt="getFileNameFromUrl(currentItem)">
+                <span v-else>{{ getFileNameFromUrl(currentItem) }}</span>
+            </div>
             <a href="#" @click="toggleUpload(true)">Change {{itemLabel}}</a>
         </div>
-        <InputMedia v-if="isUpload" :elId="inputId" :mediaTypes="mediaTypes" @selected="$emit('selectedMediaNew', $event)"/>
+        <InputMedia
+            v-if="isUpload"
+            :elId="inputId"
+            :mediaTypes="mediaTypes"
+            :supportedFormatsOverride="supportedFormatsOverride"
+            @selected="$emit('selectedMediaNew', $event)"
+        />
         <a v-if="!isUploadDefault && !isNewUpload && isUpload" href="#" @click="toggleUpload(false)">Use existing {{itemLabel}}</a>
     </div>
 </template>
@@ -24,7 +33,8 @@ export default {
         isUploadDefault: {
             type: Boolean,
             default: false
-        }
+        },
+        supportedFormatsOverride: [Array, null]
     },
     components: {InputMedia},
     computed: {
@@ -33,6 +43,9 @@ export default {
         },
         isNewUpload() {
             return this.currentItem && this.currentItem instanceof File
+        },
+        isImage() {
+            return this.globalData.ALLOWED_UPLOADS.IMAGE.includes(dataUtil.getFileType(this.currentItem));
         }
     },
     watch: {
@@ -46,6 +59,7 @@ export default {
         }
     },
     methods: {
+        getFileNameFromUrl: dataUtil.getFileNameFromUrl.bind(dataUtil),
         toggleUpload(isShown) {
             this.isUpload = isShown;
             $(`#${this.inputId}`).toggle(isShown);

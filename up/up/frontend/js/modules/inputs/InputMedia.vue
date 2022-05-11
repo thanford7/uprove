@@ -29,15 +29,17 @@ export default {
         }
     },
     computed: {
+        allowedFormats() {
+            return this.supportedFormatsOverride || this.mediaTypes.reduce((allFormats, mediaType) => {
+                allFormats = [...allFormats, this.supportedFormats[mediaType]];
+                return allFormats;
+            }, [])
+        },
         acceptFormatsString() {
-            return this.mediaTypes.map((mediaType) => {
-                return this.supportedFormats[mediaType].map((fileFormat) => `.${fileFormat}`).join(',');
-            }).join(',');
+            return this.allowedFormats.map((fileFormat) => `.${fileFormat}`).join(',');
         },
         supportedFormatsString() {
-            return this.mediaTypes.map((mediaType) => {
-                return this.supportedFormats[mediaType].join(', ');
-            }).join(', ');
+            return this.allowedFormats.join(', ');
         }
     },
     props: {
@@ -45,15 +47,10 @@ export default {
             type: Array,
             required: true
         },
-        isMultiUpload: {
-            type: Boolean
-        },
-        elId: {
-            type: String
-        },
-        value: {
-            type: String
-        }
+        isMultiUpload: Boolean,
+        elId: String,
+        value: String,
+        supportedFormatsOverride: [Array, null]
     },
     methods: {
         clear() {
@@ -64,6 +61,7 @@ export default {
             // Need to destructure files because it is of type "FileList" which doesn't offer array methods
             return (this.isMultiUpload) ? [...files] : files[0];
         }
+
     }
 }
 </script>

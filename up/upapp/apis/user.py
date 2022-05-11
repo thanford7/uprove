@@ -643,6 +643,17 @@ class UserProfileView(UproveAPIView):
         if userInterests := self.data.get('userInterests'):
             self.saveUserTags(self.user, Tag.TYPE_INTEREST, userInterests)
 
+        dataUtil.setObjectAttributes(self.user, self.data, {
+            'city': None,
+            'state_id': {'formName': 'stateId'},
+            'country_id': {'formName': 'countryId'}
+        })
+
+        if resume := self.data.get('newResume'):
+            self.user.resume = resume
+
+        self.user.save()
+
         return self.getProfileOwnerResponse(profile.id)
 
     @staticmethod

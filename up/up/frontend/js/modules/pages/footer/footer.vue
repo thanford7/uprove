@@ -1,7 +1,7 @@
 <template>
     <div class="pt-4 pb-2 ps-4 pe-4 container-lg">
         <div class="row align-items-start mb-2">
-            <div v-for="(section, idx) in sections" :key="idx" class="col-md-3 col-12 mb-2">
+            <div v-for="(section, idx) in sections" :key="idx" class="col-md-3 col-6 mb-2">
                 <ul class="list-table">
                     <li><span class="-text-bold">{{section.header}}</span></li>
                     <li v-for="(item, iIdx) in section.items" :key="iIdx">
@@ -12,7 +12,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="col-md-6 col-12 mb-2">
+            <div class="col-6 mb-2">
                 <img class="logo" :class="(isMobile) ? '' : 'float-end'" :src="globalData.STATIC_URL + 'img/logo.png'" alt="Uprove" height="40" width="118">
             </div>
         </div>

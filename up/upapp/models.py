@@ -28,9 +28,14 @@ def getUploadLocation(relPath):
 
 
 def getUserUploadLocation(instance, filename):
-    if not instance.user:
+    user = None
+    if hasattr(instance, 'user'):
+        user = instance.user
+    elif isinstance(instance, User):
+        user = instance
+    if not user:
         raise PermissionError('User must be logged in to modify uploads')
-    return f'uploads-candidate{"-test/" if settings.DEBUG else "/"}user_{instance.user.id}/{filename}'
+    return f'uploads-candidate{"-test/" if settings.DEBUG else "/"}user_{user.id}/{filename}'
 
 
 def getEmployerUploadLocation(instance, filename):
@@ -82,6 +87,11 @@ class User(AuditFields):
     userTypeBits = models.SmallIntegerField(default=USER_TYPE_CANDIDATE)
     employer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True)
     inviteEmployer = models.ForeignKey('Employer', on_delete=models.SET_NULL, null=True, related_name='inviteEmployer')
+    resume = models.FileField(
+        upload_to=getUserUploadLocation,
+        validators=[FileExtensionValidator(allowed_extensions=['doc', 'docx', 'pdf'])],
+        null=True
+    )
     isDemo = models.BooleanField(default=False)
 
     preferenceCompanySizes = models.ManyToManyField('CompanySize')
@@ -338,16 +348,9 @@ class Skill(models.Model):
     name = models.CharField(max_length=100)
     instruction = models.TextField(null=True)
     skillProject = models.ForeignKey('Project', on_delete=models.CASCADE, null=True)  # If not populated, it's the default skill
-    skillLevelBits = models.SmallIntegerField(null=True)
 
-    def isOverlap(self, otherSkill):
-        """Uniqueness can't be enforced at DB level. This method checks for overlap issues.
-        """
-        return all([
-            self.name == otherSkill.name,
-            self.skillProject_id == otherSkill.skillProject_id,
-            (self.skillLevelBits or UserTag.ALL_SKILL_LEVEL_BITS) & (otherSkill.skillLevelBits or UserTag.ALL_SKILL_LEVEL_BITS)
-        ])
+    class Meta:
+        unique_together = ('name', 'skillProject')
 
 
 class Project(AuditFields):
@@ -373,7 +376,6 @@ class ProjectFile(AuditFields):
     title = models.CharField(max_length=100)
     description = models.TextField(null=True)
     file = models.FileField(upload_to=getUploadLocation('uploads-project'))
-    skillLevelBits = models.SmallIntegerField(default=1)  # TODO: Delete
 
 
 class Employer(AuditFields):

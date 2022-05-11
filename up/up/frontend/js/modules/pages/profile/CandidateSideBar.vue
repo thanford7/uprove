@@ -9,7 +9,7 @@
                         v-if="isOwner"
                         class="fas fa-pencil-alt fa-lg"
                         id="editProfile"
-                        @click="eventBus.emit('open:editProfileModal', initData)"
+                        @click="eventBus.emit('open:editProfileModal', {user, profilePicture, id: profileId})"
                     />
                 </span>
                 <h6 class="-text-center mt-2">{{user.firstName}} {{user.lastName}}</h6>
@@ -71,7 +71,7 @@ import InfoToolTip from "../../components/InfoToolTip";
 import ProgressPill from "../../components/ProgressPill";
 export default {
     name: "CandidateSideBar",
-    props: ['user', 'profilePicture', 'isOwner'],
+    props: ['user', 'profilePicture', 'isOwner', 'profileId'],
     components: {InfoToolTip, ProgressPill},
     computed: {
         location() {
@@ -87,10 +87,5 @@ export default {
             return locationParts.join(', ');
         }
     },
-    methods: {
-        getSkillPct(skill) {
-            return this.globalData.SKILL_LEVEL[skill.skillLevelBit]?.pct;
-        },
-    }
 }
 </script>

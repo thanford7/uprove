@@ -4,7 +4,11 @@
             <div class="badge badge-top -color-darkblue">{{cardItem.role}}</div>
         </template>
         <template v-slot:topImage>
-            <img :src="(cardItem.image) ? cardItem.image : (globalData.STATIC_URL + 'img/logo.png')" class="card-img-top">
+            <img
+                :src="(cardItem.image) ? cardItem.image : (globalData.STATIC_URL + 'img/logo.png')"
+                class="card-img-top"
+                loading="lazy"
+            >
         </template>
         <template v-slot:header>
             {{cardItem.title}}
