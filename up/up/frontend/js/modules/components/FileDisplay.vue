@@ -2,7 +2,7 @@
     <span class="-no-wrap">
         <i class="far" :class="`fa-${fileIcon}`"></i>&nbsp;
         <span>{{(isUseFileName || !file.title) ? file.fileName : file.title}}&nbsp;</span>
-        <a v-if="fileUrl && !isPreventDownload" :href="fileUrl" download style="overflow-wrap: break-word;">
+        <a v-if="fileUrl && !isPreventDownload" :href="fileUrl" download style="overflow-wrap: break-word;" :target="(fileType === FILE_TYPES.PDF) ? '_blank' : ''">
             <i class="fas fa-download"></i>
         </a>&nbsp;
         <span v-if="!fileUrl">{{file.title}}</span>&nbsp;<BadgesSkillLevels v-if="isIncludeSkillLevels" :skillLevels="getSkillLevelsFromBits(file.skillLevelBits)"/>
@@ -28,6 +28,11 @@ export default {
     name: "FileDisplay.vue",
     props: ['file', 'isIncludeDescription', 'isIncludeSkillLevels', 'isUseFileName', 'isPreventDownload'],
     components: {BadgesSkillLevels},
+    data() {
+        return {
+            FILE_TYPES
+        }
+    },
     computed: {
         fileUrl() {
             return this.file.file || this.file.image || this.file.video;

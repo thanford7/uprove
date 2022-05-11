@@ -356,7 +356,7 @@ class UserProjectEvaluationView(UproveAPIView):
             else:
                 UserProjectEvaluationCriterion(
                     userProject_id=userProjectId,
-                    employer_id=employerId,
+                    employer_id=employerId if not self.isAdmin else None,
                     evaluator_id=self.data['evaluatorId'],
                     evaluationCriterion_id=evaluationCriterionData['id'],
                     value=evaluationCriterionData.get('value', 0),

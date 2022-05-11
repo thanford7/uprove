@@ -1306,11 +1306,15 @@ class UserProjectView(UproveAPIView):
         return projects
 
     @staticmethod
-    def getUserProjectScorePct(userProject):
+    def getUserProjectScorePct(userProject, employerId=None):
         # Keep logic in sync with userProject.js
         score = 0
         bestScorePerEvalCriteria = 3
-        evalCriteria = userProject.userProjectEvaluationCriterion.all()
+
+        evalFilter = Q()
+        if employerId:
+            evalFilter = Q(employer_id__isnull=True) | Q(employer_id=employerId)
+        evalCriteria = userProject.userProjectEvaluationCriterion.filter(evalFilter)
         if not evalCriteria:
             return None
 

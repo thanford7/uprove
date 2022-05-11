@@ -11,7 +11,7 @@
                     <tr>
                         <td class="border-bottom-0">
                             <InputSelectize
-                                ref="tag"
+                                :ref="tagRef"
                                 :cfg="getTagSelectizeCfg(tag)"
                                 :elId="getNewElUid()"
                                 :items="tag.id"
@@ -67,7 +67,8 @@ export default {
             headers: this.getHeaders(),
             allTags: [],
             tagTypes: TAG_TYPES,
-            skillLimit: 5
+            skillLimit: 5,
+            tagRef: `tag-${this.getNewElUid()}`
         }
     },
     watch: {
@@ -130,7 +131,7 @@ export default {
                 });
         },
         getTagById(tagId) {
-            return this.$refs.tag.elSel.options[tagId] || {}
+            return this.$refs[this.tagRef][0].elSel.options[tagId] || {};
         },
         hasDuplicate() {
             const tags = this.getTags();
