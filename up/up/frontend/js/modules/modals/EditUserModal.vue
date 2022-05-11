@@ -20,8 +20,15 @@
             <label for="userEmail" class="form-label">Email</label>
             <InputEmail elId="userEmail" placeholder="Required" v-model="formData.email"/>
         </div>
+        <div v-if="isAdmin && isShowAdminFields" class="mb-3">
+            <label for="userPassword" class="form-label">
+                Password
+                <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true" :content="passwordRequirementInfo"/>
+            </label>
+            <input type="password" class="form-control" id="userPassword" placeholder="Optional (auto-generated)" v-model="formData.password">
+        </div>
         <LocationInputs ref="locationInputs" :formData="formData"/>
-        <template v-if="isAdmin && isShowAdminFields" >
+        <template v-if="isAdmin && isShowAdminFields">
             <div class="mb-3">
                 <label for="userTypes" class="form-label">User Types</label>
                 <InputSelectize
@@ -105,7 +112,18 @@ export default {
                 email: '#userEmail',
             },
             successAlertType: SEVERITY.INFO,
-            infoBirthDate: 'We don\'t share age or birth date with employers, but we would like to wish you a happy birthday!'
+            passwordRequirementInfo: `
+                <div>
+                    Password must have:
+                    <ul>
+                        <li>8 characters minimum</li>
+                        <li>At least 1 lowercase letter</li>
+                        <li>At least 1 uppercase letter</li>
+                        <li>At least 1 number</li>
+                        <li>At least one symbol</li>
+                    </ul>
+                </div>
+            `
         }
     },
     computed: {
@@ -167,11 +185,30 @@ export default {
                 {userTypeBits: dataUtil.sum(formData.userTypes)}
             );
         },
+        isGoodPassword(password) {
+            return (
+                password.length >= 8
+                && password.search(/[A-Z]/) >= 0
+                && password.search(/[a-z]/) >= 0
+                && password.search(/[0-9]/) >= 0
+                && password.search(/[^A-Za-z0-9]/) >=0
+                && password.search(/\s/) === -1
+            );
+        },
         isGoodFormFields(formData) {
             if (this.$refs.userTypes && formData.userTypes.includes(USER_BITS.EMPLOYER) !== Boolean(formData.employerId)) {
                 this.addPopover($(this.$refs.userEmployer.targetEl), {
                     severity: SEVERITY.WARN,
                     content: 'Employer and user type of "employer" must both be set',
+                    isOnce: true
+                });
+                return false;
+            }
+
+            if (formData.password && !this.isGoodPassword(formData.password)) {
+                this.addPopover($('#userPassword'), {
+                    severity: SEVERITY.WARN,
+                    content: 'Password does not meet requirements',
                     isOnce: true
                 });
                 return false;

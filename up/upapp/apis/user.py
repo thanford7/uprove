@@ -527,6 +527,10 @@ class UserView(UproveAPIView):
             'is_active': {'formName': 'isActive', 'isIgnoreExcluded': True},
             'is_superuser': {'formName': 'isSuperUser', 'isIgnoreExcluded': True}
         })
+
+        if pwd := data.get('password'):
+            user.djangoUser.set_password(pwd)
+
         user.djangoUser.save()
 
     @staticmethod

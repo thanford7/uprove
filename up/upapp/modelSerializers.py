@@ -383,8 +383,6 @@ def getSerializedSkill(skill: Skill):
         'id': skill.id,
         'name': skill.name,
         'instruction': skill.instruction,
-        'isRequired': skill.isRequired,
-        'isRecommended': skill.isRecommended,
         'projectId': skill.skillProject_id,
         'skillLevelBits': skill.skillLevelBits
     }

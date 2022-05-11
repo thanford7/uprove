@@ -20,22 +20,12 @@
                 v-model="formData.instruction"
             />
         </div>
-        <div class="mb-3">
-            <label for="modalSkillPriority" class="form-label">Priority</label>
-            <InputSelectize
-                ref="skillPriority"
-                elId="modalSkillPriority"
-                :cfg="skillPriorityCfg"
-                @selected="setSkillPriority"
-            />
-        </div>
     </BaseModal>
 </template>
 
 <script>
 import BaseModal from "./BaseModal";
 import InputSelectize from "../inputs/InputSelectize";
-import skillPrioritySelectize from "../selectizeCfgs/skillPriority";
 
 export default {
     name: "EditSkillModal.vue",
@@ -50,16 +40,7 @@ export default {
             requiredFields: {
                 name: '#skillName',
             },
-            skillPriorityCfg: skillPrioritySelectize.cfg
         }
     },
-    methods: {
-        setFormFields() {
-            this.$refs.skillPriority.elSel.setValue(skillPrioritySelectize.getPriorityLabel(this.formData));
-        },
-        setSkillPriority(val) {
-            skillPrioritySelectize.setSkillPriority(val, this.formData);
-        }
-    }
 }
 </script>

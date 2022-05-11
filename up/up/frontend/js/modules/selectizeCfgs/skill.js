@@ -1,5 +1,4 @@
 import dataUtil from "../../utils/data";
-import skillLevels from "./skillLevels";
 
 class SkillSelectize {
     getSkillCfg(skills, {isMulti = true, projectId = null, isIncludeDetails = false, isShowRequired=false, placeholder=null} = {}) {
@@ -28,24 +27,14 @@ class SkillSelectize {
         return Object.assign({maxItems: 1}, cfg);
     }
 
-    getSkillOptions(skills, projectId=null, isShowRequired=false) {
+    getSkillOptions(skills, projectId=null) {
         skills = dataUtil.deepCopy(skills);  // Avoid recursive mutations
-        skillLevels.setSkillLevels(skills);
         return dataUtil.sortBy(
             skills
-                .filter((s) => projectId === s.projectId && (!s.isRequired || isShowRequired))  // Filter out required skills. Those are automatically saved
-                .map((s) => ({value: s.id, text: s.name, skillLevels: s.skillLevels})),
+                .filter((s) => projectId === s.projectId)
+                .map((s) => ({value: s.id, text: s.name})),
             'text'
         );
-    }
-
-    getDefaultSkills(skills) {
-        return skills.reduce((skillIds, skill) => {
-                if (skill.isRecommended) {
-                    skillIds.push(skill.id);
-                }
-                return skillIds;
-            }, []);
     }
 }
 
