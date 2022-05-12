@@ -516,7 +516,7 @@ class UserView(UproveAPIView):
             'city': None,
             'state_id': {'formName': 'stateId'},
             'country_id': {'formName': 'countryId'},
-            'userTypeBits': None,
+            'userTypeBits': {'isProtectExisting': True},
             'employer_id': {'formName': 'employerId'},
             'isDemo': {'isProtectExisting': True}
         })
@@ -555,7 +555,7 @@ class UserView(UproveAPIView):
             lastName=data['lastName'],
             birthDate=dateUtil.deserializeDateTime(data.get('birthDate'), dateUtil.FormatType.DATE, allowNone=True),
             email=data['email'],
-            userTypeBits=data.get('userTypeBits'),
+            userTypeBits=data.get('userTypeBits', User.USER_TYPE_CANDIDATE),
             city=data.get('city'),
             state_id=data.get('stateId'),
             country_id=data.get('countryId'),
