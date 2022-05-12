@@ -81,6 +81,7 @@ const globalDataGetter = () => {
             FILE: ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet']
         },
         CANDIDATE_SUPPORT_EMAIL: 'community@uprove.co',
+        CONTENT_TYPES,
         SEND_EMAIL: 'no_reply@uprove.co',
         EMAIL_CANDIDATE_INTEREST: 'CANDIDATE_INTEREST',
         EMAIL_CONTACT: 'CONTACT',

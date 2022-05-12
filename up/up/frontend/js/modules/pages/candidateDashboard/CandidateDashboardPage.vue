@@ -31,7 +31,7 @@
                             data-bs-toggle="tab" data-bs-target="#resources"
                             type="button" role="tab" aria-selected="false"
                             @click="setTabParam('resources')"
-                        >Resources
+                        >Uploads
                         </button>
                     </li>
                 </ul>

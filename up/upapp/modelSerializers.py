@@ -126,6 +126,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'country': user.country.countryName if user.country else None,
         'countryId': user.country.id if user.country else None,
         'userTypeBits': user.userTypeBits,
+        'resume': user.resume.url if user.resume else None,
         'isStaff': user.djangoUser.is_staff,
         'isActive': user.djangoUser.is_active,
         'isSuperUser': user.djangoUser.is_superuser,
@@ -386,7 +387,6 @@ def getSerializedSkill(skill: Skill):
         'name': skill.name,
         'instruction': skill.instruction,
         'projectId': skill.skillProject_id,
-        'skillLevelBits': skill.skillLevelBits
     }
 
 

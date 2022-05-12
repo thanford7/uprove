@@ -1,7 +1,12 @@
 <template>
     <BasePage>
         <div class="row justify-content-center">
-            <CandidateSideBar :user="initData.user" :isOwner="initData.isOwner" :profilePicture="initData.profilePicture"/>
+            <CandidateSideBar
+                :user="initData.user"
+                :isOwner="initData.isOwner"
+                :profilePicture="initData.profilePicture"
+                :profileId="initData.id"
+            />
             <div class="col-md-6 ms-md-2">
                 <div
                     v-for="(section, idx) in initData.sections"

@@ -355,12 +355,6 @@ class SkillView(APIView):
             'instruction': None,
             'skillProject_id': {'formName': 'projectId'},
         })
-        similarSkills = Skill.objects.select_related('skillProject').filter(name=skill.name, skillProject_id=skill.skillProject_id)
-        for similarSkill in similarSkills:
-            if skill.id == similarSkill.id:
-                continue
-            if skill.isOverlap(similarSkill):
-                raise ValueError(f'Two skills with name of "{skill.name}" and project "{skill.skillProject.title}" have overlapping skill levels')
         skill.save()
         return isUpdated
 

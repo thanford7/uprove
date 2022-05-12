@@ -5,22 +5,36 @@
         :isLargeDisplay="true"
         @saveChange="saveChange"
     >
-        <div class="mb-3">
-            <InputOrViewMedia
-                :inputId="getNewElUid()"
-                :mediaTypes="[contentTypes.IMAGE]"
-                itemLabel="profile picture"
-                :currentItem="formData?.profilePicture?.image"
-                :isUploadDefault="!formData.profilePicture"
-                @selectedMediaNew="formData.newProfilePicture = $event"
-            />
-        </div>
-        <div class="mb-3">
-            <EditUserTagTable ref="userSkills" :userTags="initData.user.skills" :tagType="tagTypes.SKILL"/>
-        </div>
-        <div class="mb-3">
-            <EditUserTagTable ref="userInterests" :userTags="initData.user.interests" :tagType="tagTypes.INTEREST"/>
-        </div>
+        <template v-if="!isEmptyOrNil(formData)">
+            <div class="mb-3">
+                <InputOrViewMedia
+                    :inputId="getNewElUid()"
+                    :mediaTypes="[contentTypes.IMAGE]"
+                    itemLabel="profile picture"
+                    :currentItem="formData?.profilePicture?.image"
+                    :isUploadDefault="!formData.profilePicture"
+                    @selectedMediaNew="formData.newProfilePicture = $event"
+                />
+            </div>
+            <div class="mb-3">
+                <InputOrViewMedia
+                    :inputId="getNewElUid()"
+                    :mediaTypes="[contentTypes.FILE]"
+                    :supportedFormatsOverride="['doc', 'docx', 'pdf']"
+                    itemLabel="resume"
+                    :currentItem="formData.user.resume"
+                    :isUploadDefault="!formData.user.resume"
+                    @selectedMediaNew="formData.newResume = $event"
+                />
+            </div>
+            <LocationInputs :formData="formData.user"/>
+            <div class="mb-3">
+                <EditUserTagTable ref="userSkills" :userTags="initData.user.skills" :tagType="tagTypes.SKILL"/>
+            </div>
+            <div class="mb-3">
+                <EditUserTagTable ref="userInterests" :userTags="initData.user.interests" :tagType="tagTypes.INTEREST"/>
+            </div>
+        </template>
     </BaseModal>
 </template>
 <script>
@@ -28,6 +42,7 @@ import {CONTENT_TYPES, SEVERITY, TAG_TYPES} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import EditUserTagTable from "../components/EditUserTagTable";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
+import LocationInputs from "../inputs/LocationInputs";
 import dataUtil from "../../utils/data";
 
 export default {
@@ -36,15 +51,16 @@ export default {
         return {
             modalName: 'editProfileModal',
             crudUrl: 'user-profile/',
-            isUpdateData: true,
-            mediaFields: new Set(['newProfilePicture']),
+            isHardRefresh: true,
+            mediaFields: new Set(['newProfilePicture', 'newResume']),
             contentTypes: CONTENT_TYPES,
             tagTypes: TAG_TYPES
         }
     },
     inheritAttrs: false,
-    components: {BaseModal, EditUserTagTable, InputOrViewMedia},
+    components: {BaseModal, EditUserTagTable, InputOrViewMedia, LocationInputs},
     methods: {
+        isEmptyOrNil: dataUtil.isEmptyOrNil.bind(dataUtil),
         isGoodFormFields(formData) {
             if(this.$refs.userSkills.hasDuplicate()) {
                 this.addPopover($(this.$refs.userSkills.$el),
@@ -64,7 +80,11 @@ export default {
             const userSkills = this.$refs.userSkills.getTags();
             const userInterests = this.$refs.userInterests.getTags();
             return Object.assign(
-                dataUtil.pick(this.readForm(), ['id', 'profilePicture', 'newProfilePicture']),
+                dataUtil.pick(
+                    this.readForm(),
+                    ['id', 'profilePicture', 'newProfilePicture', 'newResume']
+                ),
+                dataUtil.pick(this.formData.user, ['city', 'stateId', 'countryId']),
                 {userInterests, userSkills}
             );
         },
