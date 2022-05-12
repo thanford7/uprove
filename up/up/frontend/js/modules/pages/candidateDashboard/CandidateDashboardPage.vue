@@ -54,7 +54,7 @@
                                 <template v-slot:header>
                                     {{ userProject.customProject.projectTitle }}
                                     <span
-                                        v-if="userProject.files.length"
+                                        v-if="getFileCount(userProject)"
                                         class="fa-stack fa-stack-sm float-end"
                                         :title="`${pluralize('file', getFileCount(userProject))} uploaded`"
                                     >
@@ -86,7 +86,7 @@
                                             <input class="form-check-input" type="checkbox" id="projectStatus"
                                                    :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
                                                    @change="toggleProjectComplete(userProject, $event)"
-                                                   :disabled="userProject.isLocked || !userProject.files.length"
+                                                   :disabled="userProject.isLocked || !getFileCount(userProject)"
                                             >
                                             <label class="form-check-label" for="projectStatus">
                                                 <span v-if="userProject.isLocked"><i
@@ -138,7 +138,6 @@
                     <div class="tab-pane fade" :class="(currentTab === 'applications') ? 'show active': ''"
                          id="applications" role="tabpanel">
                         <div
-                            v-if="initData.jobApplications && initData.jobApplications.length"
                             class="table-responsive-md"
                         >
                             <Table
@@ -153,7 +152,7 @@
                             {value: 'Status', sortFn: getApplicationStatus},
                         ]
                     ]"
-                                emptyDataMessage="No job applications"
+                                emptyDataMessage="No job applications. <a href='/jobs/'>Search jobs</a> to get started."
                             >
                                 <template v-slot:body>
                                     <tr v-for="jobApplication in initData.jobApplications" class="hover-menu">
@@ -195,46 +194,31 @@
                     </div>
                     <div class="tab-pane fade" :class="(currentTab === 'resources') ? 'show active': ''"
                          id="resources" role="tabpanel">
-                        <div v-if="initData.user.videos?.length" class="row">
-                            <h5>Videos</h5>
-                            <div v-for="video in initData.user.videos"
-                                 class="col-md-5 m-2 p-2 -hover-highlight-border"
-                                 style="position: relative;"
-                            >
-                                <div>
-                                    <h6>{{ video.title }}</h6>
-                                    <video controls :src="video.video"></video>
-                                </div>
-                                <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
-                                              :isSmall="true"
-                                              @click="deleteVideo(video.id)"
-                                />
-                            </div>
+                        <div v-if="!initData.user.videos?.length && !initData.user.images?.length && !initData.user.files?.length">
+                            No current uploads
                         </div>
-                        <div v-if="initData.user.images?.length" class="row">
-                            <h5>Images</h5>
-                            <div v-for="image in initData.user.images"
-                                 class="col-md-5 m-2 p-2 -hover-highlight-border"
-                                 style="position: relative;"
-                            >
-                                <div>
-                                    <h6>{{ image.title }}</h6>
-                                    <img :src="image.image">
+                        <div v-if="initData.user.videos?.length" class="row justify-content-around mt-3">
+                            <template v-for="file in [...initData.user.videos, ...initData.user.images, ...initData.user.files]">
+                                <div class="col-md-6 col-12 mb-3">
+                                    <h6 class="text-center project-item-title">
+                                        <FileDisplay :file="file"/>
+                                        <i
+                                            class="fas fa-trash -color-red-text"
+                                            @click="deleteVideo(video.id)"
+                                            style="cursor: pointer;"
+                                        ></i>
+                                    </h6>
+                                    <div class="project-item d-flex align-items-center justify-content-center">
+                                        <video v-if="file.type === CONTENT_TYPES.VIDEO" controls :src="file.video"/>
+                                        <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image" class="project-file-image">
+                                        <img v-if="file.type === CONTENT_TYPES.FILE && file.thumbnail" :src="file.thumbnail" class="project-file-image">
+                                        <div v-if="file.type === CONTENT_TYPES.FILE && !file.thumbnail" class="p-2">
+                                            <div class="text-center"><i class="fas fa-file fa-4x"></i></div>
+                                            <div class="-text-medium" style="margin: 0 auto;">No file image available</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <ButtonDelete class="-absolute-top-right -absolute-top-right-padded"
-                                              :isSmall="true"
-                                              @click="deleteImage(image.id)"
-                                />
-                            </div>
-                        </div>
-                        <div v-if="initData.user.files?.length" class="row">
-                            <h5>Files</h5>
-                            <div v-for="file in initData.user.files" class="col-6 col-md-4 m-2 -hover-highlight-border">
-                                <div>
-                                    <FileDisplay :file="file"/>
-                                    <ButtonDelete :isSmall="true" @click="deleteFile(file.id)"/>
-                                </div>
-                            </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -261,9 +245,7 @@
                         No current job suggestions.
                         <a href="#"
                            @click="eventBus.emit('open:editJobPreferencesModal', initData.user.preferences)"
-                        >
-                            Update your job preferences
-                        </a> to find great matches!
+                        >Update your job preferences</a> to find great matches!
                     </div>
                 </div>
             </div>
@@ -276,7 +258,7 @@
 </template>
 
 <script>
-import {PROJECT_STATUSES} from '../../../globalData';
+import {CONTENT_TYPES, PROJECT_STATUSES} from '../../../globalData';
 import AddVideoRecordingModal from "../../modals/AddVideoRecordingModal";
 import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
@@ -326,6 +308,7 @@ export default {
             isHardRefresh: true,
             confirmDelete: false,  // Delete confirmation is done directly in this file
             CONTENT,
+            CONTENT_TYPES,
             projectStatuses: PROJECT_STATUSES,
             loadRoutes: [{route: 'user-job-rec/', dataKey: 'jobSuggestions'}],
             applicationInfoContent: `

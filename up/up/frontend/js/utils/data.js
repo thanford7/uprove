@@ -58,6 +58,9 @@ class DataUtil {
     }
 
     getFileNameFromUrl(fileUrl) {
+        if (!fileUrl) {
+            return null;
+        }
         const [fileName] = fileUrl.split('/').slice(-1);
         return fileName;
     }
@@ -165,15 +168,30 @@ class DataUtil {
 
     getApplicationStatus(jobApplication) {
         if (jobApplication.withdrawDateTime) {
-            return `${APPLICATION_STATUS.WITHDRAWN} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
+            return APPLICATION_STATUS.WITHDRAWN;
         } else if (jobApplication.approveDateTime) {
-            return `${APPLICATION_STATUS.APPROVED} ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
+            return APPLICATION_STATUS.APPROVED;
         } else if (jobApplication.declineDateTime) {
-            return `${APPLICATION_STATUS.DECLINED} ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
+            return APPLICATION_STATUS.DECLINED;
         } else if (jobApplication.submissionDateTime) {
-            return `${APPLICATION_STATUS.SUBMITTED} ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
+            return APPLICATION_STATUS.SUBMITTED;
         } else {
             return APPLICATION_STATUS.NOT_SUBMITTED;
+        }
+    }
+
+    getApplicationStatusText(jobApplication) {
+        const status = this.getApplicationStatus(jobApplication);
+        if (status === APPLICATION_STATUS.WITHDRAWN) {
+            return `${status} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
+        } else if (status === APPLICATION_STATUS.APPROVED) {
+            return `${status} ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
+        } else if (status === APPLICATION_STATUS.DECLINED) {
+            return `${status} ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
+        } else if (status === APPLICATION_STATUS.SUBMITTED) {
+            return `${status} ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
+        } else {
+            return status;
         }
     }
 

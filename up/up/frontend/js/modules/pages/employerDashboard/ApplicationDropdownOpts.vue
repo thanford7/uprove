@@ -1,9 +1,9 @@
 <template>
     <HamburgerDropdown :elId="getNewElUid()">
-        <li>
-            <a class="dropdown-item" href="#"><i class="far fa-envelope"></i>
-                Message</a>
-        </li>
+<!--        <li>-->
+<!--            <a class="dropdown-item" href="#"><i class="far fa-envelope"></i>-->
+<!--                Message</a>-->
+<!--        </li>-->
         <li
             v-if="getApplicationStatus(application) !== APPLICATION_STATUS.NOT_SUBMITTED && application.userProject"
         >

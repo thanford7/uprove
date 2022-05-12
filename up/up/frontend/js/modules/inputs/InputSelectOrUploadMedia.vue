@@ -26,7 +26,7 @@ export default {
     data() {
         return {
             uploadVal: null,
-            isUpload: false,
+            isUpload: true,
             selectedVal: null,
         }
     },
@@ -60,7 +60,7 @@ export default {
         }
     },
     mounted() {
-        this.toggleUpload(false);
+        this.toggleUpload(this.isUpload);
     }
 }
 </script>

@@ -295,3 +295,10 @@ div.skewer-container {
     font-weight: 900;
     border-left: 2px solid colors.$color-darkblue;
 }
+
+.circle-counter {
+    display: inline-block;
+    border-radius: 100px;
+    padding-left: 4px;
+    padding-right: 4px;
+}

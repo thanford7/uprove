@@ -111,7 +111,7 @@
                                 Save evaluation
                             </button>
                         </div>
-                        <div v-for="evals in Object.values(initData.userProject.evaluations)">
+                        <div v-for="evals in Object.values(initData.userProject.evaluations)" class="mb-2">
                             <div>
                                 <span class="-text-bold">{{getEvaluatorLabel(evals[0])}}&nbsp;</span>
                                 <span

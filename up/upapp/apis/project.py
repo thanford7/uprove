@@ -246,6 +246,14 @@ class ProjectView(UproveAPIView):
 
 class RoleView(UproveAPIView):
 
+    def get(self, request, roleId=None):
+        if roleId:
+            return Response(status=status.HTTP_200_OK, data=getSerializedRole(self.getRole(roleId)))
+
+        return Response(status=status.HTTP_200_OK, data=[
+            getSerializedRole(r) for r in Role.objects.all()
+        ])
+
     def post(self, request):
         if not self.isAdmin:
             return Response(status=status.HTTP_401_UNAUTHORIZED)

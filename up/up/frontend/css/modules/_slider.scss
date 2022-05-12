@@ -1,0 +1,32 @@
+@use 'colors';
+
+.slidecontainer {
+    width: 100%;
+}
+
+.slider {
+    -webkit-appearance: none; /* Override default CSS styles */
+    appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: colors.$color-lightgrey;
+    outline: none;
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+
+    &:hover {
+        opacity: 1; /* Fully shown on mouse-over */
+    }
+
+    /* Slider handle */
+    &::-webkit-slider-thumb, &::-moz-range-thumb {
+        -webkit-appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: colors.$color-darkblue;
+        cursor: pointer;
+    }
+}

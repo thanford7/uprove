@@ -93,6 +93,12 @@ const globalDataGetter = () => {
             'Contracted',
             'Internship'
         ],
+        JOB_STATUS: {
+            CLOSED: 'CLOSED',
+            PAUSED: 'PAUSED',
+            OPEN: 'OPEN',
+            DRAFT: 'DRAFT'
+        },
         LOOM_API_KEY: 'db47f7c0-e863-4ed8-ac6e-2c9872ad5c00',
         // Number of days that a project cannot be updated after its status is changed to "COMPLETE"
         // This prevents candidates from changing the project once it has been submitted to an employer

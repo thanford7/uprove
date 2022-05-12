@@ -55,6 +55,25 @@
         <div class="tab-content mb-3" id="employerTabContent">
             <div class="tab-pane fade" :class="(currentTab === 'job-openings') ? 'show active': ''" id="job-openings" role="tabpanel">
                 <div class="mb-2 d-flex justify-content-end">
+                    <FilterDropdownMenu class="-pull-left" :filters="jobsFilter" dropdownHeader="Filters">
+                        <div class="ps-2 pe-2">
+                            <RolesSelectize
+                                placeholder="Role"
+                                :roleIds="jobRoleIds"
+                                @selected="jobsFilter.roles = $event"
+                            />
+                            <InputSelectize
+                                :elId="getNewElUid()"
+                                placeholder="Status"
+                                :cfg="{
+                                    plugins: ['remove_button'],
+                                    maxItems: null,
+                                    options: Object.values(globalData.JOB_STATUS).map((v) => ({value: v, text: v}))
+                                }"
+                                @selected="jobsFilter.statuses = $event"
+                            />
+                        </div>
+                    </FilterDropdownMenu>
                     <button type="button" class="btn btn-primary me-2"
                             @click="eventBus.emit('open:editJobPostingModal')">
                         Create job posting
@@ -69,7 +88,6 @@
                 </div>
                 <div class="table-responsive-md">
                     <Table
-                        class="mt-3"
                         :data="initData.employer.jobs"
                         :headers="[
                             [{colspan: 3}, {value: 'Applicants', colspan: 4, classes: 'text-center border-start'}],
@@ -79,14 +97,14 @@
                                 {value: 'Status', sortFn: getJobStatus},
                                 {value: 'Invited', classes: 'text-center border-start'},
                                 {value: 'Applied', classes: 'text-center'},
-                                {value: 'Selected', classes: 'text-center'},
+                                {value: 'Approved', classes: 'text-center'},
                                 {value: 'Declined', classes: 'text-center'}
                             ]
                         ]"
                         emptyDataMessage="Post your first job"
                     >
                         <template v-slot:body>
-                            <tr v-for="job in initData.employer.jobs" class="hover-menu">
+                            <tr v-for="job in filteredJobs" class="hover-menu">
                                 <td>
                                     <HamburgerDropdown :elId="getNewElUid()">
                                         <li>
@@ -103,7 +121,16 @@
                                         </li>
                                     </HamburgerDropdown>
                                 </td>
-                                <td title="View job posting"><a :href="`/job-posting/${job.id}/`">{{ job.jobTitle }}</a>
+                                <td title="View job posting">
+                                    <InfoToolTip
+                                        v-if="!job.roleId"
+                                        :elId="getNewElUid()"
+                                        content="This job does not have a standardized role and will not show up in job searches"
+                                        :isExcludeInfoCircle="true"
+                                    >
+                                        <i class="fas fa-exclamation-triangle -color-orange-text"></i>&nbsp;
+                                    </InfoToolTip>
+                                    <a :href="`/job-posting/${job.id}/`">{{ job.jobTitle }}</a>
                                 </td>
                                 <td>{{ getJobStatus(job) }}</td>
                                 <td class="text-center border-start">
@@ -124,6 +151,49 @@
                 </div>
             </div>
             <div class="tab-pane fade" :class="(currentTab === 'applications') ? 'show active': ''" id="applications" role="tabpanel">
+                <div class="mb-2">
+                    <FilterDropdownMenu class="-pull-left" :filters="applicantsFilter" dropdownHeader="Filters">
+                        <div class="ps-2 pe-2">
+                            <InputSelectize
+                                :elId="getNewElUid()"
+                                placeholder="Status"
+                                :cfg="{
+                                    plugins: ['remove_button'],
+                                    maxItems: null,
+                                    options: Object.values(APPLICATION_STATUS).map((v) => ({value: v, text: v}))
+                                }"
+                                @selected="applicantsFilter.statuses = $event"
+                            />
+                            <InputSelectize
+                                ref="jobTitleFilter"
+                                :elId="getNewElUid()"
+                                placeholder="Job title"
+                                :cfg="{
+                                    plugins: ['remove_button'],
+                                    maxItems: null,
+                                    sortField: 'text'
+                                }"
+                                @selected="applicantsFilter.jobTitle = $event"
+                            />
+                            <InputSelectize
+                                ref="projectFilter"
+                                :elId="getNewElUid()"
+                                placeholder="Project"
+                                :cfg="{
+                                    plugins: ['remove_button'],
+                                    maxItems: null,
+                                    sortField: 'text'
+                                }"
+                                @selected="applicantsFilter.project = $event"
+                            />
+                            <RangeSlider
+                                :elId="getNewElUid()"
+                                title="Project score"
+                                @changed="applicantsFilter.projectScore = $event"
+                            />
+                        </div>
+                    </FilterDropdownMenu>
+                </div>
                 <div class="table-responsive-md">
                     <Table
                         class="mt-3"
@@ -131,8 +201,7 @@
                         :headers="[
                                 [
                                     {},
-                                    {value: 'First name', sortFn: 'user.firstName'},
-                                    {value: 'Last name', sortFn: 'user.lastName'},
+                                    {value: 'Name', sortFn: 'user.firstName'},
                                     {value: 'Status', sortFn: getApplicationStatus},
                                     {value: 'Job title', sortFn: 'job.jobTitle'},
                                     {value: 'Project', sortFn: 'userProjectTitle'},
@@ -142,13 +211,20 @@
                         emptyDataMessage="No job applications"
                     >
                         <template v-slot:body>
-                            <tr v-for="application in applications" class="hover-menu">
+                            <tr v-for="application in filteredApplications" class="hover-menu">
                                 <td>
                                     <ApplicationDropdownOpts :application="application" :applications="applications"/>
                                 </td>
-                                <td>{{ application.user.firstName }}</td>
-                                <td>{{ application.user.lastName }}</td>
-                                <td>{{ getApplicationStatus(application) }}</td>
+                                <td>
+                                    <a
+                                        :href="`/profile/${application.user.profileId}/`"
+                                        :title="`${application.user.firstName} ${application.user.lastName}'s Profile`"
+                                        target="_blank"
+                                    >
+                                        {{ application.user.firstName }} {{ application.user.lastName }}
+                                    </a>
+                                </td>
+                                <td>{{ getApplicationStatusText(application) }}</td>
                                 <td>{{ application.job.jobTitle }}</td>
                                 <td v-if="application.userProjectTitle" @click="redirectUrl(`/user-project/${application.userProjectId}/`, true)">
                                     {{application.userProjectTitle}} <i class="fas fa-external-link-alt"></i>
@@ -325,23 +401,25 @@ import BasePage from "../base/BasePage";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import EditUserModal from "../../modals/EditUserModal";
+import FilterDropdownMenu from "../../components/FilterDropdownMenu";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
 import InputSelectize from "../../inputs/InputSelectize";
 import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 import leverIntegration from "../../../utils/leverIntegration";
+import RangeSlider from "../../components/RangeSlider";
 import Table from "../../components/Table";
 import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 import LeverWebhook from "./LeverWebhook";
 import userProject from "../../../utils/userProject";
+import RolesSelectize from "../../inputs/RolesSelectize";
 
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        LeverWebhook,
         ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditEmployerModal,
-        EditJobPostingModal, EditUserModal, HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal,
-        Table, ViewCandidateApplicationModal
+        EditJobPostingModal, EditUserModal, FilterDropdownMenu, HamburgerDropdown, InfoToolTip, InputSelectize,
+        InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table, ViewCandidateApplicationModal
     },
     data() {
         return {
@@ -350,9 +428,48 @@ export default {
             sortKeysJobPostingTable: [],
             leverData: {},
             leverWebhookTypes: leverIntegration.TYPES,
+            jobsFilter: {},
+            applicantsFilter: {}
         }
     },
     computed: {
+        jobRoleIds() {
+            return dataUtil.uniqArray(initData.employer.jobs.map((j) => j.roleId));
+        },
+        filteredApplications() {
+            return this.applications.filter((application) => {
+                if (this.applicantsFilter?.statuses?.length && !this.applicantsFilter.statuses.includes(this.getApplicationStatus(application))) {
+                    return false;
+                }
+
+                if (this.applicantsFilter?.jobTitle?.length && !this.applicantsFilter.jobTitle.includes(application.job.jobTitle)) {
+                    return false;
+                }
+
+                if (this.applicantsFilter?.project?.length && !this.applicantsFilter.project.includes(application.userProjectTitle)) {
+                    return false;
+                }
+
+                if (this.applicantsFilter.projectScore && application.userProjectScorePct < this.applicantsFilter.projectScore) {
+                    return false;
+                }
+
+                return true;
+            });
+        },
+        filteredJobs() {
+            return this.initData.employer.jobs.filter((job) => {
+                if (this.jobsFilter?.roles?.length && !this.jobsFilter.roles.includes(job.roleId)) {
+                    return false;
+                }
+
+                if (this.jobsFilter?.statuses?.length && !this.jobsFilter.statuses.includes(this.getJobStatus(job))) {
+                    return false;
+                }
+
+                return true;
+            });
+        },
         userTableHeaders() {
             const baseHeaders = [
                     {},
@@ -372,9 +489,10 @@ export default {
         }
     },
     methods: {
-        declineApplication: userProject.declineApplication,
-        approveApplication: userProject.approveApplication,
-        getApplicationStatus: dataUtil.getApplicationStatus,
+        declineApplication: userProject.declineApplication.bind(userProject),
+        approveApplication: userProject.approveApplication.bind(userProject),
+        getApplicationStatus: dataUtil.getApplicationStatus.bind(dataUtil),
+        getApplicationStatusText: dataUtil.getApplicationStatusText.bind(dataUtil),
         leverLogin: function (isOn) {
             if (isOn) {
                 leverIntegration.login();
@@ -395,15 +513,15 @@ export default {
         },
         getJobStatus(job) {
             if (job.closeDate) {
-                return 'CLOSED';
+                return this.globalData.JOB_STATUS.CLOSED;
             }
             if (job.pauseDate) {
-                return 'PAUSED';
+                return this.globalData.JOB_STATUS.PAUSED;
             }
             if (job.openDate) {
-                return 'OPEN'
+                return this.globalData.JOB_STATUS.OPEN;
             }
-            return 'DRAFT';
+            return this.globalData.JOB_STATUS.DRAFT;
         },
     },
     async mounted() {
@@ -416,6 +534,12 @@ export default {
                 return app;
             })];
         }, []);
+
+        const jobTitles = dataUtil.uniqArray(this.applications.map((a) => a.job.jobTitle));
+        this.$refs.jobTitleFilter.resetOptions(jobTitles.map((v) => ({value: v, text: v})));
+
+        const projects = dataUtil.uniqArray(this.applications.map((a) => a.userProjectTitle));
+        this.$refs.projectFilter.resetOptions(projects.map((v) => ({value: v, text: v})));
 
         this.currentTab = 'job-openings';
         this.setTabFromParams();

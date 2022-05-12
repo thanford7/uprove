@@ -1,6 +1,7 @@
 import tempfile
 import urllib.request
 from email.mime.image import MIMEImage
+from math import ceil
 from subprocess import CalledProcessError
 
 import ffmpeg as ffmpeg
@@ -1332,7 +1333,7 @@ class UserProjectView(UproveAPIView):
         for criterion in evalCriteria:
             score += criterion.value
 
-        return round((score / (bestScorePerEvalCriteria * len(evalCriteria))) * 100)
+        return ceil((score / (bestScorePerEvalCriteria * len(evalCriteria))) * 100)
 
 
 

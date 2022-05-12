@@ -9,6 +9,7 @@
 @use 'modules/header';
 @use 'modules/lists';
 @use 'modules/selectize';
+@use 'modules/slider';
 @use 'modules/standalone';
 @use 'modules/text';
 @use 'modules/tiptap';
@@ -45,6 +46,7 @@ body {
     height: 100vh;
     margin: 0;
     background-color: rgba(colors.$color-lightgrey, .2);
+    word-wrap: break-word;
 }
 
 .mobile {

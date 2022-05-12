@@ -14,7 +14,7 @@ import dataUtil from "../../utils/data";
 
 export default {
     name: "RolesSelectize",
-    props: ['roles', 'placeholder'],
+    props: ['roleIds', 'placeholder'],
     components: {InputSelectize},
     data() {
         return {
@@ -24,17 +24,22 @@ export default {
     },
     computed: {
         rolesCfg() {
-            const cfg = {
+            return {
+                valueField: 'id',
+                labelField: 'name',
+                searchField: 'name',
                 plugins: ['remove_button'],
                 maxItems: null,
-                options: dataUtil.sortBy(this.roles.map((r) => ({value: r.id, text: r.name})), 'text')
             };
-            return cfg;
         }
     },
     mounted() {
         this.targetEl = this.$refs.roles.targetEl;
         this.elSel = this.$refs.roles.elSel;
+    },
+    async created() {
+        await this.loadData([{route: 'project-role/', dataKey: 'roles'}]);
+        this.$refs.roles.resetOptions(this.cData.roles.filter((r) => !this.roleIds || this.roleIds.includes(r.id)));
     }
 }
 </script>
