@@ -113,7 +113,7 @@
                     :isHideProjects="true"
                 >
                     <template v-slot:top>
-                        <AccordionItem :accordionElId="$refs.jobPosting.accordionElId" :elId="getNewElUid()"
+                        <AccordionItem v-if="$refs.jobPosting" :accordionElId="$refs.jobPosting.accordionElId" :elId="getNewElUid()"
                                        :isOpen="true">
                             <template v-slot:header>
                                 Overview
