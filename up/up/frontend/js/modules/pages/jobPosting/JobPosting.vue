@@ -68,7 +68,7 @@ export default {
     },
     methods: {
         getProject(customProject) {
-            return (this.cData.projects || []).find((p) => p.id === customProject.projectId);
+            return initData.projects[customProject.projectId];
         },
         getProjectInstructions(customProject) {
             const project = this.getProject(customProject);
@@ -84,11 +84,11 @@ export default {
         },
         getProjectFiles(customProject) {
             const project = this.getProject(customProject);
+            if (!project) {
+                return [];
+            }
             return project.files;
         },
-    },
-    async created() {
-        await this.loadData([{route: `project?employerId=${this.employer.id}`, dataKey: 'projects'}]);
     }
 }
 </script>
