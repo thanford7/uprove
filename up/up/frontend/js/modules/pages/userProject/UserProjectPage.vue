@@ -1,8 +1,8 @@
 <template>
     <BasePage>
-        <div class="row mt-4 justify-content-around">
-            <div class="col-md-5 card-custom card-custom--no-side-margin">
-                <div class="-border-bottom--light">
+        <div class="row justify-content-around mt-4">
+            <div class="col-md-5 card-custom card-custom--no-side-margin p-0 mt-2">
+                <div class="ps-3 pe-3">
                     <h5 class="-skew-top-left">
                         <EvaluationScoreBadge :evalScorePct="userProject.projectEvalScorePct"/>
                     </h5>
@@ -10,7 +10,7 @@
                 </div>
                 <CollapseDiv v-if="userProject.applications.length" :elId="getNewElUid()" class="mt-2 mb-2">
                     <template v-slot:header>
-                        <h5>Current job applications</h5>
+                        Current job applications
                     </template>
                     <table class="table table-hover">
                         <thead>
@@ -31,9 +31,9 @@
                         </tbody>
                     </table>
                 </CollapseDiv>
-                <CollapseDiv :elId="getNewElUid()" class="mt-2" :class="(canEvaluate) ? '-border-bottom--light mb-2' : ''">
+                <CollapseDiv :elId="getNewElUid()" class="mt-2">
                     <template v-slot:header>
-                        <h5>Project submission</h5>
+                        Project submission
                     </template>
                     <div v-if="!isEmptyString(userProject.projectNotes)" class="mb-3">
                         <label class="form-label">Notes</label>
@@ -152,7 +152,7 @@
                 </CollapseDiv>
             </div>
             <ProjectAccordion
-                class="col-md-6 card-custom--no-side-margin"
+                class="col-md-6 card-custom--no-side-margin mt-2"
                 :project="initData.project"
                 :skillIds="initData.userProject.customProject.skills.map((s) => s.id)"
                 :skills="initData.userProject.customProject.skills"

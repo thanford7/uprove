@@ -40,7 +40,7 @@ class UserProjectUtil {
             return total;
         }, 0);
         const bestScore = evalCriteria.length * 3;
-        return Math.round((score / bestScore) * 100);
+        return Math.ceil((score / bestScore) * 100);
     }
 
     getEvalPopoverHtml() {

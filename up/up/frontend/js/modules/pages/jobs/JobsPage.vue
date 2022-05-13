@@ -113,28 +113,23 @@
                     :isHideProjects="true"
                 >
                     <template v-slot:top>
-                        <AccordionItem v-if="$refs.jobPosting" :accordionElId="$refs.jobPosting.accordionElId" :elId="getNewElUid()"
-                                       :isOpen="true">
-                            <template v-slot:header>
-                                Overview
-                            </template>
-                            <template v-slot:body>
-                                <div class="row">
-                                    <div class="col-9">
-                                        <h5>{{ selectedJob.jobTitle }}</h5>
-                                        <h6>{{ getEmployer(selectedJob.employerId).companyName }} |
-                                            {{ getLocationStr(selectedJob) }}</h6>
-                                    </div>
-                                    <div class="col-3">
-                                        <JobApplyBtn
-                                            v-if="getApplicationUrl(selectedJob)"
-                                            :applicationUrl="getApplicationUrl(selectedJob)"
-                                        />
-                                    </div>
+                        <CollapseDiv :elId="getNewElUid()">
+                            <template v-slot:header>Overview</template>
+                            <div class="row">
+                                <div class="col-9">
+                                    <h5>{{ selectedJob.jobTitle }}</h5>
+                                    <h6>{{ getEmployer(selectedJob.employerId).companyName }} |
+                                        {{ getLocationStr(selectedJob) }}</h6>
                                 </div>
-                                <JobHelpLinks :job="selectedJob" :employer="getEmployer(selectedJob.employerId)"/>
-                            </template>
-                        </AccordionItem>
+                                <div class="col-3">
+                                    <JobApplyBtn
+                                        v-if="getApplicationUrl(selectedJob)"
+                                        :applicationUrl="getApplicationUrl(selectedJob)"
+                                    />
+                                </div>
+                            </div>
+                            <JobHelpLinks :job="selectedJob" :employer="getEmployer(selectedJob.employerId)"/>
+                        </CollapseDiv>
                     </template>
                 </JobPosting>
             </div>
@@ -166,10 +161,12 @@ import ListFontAwesome from "../../components/ListFontAwesome";
 import JobHelpLinks from "./JobHelpLinks";
 import jobUtil from "../../../utils/jobs";
 import UprovePartner from "./UprovePartner";
+import CollapseDiv from "../../components/CollapseDiv";
 
 export default {
     name: "JobsPage",
     components: {
+        CollapseDiv,
         AccordionItem, BaseFilter, BasePage, EditJobPreferencesModal, InputCheckBox,
         InputSelectize, JobApplyBtn, JobHelpLinks, JobPosting, ListFontAwesome, Pagination, UprovePartner
     },

@@ -123,3 +123,16 @@ $card-radius: 10px;
         }
     }
 }
+
+.collapse-card {
+    padding: 0;
+    .collapse-div {
+        border-bottom: 2px solid colors.$color-white;
+    }
+    .collapse-div:first-of-type {
+        div:first-of-type {
+            border-top-left-radius: $card-radius;
+            border-top-right-radius: $card-radius;
+        }
+    }
+}
