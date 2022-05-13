@@ -53,6 +53,7 @@ export default {
         setValue(val) {
             const slider$ = $(`#${this.elId}`);
             slider$.val(val);
+            this.val = val;
             slider$.trigger('change');
         }
     },
