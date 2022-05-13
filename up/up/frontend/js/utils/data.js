@@ -87,11 +87,11 @@ class DataUtil {
         return paramDict;
     }
 
-    getUrlWithParams(params, path) {
+    getUrlWithParams(params, path, isExcludeExistingParams=false) {
         if (!('URLSearchParams' in window)) {
             return;
         }
-        const searchParams = new URLSearchParams(window.location.search);
+        const searchParams = (isExcludeExistingParams) ? new URLSearchParams() : new URLSearchParams(window.location.search);
         params.forEach(({key, val}) => {
             searchParams.delete(key);  // Remove existing
             const vals = (Array.isArray(val)) ? val : [val];

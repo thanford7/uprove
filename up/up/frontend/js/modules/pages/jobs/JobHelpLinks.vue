@@ -5,7 +5,7 @@
                 <i class="fas fa-external-link-alt"></i>
             </span>
             <a
-                :href="getUrlWithParams([{key: 'role', val: [job.roleId]}], '/projects/')"
+                :href="getUrlWithParams([{key: 'role', val: [job.roleId]}], '/projects/', true)"
                 target="_blank"
             >
                 See {{pluralize('Uprove project', job.projectIds.length)}} that

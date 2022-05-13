@@ -294,7 +294,7 @@ def jobPosting(request, jobId):
             if up.customProject_id in allowedCustomProjectIds
         ]
 
-        currentApplication = UserJobApplicationView.getUserJobApplications(employerJobId=jobId)
+        currentApplication = UserJobApplicationView.getUserJobApplications(employerJobId=jobId, userId=user.id)
         currentApplication = currentApplication[0] if currentApplication else None
         data['userApplication'] = getSerializedJobApplication(currentApplication) if currentApplication else None
     return render(request, 'jobPosting.html', context={'data': dumps(data)})
