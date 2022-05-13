@@ -204,7 +204,7 @@
                                         <FileDisplay :file="file"/>
                                         <i
                                             class="fas fa-trash -color-red-text"
-                                            @click="deleteVideo(video.id)"
+                                            @click="deleteFile(file.id, file.type)"
                                             style="cursor: pointer;"
                                         ></i>
                                     </h6>
@@ -250,6 +250,7 @@
                 </div>
             </div>
         </div>
+        <canvas class="confetti"></canvas>
     </BasePage>
     <AddVideoRecordingModal/>
     <EditJobApplicationModal/>
@@ -265,6 +266,7 @@ import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseCard from "../../components/BaseCard";
 import ButtonDelete from "../../buttons/ButtonDelete";
+import confetti from 'canvas-confetti';
 import CONTENT from "./CandidateDashboardContent";
 import dataUtil from "../../../utils/data";
 import EditJobApplicationModal from "../../modals/EditJobApplicationModal";
@@ -327,7 +329,7 @@ export default {
                         <li>The employer will no longer review you for the job</li>
                     </ul>
                 </div>
-            `
+            `,
         }
     },
     methods: {
@@ -353,24 +355,16 @@ export default {
             });
             return queryString;
         },
-        deleteVideo(videoId) {
-            this.crudUrl = 'user-video/';
-            this.formData = {id: videoId};
-            if (window.confirm('Are you sure you want to delete this video? It will be permanently deleted and removed from any projects that reference it.')) {
-                this.deleteObject();
+        deleteFile(fileId, fileType) {
+            if (fileType === this.CONTENT_TYPES.FILE) {
+                this.crudUrl = 'user-file/';
+            } else if (fileType === this.CONTENT_TYPES.IMAGE) {
+                this.crudUrl = 'user-image/';
+            } else if (fileType === this.CONTENT_TYPES.VIDEO) {
+                this.crudUrl = 'user-video/';
             }
-        },
-        deleteImage(imageId) {
-            this.crudUrl = 'user-image/';
-            this.formData = {id: imageId};
-            if (window.confirm('Are you sure you want to delete this image? It will be permanently deleted and removed from any projects that reference it.')) {
-                this.deleteObject();
-            }
-        },
-        deleteFile(fileId) {
-            this.crudUrl = 'user-file/';
             this.formData = {id: fileId};
-            if (window.confirm('Are you sure you want to delete this file? It will be permanently deleted and removed from any projects that reference it.')) {
+            if (window.confirm(`Are you sure you want to delete this ${fileType}? It will be permanently deleted and removed from any projects that reference it.`)) {
                 this.deleteObject();
             }
         },
@@ -400,6 +394,9 @@ export default {
         },
         toggleProjectComplete(userProject, e) {
             this.crudUrl = 'user-project/status/';
+            this.isUpdateData = true;
+            this.initDataKey = ['userProjects', 'jobApplications'];
+            this.isHardRefresh = false;
             const isChecked = e.returnValue;
             this.formData = {
                 id: userProject.id,
@@ -414,6 +411,18 @@ export default {
             }
             if (userProject.applications.length && window.confirm(`Do you want to submit the ${this.pluralize('application', userProject.applications.length)} associated with this project? You can always submit each application later using the applications section in your dashboard.`)) {
                 this.formData.isSubmitApplications = true;
+            }
+            this.afterUpdateInitData = () => {
+                confetti({
+                  particleCount: 100,
+                  spread: 160
+                  // any other options from the global
+                  // confetti function
+                });
+
+                this.isHardRefresh = true;
+                this.isUpdateData = false;
+                this.initDataKey = null;
             }
             this.readAndSubmitForm();
         },
