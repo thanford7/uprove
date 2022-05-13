@@ -92,6 +92,7 @@ class EmployerView(UproveAPIView):
                 'employerJob__jobApplication',
                 'employerJob__jobApplication__userProject',
                 'employerJob__jobApplication__userProject__user',
+                'employerJob__jobApplication__userProject__user__profile',
                 'employerJob__jobApplication__userProject__customProject',
                 'employerJob__jobApplication__userProject__customProject__project',
                 'employerJob__jobApplication__userProject__customProject__project__role',
@@ -243,10 +244,11 @@ class JobPostingView(UproveAPIView):
         jobFilter = jobFilter or Q()
         if jobId:
             jobFilter &= Q(id=jobId)
-        if employerId:
-            jobFilter &= Q(employer_id=employerId)
-        elif not isIncludeDemo:
-            jobFilter &= Q(employer__isDemo=False)
+        else:
+            if employerId:
+                jobFilter &= Q(employer_id=employerId)
+            elif not isIncludeDemo:
+                jobFilter &= Q(employer__isDemo=False)
 
         jobs = EmployerJob.objects\
             .select_related(

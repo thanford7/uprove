@@ -100,7 +100,9 @@ def candidateBoard(request):
                 'roleId': project.customProject.project.role.id,
                 'status': project.status,
                 'skillLevelBit': project.customProject.skillLevelBit,
-                'evaluationScorePct': project.evaluationScorePct,
+                'evaluationScorePct': UserProjectView.getUserProjectScorePct(
+                    project, employerId=user.employer_id if not user.isAdmin else None
+                ),
                 'skills': [getSerializedSkill(s) for s in project.customProject.skills.all()]
             } for project in candidate.userProject.all()
                 if user.isAdmin or (project.status == UserProject.Status.COMPLETE.value and not project.isHidden)
@@ -119,7 +121,6 @@ def candidateBoard(request):
                     isAdminF=0
                 )
         ],
-        'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 
@@ -369,7 +370,6 @@ def projects(request):
                 'roleLevelBit': p.roleLevelBit
             } for p in user.preferenceRoles.all()
         ] if user else None,
-        'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 

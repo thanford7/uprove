@@ -187,6 +187,14 @@ $form-label-fontweight:600;
 
 .dropdown-menu {
     z-index: 1030;
+    li.dropdown--no-margin {
+        margin-bottom: 0;
+
+        .dropdown-item {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+    }
 }
 
 .popover[data-popper-placement="top"], .popover[data-popper-placement="bottom"] {

@@ -14,7 +14,7 @@
                 :customProjectId="formData.customProjectId"
             />
             <div class="col-md-4 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
-                <template v-if="initData.job?.allowedProjects?.length">
+                <template v-if="initData.job?.allowedProjects?.length && initData.employer.isClient">
                     <h5 class="-text-bold">Applicant instructions</h5>
                     <div v-if="initData.userApplication" class="mb-2 ps-2 -color-yellow">
                         <i class="fas fa-info"></i> You have an application for this job
@@ -60,9 +60,8 @@
                     <div class="-sub-text"><a href="#" @click="eventBus.emit('open:submitHelpModal')">Submit question</a></div>
                 </template>
                 <template v-else>
-                    <template v-if="initData.job.projects">
+                    <template v-if="!isEmpty(initData.projects)">
                         <InfoToolTip
-                            v-if="!initData.job.isClient"
                             :elId="getNewElUid()"
                             :isExcludeInfoCircle="true"
                             content="This employer is not part of the Uprove network. You can still complete a project
@@ -70,18 +69,18 @@
                             review it.
                             "
                         >
-                            <h5>
+                            <h6>
                                 <i class="fas fa-exclamation-triangle -color-orange-text"></i>
                                 Projects related to this job
-                            </h5>
+                            </h6>
                         </InfoToolTip>
                         <h6>Increase your chances of landing a job by completing a relevant project to showcase your skills</h6>
                         <ul class="fa-ul">
-                            <li v-for="project in initData.job.projects">
+                            <li v-for="project in initData.projects">
                                 <span class="fa-li">
                                     <i class="fas fa-external-link-alt"></i>
                                 </span>
-                                <a :href="`/project/${project.id}`">{{project.title}}</a>
+                                <a :href="`/project/${project.id}`" target="_blank">{{project.title}}</a>
                                 <div class="-text-medium" v-html="project.description"></div>
                             </li>
                         </ul>
@@ -165,6 +164,7 @@ export default {
         }
     },
     methods: {
+        isEmpty: dataUtil.isEmpty.bind(dataUtil),
         getApplicationUrl(job) {
             if (job.isClient && job.allowedProjects.length) {
                 return `/job-posting/${job.id}`;

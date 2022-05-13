@@ -10,7 +10,6 @@
                         <RolesSelectize
                             ref="role"
                             placeholder="Roles: All"
-                            :roles="initData.roles"
                             @selected="setFilter($event, 'roles', 'role')"
                         />
                     </div>

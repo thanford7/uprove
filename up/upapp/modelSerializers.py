@@ -495,7 +495,8 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
             'firstName': jobApplication.user.firstName,
             'middleName': jobApplication.user.middleName,
             'lastName': jobApplication.user.lastName,
-            'email': jobApplication.user.email
+            'email': jobApplication.user.email,
+            'profileId': jobApplication.user.primaryProfile.id if jobApplication.user.primaryProfile else None
         },
         'userProjectId': jobApplication.userProject_id,
         'userProjectTitle': jobApplication.userProject.customProject.project.title if jobApplication.userProject else None,

@@ -10,7 +10,6 @@
                         <RolesSelectize
                             ref="role"
                             placeholder="Roles: All"
-                            :roles="initData.roles"
                             @selected="setFilter($event, 'roles', 'role')"
                         />
                     </div>
@@ -205,11 +204,6 @@ export default {
     mounted() {
         this.initData.candidates.forEach((c) => {
             skillLevelSelectize.setSkillLevels(c.userProjects, true);
-            c.userProjects.forEach((up) => {
-                if (up.evaluationCriteria) {
-                    up.evaluationScorePct = userProjectUtil.getEvaluationScore(up.evaluationCriteria);
-                }
-            });
         });
     }
 }

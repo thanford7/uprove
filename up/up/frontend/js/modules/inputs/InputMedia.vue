@@ -31,9 +31,9 @@ export default {
     computed: {
         allowedFormats() {
             return this.supportedFormatsOverride || this.mediaTypes.reduce((allFormats, mediaType) => {
-                allFormats = [...allFormats, this.supportedFormats[mediaType]];
+                allFormats = [...allFormats, ...this.supportedFormats[mediaType]];
                 return allFormats;
-            }, [])
+            }, []);
         },
         acceptFormatsString() {
             return this.allowedFormats.map((fileFormat) => `.${fileFormat}`).join(',');

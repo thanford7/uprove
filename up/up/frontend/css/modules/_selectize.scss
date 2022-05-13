@@ -11,6 +11,8 @@
     border-bottom-width: 1px;
     border-left-width: 1px;
     border-color: colors.$color-darkblue;
+    min-width: 100%;
+    width: auto !important;
 }
 
 .selectize-input {
