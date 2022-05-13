@@ -386,10 +386,6 @@
     <EditJobPostingModal/>
     <EditUserModal/>
     <InviteJobApplicantModal/>
-    <ViewCandidateApplicationModal
-        @approve="approveApplication($event)"
-        @decline="declineApplication($event)"
-    />
 </template>
 
 <script>
@@ -411,7 +407,6 @@ import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 import leverIntegration from "../../../utils/leverIntegration";
 import RangeSlider from "../../components/RangeSlider";
 import Table from "../../components/Table";
-import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 import LeverWebhook from "./LeverWebhook";
 import userProject from "../../../utils/userProject";
 import RolesSelectize from "../../inputs/RolesSelectize";
@@ -421,7 +416,7 @@ export default {
     components: {
         ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, CelebrationModal, EditEmployerModal,
         EditJobPostingModal, EditUserModal, FilterDropdownMenu, HamburgerDropdown, InfoToolTip, InputSelectize,
-        InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table, ViewCandidateApplicationModal
+        InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table
     },
     data() {
         return {

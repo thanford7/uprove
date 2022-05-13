@@ -219,7 +219,6 @@ export default {
             const data = {
                 userProjectId: this.userProject.id,
                 evaluatorId: this.globalData.uproveUser.id,
-                employerId: (this.isAdmin) ? null : this.globalData.uproveUser.id,
                 evaluationCriteria: (this.hasEvaluated) ? this.initData.userProject.evaluations[this.globalData.uproveUser.id] : this.initData.userProject.evaluationCriteria
             };
             makeAjaxRequest(`${this.apiUrl}user-project-evaluation/`, {
