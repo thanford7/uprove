@@ -20,8 +20,9 @@
                             data-bs-toggle="tab" data-bs-target="#applications"
                             type="button" role="tab" aria-selected="false"
                             @click="setTabParam('applications')"
-                        >Applications <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
-                                             :content="applicationInfoContent"/>
+                        >Applications
+                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
+                                         :content="applicationInfoContent"/>
                         </button>
                     </li>
                     <li class="nav-item">
@@ -194,11 +195,13 @@
                     </div>
                     <div class="tab-pane fade" :class="(currentTab === 'resources') ? 'show active': ''"
                          id="resources" role="tabpanel">
-                        <div v-if="!initData.user.videos?.length && !initData.user.images?.length && !initData.user.files?.length">
+                        <div
+                            v-if="!initData.user.videos?.length && !initData.user.images?.length && !initData.user.files?.length">
                             No current uploads
                         </div>
                         <div v-if="initData.user.videos?.length" class="row justify-content-around mt-3">
-                            <template v-for="file in [...initData.user.videos, ...initData.user.images, ...initData.user.files]">
+                            <template
+                                v-for="file in [...initData.user.videos, ...initData.user.images, ...initData.user.files]">
                                 <div class="col-md-6 col-12 mb-3">
                                     <h6 class="text-center project-item-title">
                                         <FileDisplay :file="file"/>
@@ -210,11 +213,14 @@
                                     </h6>
                                     <div class="project-item d-flex align-items-center justify-content-center">
                                         <video v-if="file.type === CONTENT_TYPES.VIDEO" controls :src="file.video"/>
-                                        <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image" class="project-file-image">
-                                        <img v-if="file.type === CONTENT_TYPES.FILE && file.thumbnail" :src="file.thumbnail" class="project-file-image">
+                                        <img v-if="file.type === CONTENT_TYPES.IMAGE" :src="file.image"
+                                             class="project-file-image">
+                                        <img v-if="file.type === CONTENT_TYPES.FILE && file.thumbnail"
+                                             :src="file.thumbnail" class="project-file-image">
                                         <div v-if="file.type === CONTENT_TYPES.FILE && !file.thumbnail" class="p-2">
                                             <div class="text-center"><i class="fas fa-file fa-4x"></i></div>
-                                            <div class="-text-medium" style="margin: 0 auto;">No file image available</div>
+                                            <div class="-text-medium" style="margin: 0 auto;">No file image available
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -253,6 +259,7 @@
         <canvas class="confetti"></canvas>
     </BasePage>
     <AddVideoRecordingModal/>
+    <CelebrationModal/>
     <EditJobApplicationModal/>
     <EditJobPreferencesModal/>
     <EditUserProjectModal/>
@@ -266,7 +273,7 @@ import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseCard from "../../components/BaseCard";
 import ButtonDelete from "../../buttons/ButtonDelete";
-import confetti from 'canvas-confetti';
+import CelebrationModal from "../../modals/CelebrationModal";
 import CONTENT from "./CandidateDashboardContent";
 import dataUtil from "../../../utils/data";
 import EditJobApplicationModal from "../../modals/EditJobApplicationModal";
@@ -296,6 +303,7 @@ export default {
         BannerAlert,
         BaseCard,
         ButtonDelete,
+        CelebrationModal,
         EditJobApplicationModal,
         EditJobPreferencesModal,
         EditUserProjectModal,
@@ -356,6 +364,7 @@ export default {
             return queryString;
         },
         deleteFile(fileId, fileType) {
+            this.resetAjaxSettings();
             if (fileType === this.CONTENT_TYPES.FILE) {
                 this.crudUrl = 'user-file/';
             } else if (fileType === this.CONTENT_TYPES.IMAGE) {
@@ -369,6 +378,7 @@ export default {
             }
         },
         deleteProject(userProject) {
+            this.resetAjaxSettings();
             this.crudUrl = 'user-project/';
             this.formData = {id: userProject.id};
             if (window.confirm('Are you sure you want to delete this project? This will withdraw any job applications where you use this project.')) {
@@ -376,6 +386,7 @@ export default {
             }
         },
         updateAppSubmission(app, isSubmit) {
+            this.resetAjaxSettings();
             this.crudUrl = 'user-job-application/';
             this.formData.userId = this.initData.user.id;
             this.formData.id = app.id;
@@ -391,6 +402,11 @@ export default {
         },
         getFileCount(userProject) {
             return userProject.videos.length + userProject.images.length + userProject.files.length;
+        },
+        resetAjaxSettings() {
+            this.isHardRefresh = true;
+            this.isUpdateData = false;
+            this.initDataKey = null;
         },
         toggleProjectComplete(userProject, e) {
             this.crudUrl = 'user-project/status/';
@@ -413,20 +429,14 @@ export default {
                 this.formData.isSubmitApplications = true;
             }
             this.afterUpdateInitData = () => {
-                confetti({
-                  particleCount: 100,
-                  spread: 160
-                  // any other options from the global
-                  // confetti function
+                this.eventBus.emit('open:celebrationModal', {
+                    msg: 'Congratulations on completing a project!'
                 });
-
-                this.isHardRefresh = true;
-                this.isUpdateData = false;
-                this.initDataKey = null;
             }
             this.readAndSubmitForm();
         },
         toggleProjectHidden(userProject, e) {
+            this.resetAjaxSettings();
             this.crudUrl = 'user-project/status/';
             this.formData = {
                 id: userProject.id,
