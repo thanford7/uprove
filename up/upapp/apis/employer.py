@@ -340,8 +340,7 @@ class UserProjectEvaluationView(UproveAPIView):
     @atomic
     def put(self, request):
         from upapp.apis.user import UserProjectView  # Avoid circular import
-        employerId = self.data.get('employerId')
-        if not any([self.isAdmin, security.isPermittedEmployer(request, employerId)]):
+        if not any([self.isAdmin, self.isEmployer]):
             return Response('You are not permitted to evaluate this project', status=status.HTTP_401_UNAUTHORIZED)
 
         if not (userProjectId := self.data.get('userProjectId')):
@@ -358,7 +357,7 @@ class UserProjectEvaluationView(UproveAPIView):
             else:
                 UserProjectEvaluationCriterion(
                     userProject_id=userProjectId,
-                    employer_id=employerId if not self.isAdmin else None,
+                    employer_id=self.user.employer_id if not self.isAdmin else None,
                     evaluator_id=self.data['evaluatorId'],
                     evaluationCriterion_id=evaluationCriterionData['id'],
                     value=evaluationCriterionData.get('value', 0),
@@ -366,30 +365,20 @@ class UserProjectEvaluationView(UproveAPIView):
                     modifiedDateTime=timezone.now()
                 ).save()
 
-        if employerId:
-            employer = EmployerView.getEmployer(employerId)
-            data = {
-                'employer': getSerializedEmployer(employer, employerId=employerId)
-            }
-            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
-            for app in userProject.jobApplication.all():
-                if app.leverOpportunityKey:
-                    getLeverRequestWithRefresh(
-                        employer,
-                        f'opportunities/{app.leverOpportunityKey}/addTags',
-                        bodyCfg={
-                            'tags': ['uprove-assessment-scored']},
-                        isJSON=True,
-                        method='POST'
-                    )
-        else:
-            from upapp.apis.user import UserProjectView  # Avoid circular import
-            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
-            data = {
-                'userProject': getSerializedUserProject(userProject, employerId=employerId)
-            }
+        userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
+        for app in userProject.jobApplication.all():
+            if app.leverOpportunityKey:
+                employer = EmployerView.getEmployer(app.employerJob.employer_id)
+                getLeverRequestWithRefresh(
+                    employer,
+                    f'opportunities/{app.leverOpportunityKey}/addTags',
+                    bodyCfg={
+                        'tags': ['uprove-assessment-scored']},
+                    isJSON=True,
+                    method='POST'
+                )
 
-        return Response(status=status.HTTP_200_OK, data=data)
+        return Response(status=status.HTTP_200_OK)
 
 
 class OrganizationView(UproveAPIView):

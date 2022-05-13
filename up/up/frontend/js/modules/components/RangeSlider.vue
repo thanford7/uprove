@@ -49,9 +49,17 @@ export default {
             val: this.min
         }
     },
+    methods: {
+        setValue(val) {
+            const slider$ = $(`#${this.elId}`);
+            slider$.val(val);
+            this.val = val;
+            slider$.trigger('change');
+        }
+    },
     mounted() {
         const slider$ = $(`#${this.elId}`);
-        slider$.val(this.startingVal);
+        this.setValue(this.startingVal);
         slider$.on('input', (e) => {
             this.val = Number.parseInt(e.currentTarget.value);
         });

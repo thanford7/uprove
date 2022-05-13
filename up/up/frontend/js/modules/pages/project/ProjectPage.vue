@@ -2,6 +2,7 @@
     <BasePage>
         <div class="row mt-4" :class="(isMobile) ? 'mobile-top' : ''">
             <ProjectAccordion
+                class="mt-3"
                 :class="(isCandidate) ? 'col' : 'col-md-8'"
                 :project="initData.project"
                 :skills="initData.skills"

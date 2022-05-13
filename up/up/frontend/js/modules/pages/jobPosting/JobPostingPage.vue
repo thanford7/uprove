@@ -60,7 +60,7 @@
                     <div class="-sub-text"><a href="#" @click="eventBus.emit('open:submitHelpModal')">Submit question</a></div>
                 </template>
                 <template v-else>
-                    <template v-if="!isEmpty(initData.projects)">
+                    <template v-if="initData.job.allowedProjects.length">
                         <InfoToolTip
                             :elId="getNewElUid()"
                             :isExcludeInfoCircle="true"
@@ -76,12 +76,12 @@
                         </InfoToolTip>
                         <h6>Increase your chances of landing a job by completing a relevant project to showcase your skills</h6>
                         <ul class="fa-ul">
-                            <li v-for="project in initData.projects">
+                            <li v-for="project in initData.job.allowedProjects">
                                 <span class="fa-li">
                                     <i class="fas fa-external-link-alt"></i>
                                 </span>
-                                <a :href="`/project/${project.id}`" target="_blank">{{project.title}}</a>
-                                <div class="-text-medium" v-html="project.description"></div>
+                                <a :href="`/project/${project.projectId}`" target="_blank">{{project.projectTitle}}</a>
+                                <div class="-text-medium" v-html="initData.projects.find((p) => p.id == project.projectId).description"></div>
                             </li>
                         </ul>
                     </template>

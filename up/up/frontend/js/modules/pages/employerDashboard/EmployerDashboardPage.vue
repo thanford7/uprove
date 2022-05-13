@@ -381,14 +381,11 @@
             </div>
         </div>
     </BasePage>
+    <CelebrationModal/>
     <EditEmployerModal/>
     <EditJobPostingModal/>
     <EditUserModal/>
     <InviteJobApplicantModal/>
-    <ViewCandidateApplicationModal
-        @approve="approveApplication($event)"
-        @decline="declineApplication($event)"
-    />
 </template>
 
 <script>
@@ -398,6 +395,7 @@ import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
+import CelebrationModal from "../../modals/CelebrationModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import EditUserModal from "../../modals/EditUserModal";
@@ -409,7 +407,6 @@ import InviteJobApplicantModal from "../../modals/InviteJobApplicantModal";
 import leverIntegration from "../../../utils/leverIntegration";
 import RangeSlider from "../../components/RangeSlider";
 import Table from "../../components/Table";
-import ViewCandidateApplicationModal from "../../modals/ViewCandidateApplicationModal";
 import LeverWebhook from "./LeverWebhook";
 import userProject from "../../../utils/userProject";
 import RolesSelectize from "../../inputs/RolesSelectize";
@@ -417,9 +414,9 @@ import RolesSelectize from "../../inputs/RolesSelectize";
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditEmployerModal,
+        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, CelebrationModal, EditEmployerModal,
         EditJobPostingModal, EditUserModal, FilterDropdownMenu, HamburgerDropdown, InfoToolTip, InputSelectize,
-        InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table, ViewCandidateApplicationModal
+        InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table
     },
     data() {
         return {

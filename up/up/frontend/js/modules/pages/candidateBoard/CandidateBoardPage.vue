@@ -27,6 +27,15 @@
                             @selected="setFilter($event, 'skillLevelBits', 'level')"
                         />
                     </div>
+                    <div class="col-12 col-md filter-item">
+                        <RangeSlider
+                            ref="projectScoreFilter"
+                            :elId="getNewElUid()"
+                            :startingVal="defaultProjectScore"
+                            title="Project score"
+                            @changed="setFilter($event, 'projectScore')"
+                        />
+                    </div>
                 </div>
             </BaseFilter>
         </template>
@@ -119,6 +128,7 @@ import BasePage from "../base/BasePage";
 import dataUtil from "../../../utils/data";
 import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
+import RangeSlider from "../../components/RangeSlider";
 import RolesSelectize from "../../inputs/RolesSelectize";
 import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
@@ -130,7 +140,7 @@ export default {
     name: "CandidateBoardPage",
     components: {
         AddLeverOpportunityModal, BaseFilter, BasePage, BadgesSkillLevels, BadgesSkills,
-        BannerAlert, InfoToolTip, PageHeader, RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
+        BannerAlert, InfoToolTip, PageHeader, RangeSlider, RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
     },
     data() {
         return {
@@ -138,7 +148,8 @@ export default {
                 {'value': 'Name', 'sortFn': 'firstName'},
                 {'value': 'Projects'},
                 {'value': 'Actions'}
-            ]]
+            ]],
+            defaultProjectScore: 60
         }
     },
     computed: {
@@ -150,6 +161,7 @@ export default {
                     (this.filter.roles && this.filter.roles.length)
                     || (this.filter.skills && this.filter.skills.length)
                     || this.filter.skillLevelBits
+                    || this.filter.projectScore
                 );
                 if (hasFilter && !candidate.userProjects.length) {
                     return filteredCandidates;
@@ -171,7 +183,11 @@ export default {
                         !this.filter.skillLevelBits
                         || (this.filter.skillLevelBits & up.skillLevelBit)
                     );
-                    return hasRole && hasSkill && hasSkillLevel;
+                    const isAboveProjectScore = (
+                        !this.filter.projectScore
+                        || up.evaluationScorePct >= this.filter.projectScore
+                    )
+                    return hasRole && hasSkill && hasSkillLevel && isAboveProjectScore;
                 });
                 if (!candidate.userProjects.length) {
                     return filteredCandidates;
@@ -205,6 +221,10 @@ export default {
         this.initData.candidates.forEach((c) => {
             skillLevelSelectize.setSkillLevels(c.userProjects, true);
         });
+        const {projectScore} = dataUtil.getQueryParams();
+        this.defaultProjectScore = projectScore || this.defaultProjectScore;
+        this.filter.projectScore = this.defaultProjectScore;
+        this.$refs.projectScoreFilter.setValue(this.defaultProjectScore);
     }
 }
 </script>

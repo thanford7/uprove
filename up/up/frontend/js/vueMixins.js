@@ -559,5 +559,5 @@ const dataLoaderMixin = {
 
 export {
     ajaxRequestMixin, dataLoaderMixin, filterMixin, globalVarsMixin, modalsMixin, popoverMixin, tabsMixin,
-    store, addErrorAlert, getAjaxFormData, getNewElUid, makeAjaxRequest
+    store, addErrorAlert, eventBus, getAjaxFormData, getNewElUid, makeAjaxRequest
 };

@@ -1,6 +1,6 @@
 import globalData, {PROJECT_EVAL_CUTOFFS} from '../globalData';
 import pluralize from 'pluralize';
-import {getAjaxFormData, makeAjaxRequest} from "../vueMixins";
+import {eventBus, getAjaxFormData, makeAjaxRequest} from "../vueMixins";
 import dateUtil from "./dateUtil";
 import dayjs from "dayjs/esm";
 
@@ -40,7 +40,7 @@ class UserProjectUtil {
             return total;
         }, 0);
         const bestScore = evalCriteria.length * 3;
-        return Math.round((score / bestScore) * 100);
+        return Math.ceil((score / bestScore) * 100);
     }
 
     getEvalPopoverHtml() {
@@ -83,6 +83,7 @@ class UserProjectUtil {
                     const updateApp = applications.find((app) => app.id === application.id);
                     updateApp.approveDateTime = data.approveDateTime;
                     updateApp.declineDateTime = null;
+                    eventBus.emit('open:celebrationModal', {msg: 'Congratulations on finding a great candidate!'});
                 }
             }
         );

@@ -1,27 +1,29 @@
 <template>
-    <div class="card-custom">
-        <h5 class="-skew-top-left me-2">
-            <span class="badge -color-darkblue">{{project.role}}</span>
-        </h5>
-        <ProjectJobs v-if="project.jobs" :jobs="project.jobs" class="mt-3 mb-2"/>
-        <h5>
-            {{project.title}}
-            <slot name="headerAppend"></slot>
-        </h5>
-        <slot name="afterHeader"></slot>
-        <div v-html="project.description" class="-border-bottom--light mb-2"></div>
-        <CollapseDiv :elId="getNewElUid()" :class="(project.isLimited) ? '' : '-border-bottom--light mb-2'">
+    <div class="collapse-card card-custom p-0">
+        <div class="ps-3 pe-3">
+            <h5 class="-skew-top-left me-2">
+                <span class="badge -color-darkblue">{{project.role}}</span>
+            </h5>
+            <ProjectJobs v-if="project.jobs" :jobs="project.jobs" class="mt-3 mb-2"/>
+            <h5>
+                {{project.title}}
+                <slot name="headerAppend"></slot>
+            </h5>
+            <slot name="afterHeader"></slot>
+            <div v-html="project.description" class="mb-2"></div>
+        </div>
+        <CollapseDiv :elId="getNewElUid()">
             <template v-slot:header>
-                <h5>Project brief</h5>
+                Project brief
             </template>
             <div v-html="project.background"></div>
             <div v-if="project.isLimited">
                 <a href="/sign-up/">Get started to see the full project brief</a>
             </div>
         </CollapseDiv>
-        <CollapseDiv v-if="isLoggedIn" :elId="getNewElUid()" class="-border-bottom--light mb-2">
+        <CollapseDiv v-if="isLoggedIn" :elId="getNewElUid()">
             <template v-slot:header>
-                <h5>Instructions</h5>
+                Instructions
             </template>
             <div class="pb-2">
                 <div v-html="project.instructions"></div>
@@ -35,10 +37,9 @@
             :elId="getNewElUid()"
             :isClosed="true"
             class="mb-2"
-            :class="(project?.files?.length) ? '-border-bottom--light' : ''"
         >
             <template v-slot:header>
-                <h5>Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/></h5>
+                Project evaluation guide <InfoToolTip :elId="getNewElUid()" :content="TOOLTIPS.employerProjectEvaluationGuide"/>
             </template>
             <ul>
                 <li v-for="criterion in project.evaluationCriteria">{{criterion.criterion}}</li>
@@ -46,7 +47,7 @@
         </CollapseDiv>
         <CollapseDiv v-if="project?.files?.length">
             <template v-slot:header>
-                <h5>Files</h5>
+                Files
             </template>
             <div v-for="file in project.files">
                 <FileDisplay :file="file" :isIncludeDescription="true" :isIncludeSkillLevels="true"/>

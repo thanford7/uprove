@@ -1,5 +1,5 @@
 <template>
-    <div class="container-lg" id="header-container">
+    <div class="container-fluid" id="header-container">
         <a class="navbar-brand" :href="getHomepageUrl()">
             <img class="logo" :src="globalData.STATIC_URL + 'img/logo.png'" alt="Uprove">
         </a>

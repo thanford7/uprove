@@ -90,10 +90,10 @@ export default {
     mounted() {
         skillLevelSelectize.setSkillLevels(this.initData.projects, true);
         const queryParams = dataUtil.getQueryParams();
-        this.$refs.role.elSel.setValue(queryParams.role);
+        this.$refs.role.setInitialRoleIds(queryParams.role);
         if (!queryParams.role && this.initData.preferredRoles) {
             const roleIds = dataUtil.uniqArray(this.initData.preferredRoles.map((r) => r.roleId));
-            this.$refs.role.elSel.setValue(roleIds);
+            this.$refs.role.setInitialRoleIds(roleIds);
             this.setFilter(roleIds, 'roles', 'role');
         }
         this.$refs.skills.elSel.setValue(queryParams.skill);

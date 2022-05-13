@@ -1,4 +1,6 @@
+import logging
 import tempfile
+import traceback
 import urllib.request
 from email.mime.image import MIMEImage
 from math import ceil
@@ -232,11 +234,6 @@ class UserFileView(UproveAPIView):
 
         # Add an image thumbnail for the file
         file = UserFileView.addFileThumbnail(file)
-
-        # Add thumbnails to any other files that don't already have one
-        for otherFile in UserFile.objects.filter(thumbnail__isnull=True):
-            UserFileView.addFileThumbnail(otherFile)
-
         return file
 
     @staticmethod
@@ -250,10 +247,8 @@ class UserFileView(UproveAPIView):
                 with open(fileThumbnailPath, 'rb') as fileThumbnail:
                     file.thumbnail = File(fileThumbnail, name=f'thumbnail-{file.title}')
                     file.save()
-        except (CalledProcessError, UnavailablePreviewType, UnsupportedMimeType, FileNotFoundError, BlobError):
-            # File path is bad or the file type is not supported.
-            pass
-
+        except Exception as e:
+            logging.error(traceback.format_exc())
 
         return file
 

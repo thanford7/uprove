@@ -19,7 +19,8 @@ export default {
     data() {
         return {
             targetEl: null,
-            elSel: null
+            elSel: null,
+            initialVal: null
         }
     },
     computed: {
@@ -33,6 +34,11 @@ export default {
             };
         }
     },
+    methods: {
+        setInitialRoleIds(roleIds) {
+            this.initialVal = roleIds;
+        }
+    },
     mounted() {
         this.targetEl = this.$refs.roles.targetEl;
         this.elSel = this.$refs.roles.elSel;
@@ -40,6 +46,7 @@ export default {
     async created() {
         await this.loadData([{route: 'project-role/', dataKey: 'roles'}]);
         this.$refs.roles.resetOptions(this.cData.roles.filter((r) => !this.roleIds || this.roleIds.includes(r.id)));
+        this.$refs.roles.elSel.setValue(this.initialVal);
     }
 }
 </script>

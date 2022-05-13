@@ -16,7 +16,7 @@ if 'app' in settings.DATABASES['default']['HOST']:
     raise ValueError('Cannot run this file on the prod database')
 
 for user in User.objects.filter(isDemo=False):
-    if user.isAdmin:
+    if user.isAdmin or user.firstName == 'Lever':
         continue
 
     user.firstName = names.get_first_name()
@@ -24,9 +24,12 @@ for user in User.objects.filter(isDemo=False):
     user.lastName = names.get_last_name()
     email = f'test-{user.firstName}-{user.lastName}@uprove.co'
     user.email = email
-    user.djangoUser.email = email
     user.save()
 
+    djangoUser = user.djangoUser
+    djangoUser.email = email
+    djangoUser.set_password(os.getenv('DEV_DEFAULT_PWD'))
+    djangoUser.save()
 
 
 
