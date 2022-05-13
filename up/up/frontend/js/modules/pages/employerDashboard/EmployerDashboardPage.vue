@@ -381,6 +381,7 @@
             </div>
         </div>
     </BasePage>
+    <CelebrationModal/>
     <EditEmployerModal/>
     <EditJobPostingModal/>
     <EditUserModal/>
@@ -398,6 +399,7 @@ import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
+import CelebrationModal from "../../modals/CelebrationModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditJobPostingModal from "../../modals/EditJobPostingModal";
 import EditUserModal from "../../modals/EditUserModal";
@@ -417,7 +419,7 @@ import RolesSelectize from "../../inputs/RolesSelectize";
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, EditEmployerModal,
+        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, CelebrationModal, EditEmployerModal,
         EditJobPostingModal, EditUserModal, FilterDropdownMenu, HamburgerDropdown, InfoToolTip, InputSelectize,
         InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table, ViewCandidateApplicationModal
     },
