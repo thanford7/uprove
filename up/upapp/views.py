@@ -81,46 +81,51 @@ def candidateBoard(request):
     if not user or not (user.isAdmin or user.isEmployer):
         return _getUnauthorizedPage(request)
 
-    return render(request, 'candidateBoard.html', context={'data': dumps({
-        'candidates': [{
-            'id': candidate.id,
-            'profileId': candidate.primaryProfile.id,
-            'firstName': candidate.firstName,
-            'lastName': candidate.lastName,
-            'email': candidate.email,
-            'appliedJobs': [
-                j.employerJob.jobTitle
-                for j in candidate.jobApplication.all()
-                if j.employerJob.employer_id == user.employer_id
-            ],
-            'userProjects': [{
-                'id': project.id,
-                'projectTitle': project.customProject.project.title,
-                'role': project.customProject.project.role.name,
-                'roleId': project.customProject.project.role.id,
-                'status': project.status,
-                'skillLevelBit': project.customProject.skillLevelBit,
-                'evaluationScorePct': UserProjectView.getUserProjectScorePct(
-                    project, employerId=user.employer_id if not user.isAdmin else None
-                ),
-                'skills': [getSerializedSkill(s) for s in project.customProject.skills.all()]
-            } for project in candidate.userProject.all()
-                if user.isAdmin or (project.status == UserProject.Status.COMPLETE.value and not project.isHidden)
-            ]
-        }
-            for candidate
-            in User.objects
-                .select_related('djangoUser')
-                .prefetch_related('profile', 'userProject', 'userProject__customProject', 'jobApplication', 'jobApplication__employerJob')
-                .annotate(isCandidateF=F('userTypeBits').bitand(User.USER_TYPE_CANDIDATE))
-                .annotate(isAdminF=F('userTypeBits').bitand(User.USER_TYPE_ADMIN))
-                .filter(
-                    djangoUser__is_active=True,
-                    isDemo=False,
-                    isCandidateF__gt=0,
-                    isAdminF=0
-                )
+    candidates = [{
+        'id': candidate.id,
+        'profileId': candidate.primaryProfile.id,
+        'firstName': candidate.firstName,
+        'lastName': candidate.lastName,
+        'email': candidate.email,
+        'appliedJobs': [
+            j.employerJob.jobTitle
+            for j in candidate.jobApplication.all()
+            if j.employerJob.employer_id == user.employer_id
         ],
+        'userProjects': [{
+            'id': project.id,
+            'projectTitle': project.customProject.project.title,
+            'role': project.customProject.project.role.name,
+            'roleId': project.customProject.project.role.id,
+            'status': project.status,
+            'skillLevelBit': project.customProject.skillLevelBit,
+            'evaluationScorePct': UserProjectView.getUserProjectScorePct(
+                project, employerId=user.employer_id if not user.isAdmin else None
+            ),
+            'skills': [getSerializedSkill(s) for s in project.customProject.skills.all()]
+        } for project in candidate.userProject.all()
+            if user.isAdmin or (project.status == UserProject.Status.COMPLETE.value and not project.isHidden)
+        ]
+    }
+        for candidate
+        in User.objects
+            .select_related('djangoUser')
+            .prefetch_related('profile', 'userProject', 'userProject__customProject', 'jobApplication', 'jobApplication__employerJob')
+            .annotate(isCandidateF=F('userTypeBits').bitand(User.USER_TYPE_CANDIDATE))
+            .annotate(isAdminF=F('userTypeBits').bitand(User.USER_TYPE_ADMIN))
+            .filter(
+                djangoUser__is_active=True,
+                isDemo=False,
+                isCandidateF__gt=0,
+                isAdminF=0
+            )
+    ]
+    candidates.sort(
+        key=lambda c: max(up['evaluationScorePct'] or 0 for up in c['userProjects']) if c['userProjects'] else 0,
+        reverse=True
+    )
+    return render(request, 'candidateBoard.html', context={'data': dumps({
+        'candidates': candidates,
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 

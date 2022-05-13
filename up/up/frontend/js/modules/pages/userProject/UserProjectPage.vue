@@ -68,7 +68,7 @@
                 </CollapseDiv>
                 <CollapseDiv v-if="canEvaluate" :elId="getNewElUid()">
                     <template v-slot:header>
-                        <h5>Project evaluation</h5>
+                        Project evaluation
                     </template>
                     <div v-if="userProject?.evaluationCriteria?.length">
                         <div v-if="canEvaluate && !hasEvaluated && !isAddEvaluation" class="mb-2">
