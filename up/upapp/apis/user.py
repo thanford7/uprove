@@ -234,11 +234,6 @@ class UserFileView(UproveAPIView):
 
         # Add an image thumbnail for the file
         file = UserFileView.addFileThumbnail(file)
-
-        # Add thumbnails to any other files that don't already have one
-        for otherFile in UserFile.objects.filter(thumbnail__isnull=True):
-            UserFileView.addFileThumbnail(otherFile)
-
         return file
 
     @staticmethod
