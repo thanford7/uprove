@@ -1,30 +1,30 @@
-@use 'colors';
+@use '../abstracts' as *;
 
 .fa, .fas {
-    color: colors.$color-darkgrey;
+    color: $color-darkgrey;
 
     &:hover {
-        color: darken(colors.$color-darkgrey, 20%);
+        color: darken($color-darkgrey, 20%);
     }
 
     &.fa-trash:hover {
-        color: darken(colors.$color-red, 10%);
+        color: darken($color-red, 10%);
     }
 
     &.fa-pencil-alt:hover {
-        color: darken(colors.$color-green, 10%);
+        color: darken($color-green, 10%);
     }
 }
 
 .fa-info-circle {
-    color: colors.$color-moderategrey;
+    color: $color-moderategrey;
 }
 
 button.btn {
     &[disabled] {
-        color: colors.$color-white;
-        background-color: colors.$color-moderategrey;
-        border-color: colors.$color-darkgrey;
+        color: $color-white;
+        background-color: $color-moderategrey;
+        border-color: $color-darkgrey;
         cursor: not-allowed;
         pointer-events: all;
     }
@@ -36,7 +36,7 @@ button.btn {
         position: absolute;
         font-size: 7px;
         font-weight: bold;
-        border: 1px solid colors.$color-lightgrey;
+        border: 1px solid $color-lightgrey;
         border-radius: 100px;
         padding: 0 4px;
         left: 90%;

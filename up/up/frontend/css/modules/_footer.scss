@@ -1,8 +1,8 @@
-@use 'colors';
+@use '../abstracts' as *;
 
 #site-footer {
     z-index: 100;
-    box-shadow: 0 -2px 2px colors.$color-lightgrey;
-    background-color: colors.$color-white;
+    box-shadow: 0 -2px 2px $color-lightgrey;
+    background-color: $color-white;
     margin-top: auto;
 }

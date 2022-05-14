@@ -1,5 +1,4 @@
-@use 'colors';
-@import "bootstrap/scss/bootstrap-grid";
+@use '../abstracts' as *;
 
 *,
 *::before,
@@ -43,7 +42,7 @@ hr {
 	box-sizing:content-box;
 	height:0;
 	overflow:visible;
-    color: colors.$color-moderategrey;
+    color: $color-moderategrey;
     border: 0;
 	border-collapse: collapse;
 	border-bottom: 1px solid currentColor;
@@ -80,7 +79,7 @@ textarea {
 
 blockquote {
     padding-left: 0.5rem;
-    border-left: 2px solid colors.$color-moderategrey;
+    border-left: 2px solid $color-moderategrey;
 }
 
 ul, ol {
@@ -129,9 +128,9 @@ img {
 
 div {
     &.call-out-box {
-        background-color: colors.$color-lightblue;
+        background-color: $color-lightblue;
         text-align: center;
-        color: colors.$color-moderategrey;
+        color: $color-moderategrey;
         border-radius: 10px;
         display: flex;
         flex-wrap: wrap;
@@ -145,7 +144,7 @@ div {
 }
 
 .row .filter {
-    border-bottom: scale-color(colors.$color-lightgrey, $lightness: 70%) 1px solid;
+    border-bottom: scale-color($color-lightgrey, $lightness: 70%) 1px solid;
 }
 
 div.circle {
@@ -156,11 +155,11 @@ div.circle {
     line-height: 60px;
     text-align: center;
     background-color: white;
-    border: colors.$color-darkblue 3px solid;
-    color: colors.$color-moderategrey;
+    border: $color-darkblue 3px solid;
+    color: $color-moderategrey;
 
     &.circle-inverse {
-        background-color: colors.$color-darkblue;
+        background-color: $color-darkblue;
         color: white;
     }
 }
@@ -168,14 +167,14 @@ div.circle {
 div.triangle__right {
     height: 50px;
     width: 25px;
-    background-color: colors.$color-moderategrey;
+    background-color: $color-moderategrey;
     clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
 div.triangle__down {
     height: 50px;
     width: 25px;
-    background-color: colors.$color-moderategrey;
+    background-color: $color-moderategrey;
     clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 
@@ -189,7 +188,7 @@ div.skewer-container {
         & div.skewer {
             height: 3px;
             width: 100%;
-            border: colors.$color-moderategrey 2px solid;
+            border: $color-moderategrey 2px solid;
             position: absolute;
             top: 50%;
             transform: translateY(-3px);
@@ -203,7 +202,7 @@ div.skewer-container {
         & div.skewer {
             width: 3px;
             height: 100%;
-            border: colors.$color-moderategrey 2px solid;
+            border: $color-moderategrey 2px solid;
             position: absolute;
             left: 50%;
             transform: translateX(-3px);
@@ -219,34 +218,34 @@ div.skewer-container {
 
     &:hover {
         transform: translateY(-3px);
-        box-shadow: 0 5px 10px adjust-color(colors.$color-darkblue, $alpha: -0.7);
+        box-shadow: 0 5px 10px adjust-color($color-darkblue, $alpha: -0.7);
     }
 
     &:active {
         transform: translateY(-1px);
-        box-shadow: 0 2px 4px adjust-color(colors.$color-darkblue, $alpha: -0.7);
+        box-shadow: 0 2px 4px adjust-color($color-darkblue, $alpha: -0.7);
     }
 }
 
 .feature-box {
     position: relative;
-    background-color: colors.$color-white;
-    border: 2px solid colors.$color-darkblue;
+    background-color: $color-white;
+    border: 2px solid $color-darkblue;
     border-radius: 8px;
     padding: 1rem;
     text-align: center;
-    box-shadow: 4px 3px 2px colors.$color-darkblue;
+    box-shadow: 4px 3px 2px $color-darkblue;
     transition: all 0.2s;
     min-height: 30vh;
     display: flex;
     flex-direction: column;
 
     &:hover {
-        box-shadow: 8px 6px 4px colors.$color-darkblue;
+        box-shadow: 8px 6px 4px $color-darkblue;
         transform: scale(1.03);
 
         .call-out {
-            background-color: colors.$color-orange;
+            background-color: $color-orange;
             font-weight: bold;
         }
 
@@ -261,17 +260,17 @@ div.skewer-container {
     }
 
     .header {
-        color: colors.$color-darkblue;
+        color: $color-darkblue;
         font-weight: 600;
         margin-top: 1rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid colors.$color-lightgrey;
+        border-bottom: 1px solid $color-lightgrey;
     }
 
     .call-out {
         position: absolute;
-        background-color: colors.$color-darkblue;
-        color: colors.$color-white;
+        background-color: $color-darkblue;
+        color: $color-white;
         border-radius: 8px;
         top: -25px;
         left: 50%;
@@ -293,7 +292,7 @@ div.skewer-container {
 
 .active-section {
     font-weight: 900;
-    border-left: 2px solid colors.$color-darkblue;
+    border-left: 2px solid $color-darkblue;
 }
 
 .circle-counter {

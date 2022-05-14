@@ -1,4 +1,4 @@
-@use 'colors';
+@use '../abstracts' as *;
 
 .selectize-dropdown, .selectize-input, .selectize-input input {
     font-size: 1rem;
@@ -10,7 +10,7 @@
     border-right-width: 1px;
     border-bottom-width: 1px;
     border-left-width: 1px;
-    border-color: colors.$color-darkblue;
+    border-color: $color-darkblue;
     min-width: 100%;
     width: auto !important;
 }
@@ -18,12 +18,12 @@
 .selectize-input {
     line-height: 1.5rem;
     border-radius: 0.5rem;
-    border: 1px solid colors.$color-lightgrey;
+    border: 1px solid $color-lightgrey;
 
     &.dropdown-active {
         border-radius: 0.5rem;
-        border: 1px solid colors.$color-darkblue;
-        box-shadow: 0 0 2px colors.$color-darkblue;
+        border: 1px solid $color-darkblue;
+        box-shadow: 0 0 2px $color-darkblue;
     }
 }
 
@@ -37,7 +37,7 @@
 }
 
 .selectize-dropdown .optgroup .optgroup-header {
-    background-color: colors.$color-lightgrey;
+    background-color: $color-lightgrey;
     font-weight: bold;
     margin-left: -6px;
     margin-right: -6px;

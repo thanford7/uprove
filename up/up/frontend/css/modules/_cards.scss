@@ -1,10 +1,9 @@
-@use 'colors';
-@import "bootstrap/scss/bootstrap-grid";
+@use '../abstracts' as *;
 
 $card-radius: 10px;
 @mixin card {
-    background-color: colors.$color-white;
-    box-shadow: 0 0 3px 1px colors.$color-lightgrey;
+    background-color: $color-white;
+    box-shadow: 0 0 3px 1px $color-lightgrey;
     border-radius: $card-radius;
     padding: 10px;
     height: fit-content;
@@ -31,7 +30,7 @@ $card-radius: 10px;
     }
 
     &--shadow {
-        box-shadow: 0 0 5px colors.$color-moderategrey;
+        box-shadow: 0 0 5px $color-moderategrey;
     }
 
     &--no-side-margin {
@@ -68,7 +67,7 @@ $card-radius: 10px;
         margin-bottom: 1.5rem;
         font-weight: bold;
         :not(h2) {
-            color: colors.$color-moderategrey;
+            color: $color-moderategrey;
         }
     }
 
@@ -79,7 +78,7 @@ $card-radius: 10px;
         left: 0;
         width: 100%;
         backface-visibility: hidden;
-        box-shadow: 8px 6px 4px colors.$color-moderategrey;
+        box-shadow: 8px 6px 4px $color-moderategrey;
         border-radius: $card-radius;
         overflow: hidden;
 
@@ -88,10 +87,10 @@ $card-radius: 10px;
         }
 
         &--front {
-            background-color: colors.$color-white;
+            background-color: $color-white;
             .card-top {
-                border-bottom: 1px solid colors.$color-moderategrey;
-                color: colors.$color-moderategrey;
+                border-bottom: 1px solid $color-moderategrey;
+                color: $color-moderategrey;
 
                 h5 {
                     text-transform: uppercase;
@@ -104,10 +103,10 @@ $card-radius: 10px;
                 width: 100%;
                 border-radius: 0 0 $card-radius $card-radius;
                 padding: 1rem;
-                color: colors.$color-white;
+                color: $color-white;
 
                 &:hover {
-                    color: colors.$color-black;
+                    color: $color-black;
                     filter: brightness(1.25);
                 }
             }
@@ -115,10 +114,10 @@ $card-radius: 10px;
 
         &--back {
             transform: rotateY(180deg);
-            color: colors.$color-white;
+            color: $color-white;
 
             &-orange {
-                background-image: linear-gradient(to right bottom, colors.$color-orange, colors.$color-white);
+                background-image: linear-gradient(to right bottom, $color-orange, $color-white);
             }
         }
     }
@@ -127,7 +126,7 @@ $card-radius: 10px;
 .collapse-card {
     padding: 0;
     .collapse-div {
-        border-bottom: 2px solid colors.$color-white;
+        border-bottom: 2px solid $color-white;
     }
     .collapse-div:first-of-type {
         div:first-of-type {

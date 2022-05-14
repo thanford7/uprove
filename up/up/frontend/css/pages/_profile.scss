@@ -1,11 +1,10 @@
-@use '../modules/colors';
-@import "bootstrap/scss/bootstrap-grid";
+@use '../abstracts' as *;
 
 .profile-picture {
     position: relative;
     img {
         border-radius: 10%;
-        border: 1px solid colors.$color-moderategrey;
+        border: 1px solid $color-moderategrey;
         max-height: 120px;
     }
     @include media-breakpoint-up(md) {
@@ -52,13 +51,13 @@
         position: relative;
         .item-edit-options {
             padding: 3px;
-            background-color: colors.$color-lightgrey;
+            background-color: $color-lightgrey;
             position: absolute;
             right: 5px;
             top: 16px;
             visibility: hidden;
             border-radius: 10px;
-            border: 1px solid colors.$color-moderategrey;
+            border: 1px solid $color-moderategrey;
 
             i {
                 margin-left: 3px;
@@ -74,7 +73,7 @@
 
 .project-showcase {
     border-radius: 10px;
-    border: 1px solid colors.$color-lightgrey;
+    border: 1px solid $color-lightgrey;
     position: relative;
     padding: 2em 0 0 0;
 
@@ -83,7 +82,7 @@
         width: auto;
         font-weight: 600;
         position: absolute;
-        background-color: colors.$color-white;
+        background-color: $color-white;
         top: 0;
         left: 1em;
         transform: translateY(-50%);
@@ -91,21 +90,21 @@
 }
 
 .project-item-title {
-    background-color: adjust-color(colors.$color-lightgrey, $alpha: -0.5);
+    background-color: adjust-color($color-lightgrey, $alpha: -0.5);
     border-top-right-radius: 10px;
     border-top-left-radius: 10px;
-    border-top: 1px solid colors.$color-lightgrey;
-    border-left: 1px solid colors.$color-lightgrey;
-    border-right: 1px solid colors.$color-lightgrey;
+    border-top: 1px solid $color-lightgrey;
+    border-left: 1px solid $color-lightgrey;
+    border-right: 1px solid $color-lightgrey;
     margin-bottom: 0;
     padding: 4px 0;
 }
 
 .project-item {
     border-radius: 0 0 10px 10px;
-    border-bottom: 1px solid colors.$color-lightgrey;
-    border-left: 1px solid colors.$color-lightgrey;
-    border-right: 1px solid colors.$color-lightgrey;
+    border-bottom: 1px solid $color-lightgrey;
+    border-left: 1px solid $color-lightgrey;
+    border-right: 1px solid $color-lightgrey;
     padding: 0;
 
     .project-file-image {
@@ -130,15 +129,15 @@
         display: inline-block;
         padding: 0 8px;
         position: absolute;
-        background-color: adjust-color(colors.$color-white, $alpha: -0.1);
+        background-color: adjust-color($color-white, $alpha: -0.1);
         bottom: 0;
         right: 0;
     }
 }
 
 .blank-section {
-    background-color: colors.$color-lightgrey;
-    border: 1px solid colors.$color-darkgrey;
+    background-color: $color-lightgrey;
+    border: 1px solid $color-darkgrey;
     border-radius: 10px;
     padding: 8px;
 }
