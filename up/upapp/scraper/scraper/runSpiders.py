@@ -53,6 +53,7 @@ defaultSpiders = [
     ZoomoSpider
 ]
 
-print('Running job scraper')
-addCrawlers(defaultRunner, defaultSpiders)
-reactor.run()
+if __name__ == '__main__':
+    print('Running job scraper')
+    addCrawlers(defaultRunner, defaultSpiders)
+    reactor.run()
