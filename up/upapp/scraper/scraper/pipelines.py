@@ -7,7 +7,7 @@
 # useful for handling different item types with a single interface
 from django.utils import timezone
 
-from scraper.utils.normalize import normalizeLocations
+from scraper.utils.normalize import normalizeLocations, normalizeJobTitles
 from upapp.models import Employer, EmployerJob
 
 
@@ -36,6 +36,7 @@ class ScraperPipeline:
 
         # Update location attributes (e.g. city)
         normalizeLocations()
+        normalizeJobTitles()
 
         if driver := getattr(spider, 'driver', None):
             driver.close()
