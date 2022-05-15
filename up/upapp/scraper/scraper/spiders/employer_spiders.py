@@ -169,7 +169,16 @@ class LeverSpider(scrapy.Spider):
 
     def parseJob(self, response):
         jobSummary = response.xpath('//div[@class="posting-headline"]')
-        location, jobDepartment, positionType = jobSummary.xpath('.//div[@class="posting-categories"]/div/text()')
+        categories = jobSummary.xpath('.//div[@class="posting-categories"]/div/text()')
+        location = None
+        jobDepartment = None
+        positionType = None
+        if len(categories) == 1:
+            location = categories
+        elif len(categories) == 2:
+            location, jobDepartment = categories
+        elif len(categories) == 3:
+            location, jobDepartment, positionType = categories
 
         def parseItemFn(item):
             item = item.get()
@@ -177,9 +186,9 @@ class LeverSpider(scrapy.Spider):
                 return item
             return item.replace('/', '').strip()
 
-        location = parseItemFn(location)
-        jobDepartment = parseItemFn(jobDepartment)
-        positionType = parseItemFn(positionType).lower()
+        location = parseItemFn(location) if location else None
+        jobDepartment = parseItemFn(jobDepartment) if jobDepartment else None
+        positionType = parseItemFn(positionType).lower() if positionType else None
 
         jobDescription = ''
         for content in response.xpath('//div[@class="section page-centered"]//div'):
@@ -194,7 +203,7 @@ class LeverSpider(scrapy.Spider):
             location=location,
             jobDepartment=jobDepartment,
             jobDescription=sanitizer.sanitize(jobDescription),
-            isFullTime='full' in positionType or 'remote' in positionType,
+            isFullTime=('full' in positionType or 'remote' in positionType) if positionType else True,
         )
 
 
