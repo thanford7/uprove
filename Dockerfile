@@ -11,3 +11,6 @@ COPY /up .
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+
+RUN ["chmod", "+x", "/up/run_job_scraper.sh"]
+CMD /up/run_job_scraper.sh
