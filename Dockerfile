@@ -12,4 +12,4 @@ COPY /up .
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-CMD run_job_scraper.sh
+CMD /up/run_job_scraper.sh
