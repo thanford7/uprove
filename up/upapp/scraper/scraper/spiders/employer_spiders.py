@@ -53,6 +53,12 @@ def spanToPSanitizer(element):
     return element
 
 
+def getStripOrNone(val, transformFn=None):
+    if not val:
+        return val
+    return val.strip() if not transformFn else transformFn(val)
+
+
 sanitizer = Sanitizer({
     'tags': {
         'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'p', 'ul', 'ol',
@@ -113,7 +119,7 @@ class GreenhouseSpider(scrapy.Spider):
 
     def parseJob(self, response):
         jobDepartment = response.request.meta['jobDepartment']
-        location = response.xpath('//div[@id="header"]//div[@class="location"]/text()').get().strip()
+        location = getStripOrNone(response.xpath('//div[@id="header"]//div[@class="location"]/text()').get())
 
         yield JobItem(
             companyName=self.companyName,
@@ -138,16 +144,18 @@ class JazzHRSpider(scrapy.Spider):
     def parseJob(self, response):
         jobSummary = response.xpath('//div[@class="job-header"]')
 
+        jobType = getStripOrNone(jobSummary.xpath('(.//li[@title="Type"]//text())[2]').get())
+
         yield JobItem(
             companyName=self.companyName,
             applicationUrl=response.url,
-            jobTitle=jobSummary.xpath('.//h1/text()').get().strip(),
-            location=jobSummary.xpath('(.//li[@title="Location"]//text())[2]').get().strip(),
-            jobDepartment=jobSummary.xpath('(.//li[@title="Department"]//text())[2]').get().strip(),
+            jobTitle=getStripOrNone(jobSummary.xpath('.//h1/text()').get()),
+            location=getStripOrNone(jobSummary.xpath('(.//li[@title="Location"]//text())[2]').get()),
+            jobDepartment=getStripOrNone(jobSummary.xpath('(.//li[@title="Department"]//text())[2]').get()),
             jobDescription=sanitizer.sanitize(
                 response.xpath('//div[@id="job-description"]//div[@class="description"]').get()
             ),
-            isFullTime='full' in jobSummary.xpath('(.//li[@title="Type"]//text())[2]').get().strip().lower(),
+            isFullTime='full' in jobType.lower() if jobType else True,
         )
 
 
@@ -163,7 +171,12 @@ class LeverSpider(scrapy.Spider):
         jobSummary = response.xpath('//div[@class="posting-headline"]')
         location, jobDepartment, positionType = jobSummary.xpath('.//div[@class="posting-categories"]/div/text()')
 
-        parseItemFn = lambda item: item.get().replace('/', '').strip()
+        def parseItemFn(item):
+            item = item.get()
+            if not item:
+                return item
+            return item.replace('/', '').strip()
+
         location = parseItemFn(location)
         jobDepartment = parseItemFn(jobDepartment)
         positionType = parseItemFn(positionType).lower()
@@ -177,7 +190,7 @@ class LeverSpider(scrapy.Spider):
         yield JobItem(
             companyName=self.companyName,
             applicationUrl=response.url,
-            jobTitle=jobSummary.xpath('.//h2/text()').get().strip(),
+            jobTitle=getStripOrNone(jobSummary.xpath('.//h2/text()').get()),
             location=location,
             jobDepartment=jobDepartment,
             jobDescription=sanitizer.sanitize(jobDescription),
@@ -282,15 +295,16 @@ class ProdegeSpider(scrapy.Spider):
     def parse(self, response):
         allJobs = response.xpath('//div[@class="jv-wrapper"]')
         for department, jobTable in zip(allJobs.xpath('.//h3/text()'), allJobs.xpath('.//table[@class="jv-job-list"]')):
-            yield from response.follow_all(jobTable.xpath('.//a'), callback=self.parseJob, meta={'jobDepartment': department.get().strip()})
+            yield from response.follow_all(jobTable.xpath('.//a'), callback=self.parseJob, meta={'jobDepartment': getStripOrNone(department.get())})
 
     def parseJob(self, response):
         jobDepartment = response.request.meta['jobDepartment']
-        jobTitle = response.xpath('//h2[@class="jv-header"]/text()').get().strip()
+        jobTitle = getStripOrNone(response.xpath('//h2[@class="jv-header"]/text()').get())
         locations = response.xpath('//p[@class="jv-job-detail-meta"]/text()')[1:]  # The first text item is the job department
         jobDescription = sanitizer.sanitize(response.xpath('//div[@class="jv-job-detail-description"]').get())
         for location in locations:
-            location = ', '.join([l.strip() for l in location.get().strip().split(',')])
+            location = getStripOrNone(location.get()) or ''
+            location = ', '.join([l.strip() for l in location.split(',')])
             yield JobItem(
                 companyName='Prodege',
                 applicationUrl=response.url,
