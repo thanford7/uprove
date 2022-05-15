@@ -146,7 +146,7 @@ if DEBUG is True:
                 'PORT': 25060
             }
         }
-elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
+elif len(sys.argv) > 0 and (len(sys.argv) < 2 or sys.argv[1] != 'collectstatic'):
     logger.info('CURRENTLY IN PRODUCTION MODE')
     if os.getenv("DATABASE_URL", None) is None:
         raise Exception("DATABASE_URL environment variable not defined")
