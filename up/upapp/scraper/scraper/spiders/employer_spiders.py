@@ -6,8 +6,8 @@ from scrapy.selector import Selector
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from scraper.items import JobItem
-from scraper.utils.seleniumSetup import getDomElOrNone, getSelenium, getWebElementHtml, getWebElementWait,\
+from upapp.scraper.scraper.items import JobItem
+from upapp.scraper.scraper.utils.seleniumSetup import getDomElOrNone, getSelenium, getWebElementHtml, getWebElementWait,\
     retryClick, WEBDRIVER_WAIT_SECONDS
 
 

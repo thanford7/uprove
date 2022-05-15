@@ -2,7 +2,7 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
 
-from spiders.employer_spiders import *
+from upapp.scraper.scraper.spiders.employer_spiders import *
 
 defaultSettings = get_project_settings()
 defaultRunner = CrawlerRunner(defaultSettings)
