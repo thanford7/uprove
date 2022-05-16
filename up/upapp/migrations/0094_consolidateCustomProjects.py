@@ -79,5 +79,5 @@ class Migration(migrations.Migration):
             model_name='employerjob',
             name='allowedProjects',
         ),
-        migrations.RunPython(consolidateCustomProjects),
+        # migrations.RunPython(consolidateCustomProjects),
     ]

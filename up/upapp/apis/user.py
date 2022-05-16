@@ -4,7 +4,6 @@ import traceback
 import urllib.request
 from email.mime.image import MIMEImage
 from math import ceil
-from subprocess import CalledProcessError
 
 import ffmpeg as ffmpeg
 from django.conf import settings
@@ -23,18 +22,15 @@ from django.utils import crypto, timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from moviepy.editor import clips_array, VideoFileClip
-from preview_generator.exception import UnavailablePreviewType, UnsupportedMimeType
 from preview_generator.manager import PreviewManager
 from rest_framework import status, authentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from wand.exceptions import BlobError
 
 from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
 from upapp.apis.lever import updateLeverAssessmentComplete
-from upapp.apis.project import SkillView, ProjectView
 from upapp.apis.sendEmail import EmailView
 from upapp.apis.tag import TagView
 from upapp.models import *

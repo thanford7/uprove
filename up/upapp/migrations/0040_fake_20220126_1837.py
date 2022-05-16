@@ -3,6 +3,8 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
+from upapp.migrations import executeSqlMigration
+
 
 class Migration(migrations.Migration):
 
@@ -18,16 +20,17 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100, unique=True)),
             ],
         ),
-        migrations.RemoveField(
-            model_name='project',
-            name='function',
-        ),
-        migrations.DeleteModel(
-            name='CandidateInterest',
-        ),
-        migrations.DeleteModel(
-            name='ProjectFunction',
-        ),
+        # migrations.RemoveField(
+        #     model_name='project',
+        #     name='function',
+        # ),
+        # migrations.DeleteModel(
+        #     name='CandidateInterest',
+        # ),
+        # migrations.DeleteModel(
+        #     name='ProjectFunction',
+        # ),
+        migrations.RunPython(lambda apps, schemaEditor: executeSqlMigration('0040.sql'), atomic=True),
         migrations.AddField(
             model_name='project',
             name='role',

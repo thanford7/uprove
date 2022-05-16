@@ -12,17 +12,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel('ProjectSkill', 'Skill'),
-        migrations.RenameField('Skill', 'skillName', 'name'),
-        migrations.AlterField(
-            model_name='customproject',
-            name='skills',
-            field=models.ManyToManyField(to='upapp.Skill'),
-        ),
-        migrations.AlterField(
-            model_name='project',
-            name='skills',
-            field=models.ManyToManyField(to='upapp.Skill'),
-        ),
-        migrations.RunPython(lambda x, y: executeSqlMigration('0041.sql'), atomic=True)
+        # migrations.RenameModel('ProjectSkill', 'Skill'),
+        # migrations.RenameField('Skill', 'skillName', 'name'),
+        # migrations.AlterField(
+        #     model_name='customproject',
+        #     name='skills',
+        #     field=models.ManyToManyField(to='upapp.Skill'),
+        # ),
+        # migrations.AlterField(
+        #     model_name='project',
+        #     name='skills',
+        #     field=models.ManyToManyField(to='upapp.Skill'),
+        # ),
+        # migrations.RunPython(lambda x, y: executeSqlMigration('0041.sql'), atomic=True)
     ]

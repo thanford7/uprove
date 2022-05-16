@@ -12,5 +12,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(lambda apps, schemaEditor: executeSqlMigration('0039.sql'), atomic=True)
+        # migrations.RunPython(lambda apps, schemaEditor: executeSqlMigration('0039.sql'), atomic=True)
     ]

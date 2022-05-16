@@ -23,5 +23,5 @@ class Migration(migrations.Migration):
             old_name='skillLevelBits',
             new_name='skillLevelBit',
         ),
-        migrations.RunPython(updateProjectSkillLevel)
+        # migrations.RunPython(updateProjectSkillLevel)
     ]
