@@ -98,11 +98,11 @@
                                             </label>
                                         </div>
                                         <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox" id="projectHidden"
+                                            <input class="form-check-input" type="checkbox"
                                                    :checked="userProject.isHidden"
                                                    @change="toggleProjectHidden(userProject, $event)"
                                             >
-                                            <label class="form-check-label" for="projectHidden">
+                                            <label class="form-check-label">
                                                 <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
                                                              :content="CONTENT.hiddenStatusInfo"/>
                                                 Project hidden
@@ -413,7 +413,7 @@ export default {
             this.isUpdateData = true;
             this.initDataKey = ['userProjects', 'jobApplications'];
             this.isHardRefresh = false;
-            const isChecked = e.returnValue;
+            const isChecked = $(e.currentTarget).prop('checked');
             this.formData = {
                 id: userProject.id,
                 status: (isChecked) ? this.globalData.PROJECT_STATUSES.COMPLETE : this.globalData.PROJECT_STATUSES.DRAFT
@@ -421,7 +421,7 @@ export default {
             if (isChecked && !window.confirm(
                 `Are you sure you sure you want to finalize this project? You will not be able to edit it for the next ${this.pluralize('day', this.globalData.PROJECT_COMPLETE_LOCK_DAYS)}.`
             )) {
-                this.resetAjaxData();
+                this.resetAjaxSettings();
                 $(e.currentTarget).prop('checked', false);
                 return;
             }
@@ -438,9 +438,10 @@ export default {
         toggleProjectHidden(userProject, e) {
             this.resetAjaxSettings();
             this.crudUrl = 'user-project/status/';
+            const isChecked = $(e.currentTarget).prop('checked');
             this.formData = {
                 id: userProject.id,
-                isHidden: e.returnValue
+                isHidden: isChecked
             };
             this.readAndSubmitForm();
         }
