@@ -1,4 +1,5 @@
 import base64
+import os
 import urllib.request
 from datetime import datetime
 import logging
@@ -74,6 +75,8 @@ class EmailView(UproveAPIView):
         :return: SendGrid email response
         """
         subject = ''.join(subjectText.splitlines())  # Email subject *must not* contain newlines
+        if os.getenv('DB') != 'prod':
+            subject = '(Test) ' + subject
         htmlContent = htmlContent or loader.render_to_string(djangoEmailBodyTemplate, djangoContext)
 
         message = Mail(
