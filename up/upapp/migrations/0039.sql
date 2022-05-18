@@ -1,1 +1,1 @@
-drop table upapp_candidateinterest;
+-- drop table upapp_candidateinterest cascade;

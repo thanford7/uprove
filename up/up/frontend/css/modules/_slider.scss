@@ -1,4 +1,4 @@
-@use 'colors';
+@use '../abstracts' as *;
 
 .slidecontainer {
     width: 100%;
@@ -10,7 +10,7 @@
     width: 100%;
     height: 15px;
     border-radius: 5px;
-    background: colors.$color-lightgrey;
+    background: $color-lightgrey;
     outline: none;
     opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
     -webkit-transition: .2s; /* 0.2 seconds transition on hover */
@@ -26,7 +26,7 @@
         width: 25px;
         height: 25px;
         border-radius: 50%;
-        background: colors.$color-darkblue;
+        background: $color-darkblue;
         cursor: pointer;
     }
 }

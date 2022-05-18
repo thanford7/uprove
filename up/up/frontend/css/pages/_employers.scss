@@ -1,5 +1,29 @@
-@use '../modules/colors';
-@import "bootstrap/scss/bootstrap-grid";
+@use '../abstracts' as *;
+
+
+#employer-page {
+    position: relative;
+}
+
+#employerMagnet {
+    position: fixed;
+    bottom: 0;
+    z-index: 1001;
+    width: 100vw;
+    height: 75vh;
+    overflow: auto;
+    animation: showMagnet 2s linear;
+}
+
+@keyframes showMagnet {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(0%);
+    }
+}
 
 %background-image-shared {
     position: absolute;
@@ -23,8 +47,8 @@
         @extend %background-image-shared;
         background-image: linear-gradient(
                         to right bottom,
-                        adjust-color(colors.$color-orange, $alpha: -0.7),
-                        adjust-color(colors.$color-lightgrey, $alpha: -0.7)
+                        adjust-color($color-orange, $alpha: -0.7),
+                        adjust-color($color-lightgrey, $alpha: -0.7)
         ),
         url('img/background/funky-lines.png');
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 80%);
@@ -161,14 +185,14 @@
         position: absolute;
         z-index: 100;
         transition: all 0.2s;
-        border: 2px solid colors.$color-lightgrey;
+        border: 2px solid $color-lightgrey;
 
         &.not-sibling-hover {
             transform: scale(0.8);
         }
 
         &:hover, &.sibling-hover {
-            border: 0.7rem solid colors.$color-blue;
+            border: 0.7rem solid $color-blue;
             transform: scale(1.08);
             z-index: 101;
         }
@@ -202,7 +226,7 @@
         &:hover, &.sibling-hover {
             font-weight: bold;
             @include headings {
-                color: colors.$color-darkblue;
+                color: $color-darkblue;
                 font-weight: 600;
             }
         }
@@ -223,8 +247,8 @@
         @extend %background-image-shared;
         background-image: linear-gradient(
             to left top,
-            adjust-color(colors.$color-orange, $alpha: -0.7),
-            adjust-color(colors.$color-lightgrey, $alpha: -0.7)
+            adjust-color($color-orange, $alpha: -0.7),
+            adjust-color($color-lightgrey, $alpha: -0.7)
         ),
         url('img/background/funky-lines.png');
         clip-path: polygon(0 0, 100% 20%, 100% 100%, 0 100%);

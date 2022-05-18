@@ -1,4 +1,4 @@
-@use 'colors';
+@use '../abstracts' as *;
 
 .-hidden {
     display: none;
@@ -23,29 +23,29 @@
 
 .-border-left {
     &--light {
-        border-left: 1px solid colors.$color-lightgrey;
+        border-left: 1px solid $color-lightgrey;
     }
 
     &--blue {
-        border-left: 2px solid colors.$color-darkblue;
+        border-left: 2px solid $color-darkblue;
     }
 }
 
 .-border-bottom {
     &--light {
-        border-bottom: 1px solid colors.$color-lightgrey;
+        border-bottom: 1px solid $color-lightgrey;
     }
 }
 
 .-border-top {
     &--light {
-        border-top: 1px solid colors.$color-lightgrey;
+        border-top: 1px solid $color-lightgrey;
     }
 }
 
 .-border-left {
     &--light {
-        border-left: 1px solid colors.$color-lightgrey;
+        border-left: 1px solid $color-lightgrey;
     }
 }
 
@@ -59,7 +59,7 @@
 
 .-hover-highlight-border {
     &:hover {
-        border-left: 2px solid colors.$color-moderategrey;
+        border-left: 2px solid $color-moderategrey;
         padding-left: 4px;
     }
 }
@@ -148,7 +148,7 @@
 
 .-anchor {
     background-color: transparent;
-    color: colors.$color-link;
+    color: $color-link;
     text-decoration: underline;
     cursor: pointer;
 }
@@ -269,7 +269,7 @@
 
 .after-border-middle:after {
     content: "";
-    border-color: colors.$color-lightgrey;
+    border-color: $color-lightgrey;
     border-style: solid;
     border-bottom-width: 1px;
     height: 1px;

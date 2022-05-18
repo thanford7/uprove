@@ -1,4 +1,5 @@
 import base64
+import os
 import urllib.request
 from datetime import datetime
 import logging
@@ -74,6 +75,8 @@ class EmailView(UproveAPIView):
         :return: SendGrid email response
         """
         subject = ''.join(subjectText.splitlines())  # Email subject *must not* contain newlines
+        if os.getenv('DB') != 'prod':
+            subject = '(Test) ' + subject
         htmlContent = htmlContent or loader.render_to_string(djangoEmailBodyTemplate, djangoContext)
 
         message = Mail(
@@ -108,6 +111,7 @@ class EmailView(UproveAPIView):
     @staticmethod
     def sendFormattedEmail(request, contactType=None):
         contactType = contactType or request.data['type']
+        isExcludeUserEmail = request.data.get('isExcludeEmail', False)
         userSubject = None
         userContent = None
         userEmail = None
@@ -167,7 +171,7 @@ class EmailView(UproveAPIView):
             subject, EmailView.EMAIL_ROUTES[contactType], htmlContent=content
         )
 
-        if userSubject:
+        if userSubject and not isExcludeUserEmail:
             EmailView.sendEmail(
                 userSubject,
                 [userEmail],

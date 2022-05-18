@@ -177,7 +177,8 @@ const ajaxRequestMixin = {
                 }
 
                 if (this.isHardRefresh) {
-                    window.location.reload();
+                    // Don't use window.reload() to prevent scrolling to previous y-axis on page
+                    window.location.href = window.location.href;
                 } else {
                     const redirect = data.pageRedirect || this.pageRedirect;
                     if (redirect) {

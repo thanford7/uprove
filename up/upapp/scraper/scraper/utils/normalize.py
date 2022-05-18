@@ -157,6 +157,3 @@ def normalizeJobTitle(jobTitle, roleLevels):
             return roleLevels[('business analysis', 2)]
         elif ('business' in jobTitle):
             return roleLevels[('business analysis', 1)]
-
-# normalizeLocations()
-# normalizeJobTitles()

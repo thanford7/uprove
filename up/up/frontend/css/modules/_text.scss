@@ -1,7 +1,4 @@
-@use 'colors';
-@import 'bootstrap/scss/functions';
-@import 'bootstrap/scss/variables';
-@import 'bootstrap/scss/mixins';
+@use '../abstracts' as *;
 
 body {
     font-family: "Nunito", sans-serif;
@@ -69,7 +66,7 @@ blockquote {
 }
 
 .text-label {
-    color: colors.$color-moderategrey;
+    color: $color-moderategrey;
     &-sm {
         font-size: 0.7rem;
     }
@@ -81,7 +78,7 @@ blockquote {
 
 .-sub-text {
     font-size: 0.8rem;
-    color: colors.$color-moderategrey
+    color: $color-moderategrey
 }
 
 .-text- {

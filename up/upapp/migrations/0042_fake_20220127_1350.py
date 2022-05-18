@@ -23,17 +23,35 @@ class Migration(migrations.Migration):
                 ('skillProject', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='upapp.project')),
             ],
         ),
-        # migrations.DeleteModel(
-        #     name='ProjectSkill',
-        # ),
-        migrations.AlterField(
+        migrations.DeleteModel(
+            name='ProjectSkill',
+        ),
+        migrations.RemoveField(
+            model_name='customproject',
+            name='skills',
+        ),
+        migrations.RemoveField(
+            model_name='project',
+            name='skills',
+        ),
+        migrations.AddField(
             model_name='customproject',
             name='skills',
             field=models.ManyToManyField(to='upapp.Skill'),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name='project',
             name='skills',
             field=models.ManyToManyField(to='upapp.Skill'),
         ),
+        # migrations.AlterField(
+        #     model_name='customproject',
+        #     name='skills',
+        #     field=models.ManyToManyField(to='upapp.Skill'),
+        # ),
+        # migrations.AlterField(
+        #     model_name='project',
+        #     name='skills',
+        #     field=models.ManyToManyField(to='upapp.Skill'),
+        # ),
     ]

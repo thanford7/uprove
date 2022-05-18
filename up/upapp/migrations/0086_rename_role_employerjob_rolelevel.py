@@ -36,5 +36,5 @@ class Migration(migrations.Migration):
             old_name='role',
             new_name='roleLevel',
         ),
-        migrations.RunPython(consolidateRoles)
+        # migrations.RunPython(consolidateRoles)
     ]

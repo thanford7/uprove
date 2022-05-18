@@ -3,6 +3,7 @@
 from django.db import migrations
 from django.db.models import Q
 
+from upapp.migrations import executeSqlMigration
 from upapp.models import Skill
 
 
@@ -34,5 +35,5 @@ class Migration(migrations.Migration):
             model_name='skill',
             name='isRequired',
         ),
-        migrations.RunPython(consolidateSkills)
+        # migrations.RunPython(consolidateSkills)
     ]

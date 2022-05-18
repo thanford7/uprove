@@ -1,0 +1,51 @@
+@use 'colors';
+
+// For overriding bootstrap variables https://getbootstrap.com/docs/5.0/customize/sass/
+$primary: colors.$color-blue;
+$secondary: colors.$color-lightgrey;
+$info: colors.$color-darkblue;
+$dark: colors.$color-darkgrey;
+$success: colors.$color-green;
+$accordion-button-bg: rgba(colors.$color-lightgrey, .4);
+$accordion-button-active-bg: colors.$color-darkblue;
+$accordion-button-active-color: colors.$color-white;
+
+$font-size-root: 16px;
+$font-size-base: 1rem;
+$font-weight-bold: 600;
+
+$h1-font-size: $font-size-base * 3.5;
+$h2-font-size: $font-size-base * 3;
+$h3-font-size: $font-size-base * 2.5;
+$h4-font-size: $font-size-base * 2;
+$h5-font-size: $font-size-base * 1.5;
+$h6-font-size: $font-size-base;
+
+$nav-link-color: colors.$color-darkblue;
+$nav-tabs-link-active-color: colors.$color-blue;
+
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * .25,
+  2: $spacer * .5,
+  3: $spacer,
+  4: $spacer * 1.5,
+  5: $spacer * 3,
+  6: $spacer * 4,
+  7: $spacer * 5,
+  8: $spacer * 6,
+  9: $spacer * 7,
+  10: $spacer * 8
+);
+
+$btn-font-size: 1.0rem;
+
+$input-border-radius: 0.5rem;
+$input-border-radius-sm: 0.5rem;
+$input-border-radius-lg: 0.5rem;
+
+$form-label-font-size: 1rem;
+$form-label-fontweight:600;
+
+@import "bootstrap/scss/bootstrap";

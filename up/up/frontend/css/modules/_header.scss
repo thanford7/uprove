@@ -1,9 +1,8 @@
-@use "colors";
-@import "bootstrap/scss/bootstrap-grid";
+@use '../abstracts' as *;
 
 .site-header {
-    box-shadow: 0 2px 2px colors.$color-lightgrey;
-    background-color: colors.$color-white;
+    box-shadow: 0 2px 2px $color-lightgrey;
+    background-color: $color-white;
     font-size: 16px;
 
     .navbar {
@@ -11,7 +10,7 @@
     }
 
     .nav-link {
-        color: colors.$color-darkblue;
+        color: $color-darkblue;
     }
 
     .navbar-nav {
@@ -27,7 +26,7 @@
     }
 
     .current-page {
-        border-bottom: 2px solid colors.$color-darkblue;
+        border-bottom: 2px solid $color-darkblue;
     }
 }
 
@@ -39,7 +38,7 @@
         margin: 5px auto;
         -webkit-transition: all 0.3s ease-in-out;
         transition: all 0.3s ease-in-out;
-        background-color: colors.$color-moderategrey;
+        background-color: $color-moderategrey;
     }
 
     .hamburger {

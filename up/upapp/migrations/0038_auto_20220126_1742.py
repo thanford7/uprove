@@ -27,5 +27,8 @@ class Migration(migrations.Migration):
             model_name='employerinterest',
             name='title',
         ),
+        migrations.DeleteModel(
+            name='CandidateInterest',
+        ),
         migrations.RunPython(lambda apps, schemaEditor: executeSqlMigration('0038.sql'), atomic=True)
     ]

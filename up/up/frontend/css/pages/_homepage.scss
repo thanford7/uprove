@@ -1,4 +1,4 @@
-@use '../modules/colors';
+@use '../abstracts' as *;
 
 %background-image-shared {
     position: absolute;
@@ -22,8 +22,8 @@
         @extend %background-image-shared;
         background-image: linear-gradient(
             to right bottom,
-            adjust-color(colors.$color-darkblue, $alpha: -0.7),
-            adjust-color(colors.$color-lightgrey, $alpha: -0.7)
+            adjust-color($color-darkblue, $alpha: -0.7),
+            adjust-color($color-lightgrey, $alpha: -0.7)
         ),
         url('img/background/bright_squares.png');
         clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
@@ -56,8 +56,8 @@
         @extend %background-image-shared;
         background-image: linear-gradient(
             to right bottom,
-            adjust-color(colors.$color-lightgrey, $alpha: -0.7),
-            adjust-color(colors.$color-darkblue, $alpha: -0.7)
+            adjust-color($color-lightgrey, $alpha: -0.7),
+            adjust-color($color-darkblue, $alpha: -0.7)
         ),
         url('img/background/bright_squares.png');
         clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 100%);
@@ -88,7 +88,7 @@
 }
 
 #project-example {
-    box-shadow: 8px 6px 4px colors.$color-darkblue;
+    box-shadow: 8px 6px 4px $color-darkblue;
 }
 
 @keyframes moveInLeft {
