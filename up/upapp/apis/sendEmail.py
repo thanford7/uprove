@@ -111,6 +111,7 @@ class EmailView(UproveAPIView):
     @staticmethod
     def sendFormattedEmail(request, contactType=None):
         contactType = contactType or request.data['type']
+        isExcludeUserEmail = request.data.get('isExcludeEmail', False)
         userSubject = None
         userContent = None
         userEmail = None
@@ -170,7 +171,7 @@ class EmailView(UproveAPIView):
             subject, EmailView.EMAIL_ROUTES[contactType], htmlContent=content
         )
 
-        if userSubject:
+        if userSubject and not isExcludeUserEmail:
             EmailView.sendEmail(
                 userSubject,
                 [userEmail],

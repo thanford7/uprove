@@ -22,7 +22,7 @@
             <label for="formEmployerRequestEmail" class="form-label">Email</label>
             <InputEmail elId="formEmployerRequestEmail" placeholder="Required" v-model="formData.fromEmail"/>
         </div>
-        <div>
+        <div v-if="!isExcludeNote">
             <label for="formEmployerRequestNote" class="form-label">Note</label>
             <textarea
                 rows="3" class="form-control"
@@ -45,7 +45,23 @@ export default {
     name: "EmployerRequestInfoModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    props: ['isContentOnly'],
+    props: {
+        isContentOnly: {
+            type: Boolean,
+            default: false
+        },
+        isExcludeNote: {
+            type: Boolean,
+            default: false
+        },
+        isExcludeEmail: {  // Exclude email will prevent an email sent to user
+            type: Boolean,
+            default: false
+        },
+        successFn: {
+            type: Function,
+        }
+    },
     components: {BaseModal, InputEmail, InputSelectize},
     data() {
         return {
@@ -63,6 +79,7 @@ export default {
         readForm() {
             return {
                 ...this.formData,
+                isExcludeEmail: this.isExcludeEmail,
                 type: this.globalData.EMAIL_EMPLOYER_INTEREST,
             };
         },
@@ -80,6 +97,9 @@ export default {
             return {method: 'POST'};
         },
         getSuccessMessage(data) {
+            if (this.successFn) {
+                this.successFn();
+            }
             return 'Email sent successfully';
         },
         getFailureMessage(errorThrown) {

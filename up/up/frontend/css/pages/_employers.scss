@@ -1,5 +1,30 @@
 @use '../abstracts' as *;
 
+
+#employer-page {
+    position: relative;
+}
+
+#employerMagnet {
+    position: fixed;
+    bottom: 0;
+    z-index: 1001;
+    width: 100vw;
+    height: 75vh;
+    overflow: auto;
+    animation: showMagnet 2s linear;
+}
+
+@keyframes showMagnet {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(0%);
+    }
+}
+
 %background-image-shared {
     position: absolute;
     top: 0;

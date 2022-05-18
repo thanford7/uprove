@@ -1,5 +1,6 @@
 <template>
     <div id="employer-page">
+        <EmployerSalesMagnet v-if="showMagnet" @close="showMagnet = false"/>
         <div class="overlap-bottom-side -z-50">
             <div class="container-lg content">
                 <div class="row mt-3 justify-content-center">
@@ -147,11 +148,17 @@ import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
 import CardPricing from "../../components/CardPricing";
 import EmployerRequestInfoModal from "../../modals/EmployerRequestInfoModal";
+import EmployerSalesMagnet from "./EmployerSalesMagnet";
 import ListFontAwesome from "../../components/ListFontAwesome";
 
 export default {
     name: "EmployersPage",
-    components: {BannerAlert, BasePage, CardPricing, EmployerRequestInfoModal, ListFontAwesome},
+    components: {BannerAlert, BasePage, CardPricing, EmployerRequestInfoModal, EmployerSalesMagnet, ListFontAwesome},
+    data() {
+        return {
+            showMagnet: false
+        }
+    },
     methods: {
         toggleClass(target, notTarget, isOn) {
             target.toggleClass('sibling-hover', isOn);
@@ -168,6 +175,12 @@ export default {
             const notTargetDiv = $(`.employer-benefits .row:not(:nth-child(${divIdx}))`);
             this.toggleClass(targetDiv, notTargetDiv, isOn);
         }
+    },
+    mounted() {
+        // Add 10 seconds then show sales magnet
+        setTimeout(() => {
+            this.showMagnet = true;
+        }, 10000);
     }
 }
 </script>
