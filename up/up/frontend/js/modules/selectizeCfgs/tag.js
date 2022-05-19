@@ -8,7 +8,7 @@ class TagSelectize {
             sortField: 'title',
             searchField: 'title',
             create: true,
-            loadThrottle: 500,
+            loadThrottle: 200,
             placeholder: `Start typing to see existing ${tagType}s`
         };
         cfg.load = (query, callback) => {

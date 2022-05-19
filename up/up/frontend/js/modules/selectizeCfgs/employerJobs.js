@@ -7,7 +7,7 @@ class EmployerJobsSelectize {
             labelField: 'jobTitle',
             sortField: 'jobTitle',
             searchField: 'jobTitle',
-            loadThrottle: 500,
+            loadThrottle: 200,
             placeholder: 'Start typing to search jobs'
         };
         cfg.load = (query, callback) => {

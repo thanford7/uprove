@@ -6,7 +6,7 @@ class EmployersSelectize {
             valueField: 'id',
             sortField: 'companyName',
             searchField: 'companyName',
-            loadThrottle: 500,
+            loadThrottle: 200,
             placeholder: 'Start typing to search employers'
         };
         cfg.load = (query, callback) => {
