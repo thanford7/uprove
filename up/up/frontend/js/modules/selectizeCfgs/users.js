@@ -6,7 +6,7 @@ class UsersSelectize {
             valueField: 'id',
             sortField: ['firstName', 'lastName'],
             searchField: ['firstName', 'lastName', 'email'],
-            loadThrottle: 500,
+            loadThrottle: 200,
             placeholder: 'Start typing to search users'
         };
         cfg.load = (query, callback) => {
