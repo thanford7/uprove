@@ -60,7 +60,8 @@
                             </button>
                         </li>
                         <li>
-                            Upload your final project files and submit your final project to {{initData.employer.companyName}}
+                            Upload your final project files and submit your final project to
+                            {{initData.employer.companyName || 'the employer'}}
                             from your <a href="/candidateDashboard/">dashboard page</a>
                         </li>
                     </ol>
