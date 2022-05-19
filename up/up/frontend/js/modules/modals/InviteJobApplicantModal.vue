@@ -41,12 +41,12 @@ export default {
     data() {
         return {
             modalName: 'inviteJobApplicantModal',
-            crudUrl: 'job-invite/',  // Not implemented yet - will add for option to email directly from app
+            crudUrl: 'job-invite/',
         }
     },
     computed: {
         inviteUrl() {
-            return `${this.globalData.BASE_URL}/job-posting/${this.formData.id}/`
+            return `${this.globalData.BASE_URL}/job-posting/${this.formData.id}/${this.formData.employerId}/`
         }
     },
     methods: {

@@ -268,29 +268,41 @@ def jobs(request):
     })})
 
 
-def jobPosting(request, jobId):
+def jobPosting(request, jobId, employerId=None):
     user = security.getSessionUser(request)
-    if not user or not security.isPermittedSessionUser(user=user):
-        return _getUnauthorizedPage(request)
     job = JobPostingView.getEmployerJobs(jobId=jobId, isIncludeDemo=True)
+    isAuthorizedUser = (
+        (user and security.isPermittedSessionUser(user=user))
+        or (employerId and int(employerId) == job.employer_id)
+    )
     customProjects = CustomProject.objects.select_related('project').all()
     allowedCustomProjects = getAllowedProjects(customProjects, job)
     allowedProjectIds = [p.project_id for p in allowedCustomProjects]
     projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=allowedProjectIds)
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
-    user = security.getSessionUser(request)
     employerId = user.employer_id if isEmployer else None
     customProjects = CustomProject.objects.select_related('project').all()
 
     data = {
         'job': {
-            **getSerializedEmployerJob(job, employerId=employerId, customProjects=customProjects),
+            **getSerializedEmployerJob(job, employerId=employerId, customProjects=customProjects, isAnonymous=not isAuthorizedUser),
         },
-        'employer': getSerializedEmployer(EmployerView.getEmployer(job.employer_id), employerId=employerId),
         'projects': {p.id: getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in projects},
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     }
+
+    employer = EmployerView.getEmployer(job.employer_id)
+    if isAuthorizedUser:
+        data['employer'] = getSerializedEmployer(employer, employerId=employerId)
+        data['isAuthorized'] = True
+    else:
+        data['employer'] = {
+            'description': getAnonymizedEmployerData(employer.description, employer.companyName),
+            'isClient': employer.isClient
+        }
+        data['isAuthorized'] = False
+
     if user and user.userTypeBits & User.USER_TYPE_CANDIDATE:
         allowedCustomProjectIds = [cp.id for cp in allowedCustomProjects]
         data['userProjects'] = [

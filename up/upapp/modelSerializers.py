@@ -1,3 +1,4 @@
+import re
 from datetime import date
 from enum import Enum
 from operator import itemgetter
@@ -5,7 +6,7 @@ from operator import itemgetter
 from django.db.models import Q
 
 from upapp.models import *
-from upapp.utils.dataUtil import getFileNameFromUrl, groupBy
+from upapp.utils.dataUtil import getFileNameFromUrl, groupBy, capitalizeAllWords
 from upapp.utils.htmlTruncate import truncate
 
 
@@ -27,6 +28,12 @@ def getDateTimeFormatOrNone(val):
     if val:
         return val.isoformat()
     return None
+
+
+def getAnonymizedEmployerData(text, employerName):
+    text = text.replace(capitalizeAllWords(employerName), '<code>Employer</code>')
+    text = text.replace(employerName.lower(), '<code>employer</code>')
+    return text.replace(employerName, '<code>employer</code>')
 
 
 def serializeAuditFields(obj):
@@ -431,24 +438,20 @@ def getSerializedCustomProject(customProject: CustomProject):
     }
 
 
-def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customProjects=None):
+def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customProjects=None, isAnonymous=False):
     customProjects = customProjects or CustomProject.objects.select_related('project').all()
     allowedProjects = getAllowedProjects(customProjects, employerJob)
+    companyName = employerJob.employer.companyName
 
     baseFields = {
         'id': employerJob.id,
         'employerId': employerJob.employer_id,
-        'companyName': employerJob.employer.companyName,
         'isClient': employerJob.employer.isClient,
-        'employerLogo': employerJob.employer.logo.url if employerJob.employer.logo else None,
-        'companySize': employerJob.employer.companySize.companySize if employerJob.employer.companySize else None,
-        'companySizeId': employerJob.employer.companySize.id if employerJob.employer.companySize else None,
         'jobTitle': employerJob.jobTitle,
         'roleLevelId': employerJob.roleLevel_id,
         'roleName': employerJob.roleLevel.role.name if employerJob.roleLevel else None,
         'roleId': employerJob.roleLevel.role.id if employerJob.roleLevel else None,
         'roleLevelBit': employerJob.roleLevel.roleLevelBit if employerJob.roleLevel else None,
-        'jobDescription': employerJob.jobDescription,
         'allowedProjects': [getSerializedCustomProject(ap) for ap in allowedProjects],
         'salaryFloor': employerJob.salaryFloor,
         'salaryCeiling': employerJob.salaryCeiling,
@@ -457,23 +460,39 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customPr
         'pauseDate': getDateTimeFormatOrNone(employerJob.pauseDate),
         'closeDate': getDateTimeFormatOrNone(employerJob.closeDate),
         'isRemote': employerJob.isRemote,
-        'location': employerJob.location,
-        'city': employerJob.city,
         'state': employerJob.state.stateName if employerJob.state else None,
         'stateId': employerJob.state.id if employerJob.state else None,
         'country': employerJob.country.countryName if employerJob.country else None,
         'countryId': employerJob.country.id if employerJob.country else None,
         'region': employerJob.region,
+    }
+
+    anonymousFields = {
+        'jobDescription': getAnonymizedEmployerData(employerJob.jobDescription, companyName),
+    }
+
+    nonAnonymousFields = {
+        'companyName': companyName,
+        'employerLogo': employerJob.employer.logo.url if employerJob.employer.logo else None,
+        'companySize': employerJob.employer.companySize.companySize if employerJob.employer.companySize else None,
+        'companySizeId': employerJob.employer.companySize.id if employerJob.employer.companySize else None,
+        'jobDescription': employerJob.jobDescription,
+        'location': employerJob.location,
+        'city': employerJob.city,
         'applicationUrl': employerJob.applicationUrl,
         'isInternal': employerJob.isInternal,
         'leverPostingKey': employerJob.leverPostingKey,
     }
-    employerFields = {
-        'applications': [getSerializedJobApplication(app) for app in employerJob.jobApplication.all()],
-        **serializeAuditFields(employerJob)
-    }
 
-    return baseFields if not employerId else {**baseFields, **employerFields}
+    if not isAnonymous:
+        baseFields = {**baseFields, **nonAnonymousFields}
+        if employerId:
+            baseFields['applications'] = [getSerializedJobApplication(app) for app in employerJob.jobApplication.all()]
+            baseFields = {**baseFields, **serializeAuditFields(employerJob)}
+    else:
+        baseFields = {**baseFields, **anonymousFields}
+
+    return baseFields
 
 
 def getSerializedJobTemplate(template: JobTemplate):
