@@ -4,17 +4,25 @@
         :headerImage="initData.employer.logo"
         :headerImageAlt="initData.employer.companyName"
     >
+        <div v-if="!initData.isAuthorized" class="row">
+            <div class="col-12">
+                <div class="card-custom card-custom--no-side-margin card-custom--no-top-margin -color-yellow">
+                    You must sign in or <a href="#" @click="signUpWithContext">create an account</a> to see the full job details.
+                </div>
+            </div>
+        </div>
         <div class="row mb-3 justify-content-center" :class="(isMobile) ? 'mobile-top' : ''">
-            <JobPosting
-                ref="jobPosting"
-                class="col-md-8"
-                :employer="initData.employer"
-                :job="initData.job"
-                :isJobDescriptionOpen="true"
-                :customProjectId="formData.customProjectId"
-            />
-            <div class="col-md-4 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
-                <template v-if="initData.job?.allowedProjects?.length && initData.employer.isClient">
+            <div class="col-md-8">
+                <JobPosting
+                    ref="jobPosting"
+                    :employer="initData.employer"
+                    :job="initData.job"
+                    :isJobDescriptionOpen="true"
+                    :customProjectId="formData.customProjectId"
+                />
+            </div>
+            <div class="col-md-4 mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
+                <div v-if="initData.job?.allowedProjects?.length && initData.employer.isClient" class="sidebar">
                     <h5 class="-text-bold">Applicant instructions</h5>
                     <div v-if="initData.userApplication" class="mb-2 ps-2 -color-yellow">
                         <i class="fas fa-info"></i> You have an application for this job
@@ -58,8 +66,8 @@
                     </ol>
                     <div class="-sub-text">Need help or have questions about the project?</div>
                     <div class="-sub-text"><a href="#" @click="eventBus.emit('open:submitHelpModal')">Submit question</a></div>
-                </template>
-                <template v-else>
+                </div>
+                <div v-else class="sidebar">
                     <template v-if="initData.job.allowedProjects.length">
                         <InfoToolTip
                             :elId="getNewElUid()"
@@ -81,14 +89,14 @@
                                     <i class="fas fa-external-link-alt"></i>
                                 </span>
                                 <a :href="`/project/${project.projectId}`" target="_blank">{{project.projectTitle}}</a>
-                                <div class="-text-medium" v-html="initData.projects.find((p) => p.id == project.projectId).description"></div>
+                                <div class="-text-medium" v-html="initData.projects[project.projectId].description"></div>
                             </li>
                         </ul>
                     </template>
                     <div v-if="getApplicationUrl(initData.job)" class="mt-3">
                         <JobApplyBtn :applicationUrl="getApplicationUrl(initData.job)" class="w-100"/>
                     </div>
-                </template>
+                </div>
             </div>
         </div>
     </BasePage>
@@ -210,7 +218,7 @@ export default {
     },
     mounted() {
         if (this.initData.job.allowedProjects.length > 1 && !this.hasProjectSaved) {
-            this.requiredFields.customProjectId = this.$refs.allowedProjects.targetEl;
+            this.requiredFields.customProjectId = this.$refs.allowedProjects?.targetEl;
         } else if (this.initData.job.allowedProjects.length === 1) {
             this.formData.customProjectId = this.initData.job.allowedProjects[0].id;
         }
