@@ -38,7 +38,7 @@ defaultSpiders = [
     JerrySpider,
     KandjiSpider,
     KindbodySpider,
-    LeapSpider,
+    # LeapSpider,
     LiberisSpider,
     LinkSquaresSpider,
     MediaflySpider,

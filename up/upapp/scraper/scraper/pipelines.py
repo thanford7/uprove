@@ -9,10 +9,14 @@ from django.utils import timezone
 
 from scraper.utils.normalize import normalizeLocations
 from upapp.models import Employer, EmployerJob
+from upapp.utils.logger import getLogger
+
+logger = getLogger()
 
 
 class ScraperPipeline:
     employers = None
+    printCount = None
     scrapedEmployers = None
     jobUpdateAttributes = ['applicationUrl', 'jobDepartment', 'jobDescription']
 
@@ -24,7 +28,7 @@ class ScraperPipeline:
             'foundJobs': set()
         } for employer in Employer.objects.prefetch_related('employerJob').all()}
         self.scrapedEmployers = set()
-        print('Opened spider')
+        logger.info('Opened spider')
 
     def close_spider(self, spider):
         # Set the close date of a job if it no longer exists on the employers job page
@@ -46,8 +50,9 @@ class ScraperPipeline:
         companyName = item['companyName']
         employerData = self.employers.get(companyName)
         if self.printCount < 5:
-            print('Processing item')
-            print(item)
+            logger.info('Processing item')
+            logger.info(item)
+            self.printCount += 1
         if not employerData:
             employer = Employer(companyName=companyName, createdDateTime=timezone.now(), modifiedDateTime=timezone.now())
             employer.save()
