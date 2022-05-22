@@ -3,9 +3,11 @@ from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
 
 from upapp.scraper.scraper.spiders.employer_spiders import *
+from upapp.utils.logger import getLogger
 
 defaultSettings = get_project_settings()
 defaultRunner = CrawlerRunner(defaultSettings)
+logger = getLogger()
 
 
 def addCrawlers(runner, spiders):
@@ -53,5 +55,7 @@ defaultSpiders = [
     # ZoomoSpider
 ]
 
-addCrawlers(defaultRunner, defaultSpiders)
-reactor.run()
+if __name__ == '__main__':
+    logger.info('Starting spiders')
+    addCrawlers(defaultRunner, defaultSpiders)
+    reactor.run()
