@@ -98,6 +98,7 @@ def candidateBoard(request):
             'role': project.customProject.project.role.name,
             'roleId': project.customProject.project.role.id,
             'status': project.status,
+            'updateDateTime': getDateTimeFormatOrNone(project.statusChangeDateTime),
             'skillLevelBit': project.customProject.skillLevelBit,
             'evaluationScorePct': UserProjectView.getUserProjectScorePct(
                 project, employerId=user.employer_id if not user.isAdmin else None
