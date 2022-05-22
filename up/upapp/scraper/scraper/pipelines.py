@@ -17,12 +17,14 @@ class ScraperPipeline:
     jobUpdateAttributes = ['applicationUrl', 'jobDepartment', 'jobDescription']
 
     def open_spider(self, spider):
+        self.printCount = 0
         self.employers = {employer.companyName: {
             'employer': employer,
             'jobs': {self.generateJobKey(j): j for j in employer.employerJob.all() if j.isScraped},
             'foundJobs': set()
         } for employer in Employer.objects.prefetch_related('employerJob').all()}
         self.scrapedEmployers = set()
+        print('Opened spider')
 
     def close_spider(self, spider):
         # Set the close date of a job if it no longer exists on the employers job page
@@ -43,6 +45,9 @@ class ScraperPipeline:
     def process_item(self, item, spider):
         companyName = item['companyName']
         employerData = self.employers.get(companyName)
+        if self.printCount < 5:
+            print('Processing item')
+            print(item)
         if not employerData:
             employer = Employer(companyName=companyName, createdDateTime=timezone.now(), modifiedDateTime=timezone.now())
             employer.save()
