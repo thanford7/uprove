@@ -148,6 +148,9 @@ if DEBUG is True:
         }
 elif len(sys.argv) > 0 and (len(sys.argv) < 2 or sys.argv[1] != 'collectstatic'):
     logger.info('CURRENTLY IN PRODUCTION MODE')
+    logger.info('System arguments:')
+    for arg in sys.argv:
+        logger.info(arg)
     if os.getenv("DATABASE_URL", None) is None:
         raise Exception("DATABASE_URL environment variable not defined")
     DATABASES = {
