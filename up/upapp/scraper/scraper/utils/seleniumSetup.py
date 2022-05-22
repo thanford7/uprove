@@ -22,6 +22,7 @@ def getSelenium(isDebug=False):
     chromeOptions = Options()
     if not isDebug:
         chromeOptions.add_argument('--headless')
+        chromeOptions.add_argument('--no-sandbox')
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chromeOptions)
     return driver
 
