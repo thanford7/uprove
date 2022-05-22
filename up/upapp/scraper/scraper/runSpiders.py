@@ -19,7 +19,7 @@ def addCrawlers(runner, spiders):
 
 
 defaultSpiders = [
-    AttentiveSpider,
+    # AttentiveSpider,
     Barn2DoorSpider,
     BounteousSpider,
     BlockRenovationSpider,
@@ -50,7 +50,7 @@ defaultSpiders = [
     ProdegeSpider,
     QuartetHealthSpider,
     QuipSpider,
-    ZoomoSpider
+    # ZoomoSpider
 ]
 
 addCrawlers(defaultRunner, defaultSpiders)
