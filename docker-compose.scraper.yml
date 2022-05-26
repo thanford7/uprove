@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+   backend:
+     build:
+       context: ./up
+       dockerfile: Dockerfile_scraper
+     environment:
+       IS_DOCKER: 1
+       IS_DEV: 1
+     volumes:
+       - ./up:/up
+     depends_on:
+       - db
+     ports:
+       - "8080:8080"
+   db:
+     restart: always
+     build:
+       context: ./up
+       dockerfile: Dockerfile_db_dev
+     environment:
+       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+       POSTGRES_USER: todd
+       POSTGRES_DB: uprove
+     ports:
+       - "5432"
+     secrets:
+       - db_password
+     volumes:
+       - uprove-db:/var/lib/postgresql/data
+     container_name: uprove-db
+
+secrets:
+  db_password:
+    file: secrets/postgres_pwd
+
+volumes:
+  uprove-db:

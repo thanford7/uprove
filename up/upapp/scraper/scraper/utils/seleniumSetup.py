@@ -9,6 +9,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
+from upapp.utils.logger import getLogger
+logger = getLogger()
+
 MISSING_DOM_EL_ERRORS = (
     ElementClickInterceptedException,
     NoSuchElementException,
@@ -18,12 +21,22 @@ MISSING_DOM_EL_ERRORS = (
 
 WEBDRIVER_WAIT_SECONDS = 3
 
+
 def getSelenium(isDebug=False):
     chromeOptions = Options()
     if not isDebug:
+        logger.info('Setting up Selenium')
         chromeOptions.add_argument('--headless')
-        # chromeOptions.add_argument('--no-sandbox')
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chromeOptions)
+        chromeOptions.add_argument('--no-sandbox')
+        chromeOptions.add_argument('--disable-extensions')
+        chromeOptions.add_argument('--disable-dev-shm-usage')
+        chromeOptions.add_argument('--disable-setuid-sandbox')
+        chromeOptions.add_argument('--disable-gpu')
+        chromeOptions.add_argument('--remote-debugging-port=9222')
+        chromeOptions.add_argument('--screen-size=1200x800')
+        chromeOptions.binary_location = '/usr/bin/google-chrome'
+    driver = webdriver.Chrome(options=chromeOptions, executable_path='/usr/bin/chromedriver')
+    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chromeOptions, executable_path='/usr/local/bin/chromedriver')
     return driver
 
 
