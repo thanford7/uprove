@@ -10,6 +10,9 @@ from upapp.scraper.scraper.items import JobItem
 from upapp.scraper.scraper.utils.seleniumSetup import getDomElOrNone, getSelenium, getWebElementHtml, getWebElementWait,\
     retryClick, WEBDRIVER_WAIT_SECONDS
 
+from upapp.utils.logger import getLogger
+logger = getLogger()
+
 
 def fontSizeToHeaderSanitizer(element):
     style = element.get('style')
@@ -85,6 +88,7 @@ class BreezySpider(scrapy.Spider):
     start_urls = None
 
     def parse(self, response):
+        logger.info('Running parse method from BreezySpider')
         yield from response.follow_all(css='.positions-container li a', callback=self.parseJob)
 
     def parseJob(self, response):

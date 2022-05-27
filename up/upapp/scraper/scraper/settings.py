@@ -112,3 +112,4 @@ AUTOTHROTTLE_DEBUG = False
 FEED_EXPORT_ENCODING = 'utf-8'
 SPLASH_URL = 'http://localhost:8050'
 DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+LOG_STDOUT = True

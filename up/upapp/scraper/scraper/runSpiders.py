@@ -14,6 +14,7 @@ def addCrawlers(runner, spiders):
     if not spiders:
         return
     for spider in spiders:
+        logger.info('Running spider')
         runner.crawl(spider)
 
     d = runner.join()
