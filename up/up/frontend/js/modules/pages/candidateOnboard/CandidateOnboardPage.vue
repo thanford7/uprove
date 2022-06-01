@@ -35,17 +35,6 @@
                             </div>
                         </template>
                         <template v-if="progressIdx === 1">
-                            <h5 class="mb-4 text-center">Select the roles you're interested in</h5>
-                            <button
-                                v-for="r in initData.roleTitles"
-                                type="button"
-                                class="btn btn-outline-dark outline me-1 mb-1"
-                                @click="toggleSelection($event, r.id, 'roleTitles')"
-                            >
-                                {{r.roleTitle}}
-                            </button>
-                        </template>
-                        <template v-if="progressIdx === 2">
                             <h5 class="mb-4 text-center">Select the countries you want to work in</h5>
                             <div class="d-flex justify-content-center">
                                 <button
@@ -58,7 +47,7 @@
                                 </button>
                             </div>
                         </template>
-                        <template v-if="progressIdx === 3">
+                        <template v-if="progressIdx === 2">
                             <h5 class="mb-4 text-center">What are your preferences on working remotely?</h5>
                             <div class="d-flex justify-content-center">
                                 <div class="btn-group" role="group">
@@ -74,7 +63,7 @@
                                         class="btn btn-outline-dark outline"
                                         @click="toggleValue($event, 1, 'remote')"
                                     >
-                                        In person only
+                                        In-person/hybrid only
                                     </button>
                                     <button
                                         type="button"
@@ -84,6 +73,20 @@
                                         Either
                                     </button>
                                 </div>
+                            </div>
+                        </template>
+                        <template v-if="progressIdx === 3">
+                            <h5 class="mb-4 text-center">
+                                What your minimum acceptable salary?
+                                <InfoToolTip :elId="getNewElUid()" content="We will never show this to employers. We use it to filter out jobs that won't be of interest to you."/>
+                            </h5>
+                            <div class="d-flex justify-content-center">
+                                <RangeSlider
+                                    :elId="getNewElUid()"
+                                    :min="30000" :max="250000" title="Salary"
+                                    :isPct="false" :step="5000" :valueFormatFn="formatCurrency"
+                                    @changed="formData.salary = $event"
+                                />
                             </div>
                         </template>
                     </div>
@@ -114,32 +117,36 @@ import {SEVERITY} from '../../../globalData';
 import BannerAlert from '../../components/BannerAlert';
 import PageHeader from '../../components/PageHeader';
 import BasePage from '../base/BasePage';
+import InfoToolTip from "../../components/InfoToolTip";
+import RangeSlider from "../../components/RangeSlider";
+import dataUtil from "../../../utils/data";
 
 export default {
     name: "CandidateOnboardPage",
-    components: {BasePage, BannerAlert, PageHeader},
+    components: {RangeSlider, InfoToolTip, BasePage, BannerAlert, PageHeader},
     data() {
         return {
             crudUrl: 'user-preferences/',
             progressIdx: 0,
             progressSteps: 4,
-            progressItems: ['companySizes', 'roleTitles', 'countries', 'remote'],
+            progressItems: ['companySizes', 'countries', 'remote', 'salary'],
             formData: {
                 companySizes: [],
-                roleTitles: [],
                 countries: [],
-                remote: null
+                remote: null,
+                salary: null
             },
             pageRedirect: '/candidateDashboard/'
         }
     },
     methods: {
+        formatCurrency: dataUtil.formatCurrency,
         getAjaxCfgOverride() {
             return {method: 'PUT'};
         },
         progress(change) {
             const formField = this.formData[this.progressItems[this.progressIdx]]
-            if (change > 0 && (!formField || !formField.length)) {
+            if (change > 0 && (!formField || (Array.isArray(formField) && !formField.length))) {
                 this.addPopover($('.form-container'),
                     {severity: SEVERITY.WARN, content: 'Please select at least one option', isOnce: true}
                 );

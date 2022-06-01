@@ -23,8 +23,8 @@
                 <li v-if="isSuperUser || isCandidate" class="nav-item" :class="getHighlightClass('jobs')">
                     <a class="nav-link nav-link-tight" href="/jobs">Jobs</a>
                 </li>
-                <li class="nav-item" :class="getHighlightClass('projects')">
-                    <a class="nav-link nav-link-tight" href="/projects">Projects</a>
+                <li class="nav-item" :class="getHighlightClass('blog')">
+                    <a class="nav-link nav-link-tight" href="/blog">Blog</a>
                 </li>
                 <li v-if="isSuperUser || isEmployer" class="nav-item" :class="getHighlightClass('candidate-board')">
                     <a class="nav-link nav-link-tight" href="/candidate-board">Candidate Board</a>

@@ -3,7 +3,7 @@
         <div>
             <span v-if="title" class="-color-moderategrey-text">{{title}} ({{ valString }})</span>
         </div>
-        <input type="range" :min="min" :max="max" class="slider" :id="elId">
+        <input type="range" :min="min" :max="max" :step="step" class="slider" :id="elId">
     </div>
 </template>
 
@@ -33,10 +33,20 @@ export default {
         isPct: {
             type: [Boolean],
             default: true
+        },
+        step: {
+            type: [Number],
+            default: 1
+        },
+        valueFormatFn: {
+            type: [Function, null]
         }
     },
     computed: {
         valString() {
+            if (this.valueFormatFn) {
+                return this.valueFormatFn(this.val);
+            }
             if (this.isPct) {
                 const pct = Math.round((this.val / this.max) * 100)
                 return `${pct}%`;
@@ -59,7 +69,7 @@ export default {
     },
     mounted() {
         const slider$ = $(`#${this.elId}`);
-        this.setValue(this.startingVal);
+        this.setValue(Math.max(this.startingVal, this.min));
         slider$.on('input', (e) => {
             this.val = Number.parseInt(e.currentTarget.value);
         });

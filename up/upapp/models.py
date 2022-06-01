@@ -99,6 +99,7 @@ class User(AuditFields):
     preferenceRemoteBits = models.SmallIntegerField(default=REMOTE_PREF_DEFAULT)  # 1 = Non-remote, 2 = Remote
     preferenceCountry = models.ManyToManyField('Country', related_name='preferenceCountry')
     preferenceState = models.ManyToManyField('State', related_name='preferenceState')
+    preferenceSalary = models.IntegerField(null=True)
 
     leverUserKey = models.CharField(max_length=75, null=True)
 

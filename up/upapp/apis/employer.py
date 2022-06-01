@@ -141,6 +141,7 @@ class EmployerCandidateFavoriteView(UproveAPIView):
 class JobPostingView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
     permittedCountries = ['USA', 'UK', 'Canada']
+    permittedRoles = ['customer success', 'account manage', 'customer experience']
 
     def get(self, request):
         customProjects = CustomProject.objects.select_related('project').all()
@@ -294,6 +295,12 @@ class JobPostingView(UproveAPIView):
             filter &= Q(isInternal=False)
             filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
             filter &= Q(roleLevel__isnull=False)
+
+            roleFilter = Q()
+            for roleName in JobPostingView.permittedRoles:
+                roleFilter |= Q(roleLevel__role__name__iregex=roleName)
+
+            filter &= roleFilter
 
         return filter
 

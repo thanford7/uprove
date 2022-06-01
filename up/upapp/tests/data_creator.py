@@ -34,7 +34,6 @@ class BaseTest(TestCase):
         return requestMethod(url, data)
 
 
-
 def createUser(**kwargs):
     firstName = kwargs.get('firstName') or names.get_first_name()
     lastName = kwargs.get('lastName') or names.get_last_name()

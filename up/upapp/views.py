@@ -260,6 +260,7 @@ def jobs(request):
             'remoteBits': user.preferenceRemoteBits,
             'states': [{'id': v.id, 'stateName': v.stateName} for v in user.preferenceState.all()],
             'countries': [{'id': v.id, 'countryName': v.countryName} for v in user.preferenceCountry.all()],
+            'salary': user.preferenceSalary
         },
         'states': [{'id': s.id, 'stateName': s.stateName} for s in State.objects.all()],
         'countries': [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.filter(countryName__in=JobPostingView.permittedCountries)],

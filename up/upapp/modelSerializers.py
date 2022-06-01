@@ -152,7 +152,8 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
                 } for p in user.preferenceRoles.all()
             ],
             'countries': [{'id': p.id, 'countryName': p.countryName} for p in user.preferenceCountry.all()],
-            'remoteBits': user.preferenceRemoteBits
+            'remoteBits': user.preferenceRemoteBits,
+            'salary': user.preferenceSalary
         },
         **serializeAuditFields(user)
     }

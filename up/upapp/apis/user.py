@@ -604,6 +604,7 @@ class UserPreferenceView(UproveAPIView):
 
         isChanged = dataUtil.setObjectAttributes(user, self.data, {
             'preferenceRemoteBits': {'formName': 'remote', 'propFunc': lambda x: x or User.REMOTE_PREF_DEFAULT},
+            'preferenceSalary': {'formName': 'salary'}
         })
         if isChanged:
             user.save()
@@ -1582,8 +1583,10 @@ class UserJobSuggestions(UproveAPIView):
         companySizeIds = [c.id for c in user.preferenceCompanySizes.all()]
         filter &= Q(employer__companySize_id__in=companySizeIds)
 
-        roleLevelIds = [r.id for r in user.preferenceRoles.all()]
-        filter &= Q(roleLevel_id__in=roleLevelIds)
+        roleFilter = Q()
+        for roleName in JobPostingView.permittedRoles:
+            roleFilter |= Q(roleLevel__role__name__iregex=roleName)
+        filter &= roleFilter
 
         # Filter out jobs the candidate has already applied to
         currentJobIds = [j.employerJob_id for j in UserJobApplication.objects.filter(user_id=user.id)]

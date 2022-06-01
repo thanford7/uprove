@@ -152,7 +152,7 @@ div.circle {
     width: 60px;
     height: 60px;
     font-size: 35px;
-    line-height: 60px;
+    font-weight: 600;
     text-align: center;
     background-color: white;
     border: $color-darkblue 3px solid;
@@ -161,6 +161,12 @@ div.circle {
     &.circle-inverse {
         background-color: $color-darkblue;
         color: white;
+    }
+
+    &.circle-small {
+        width:30px;
+        height: 30px;
+        font-size: 16px;
     }
 }
 
