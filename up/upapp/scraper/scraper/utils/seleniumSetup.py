@@ -19,7 +19,7 @@ MISSING_DOM_EL_ERRORS = (
     TimeoutException
 )
 
-WEBDRIVER_WAIT_SECONDS = 3
+WEBDRIVER_WAIT_SECONDS = 10
 
 
 def getSelenium(isDebug=False):
