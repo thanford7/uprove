@@ -5,7 +5,7 @@ from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
-from upapp.apis import blog, employer, job, lever, locations, project, sendEmail, storage, tag, user
+from upapp.apis import blog, employer, lever, locations, project, sendEmail, storage, tag, user
 from upapp.sitemaps import sitemaps
 
 apiPath = 'api/v1/'
@@ -20,7 +20,6 @@ urlpatterns = [
     path('candidate-board/', views.candidateBoard, name='candidateBoard'),
     re_path('^candidateDashboard/(?P<userId>[0-9]+)?/?$', views.candidateDashboard, name='candidateDashboard'),
     path('candidateOnboard/', views.candidateOnboard, name='candidateOnboard'),
-    re_path('^candidate-project/(?P<userProjectId>[0-9]+)?/?$', views.candidateProject, name='candidateProject'),
     path('contact/', views.contact, name='contact'),
     path('credits/', views.credits, name='credits'),
     re_path('^employerDashboard/(?P<employerId>[0-9]+)?/?$', views.employerDashboard, name='employerDashboard'),
@@ -46,7 +45,6 @@ urlpatterns = [
     re_path(apiPath + 'account-user/(?P<userId>[0-9]+)?/?$', user.UserView.as_view()),
     re_path(apiPath + 'blog/(?P<blogId>[0-9]+)?/?$', blog.BlogPostView.as_view()),
     re_path(apiPath + 'job-posting/(?P<jobId>[0-9]+)?/?$', employer.JobPostingView.as_view()),
-    re_path(apiPath + 'job-template/(?P<templateId>[0-9]+)?/?$', job.JobTemplateView.as_view()),
     re_path(apiPath + 'locations/$', locations.LocationView.as_view()),
     re_path(apiPath + 'organization/$', employer.OrganizationView.as_view()),
     re_path(apiPath + 'preferences/$', user.PreferencesView.as_view()),

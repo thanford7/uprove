@@ -45,10 +45,6 @@ export default {
                         data.skills.forEach((skill) => {
                             skillsHtml += `<div class="badge -color-lightblue -color-black-text me-1">${escape(skill.name)}</div>`
                         });
-                        let skillLevelsHtml = '';
-                        this.getSkillLevelsFromBits(data.skillLevelBit).forEach((skillLevel) => {
-                            skillLevelsHtml += `<div class="badge -color-lightgrey -color-black-text me-1">${escape(skillLevel.title)}</div>`
-                        });
                         const getProjectUrl = (projectId) => `/project/${projectId}/`;
                         return `
                             <div class="option" data-selectable data-value="${data.id}" style="cursor: pointer;">
@@ -58,7 +54,6 @@ export default {
                                 </div>
                                 <div class="-sub-text">${data.description}</div>
                                 <div><span class="-sub-text">Skills: </span>${skillsHtml}</div>
-                                <div class="mt-1"><span class="-sub-text">Role level: </span>${skillLevelsHtml}</div>
                             </div>
                         `;
                     }

@@ -22,7 +22,7 @@ from upapp import security
 from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView
 from upapp.apis.sendEmail import EmailView
-from upapp.models import Employer, EmployerJob, RoleLevel, User, UserJobApplication, CustomProject, UserProject
+from upapp.models import Employer, EmployerJob, RoleLevel, User, UserJobApplication, CustomProject
 from upapp.modelSerializers import getSerializedProject, getSerializedCustomProject, getAllowedProjects
 from upapp.scraper.scraper.utils.normalize import normalizeJobTitle
 from upapp.utils import dataUtil
@@ -235,7 +235,7 @@ def leverCustomizeAssessment(request, employerId=None, opportunityId=None):
             'jobId': uproveJob.id,
             'jobTitle': posting['text'],
             'primaryCustomProject': getSerializedCustomProject(primaryProject) if primaryProject else None,
-            'projects': [getSerializedProject(p) for p in ProjectView.getProjects(employerId=employer.id)]
+            'projects': [getSerializedProject(p) for p in ProjectView.getProjects()]
         })
     })
 
@@ -259,8 +259,8 @@ class LeverSendAssessment(UproveAPIView):
 
     @atomic
     def post(self, request):
-        from upapp.apis.user import UserView, UprovePasswordResetForm  # Avoid circular import
-        from upapp.apis.employer import JobPostingView
+        from upapp.apis.user import UserView, UprovePasswordResetForm, UserJobApplicationView  # Avoid circular import
+
         user = None
         htmlBody = self.data['emailBody']
         for userEmail in self.data['candidateEmails']:
@@ -291,33 +291,13 @@ class LeverSendAssessment(UproveAPIView):
                 'href'] = f'{resetContext["protocol"]}://{resetContext["domain"]}/password-reset-email/{resetContext["uid"]}/{resetContext["token"]}/?{encodedUrlParams}'
             htmlBody = str(htmlBody)
 
-        job = JobPostingView.getEmployerJobs(jobId=self.data['jobId'], isIncludeDemo=True)
-
-        try:
-            userProject = UserProject.objects.get(user_id=user.id, customProject_id=self.data['customProject']['id'])
-        except UserProject.DoesNotExist:
-            userProject = UserProject(
-                user_id=user.id,
-                customProject_id=self.data['customProject']['id'],
-                modifiedDateTime=timezone.now(),
-                createdDateTime=timezone.now()
-            )
-            userProject.save()
-
-        # Create an application for the user if it doesn't exist
         leverOpportunityKey = self.data['opportunityId']
-        try:
-            userJobApp = UserJobApplication.objects.get(user_id=user.id, employerJob=job)
-            userJobApp.leverOpportunityKey = leverOpportunityKey
-            userJobApp.save()
-        except UserJobApplication.DoesNotExist:
-            UserJobApplication(
-                user=user,
-                employerJob=job,
-                userProject=userProject,
-                inviteDateTime=timezone.now(),
-                leverOpportunityKey=leverOpportunityKey
-            ).save()
+        job = UserJobApplicationView.createUserApplication(
+            request, user, self.data['jobId'], True,
+            customProjectId=self.data['customProject']['id'],
+            opportunityKey=leverOpportunityKey,
+            opportunityKeyAttr='leverOpportunityKey'
+        )
 
         getLeverRequestWithRefresh(
             job.employer,

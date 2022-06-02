@@ -12,9 +12,9 @@ __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserCertification', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectEvaluationCriterion',
-    'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerJob', 'JobTemplate',
+    'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerJob',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
-    'CompanySize', 'Country', 'State', 'RoleLevel'
+    'CompanySize', 'Country', 'State', 'RoleLevel', 'Activity'
 )
 
 
@@ -358,8 +358,6 @@ class Project(AuditFields):
     title = models.CharField(max_length=250)
     role = models.ForeignKey(Role, on_delete=models.PROTECT)
     skills = models.ManyToManyField(Skill)
-    skillLevelBit = models.SmallIntegerField(default=1)  # See RoleLevel
-    employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
     background = models.TextField(null=True)
     instructions = models.TextField(null=True)
@@ -459,14 +457,8 @@ class EmployerJob(AuditFields):
         ordering = ('-employer__isClient', '-openDate')
 
 
-class JobTemplate(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-
-
 class UserJobApplication(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='jobApplication')
-    userProject = models.ForeignKey('UserProject', on_delete=models.SET_NULL, null=True, related_name='jobApplication')
     employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
     inviteDateTime = models.DateTimeField(null=True)
     submissionDateTime = models.DateTimeField(null=True)

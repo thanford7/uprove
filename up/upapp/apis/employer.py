@@ -89,17 +89,7 @@ class EmployerView(UproveAPIView):
         try:
             return Employer.objects.prefetch_related(
                 'employerJob',
-                'employerJob__jobApplication',
-                'employerJob__jobApplication__userProject',
-                'employerJob__jobApplication__userProject__user',
-                'employerJob__jobApplication__userProject__user__profile',
-                'employerJob__jobApplication__userProject__customProject',
-                'employerJob__jobApplication__userProject__customProject__project',
-                'employerJob__jobApplication__userProject__customProject__project__role',
-                'employerJob__jobApplication__userProject__customProject__skills',
-                'employerJob__jobApplication__userProject__files',
-                'employerJob__jobApplication__userProject__videos',
-                'employerJob__jobApplication__userProject__images',
+                'employerJob__jobApplication'
             ).get(id=employerId)
         except Employer.DoesNotExist as e:
             raise e
@@ -223,6 +213,12 @@ class JobPostingView(UproveAPIView):
 
     @atomic
     def updateEmployerJob(self, employerJob):
+
+        # Hard coding customer success as the role
+        customerSuccessRole = Role.objects.get(name='Customer Success')
+        customerSuccessRoleLevel = RoleLevel.objects.get(role=customerSuccessRole, roleLevelBit=RoleLevel.Level.ENTRY.value)
+        employerJob.roleLevel = customerSuccessRoleLevel
+
         dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
         dataUtil.setObjectAttributes(employerJob, self.data, {
             'jobTitle': None,
@@ -236,7 +232,6 @@ class JobPostingView(UproveAPIView):
             'city': None,
             'state_id': {'formName': 'stateId'},
             'country_id': {'formName': 'countryId'},
-            'roleLevel_id': {'formName': 'roleLevelId'}
         })
         employerJob.save()
 
@@ -262,15 +257,6 @@ class JobPostingView(UproveAPIView):
             )\
             .prefetch_related(
                 'jobApplication',
-                'jobApplication__userProject',
-                'jobApplication__userProject__user',
-                'jobApplication__userProject__customProject',
-                'jobApplication__userProject__customProject__project',
-                'jobApplication__userProject__customProject__project__role',
-                'jobApplication__userProject__customProject__skills',
-                'jobApplication__userProject__files',
-                'jobApplication__userProject__videos',
-                'jobApplication__userProject__images',
             )\
             .filter(jobFilter)\
 
@@ -317,7 +303,7 @@ class JobPostingView(UproveAPIView):
     @staticmethod
     def getProjectsByRoleIdMap():
         projectsByRole = defaultdict(list)
-        for project in ProjectView.getProjects(isIgnoreEmployerId=True):
+        for project in ProjectView.getProjects():
             projectsByRole[project.role.id].append(project)
 
         return projectsByRole

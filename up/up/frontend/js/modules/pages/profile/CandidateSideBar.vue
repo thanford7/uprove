@@ -65,6 +65,9 @@
             <a v-if="user.resume && (isEmployer || isOwner)" class="btn btn-outline-info mt-3 w-100" download :href="user.resume">
                 <i class="fas fa-file-download"></i> Download resume
             </a>
+            <div class="btn btn-outline-info mt-2 w-100">
+                Save candidate
+            </div>
         </div>
     </div>
 </template>

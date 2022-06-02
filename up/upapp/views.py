@@ -9,7 +9,6 @@ from upapp import security
 from upapp.modelSerializers import *
 from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
-from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import PreferencesView, UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import Role, Skill
@@ -43,10 +42,9 @@ def admin(request):
     if not security.isPermittedAdmin(request):
         return _getUnauthorizedPage(request)
     return render(request, 'admin.html', {'data': dumps({
-        'projects': [getSerializedProject(p, isIncludeDetails=True, isAdmin=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)],
+        'projects': [getSerializedProject(p, isIncludeDetails=True, isAdmin=True) for p in ProjectView.getProjects()],
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
-        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
         'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
     })})
 
@@ -165,27 +163,6 @@ def candidateOnboard(request):
     })})
 
 
-def candidateProject(request, userProjectId=None):
-    user = security.getSessionUser(request)
-    if not user or not (user.isAdmin or user.isEmployer):
-        return _getUnauthorizedPage(request)
-
-    if not userProjectId:
-        return _getErrorPage(request, HTTPStatus.BAD_REQUEST, 'A user project ID is required')
-
-    userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
-    return render(request, 'candidateProject.html', context={'data': dumps({
-        'user': getSerializedUser(UserView.getUser(userProject.user_id), isIncludeAssets=True),
-        'userProject': getSerializedUserProject(userProject, employerId=None if user.isAdmin else user.employer_id),
-        'projects': [getSerializedProject(
-            userProject.customProject.project,
-            isIncludeDetails=True,
-            isAdmin=user.isAdmin,
-            evaluationEmployerId=None if user.isAdmin else user.employer_id
-        )],
-    })})
-
-
 def contact(request):
     return render(request, 'contact.html', context={})
 
@@ -208,8 +185,7 @@ def employerDashboard(request, employerId=None):
 
     return render(request, 'employerDashboard.html', context={'data': dumps({
         'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), employerId=employerId),
-        'projects': [getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in ProjectView.getProjects(employerId=employerId)],
-        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
+        'projects': [getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in ProjectView.getProjects()],
         'roleLevels': [getSerializedRoleLevel(rl) for rl in RoleLevel.objects.select_related('role').all()],
         'users': [{
             'id': u.id,
@@ -236,9 +212,15 @@ def jobs(request):
         return _getUnauthorizedPage(request)
 
     user = UserView.getUser(user.id)  # Refetch to get all related objects
-    jobs = JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter())
+    jobFilter = JobPostingView.getEmployerJobFilter()
+
+    # Filter out jobs the candidate has already applied to
+    currentJobIds = [j.employerJob_id for j in UserJobApplication.objects.filter(user_id=user.id)]
+    jobFilter &= ~Q(id__in=currentJobIds)
+
+    jobs = JobPostingView.getEmployerJobs(jobFilter=jobFilter)
     employers = Employer.objects.filter(isDemo=False)
-    projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)]
+    projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects()]
     customProjects = CustomProject.objects.select_related('project').all()
     projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
 
@@ -280,7 +262,7 @@ def jobPosting(request, jobId, employerId=None):
     customProjects = CustomProject.objects.select_related('project').all()
     allowedCustomProjects = getAllowedProjects(customProjects, job)
     allowedProjectIds = [p.project_id for p in allowedCustomProjects]
-    projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=allowedProjectIds)
+    projects = ProjectView.getProjects(projectIds=allowedProjectIds)
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
     employerId = user.employer_id if isEmployer else None
     customProjects = CustomProject.objects.select_related('project').all()
@@ -360,7 +342,7 @@ def project(request, projectId):
     if employerId:
         customProjects = CustomProject.objects.select_related('project').all()
         jobFilter = JobPostingView.getEmployerJobFilter(isEmployer=True)
-        jobFilter &= Q(roleLevel__roleLevelBit=project.skillLevelBit) & Q(roleLevel__role_id=project.role_id)
+        jobFilter &= Q(roleLevel__role_id=project.role_id)
         extraData['jobs'] = [
             getSerializedEmployerJob(j, employerId=employerId, customProjects=customProjects)
             for j in JobPostingView.getEmployerJobs(employerId=employerId, jobFilter=jobFilter)
@@ -375,20 +357,12 @@ def project(request, projectId):
 
 def projects(request):
     jobMapByRole = JobPostingView.getJobMapByRole()
-    user = security.getSessionUser(request)
 
     return render(request, 'projects.html', context={'data': dumps({
         'projects': [{
             **getSerializedProject(p),
             'jobs': jobMapByRole[p.role_id]
         } for p in ProjectView.getProjects()],
-        'preferredRoles': [{
-                'id': p.id,
-                'roleTitle': p.roleTitle,
-                'roleId': p.role_id,
-                'roleLevelBit': p.roleLevelBit
-            } for p in user.preferenceRoles.all()
-        ] if user else None,
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 

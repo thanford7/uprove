@@ -1,8 +1,5 @@
 <template>
     <BaseCard :cardItem="this.cardItem" :elId="getNewElUid()" :isShowViewMoreLink="false">
-        <template v-slot:outer>
-            <div class="badge badge-top -color-darkblue">{{cardItem.role}}</div>
-        </template>
         <template v-slot:topImage>
             <img
                 :src="(cardItem.image) ? cardItem.image : (globalData.STATIC_URL + 'img/logo.png')"

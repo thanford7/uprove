@@ -49,19 +49,6 @@ CONTENT_TYPE_MODELS = {
     ContentTypes.CUSTOM.value: {'model': UserContentItem, 'serializer': getSerializedUserContentItem},
     ContentTypes.PROJECT.value: {'model': UserProject, 'serializer': getSerializedUserProject}
 }
-PROJECT_COMPLETE_LOCK_DAYS = 30
-
-
-def isUserProjectLocked(userProject):
-    return (
-        userProject.status == UserProject.Status.COMPLETE.value
-        and getDaysUntilProjectUnlock(userProject) > 0
-    )
-
-
-def getDaysUntilProjectUnlock(userProject):
-    statusChangeMinutes = (timezone.now() - userProject.statusChangeDateTime).total_seconds() / 60
-    return round(PROJECT_COMPLETE_LOCK_DAYS - (statusChangeMinutes / dateUtil.MINUTES_IN_DAY), 1)
 
 
 class UserVideoView(UproveAPIView):
@@ -724,7 +711,6 @@ class UserProfileView(UproveAPIView):
             # Update the user tag
             dataUtil.setObjectAttributes(userTag, userTagData, {
                 'description': None,
-                'skillLevelBit': None
             })
             userTag.save()
 
@@ -1125,9 +1111,6 @@ class UserProjectView(UproveAPIView):
         if not security.isSelf(project.user_id, user=self.user):
             return Response('You are not authorized to edit this project', status=status.HTTP_401_UNAUTHORIZED)
 
-        if isUserProjectLocked(project):
-            return Response(f'Project is locked for another {dataUtil.pluralize("day", getDaysUntilProjectUnlock(project))}', status=status.HTTP_401_UNAUTHORIZED)
-
         user = UserView.getUser(self.user.id)  # Grab the user with all associated data so we can get files without extra DB query
         isChanged = any([
             dataUtil.setObjectAttributes(project, self.data, {
@@ -1155,10 +1138,6 @@ class UserProjectView(UproveAPIView):
         project = self.getUserProjects(userProjectId=userProjectId)
         if not security.isSelf(project.user_id, user=self.user):
             return Response('You are not authorized to delete this project', status=status.HTTP_401_UNAUTHORIZED)
-
-        for jobApplication in project.jobApplication.all():
-            jobApplication.withdrawDateTime = timezone.now()
-            jobApplication.save()
 
         # Remove references to the user project in the user's profile
         profileContentItems = [
@@ -1291,7 +1270,6 @@ class UserProjectView(UproveAPIView):
             'user'
         ) \
             .prefetch_related(
-            'jobApplication',
             'customProject__skills',
             'userProjectEvaluationCriterion',
             'userProjectEvaluationCriterion__employer',
@@ -1341,23 +1319,11 @@ class UserProjectStatusView(UproveAPIView):
         if not security.isSelf(project.user_id, user=self.user):
             return Response('You are not authorized to edit this project', status=status.HTTP_401_UNAUTHORIZED)
 
-        projectStatus = self.data.get('status')
-        if projectStatus and isUserProjectLocked(project):
-            return Response(f'Project is locked for another {dataUtil.pluralize("day", getDaysUntilProjectUnlock(project))}', status=status.HTTP_401_UNAUTHORIZED)
-
         dataUtil.setObjectAttributes(project, self.data, {
             'status': {'isProtectExisting': True},
             'isHidden': {'isProtectExisting': True},
         })
-
-        if self.data.get('isSubmitApplications'):
-            for application in project.jobApplication.all():
-                application.withdrawDateTime = None
-                application.submissionDateTime = timezone.now()
-                application.save()
-                UserJobApplicationView.sendApplicationSubmissionEmail(request, self.user, application)
-
-        if projectStatus:
+        if projectStatus := self.data.get('status'):
             project.statusChangeDateTime = timezone.now()
             if projectStatus == UserProject.Status.COMPLETE.value:
                 EmailView.sendEmail(
@@ -1406,31 +1372,11 @@ class UserJobApplicationView(UproveAPIView):
 
     @atomic
     def post(self, request):
-        if userProjectId := self.data.get('userProjectId'):
-            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
-            if not security.isSelf(userProject.user_id, user=self.user):
-                return Response('You do not have permission to post this job application',
-                                status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            userProject = UserProjectView.createUserProject(request, self.data, self.files)
-            # Return error response if something went wrong
-            if isinstance(userProject, Response):
-                return userProject
-
-        try:
-            # Check if the candidate has submitted a past application which was withdrawn (and is now reapplying)
-            jobApplication = UserJobApplication.objects.get(user_id=self.data['userId'], employerJob_id=self.data['employerJobId'])
-            jobApplication.userProject_id = userProject.id
-            jobApplication.withdrawDateTime = None
-        except UserJobApplication.DoesNotExist:
-            # User application is new
-            jobApplication = UserJobApplication(
-                user_id=self.data['userId'],
-                userProject_id=userProject.id,
-                employerJob_id=self.data['employerJobId']
-            )
-
-        jobApplication.save()
+        user = UserView.getUser(self.data['userId'])
+        jobApplication = self.createUserApplication(
+            request, user, self.data['employerJobId'], self.isEmployer,
+            userProjectId=self.data.get('userProjectId'), data=self.data, files=self.files
+        )
 
         return Response(
             status=status.HTTP_200_OK,
@@ -1445,17 +1391,16 @@ class UserJobApplicationView(UproveAPIView):
             return Response('A job application ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         jobApplication = self.getUserJobApplications(userJobApplicationId=userJobApplicationId)
-        isSelf = security.isSelf(jobApplication.userProject.user_id, user=self.user)
+        isSelf = security.isSelf(jobApplication.user_id, user=self.user)
         isEmployer = security.isPermittedEmployer(request, jobApplication.employerJob.employer_id)
         if not any([isSelf, isEmployer]):
             return Response('You do not have permission to update this job application',
                             status=status.HTTP_401_UNAUTHORIZED)
 
         dtGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATETIME, allowNone=True)
-        if isSelf and data.get('userProjectId'):
+        if isSelf:
             dataUtil.setObjectAttributes(jobApplication, data, {
                 'user_id': {'formName': 'userId'},
-                'userProject_id': {'formName': 'userProjectId', 'isProtectExisting': True},
                 'submissionDateTime': {'propFunc': dtGetter},
                 'withdrawDateTime': {'propFunc': dtGetter}
             })
@@ -1483,7 +1428,7 @@ class UserJobApplicationView(UproveAPIView):
             return Response('A job application ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         jobApplication = self.getUserJobApplications(userJobApplicationId=userJobApplicationId)
-        if not security.isSelf(jobApplication.userProject.user_id, user=self.user):
+        if not security.isSelf(jobApplication.user_id, user=self.user):
             return Response('You do not have permission to delete this job application',
                             status=status.HTTP_401_UNAUTHORIZED)
 
@@ -1491,18 +1436,59 @@ class UserJobApplicationView(UproveAPIView):
         return Response(status=status.HTTP_200_OK, data=userJobApplicationId)
 
     @staticmethod
-    def getUserJobApplications(userJobApplicationId=None, userId=None, userProjectId=None, employerJobId=None,
+    @atomic
+    def createUserApplication(request, user, jobId, isEmployer, customProjectId=None, userProjectId=None, opportunityKey=None, opportunityKeyAttr=None, data=None, files=None):
+
+        if userProjectId:
+            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
+            if not (security.isSelf(userProject.user_id, user=user) or isEmployer):
+                return Response('You do not have permission to post this job application',
+                                status=status.HTTP_401_UNAUTHORIZED)
+        elif customProjectId:
+            try:
+                userProject = UserProject.objects.get(user_id=user.id, customProject_id=customProjectId)
+            except UserProject.DoesNotExist:
+                userProject = UserProject(
+                    user_id=user.id,
+                    customProject_id=customProjectId,
+                    modifiedDateTime=timezone.now(),
+                    createdDateTime=timezone.now()
+                )
+                userProject.save()
+        else:
+            userProject = UserProjectView.createUserProject(request, data, files)
+            # Return error response if something went wrong
+            if isinstance(userProject, Response):
+                return userProject
+
+        job = JobPostingView.getEmployerJobs(jobId=jobId, isIncludeDemo=True)
+
+        # Create an application for the user if it doesn't exist
+        try:
+            userJobApp = UserJobApplication.objects.get(user_id=user.id, employerJob=job)
+            userJobApp.withdrawDateTime = None
+        except UserJobApplication.DoesNotExist:
+            userJobApp = UserJobApplication(
+                user=user,
+                employerJob=job,
+                inviteDateTime=timezone.now(),
+            )
+        if opportunityKey and opportunityKeyAttr:
+            setattr(userJobApp, opportunityKeyAttr, opportunityKey)
+        userJobApp.save()
+        return userJobApp
+
+    @staticmethod
+    def getUserJobApplications(userJobApplicationId=None, userId=None, employerJobId=None,
                                employerId=None):
-        if not any([userJobApplicationId, userId, userProjectId, employerJobId]):
+        if not any([userJobApplicationId, userId, employerJobId]):
             return Response('An ID is required', status=status.HTTP_400_BAD_REQUEST)
 
         applicationFilter = Q()
         if userJobApplicationId:
             applicationFilter &= Q(id=userJobApplicationId)
         if userId:
-            applicationFilter &= Q(userProject__user_id=userId)
-        if userProjectId:
-            applicationFilter &= Q(userProject_id=userProjectId)
+            applicationFilter &= Q(user_id=userId)
         if employerJobId:
             applicationFilter &= Q(employerJob_id=employerJobId)
         if employerId:
@@ -1510,20 +1496,9 @@ class UserJobApplicationView(UproveAPIView):
 
         userJobApplications = UserJobApplication.objects \
             .select_related(
-            'user',
-            'userProject',
-            'userProject__user',
-            'userProject__customProject',
-            'userProject__customProject__project',
-            'userProject__customProject__project__role',
-            'employerJob'
-        ) \
-            .prefetch_related(
-            'userProject__files',
-            'userProject__images',
-            'userProject__videos',
-            'userProject__customProject__skills',
-        ) \
+                'user',
+                'employerJob'
+            ) \
             .filter(applicationFilter)
 
         if userJobApplicationId:

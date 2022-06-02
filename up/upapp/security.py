@@ -9,9 +9,7 @@ def getSessionUser(request):
             return None
         userObj = User.objects.select_related('djangoUser').get(id=userDict['id'])
         return userObj
-    except KeyError:
-        return None
-    except User.DoesNotExist:
+    except (KeyError, AttributeError, User.DoesNotExist):
         return None
 
 

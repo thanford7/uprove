@@ -18,9 +18,6 @@
                 <div class="col-md-3 me-2 mb-2">
                     <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editSkillModal')">Skill</button>
                 </div>
-                <div class="col-md-3 me-2 mb-2">
-                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editJobTemplateModal')">Job template</button>
-                </div>
             </div>
             <div class="row ms-md-2">
                 <h5>Edit</h5>
@@ -72,22 +69,11 @@
                         @selected="openEditSkillModal.bind(this)($event)"
                     />
                 </div>
-                <div class="col-md-3 me-2">
-                    <InputSelectize
-                        ref="editJobTemplate"
-                        elId="editJobTemplate"
-                        placeholder="Select job template"
-                        :cfg="templateCfg"
-                        :isParseAsInt="true"
-                        @selected="openEditJobTemplateModal.bind(this)($event)"
-                    />
-                </div>
             </div>
         </div>
     </BasePage>
     <EditEmployerModal :isUpdateDataOverride="false"/>
     <EditRoleModal/>
-    <EditJobTemplateModal/>
     <EditProjectModal/>
     <EditSkillModal/>
     <EditUserModal :isShowAdminFields="true" :isUpdateDataOverride="false" :isHardRefreshOverride="true"/>
@@ -98,13 +84,11 @@ import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditRoleModal from "../../modals/EditRoleModal";
-import EditJobTemplateModal from "../../modals/EditJobTemplateModal";
 import EditProjectModal from "../../modals/EditProjectModal";
 import EditSkillModal from "../../modals/EditSkillModal";
 import EditUserModal from "../../modals/EditUserModal";
 import employersSelectize from "../../selectizeCfgs/employers";
 import InputSelectize from "../../inputs/InputSelectize";
-import skillSelectize from "../../selectizeCfgs/skill";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import usersSelectize from "../../selectizeCfgs/users";
 
@@ -112,7 +96,7 @@ export default {
     name: "AdminPage.vue",
     components: {
         BasePage, SkillsSelectize, BannerAlert, EditEmployerModal, EditRoleModal, EditProjectModal,
-        EditJobTemplateModal, EditSkillModal, EditUserModal, InputSelectize
+        EditSkillModal, EditUserModal, InputSelectize
     },
     computed: {
         employerCfg() {
@@ -123,13 +107,6 @@ export default {
                 maxItems: 1,
                 sortField: 'text',
                 options: this.getRoleOptions()
-            }
-        },
-        templateCfg() {
-            return {
-                maxItems: 1,
-                sortField: 'text',
-                options: this.getJobTemplateOptions()
             }
         },
         projectCfg() {
@@ -147,12 +124,6 @@ export default {
         getEmployer(employerId) {
             // Copy so the form doesn't mutate the original data
             return Object.assign({}, this.$refs.editEmployer.elSel.options[employerId]);
-        },
-        getJobTemplate(templateId) {
-            return Object.assign({}, this.initData.jobTemplates.find((jt) => jt.id === templateId));
-        },
-        getJobTemplateOptions() {
-            return this.initData.jobTemplates.map((e) => ({value: e.id, text: e.title}));
         },
         getProject(projectId) {
             return Object.assign({}, this.initData.projects.find((p) => p.id === projectId));
@@ -185,13 +156,6 @@ export default {
             }
             this.eventBus.emit('open:editRoleModal', this.getRole(roleId));
             this.$refs.editRole.elSel.clear(true);
-        },
-        openEditJobTemplateModal(templateId) {
-            if (!templateId) {
-                return;
-            }
-            this.eventBus.emit('open:editJobTemplateModal', this.getJobTemplate(templateId));
-            this.$refs.editJobTemplate.elSel.clear(true);
         },
         openEditProjectModal(projectId, isEdit) {
             if (!projectId && isEdit) {

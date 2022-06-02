@@ -98,10 +98,7 @@
             <button
                 @click="saveChange"
                 type="button" class="btn btn-primary loading-hidden"
-                :disabled="formData.isLocked"
-                :title="getProjectLockedNote(formData)"
             >
-                <span v-if="formData.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
                 {{(formData.id) ? 'Save changes' : 'Create project'}}
             </button>
             <LoadingSpinnerButton/>
@@ -146,7 +143,6 @@ export default {
         }
     },
     methods: {
-        getProjectLockedNote: userProjectUtil.getProjectLockedNote,
         addNewFile() {
             this.newFileCount++;
             this.formData.files.push({

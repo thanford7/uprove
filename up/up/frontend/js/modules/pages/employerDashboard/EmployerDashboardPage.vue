@@ -57,11 +57,6 @@
                 <div class="mb-2 d-flex justify-content-end">
                     <FilterDropdownMenu class="-pull-left" :filters="jobsFilter" dropdownHeader="Filters">
                         <div class="ps-2 pe-2">
-                            <RolesSelectize
-                                placeholder="Role"
-                                :roleIds="jobRoleIds"
-                                @selected="jobsFilter.roles = $event"
-                            />
                             <InputSelectize
                                 :elId="getNewElUid()"
                                 placeholder="Status"
@@ -175,22 +170,6 @@
                                 }"
                                 @selected="applicantsFilter.jobTitle = $event"
                             />
-                            <InputSelectize
-                                ref="projectFilter"
-                                :elId="getNewElUid()"
-                                placeholder="Project"
-                                :cfg="{
-                                    plugins: ['remove_button'],
-                                    maxItems: null,
-                                    sortField: 'text'
-                                }"
-                                @selected="applicantsFilter.project = $event"
-                            />
-                            <RangeSlider
-                                :elId="getNewElUid()"
-                                title="Project score"
-                                @changed="applicantsFilter.projectScore = $event"
-                            />
                         </div>
                     </FilterDropdownMenu>
                 </div>
@@ -204,8 +183,6 @@
                                     {value: 'Name', sortFn: 'user.firstName'},
                                     {value: 'Status', sortFn: getApplicationStatus},
                                     {value: 'Job title', sortFn: 'job.jobTitle'},
-                                    {value: 'Project', sortFn: 'userProjectTitle'},
-                                    {value: 'Project score', sortFn: 'userProjectScorePct'}
                                 ]
                             ]"
                         emptyDataMessage="No job applications"
@@ -226,13 +203,6 @@
                                 </td>
                                 <td>{{ getApplicationStatusText(application) }}</td>
                                 <td>{{ application.job.jobTitle }}</td>
-                                <td v-if="application.userProjectTitle" @click="redirectUrl(`/user-project/${application.userProjectId}/`, true)">
-                                    {{application.userProjectTitle}} <i class="fas fa-external-link-alt"></i>
-                                </td>
-                                <td v-else>-None-</td>
-                                <td>
-                                    {{ (application.userProjectScorePct) ? `${application.userProjectScorePct}%` : 'None' }}
-                                </td>
                             </tr>
                         </template>
                     </Table>
@@ -430,9 +400,6 @@ export default {
         }
     },
     computed: {
-        jobRoleIds() {
-            return dataUtil.uniqArray(initData.employer.jobs.map((j) => j.roleId));
-        },
         filteredApplications() {
             return this.applications.filter((application) => {
                 if (this.applicantsFilter?.statuses?.length && !this.applicantsFilter.statuses.includes(this.getApplicationStatus(application))) {
@@ -443,23 +410,11 @@ export default {
                     return false;
                 }
 
-                if (this.applicantsFilter?.project?.length && !this.applicantsFilter.project.includes(application.userProjectTitle)) {
-                    return false;
-                }
-
-                if (this.applicantsFilter.projectScore && application.userProjectScorePct < this.applicantsFilter.projectScore) {
-                    return false;
-                }
-
                 return true;
             });
         },
         filteredJobs() {
             return this.initData.employer.jobs.filter((job) => {
-                if (this.jobsFilter?.roles?.length && !this.jobsFilter.roles.includes(job.roleId)) {
-                    return false;
-                }
-
                 if (this.jobsFilter?.statuses?.length && !this.jobsFilter.statuses.includes(this.getJobStatus(job))) {
                     return false;
                 }
@@ -534,9 +489,6 @@ export default {
 
         const jobTitles = dataUtil.uniqArray(this.applications.map((a) => a.job.jobTitle));
         this.$refs.jobTitleFilter.resetOptions(jobTitles.map((v) => ({value: v, text: v})));
-
-        const projects = dataUtil.uniqArray(this.applications.map((a) => a.userProjectTitle));
-        this.$refs.projectFilter.resetOptions(projects.map((v) => ({value: v, text: v})));
 
         this.currentTab = 'job-openings';
         this.setTabFromParams();

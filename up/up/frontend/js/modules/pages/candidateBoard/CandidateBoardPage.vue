@@ -21,13 +21,6 @@
                         />
                     </div>
                     <div class="col-12 col-md filter-item">
-                        <SkillLevelsSelectize
-                            ref="projectSkillLevels"
-                            placeholder="Experience Levels: All"
-                            @selected="setFilter($event, 'skillLevelBits', 'level')"
-                        />
-                    </div>
-                    <div class="col-12 col-md filter-item">
                         <RangeSlider
                             ref="projectScoreFilter"
                             :elId="getNewElUid()"
@@ -184,7 +177,6 @@ export default {
                 const hasFilter = (
                     (this.filter.roles && this.filter.roles.length)
                     || (this.filter.skills && this.filter.skills.length)
-                    || this.filter.skillLevelBits
                     || this.filter.projectScore
                 );
                 if (hasFilter && !candidate.userProjects.length) {
@@ -204,15 +196,11 @@ export default {
                         !this.filter?.skills?.length
                         || up.skills.filter((skill) => this.filter.skills.includes(skill.name)).length
                     );
-                    const hasSkillLevel = (
-                        !this.filter.skillLevelBits
-                        || (this.filter.skillLevelBits & up.skillLevelBit)
-                    );
                     const isAboveProjectScore = (
                         !this.filter.projectScore
                         || up.evaluationScorePct >= this.filter.projectScore
                     )
-                    return hasRole && hasSkill && hasSkillLevel && isAboveProjectScore;
+                    return hasRole && hasSkill && isAboveProjectScore;
                 });
                 if (!candidate.userProjects.length) {
                     return filteredCandidates;
@@ -264,13 +252,12 @@ export default {
         this.initData.candidates.forEach((c) => {
             skillLevelSelectize.setSkillLevels(c.userProjects, true);
         });
-        const {projectScore, role, skill, level} = dataUtil.getQueryParams();
+        const {projectScore, role, skill} = dataUtil.getQueryParams();
         this.defaultProjectScore = projectScore || this.defaultProjectScore;
         this.filter.projectScore = this.defaultProjectScore;
         this.$refs.projectScoreFilter.setValue(this.defaultProjectScore);
         this.$refs.role.setInitialRoleIds(role);
         this.$refs.skills.setValue(skill);
-        this.$refs.projectSkillLevels.elSel.setValue(level);
     }
 }
 </script>
