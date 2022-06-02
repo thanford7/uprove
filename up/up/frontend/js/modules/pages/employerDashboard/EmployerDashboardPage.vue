@@ -361,7 +361,6 @@
 <script>
 import dataUtil, {APPLICATION_STATUS} from "../../../utils/data";
 import ApplicationDropdownOpts from "./ApplicationDropdownOpts";
-import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
@@ -384,7 +383,7 @@ import RolesSelectize from "../../inputs/RolesSelectize";
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, CelebrationModal, EditEmployerModal,
+        ApplicationDropdownOpts, BannerAlert, BadgesSkills, BasePage, CelebrationModal, EditEmployerModal,
         EditJobPostingModal, EditUserModal, FilterDropdownMenu, HamburgerDropdown, InfoToolTip, InputSelectize,
         InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table
     },

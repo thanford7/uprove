@@ -50,7 +50,6 @@
 
 <script>
 import {TAG_TYPES} from '../../globalData';
-import BadgesSkillLevels from "./BadgesSkillLevels";
 import dataUtil from "../../utils/data";
 import InfoToolTip from "./InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
@@ -60,7 +59,7 @@ import tagSelectize from "../selectizeCfgs/tag";
 
 export default {
     name: "EditUserTagTable",
-    components: {BadgesSkillLevels, InfoToolTip, InputSelectize, Table},
+    components: {InfoToolTip, InputSelectize, Table},
     props: ['userTags', 'tagType'],
     data() {
         return {

@@ -88,9 +88,6 @@
                                                 {{candidate.primaryProject.role}}: {{candidate.primaryProject.projectTitle}}
                                             </div>
                                             <div>
-                                                <BadgesSkillLevels :skillLevels="candidate.primaryProject.skillLevels"/>
-                                            </div>
-                                            <div>
                                                 <BadgesSkills :skills="candidate.primaryProject.skills"/>
                                             </div>
                                             <i
@@ -136,7 +133,6 @@
 
 <script>
 import AddLeverOpportunityModal from "../../modals/AddLeverOpportunityModal";
-import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseFilter from "../base/BaseFilter";
@@ -155,7 +151,7 @@ import userProjectUtil from "../../../utils/userProject";
 export default {
     name: "CandidateBoardPage",
     components: {
-        AddLeverOpportunityModal, BaseFilter, BasePage, BadgesSkillLevels, BadgesSkills,
+        AddLeverOpportunityModal, BaseFilter, BasePage, BadgesSkills,
         BannerAlert, InfoToolTip, PageHeader, RangeSlider, RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
     },
     data() {

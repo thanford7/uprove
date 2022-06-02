@@ -11,7 +11,6 @@
 </template>
 
 <script>
-import BadgesSkillLevels from "./BadgesSkillLevels";
 import dataUtil from "../../utils/data";
 
 const FILE_TYPES = {
@@ -27,7 +26,6 @@ const FILE_TYPES = {
 export default {
     name: "FileDisplay.vue",
     props: ['file', 'isIncludeDescription', 'isIncludeSkillLevels', 'isUseFileName', 'isPreventDownload'],
-    components: {BadgesSkillLevels},
     data() {
         return {
             FILE_TYPES

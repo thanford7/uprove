@@ -65,10 +65,6 @@
                                 </template>
                                 <template v-slot:body>
                                     <div class="mb-1 pb-1 -border-bottom--light">
-                                        <div class="text-label text-label-sm">CAREER LEVELS</div>
-                                        <BadgesSkillLevels :skillLevels="userProject.customProject.skillLevels"/>
-                                    </div>
-                                    <div class="mb-1 pb-1 -border-bottom--light">
                                         <div class="text-label text-label-sm">SKILLS</div>
                                         <BadgesSkills :skills="userProject.customProject.skills"/>
                                     </div>
@@ -246,7 +242,6 @@
 <script>
 import {CONTENT_TYPES, PROJECT_STATUSES} from '../../../globalData';
 import AddVideoRecordingModal from "../../modals/AddVideoRecordingModal";
-import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseCard from "../../components/BaseCard";
@@ -275,7 +270,6 @@ export default {
         UprovePartner,
         BasePage,
         AddVideoRecordingModal,
-        BadgesSkillLevels,
         BadgesSkills,
         BannerAlert,
         BaseCard,

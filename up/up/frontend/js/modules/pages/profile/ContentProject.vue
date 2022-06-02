@@ -1,6 +1,5 @@
 <template>
     <div class="pb-1 mt-2">
-        <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
         <BadgesSkills :skills="contentItem.customProject.skills"/>
         <div class="mt-2">
             <div class="-color-moderategrey-text" v-html="contentItem.customProject.projectDescription"></div>
@@ -37,7 +36,6 @@
 
 <script>
 import {CONTENT_TYPES} from '../../../globalData';
-import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import FileDisplay from "../../components/FileDisplay";
 import form from "../../../utils/form";
@@ -46,7 +44,7 @@ import skillLevels from "../../selectizeCfgs/skillLevels";
 
 export default {
     name: "ContentProject",
-    components: {BadgesSkillLevels, BadgesSkills, FileDisplay, InfoToolTip},
+    components: {BadgesSkills, FileDisplay, InfoToolTip},
     props: {
         contentItem: Object
     },
