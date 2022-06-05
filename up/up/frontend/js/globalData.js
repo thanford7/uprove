@@ -1,3 +1,26 @@
+
+const APPLICATION_STATUS_KEYS = {
+    INVITED: 'INVITED',
+    APPLIED: 'APPLIED',
+    APPROVED_NO_INTERVIEW: 'APPROVED_NO_INTERVIEW',
+    APPROVED_INTERVIEW: 'APPROVED_INTERVIEW',
+    DECLINED: 'DECLINED',
+    WITHDRAWN: 'WITHDRAWN',
+    OFFER: 'OFFER',
+    HIRED: 'HIRED'
+};
+
+const APPLICATION_STATUS = {
+    [APPLICATION_STATUS_KEYS.INVITED]: 'Invited',
+    [APPLICATION_STATUS_KEYS.APPLIED]: 'Applied',
+    [APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW]: 'Approved - Interviews not started',
+    [APPLICATION_STATUS_KEYS.APPROVED_INTERVIEW]: 'Approved - Interviews started',
+    [APPLICATION_STATUS_KEYS.DECLINED]: 'Declined',
+    [APPLICATION_STATUS_KEYS.WITHDRAWN]: 'Withdrawn',
+    [APPLICATION_STATUS_KEYS.OFFER]: 'Offer extended',
+    [APPLICATION_STATUS_KEYS.HIRED]: 'Hired'
+}
+
 const USER_BITS = {
     CANDIDATE: 1,
     EMPLOYER: 2,
@@ -62,7 +85,7 @@ const PROJECT_STATUSES = {
 
 const SEVERITY = {
     SUCCESS: 'success',
-    WARN: 'warn',
+    WARN: 'warning',
     DANGER: 'danger',
     INFO: 'info'
 };
@@ -80,6 +103,8 @@ const globalDataGetter = () => {
             IMAGE: ['png', 'jpeg', 'jpg', 'gif'],
             FILE: ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx', 'twb', 'twbx', 'pages', 'numbers', 'key', 'gdoc', 'gslides', 'gsheet']
         },
+        APPLICATION_STATUS_KEYS,
+        APPLICATION_STATUS,
         CANDIDATE_SUPPORT_EMAIL: 'community@uprove.co',
         CONTENT_TYPES,
         SEND_EMAIL: 'no_reply@uprove.co',
@@ -100,8 +125,6 @@ const globalDataGetter = () => {
             DRAFT: 'DRAFT'
         },
         LOOM_API_KEY: 'db47f7c0-e863-4ed8-ac6e-2c9872ad5c00',
-        // Number of days that a project cannot be updated after its status is changed to "COMPLETE"
-        // This prevents candidates from changing the project once it has been submitted to an employer
         PROJECT_STATUSES,
         SKILL_LEVEL: {
             1: {
@@ -124,5 +147,8 @@ const globalDataGetter = () => {
 
 const globalData = globalDataGetter();
 
-export {globalData as default, CONTENT_TYPES, DEGREE_OPTIONS, ORGANIZATION_TYPES, PROFILE_SECTIONS, PROJECT_EVAL_CUTOFFS,
-    PROJECT_STATUSES, REMOTE_BITS, SEVERITY, TAG_TYPES, USER_BITS};
+export {
+    globalData as default, APPLICATION_STATUS, APPLICATION_STATUS_KEYS, CONTENT_TYPES, DEGREE_OPTIONS,
+    ORGANIZATION_TYPES, PROFILE_SECTIONS, PROJECT_EVAL_CUTOFFS, PROJECT_STATUSES,
+    REMOTE_BITS, SEVERITY, TAG_TYPES, USER_BITS
+};

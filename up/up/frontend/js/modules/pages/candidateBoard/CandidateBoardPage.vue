@@ -103,22 +103,20 @@
                             </td>
                             <td>
                                 <div
-                                    v-if="globalData?.uproveUser?.leverUserKey"
-                                    class="btn btn-outline-secondary -color-black-text"
-                                    @click="eventBus.emit('open:addLeverOpportunityModal', candidate)"
+                                    class="btn btn-outline-info"
+                                    @click="eventBus.emit('open:saveCandidateModal', candidate)"
                                 >
-                                    <img style="max-height: 20px;" :src="globalData.STATIC_URL + 'img/leverLogo.png'">
-                                    Add to Lever
+                                    Invite to interview
                                 </div>
-                                <div v-if="candidate.appliedJobs.length" class="-text-medium">
+                                <div v-if="candidate.applications.length" class="-text-medium mt-2">
                                     <InfoToolTip
                                         :elId="getNewElUid()"
-                                        :content="getAppliedJobsHtml(candidate.appliedJobs)"
+                                        :content="getAppliedJobsHtml(candidate.applications)"
                                         :isHtmlContent="true"
                                         :isExcludeInfoCircle="true"
                                     >
                                         <i class="fas fa-check-circle -color-green-text"></i>
-                                        Has {{pluralize('application', candidate.appliedJobs.length)}}
+                                        Has {{pluralize('application', candidate.applications.length)}}
                                     </InfoToolTip>
                                 </div>
                             </td>
@@ -128,11 +126,14 @@
             </div>
         </div>
     </BasePage>
-    <AddLeverOpportunityModal v-if="globalData.uproveUser.employerId" :employerId="globalData.uproveUser.employerId"/>
+    <SaveCandidateModal
+        v-if="globalData.uproveUser.employerId"
+        :employerId="globalData.uproveUser.employerId"
+        :applications="null"
+    />
 </template>
 
 <script>
-import AddLeverOpportunityModal from "../../modals/AddLeverOpportunityModal";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseFilter from "../base/BaseFilter";
@@ -142,6 +143,7 @@ import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
 import RangeSlider from "../../components/RangeSlider";
 import RolesSelectize from "../../inputs/RolesSelectize";
+import SaveCandidateModal from "../../modals/SaveCandidateModal";
 import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
@@ -151,8 +153,8 @@ import userProjectUtil from "../../../utils/userProject";
 export default {
     name: "CandidateBoardPage",
     components: {
-        AddLeverOpportunityModal, BaseFilter, BasePage, BadgesSkills,
-        BannerAlert, InfoToolTip, PageHeader, RangeSlider, RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
+        BaseFilter, BasePage, BadgesSkills, BannerAlert, InfoToolTip, PageHeader, RangeSlider,
+        RolesSelectize, SaveCandidateModal, SkillLevelsSelectize, SkillsSelectize, Table
     },
     data() {
         return {
@@ -211,12 +213,12 @@ export default {
         formatDate: dataUtil.formatDate.bind(dataUtil),
         getBadgeColor: userProjectUtil.getBadgeColor,
         getEvalPopoverHtml: userProjectUtil.getEvalPopoverHtml,
-        getAppliedJobsHtml(appliedJobs) {
+        getAppliedJobsHtml(applications) {
             let html = '<div>Current jobs</div><ul>';
-            appliedJobs.forEach((j) => {
+            applications.forEach((app) => {
                 html += `
                     <li>
-                        ${j}
+                        ${app.jobTitle}
                     </li>
                 `
             });

@@ -149,17 +149,14 @@ const ajaxRequestMixin = {
             deleteRedirectUrl: null,  // (Optional) URL to redirect to if an entity is deleted
             pageRedirect: null,  // Page to redirect to after succesful ajax request
             successAlertType: SEVERITY.SUCCESS,
-            confirmDelete: true  // If false a window confirmation will not be required to delete
+            confirmDelete: true,  // If false a window confirmation will not be required to delete
+            updateDataFn: null  // Custom data update function
         }
     },
     methods: {
         onSaveSuccessFn(method) {
             return (data, textStatus, xhr) => {
                 eventBus.emit('ajaxSuccess', data);
-                store.commit('addAlert', {
-                    message: this.getSuccessMessage(data, method),
-                    alertType: this.successAlertType
-                });
                 if (this.isUpdateData && !this.isHardRefresh) {
                     if (method === 'DELETE') {
                         if (this.updateDeleteMethod) {
@@ -168,7 +165,11 @@ const ajaxRequestMixin = {
                             this.updateInitDataDelete(data);
                         }
                     } else {
-                        this.updateInitData(data, method === 'PUT');
+                        if (this.updateDataFn) {
+                            this.updateDataFn(data);
+                        } else {
+                            this.updateInitData(data, method === 'PUT');
+                        }
                     }
                 }
                 this.formData = {};
@@ -176,15 +177,34 @@ const ajaxRequestMixin = {
                     this.modal$.hide();
                 }
 
-                if (this.isHardRefresh) {
-                    // Don't use window.reload() to prevent scrolling to previous y-axis on page
-                    window.location.href = window.location.href;
-                } else {
-                    const redirect = data.pageRedirect || this.pageRedirect;
-                    if (redirect) {
-                        window.location.href = redirect;
+                const alertMessages = [
+                    {
+                        message: this.getSuccessMessage(data, method),
+                        alertType: this.successAlertType
                     }
+                ]
+                if (data.warningMsgs) {
+                    data.warningMsgs.forEach((msg) => {
+                        alertMessages.push({
+                            message: msg,
+                            alertType: SEVERITY.WARN
+                        });
+                    })
                 }
+
+                const redirect = data.pageRedirect || this.pageRedirect;
+                if (this.isHardRefresh) {
+                    window.sessionStorage.setItem('alertMessages', JSON.stringify(alertMessages));
+                    document.location.reload();
+                } else if (redirect) {
+                    window.sessionStorage.setItem('alertMessages', JSON.stringify(alertMessages));
+                    window.location.href = redirect;
+                } else {
+                    alertMessages.forEach((msg) => {
+                        store.commit('addAlert', msg);
+                    });
+                }
+
             }
         },
         getSuccessMessage(data, method) {

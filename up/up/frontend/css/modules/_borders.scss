@@ -1,0 +1,41 @@
+@use '../abstracts' as *;
+
+.-border-left {
+    &--light {
+        border-left: 1px solid $color-lightgrey;
+    }
+
+    &--blue {
+        border-left: 2px solid $color-darkblue;
+    }
+}
+
+.-border-bottom {
+    &--light {
+        border-bottom: 1px solid $color-lightgrey;
+    }
+
+    &--blue {
+        border-bottom: 2px solid $color-darkblue;
+    }
+}
+
+.-border-top {
+    &--light {
+        border-top: 1px solid $color-lightgrey;
+    }
+
+    &--blue {
+        border-top: 2px solid $color-darkblue;
+    }
+}
+
+.-border-right {
+    &--light {
+        border-right: 1px solid $color-lightgrey;
+    }
+
+    &--blue {
+        border-right: 2px solid $color-darkblue;
+    }
+}

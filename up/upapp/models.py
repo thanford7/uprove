@@ -1,4 +1,4 @@
-from enum import IntEnum, Enum
+from enum import IntEnum, Enum, auto
 
 from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
@@ -458,12 +458,25 @@ class EmployerJob(AuditFields):
 
 
 class UserJobApplication(models.Model):
+    # Keep in sync with globalData.js
+    class Status(Enum):
+        INVITED = auto()
+        APPLIED = auto()
+        APPROVED_NO_INTERVIEW = auto()
+        APPROVED_INTERVIEW = auto()
+        DECLINED = auto()
+        WITHDRAWN = auto()
+        OFFER = auto()
+        HIRED = auto()
+
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='jobApplication')
     employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
     inviteDateTime = models.DateTimeField(null=True)
-    submissionDateTime = models.DateTimeField(null=True)
+    applicationDateTime = models.DateTimeField(null=True)
     approveDateTime = models.DateTimeField(null=True)
+    interviewDateTime = models.DateTimeField(null=True)
     hireDateTime = models.DateTimeField(null=True)
+    offerDateTime = models.DateTimeField(null=True)
     declineDateTime = models.DateTimeField(null=True)
     withdrawDateTime = models.DateTimeField(null=True)
 
@@ -471,6 +484,68 @@ class UserJobApplication(models.Model):
 
     class Meta:
         unique_together = ('user', 'employerJob')
+
+    def updateApplicationStatus(self, statusKey, statusUpdateDateTime):
+        if statusKey == self.Status.INVITED.name:
+            self.inviteDateTime = statusUpdateDateTime
+        if statusKey == self.Status.APPLIED.name:
+            self.applicationDateTime = statusUpdateDateTime
+        if statusKey == self.Status.APPROVED_NO_INTERVIEW.name:
+            self.approveDateTime = statusUpdateDateTime
+            self.offerDateTime = None
+            self.hireDateTime = None
+            self.declineDateTime = None
+            self.interviewDateTime = None
+        if statusKey == self.Status.APPROVED_INTERVIEW.name:
+            self.interviewDateTime = statusUpdateDateTime
+            self.offerDateTime = None
+            self.hireDateTime = None
+            self.declineDateTime = None
+        if statusKey == self.Status.DECLINED.name:
+            self.declineDateTime = statusUpdateDateTime
+            self.hireDateTime = None
+            self.offerDateTime = None
+        if statusKey == self.Status.WITHDRAWN.name:
+            self.withdrawDateTime = statusUpdateDateTime
+            self.hireDateTime = None
+            self.offerDateTime = None
+        if statusKey == self.Status.OFFER.name:
+            self.offerDateTime = statusUpdateDateTime
+            self.hireDateTime = None
+        if statusKey == self.Status.HIRED.name:
+            self.hireDateTime = statusUpdateDateTime
+            self.declineDateTime = None
+
+    @property
+    def status(self):
+        if self.hireDateTime:
+            return self.Status.HIRED.name
+        if self.withdrawDateTime:
+            return self.Status.WITHDRAWN.name
+        if self.declineDateTime:
+            return self.Status.DECLINED.name
+        if self.offerDateTime:
+            return self.Status.OFFER.name
+        if self.interviewDateTime:
+            return self.Status.APPROVED_INTERVIEW.name
+        if self.approveDateTime:
+            return self.Status.APPROVED_NO_INTERVIEW.name
+        if self.applicationDateTime:
+            return self.Status.APPLIED.name
+        return self.Status.INVITED.name
+
+    @property
+    def statusUpdateDateTime(self):
+        return (
+            self.hireDateTime
+            or self.withdrawDateTime
+            or self.declineDateTime
+            or self.offerDateTime
+            or self.interviewDateTime
+            or self.approveDateTime
+            or self.applicationDateTime
+            or self.inviteDateTime
+        )
 
 
 class UserProjectEvaluationCriterion(AuditFields):

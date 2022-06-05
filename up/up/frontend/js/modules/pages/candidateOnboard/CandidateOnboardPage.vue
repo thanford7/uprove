@@ -6,13 +6,11 @@
                         Hi {{globalData.uproveUser.firstName}}! Welcome to Uprove!
                     </p>
                     <p>
-                        At Uprove we help individuals like you showcase their talent and connect with employers seeking candidates
-                        with your skill set. Complete one or more of our skills based exercises to show employers what you're
-                        made of and secure your next opportunity!
+                        At Uprove we help individuals like you showcase your customer success skills and upskill to find
+                        new opportunities or perform better in your current role.
                     </p>
                     <p>
-                        To help us match you with the best opportunities and recommend real world business cases to help you
-                        showcase your talent, we have a few questions:
+                        To help us match you with the best opportunities, we have a few questions:
                     </p>
                 </div>
             </div>

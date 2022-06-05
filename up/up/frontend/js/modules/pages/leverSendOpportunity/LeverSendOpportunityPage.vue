@@ -97,7 +97,7 @@
                                 style="display: inline-block;"
                             >
                         </div>
-                        <InputWsiwyg :elId="assessmentEmail" v-model="assessmentEmail"/>
+                        <InputWsiwyg elId="assessmentEmail" v-model="assessmentEmail"/>
                     </div>
                 </div>
                 <div class="row mb-3">

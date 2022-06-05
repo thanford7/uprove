@@ -12,7 +12,7 @@ from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
-    getSerializedOrganization, getSerializedUserProject
+    getSerializedOrganization, getSerializedUserProject, CUSTOMER_SUCCESS_ROLE_IDS
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -291,20 +291,14 @@ class JobPostingView(UproveAPIView):
         return filter
 
     @staticmethod
-    def getJobMapByRole():
-        jobMapByRole = defaultdict(lambda: {'roleId': None, 'jobCount': 0})
-        for job in JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter()):
-            jobData = jobMapByRole[job.roleLevel.role_id]
-            jobData['roleId'] = job.roleLevel.role_id
-            jobData['jobCount'] += 1
-
-        return jobMapByRole
-
-    @staticmethod
     def getProjectsByRoleIdMap():
         projectsByRole = defaultdict(list)
         for project in ProjectView.getProjects():
-            projectsByRole[project.role.id].append(project)
+            if project.role_id in CUSTOMER_SUCCESS_ROLE_IDS:
+                for id in CUSTOMER_SUCCESS_ROLE_IDS:
+                    projectsByRole[id].append(project)
+            else:
+                projectsByRole[project.role_id].append(project)
 
         return projectsByRole
 

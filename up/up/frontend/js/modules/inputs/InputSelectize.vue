@@ -65,7 +65,10 @@ export default {
                 this.elSel.on('change', () => {
                     this.$emit('selected', this.parseSelVal());
                 });
-                this.elSel.on('blur', () => { $(this.targetEl).trigger('blur'); });
+                this.elSel.on('blur', () => {
+                    $(this.targetEl).trigger('blur');
+                    this.$emit('blur');
+                });
                 this.eventBus.on('formClear', () => {
                     if (!this.isPreserveValue) {
                         this.clear();

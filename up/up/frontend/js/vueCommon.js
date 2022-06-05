@@ -21,7 +21,16 @@ const initVue = (mainComponent, el) => {
         .mixin(filterMixin)
         .mixin(tabsMixin)
         .mixin(dataLoaderMixin);
-
+    window.onload = () => {
+        let alertMessages = window.sessionStorage.getItem('alertMessages');
+        if (alertMessages) {
+            alertMessages = JSON.parse(alertMessages);
+            alertMessages.forEach((msg) => {
+                store.commit('addAlert', msg);
+            });
+            window.sessionStorage.removeItem('alertMessages');
+        }
+    }
     vueComponent.mount(el);
     return vueComponent
 }

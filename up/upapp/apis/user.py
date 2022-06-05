@@ -30,7 +30,7 @@ from rest_framework.response import Response
 from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
-from upapp.apis.lever import updateLeverAssessmentComplete
+from upapp.apis.lever import updateLeverAssessmentComplete, LeverOpportunities
 from upapp.apis.sendEmail import EmailView
 from upapp.apis.tag import TagView
 from upapp.models import *
@@ -1372,15 +1372,70 @@ class UserJobApplicationView(UproveAPIView):
 
     @atomic
     def post(self, request):
+        from upapp.views import PageRefreshKeys, getProfileData
+
         user = UserView.getUser(self.data['userId'])
-        jobApplication = self.createUserApplication(
-            request, user, self.data['employerJobId'], self.isEmployer,
-            userProjectId=self.data.get('userProjectId'), data=self.data, files=self.files
-        )
+        jobIds = self.data.get('jobs') or [self.data.get('employerJobId')]
+        if not jobIds:
+            return Response('A job ID is required', status=status.HTTP_400_BAD_REQUEST)
+
+        errorMsg = None
+        jobApps = []
+        for jobId in jobIds:
+            jobApplication = self.createUserApplication(
+                user, jobId, isInvite=self.data.get('isInvite')
+            )
+
+            # Refetch the job application to pull related models
+            jobApplication = self.getUserJobApplications(userJobApplicationId=jobApplication.id)
+            jobApps.append(jobApplication)
+
+            if self.user.leverUserKey:
+                errorMsg = LeverOpportunities.addLeverOpportunity(request, self.user, jobApplication,
+                                                                   note=self.data.get('note'))
+
+        if self.data.get('isSendEmail'):
+            # Send custom email
+            EmailView.sendEmail(
+                self.data['emailSubject'],
+                self.data['email'],
+                htmlContent=self.data['emailContent'],
+                fromEmail=self.data['fromEmail'],
+                ccEmail=self.data['fromEmail']
+            )
+        elif self.data.get('isInvite'):
+            # Send Uprove automated email
+            jobPostingBaseUrl = request.build_absolute_uri(f'/job-posting/')
+            candidateDashboardUrl = request.build_absolute_uri(f'/candidateDashboard/')
+            if len(jobApps) == 1:
+                job = jobApps[0].employerJob
+                jobHtmlContent = f'<a href="{jobPostingBaseUrl + job.id}">{job.jobTitle}</a> position.'
+            else:
+                jobHtmlContent = 'following positions: <ul>'
+                for jobApp in jobApps:
+                    job = jobApp.employerJob
+                    jobHtmlContent += f'<li><a href="{jobPostingBaseUrl + job.id}">{job.jobTitle}</a>'
+                jobHtmlContent += '</ul>'
+
+            EmailView.sendEmail(
+                'Uprove | New career opportunity!',
+                self.data['email'],
+                htmlContent=f'''
+                    <p>Hi {self.data['firstName']},</p>
+                    <p>Congratulations! An employer, {jobApps[0].employerJob.employer.companyName}, just invited you
+                    to interview for the {jobHtmlContent}
+                    </p>
+                    <p>You can go to your <a href="{candidateDashboardUrl + '?tab=applications'}">Uprove dashboard</a> to view and accept this invite.</p>
+                    <p>Sincerely,</p>
+                    <p>Uprove team</p>
+                '''
+            )
+
+        data = {}
 
         return Response(
             status=status.HTTP_200_OK,
-            data=getSerializedJobApplication(self.getUserJobApplications(userJobApplicationId=jobApplication.id))
+            data={} if not errorMsg else {'warningMsgs': [errorMsg]}
         )
 
     @atomic
@@ -1397,24 +1452,10 @@ class UserJobApplicationView(UproveAPIView):
             return Response('You do not have permission to update this job application',
                             status=status.HTTP_401_UNAUTHORIZED)
 
-        dtGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATETIME, allowNone=True)
-        if isSelf:
-            dataUtil.setObjectAttributes(jobApplication, data, {
-                'user_id': {'formName': 'userId'},
-                'submissionDateTime': {'propFunc': dtGetter},
-                'withdrawDateTime': {'propFunc': dtGetter}
-            })
-
-            if data.get('submissionDateTime'):
-                self.sendApplicationSubmissionEmail(request, self.user, jobApplication)
-                updateLeverAssessmentComplete(request, jobApplication)
-
-        if isEmployer:
-            dataUtil.setObjectAttributes(jobApplication, data, {
-                'approveDateTime': {'propFunc': dtGetter},
-                'declineDateTime': {'propFunc': dtGetter},
-            })
-
+        jobApplication.updateApplicationStatus(
+            self.data['status'],
+            dateUtil.deserializeDateTime(self.data['statusUpdateDateTime'], dateUtil.FormatType.DATETIME)
+        )
         jobApplication.save()
         return Response(
             status=status.HTTP_200_OK,
@@ -1437,30 +1478,7 @@ class UserJobApplicationView(UproveAPIView):
 
     @staticmethod
     @atomic
-    def createUserApplication(request, user, jobId, isEmployer, customProjectId=None, userProjectId=None, opportunityKey=None, opportunityKeyAttr=None, data=None, files=None):
-
-        if userProjectId:
-            userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
-            if not (security.isSelf(userProject.user_id, user=user) or isEmployer):
-                return Response('You do not have permission to post this job application',
-                                status=status.HTTP_401_UNAUTHORIZED)
-        elif customProjectId:
-            try:
-                userProject = UserProject.objects.get(user_id=user.id, customProject_id=customProjectId)
-            except UserProject.DoesNotExist:
-                userProject = UserProject(
-                    user_id=user.id,
-                    customProject_id=customProjectId,
-                    modifiedDateTime=timezone.now(),
-                    createdDateTime=timezone.now()
-                )
-                userProject.save()
-        else:
-            userProject = UserProjectView.createUserProject(request, data, files)
-            # Return error response if something went wrong
-            if isinstance(userProject, Response):
-                return userProject
-
+    def createUserApplication(user, jobId, opportunityKey=None, opportunityKeyAttr=None, isInvite=False):
         job = JobPostingView.getEmployerJobs(jobId=jobId, isIncludeDemo=True)
 
         # Create an application for the user if it doesn't exist
@@ -1471,8 +1489,11 @@ class UserJobApplicationView(UproveAPIView):
             userJobApp = UserJobApplication(
                 user=user,
                 employerJob=job,
-                inviteDateTime=timezone.now(),
             )
+            if isInvite:
+                userJobApp.inviteDateTime = timezone.now()
+            else:
+                userJobApp.applicationDateTime = timezone.now()
         if opportunityKey and opportunityKeyAttr:
             setattr(userJobApp, opportunityKeyAttr, opportunityKey)
         userJobApp.save()
@@ -1494,18 +1515,20 @@ class UserJobApplicationView(UproveAPIView):
         if employerId:
             applicationFilter &= Q(employerJob__employer_id=employerId)
 
-        userJobApplications = UserJobApplication.objects \
+        userJobApplications = list(UserJobApplication.objects \
             .select_related(
                 'user',
-                'employerJob'
+                'employerJob',
+                'employerJob__employer'
             ) \
-            .filter(applicationFilter)
+            .filter(applicationFilter))
 
         if userJobApplicationId:
             if not userJobApplications:
                 raise UserJobApplication.DoesNotExist
             return userJobApplications[0]
 
+        userJobApplications.sort(key=lambda app: app.statusUpdateDateTime)
         return userJobApplications
 
     @staticmethod

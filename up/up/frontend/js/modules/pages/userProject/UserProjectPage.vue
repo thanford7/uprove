@@ -8,29 +8,6 @@
                     </h5>
                     <h5>{{userProject.user.firstName}} {{userProject.user.lastName}}</h5>
                 </div>
-                <CollapseDiv v-if="userProject.applications.length" :elId="getNewElUid()" class="mt-2 mb-2">
-                    <template v-slot:header>
-                        Current job applications
-                    </template>
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Job title</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="application in userProject.applications">
-                                <td>
-                                    <ApplicationDropdownOpts :application="application" :applications="userProject.applications"/>
-                                </td>
-                                <td>{{application.job.jobTitle}}</td>
-                                <td>{{ getApplicationStatus(application) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </CollapseDiv>
                 <CollapseDiv :elId="getNewElUid()" class="mt-2">
                     <template v-slot:header>
                         Project submission
@@ -163,7 +140,6 @@
 </template>
 
 <script>
-import ApplicationDropdownOpts from "../employerDashboard/ApplicationDropdownOpts";
 import BasePage from "../base/BasePage";
 import CollapseDiv from "../../components/CollapseDiv";
 import EvaluationScoreBadge from "../profile/EvaluationScoreBadge";
@@ -177,7 +153,7 @@ import dataUtil from "../../../utils/data";
 
 export default {
     name: "UserProjectPage",
-    components: {ApplicationDropdownOpts, BasePage, CollapseDiv, EvaluationScoreBadge, FileDisplay, InfoToolTip, ProjectAccordion},
+    components: {BasePage, CollapseDiv, EvaluationScoreBadge, FileDisplay, InfoToolTip, ProjectAccordion},
     computed: {
         canEvaluate() {
             return this.isAdmin || (this.isEmployer  && !this.isSelf(this.initData.userProject.user.id))

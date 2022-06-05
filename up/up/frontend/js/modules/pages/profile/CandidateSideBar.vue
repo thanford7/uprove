@@ -62,23 +62,42 @@
                     </template>
                 </div>
             </div>
+            <div v-if="applicationsHtml">
+                <i class="fas fa-lightbulb -color-orange-text"></i>&nbsp;Candidate has
+                <InfoToolTip
+                    :elId="getNewElUid()"
+                    :content="applicationsHtml"
+                    :isExcludeInfoCircle="true"
+                    :isHtmlContent="true"
+                >
+                    <u>{{pluralize('application', applications.length)}}</u>
+                </InfoToolTip>
+                for {{applications[0].employer}}
+            </div>
             <a v-if="user.resume && (isEmployer || isOwner)" class="btn btn-outline-info mt-3 w-100" download :href="user.resume">
                 <i class="fas fa-file-download"></i> Download resume
             </a>
-            <div class="btn btn-outline-info mt-2 w-100">
-                Save candidate
+            <div v-if="isEmployer && !isOwner" class="btn btn-outline-info mt-2 w-100" @click="eventBus.emit('open:saveCandidateModal', user)">
+                Invite to interview
             </div>
         </div>
+        <SaveCandidateModal
+            v-if="isEmployer"
+            :employerId="globalData.uproveUser.employerId"
+            :applications="applications"
+        />
     </div>
 </template>
 
 <script>
 import InfoToolTip from "../../components/InfoToolTip";
 import ProgressPill from "../../components/ProgressPill";
+import SaveCandidateModal from "../../modals/SaveCandidateModal";
+
 export default {
     name: "CandidateSideBar",
-    props: ['user', 'profilePicture', 'isOwner', 'profileId'],
-    components: {InfoToolTip, ProgressPill},
+    props: ['user', 'profilePicture', 'isOwner', 'profileId', 'applications'],
+    components: {InfoToolTip, ProgressPill, SaveCandidateModal},
     computed: {
         location() {
             const locationParts = ['city', 'state', 'country'].reduce((locationParts, loc) => {
@@ -91,6 +110,17 @@ export default {
                 return null;
             }
             return locationParts.join(', ');
+        },
+        applicationsHtml() {
+            if (!this.applications || !this.applications.length) {
+                return null;
+            }
+            let applicationHtml = '<ul>';
+            this.applications.forEach((app) => {
+                applicationHtml += `<li>${app.jobTitle}</li>`
+            })
+            applicationHtml += '</ul>';
+            return applicationHtml;
         }
     },
 }

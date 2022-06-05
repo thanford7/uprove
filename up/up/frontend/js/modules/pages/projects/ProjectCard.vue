@@ -11,7 +11,6 @@
             {{cardItem.title}}
         </template>
         <template v-slot:body>
-            <ProjectJobs :jobs="cardItem.jobs" class="mb-2"/>
             <div class="mb-1 pb-1 -border-bottom--light">
                 <div class="text-label text-label-sm">SKILLS</div>
                 <BadgesSkills :skills="cardItem.skills"/>
@@ -25,13 +24,12 @@
 <script>
 import BadgesSkills from "../../components/BadgesSkills";
 import BaseCard from "../../components/BaseCard";
-import ProjectJobs from "./ProjectJobs";
 import ViewMoreLink from "../../components/ViewMoreLink";
 
 export default {
     name: "cardItemCard.vue",
     extends: BaseCard,
     inheritAttrs: false,
-    components: {BadgesSkills, BaseCard, ProjectJobs, ViewMoreLink},
+    components: {BadgesSkills, BaseCard, ViewMoreLink},
 }
 </script>

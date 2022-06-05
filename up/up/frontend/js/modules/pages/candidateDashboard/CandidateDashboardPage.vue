@@ -21,8 +21,6 @@
                             type="button" role="tab" aria-selected="false"
                             @click="setTabParam('applications')"
                         >Applications
-                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
-                                         :content="applicationInfoContent"/>
                         </button>
                     </li>
                     <li class="nav-item">
@@ -142,18 +140,18 @@
                                     <tr v-for="jobApplication in initData.jobApplications" class="hover-menu">
                                         <td>
                                             <button
-                                                v-if="!isSubmittedApplicationFn(jobApplication)"
+                                                v-if="canApply(jobApplication)"
                                                 class="btn btn-sm btn-outline-success -color-black-text"
                                                 @click="updateAppSubmission(jobApplication, true)"
                                             >
-                                                <i class="fas fa-file-import"></i> Submit application
+                                                <i class="fas fa-file-import"></i> Apply
                                             </button>
                                             <button
                                                 v-else
                                                 class="btn btn-sm btn-outline-danger -color-black-text"
                                                 @click="updateAppSubmission(jobApplication, false)"
                                             >
-                                                <i class="fas fa-backspace"></i> Withdraw application
+                                                <i class="fas fa-backspace"></i> Withdraw
                                             </button>
                                         </td>
                                         <td>{{ jobApplication.job.employer }}</td>
@@ -162,7 +160,7 @@
                                                 jobApplication.job.jobTitle
                                             }}</a>
                                         </td>
-                                        <td>{{ getApplicationStatus(jobApplication) }}</td>
+                                        <td><ApplicationStatus :application="jobApplication"/></td>
                                     </tr>
                                 </template>
                             </Table>
@@ -207,17 +205,16 @@
             <div class="col-md-4">
                 <div class="card-custom card-custom--no-side-margin">
                     <h5 class="mb-3">Job suggestions</h5>
-                    <div v-for="job in cData.jobSuggestions" class="row">
-                        <div class="job-role -color-darkblue -color-white-text mb-2">
-                            <UprovePartner v-if="job.isClient"/>
-                            {{ job.roleName }}
+                    <div v-for="job in cData.jobSuggestions" class="row mb-2">
+                        <div class="mb-2 d-flex align-items-center -border-top--blue -border-bottom--light">
+                            <h6 class="mb-0 pt-2 pb-2"><a :href="`/job-posting/${job.id}`">{{ job.jobTitle }}</a></h6>
+                            <FastApplyBtn v-if="job.isClient" :job="job" class="-pull-right" btnClasses="mt-1 mb-1"/>
                         </div>
                         <div class="col-3">
                             <img v-if="job.employerLogo" :src="job.employerLogo" class="logo">
                             <i v-else class="far fa-building fa-4x"></i>
                         </div>
-                        <div class="col-9">
-                            <h6><a :href="`/job-posting/${job.id}`">{{ job.jobTitle }}</a></h6>
+                        <div class="col-6">
                             <h6>{{ job.companyName }}</h6>
                             <h6>{{ getLocationStr(job) }}</h6>
                         </div>
@@ -240,8 +237,9 @@
 </template>
 
 <script>
-import {CONTENT_TYPES, PROJECT_STATUSES} from '../../../globalData';
+import {APPLICATION_STATUS_KEYS, CONTENT_TYPES, PROJECT_STATUSES} from '../../../globalData';
 import AddVideoRecordingModal from "../../modals/AddVideoRecordingModal";
+import ApplicationStatus from "../employerDashboard/ApplicationStatus";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseCard from "../../components/BaseCard";
@@ -251,6 +249,7 @@ import CONTENT from "./CandidateDashboardContent";
 import dataUtil from "../../../utils/data";
 import EditJobPreferencesModal from "../../modals/EditJobPreferencesModal";
 import EditUserProjectModal from "../../modals/EditUserProjectModal";
+import FastApplyBtn from "../jobs/FastApplyBtn";
 import FileDisplay from "../../components/FileDisplay";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
@@ -270,6 +269,7 @@ export default {
         UprovePartner,
         BasePage,
         AddVideoRecordingModal,
+        ApplicationStatus,
         BadgesSkills,
         BannerAlert,
         BaseCard,
@@ -277,6 +277,7 @@ export default {
         CelebrationModal,
         EditJobPreferencesModal,
         EditUserProjectModal,
+        FastApplyBtn,
         FileDisplay,
         HamburgerDropdown,
         InfoToolTip,
@@ -291,35 +292,17 @@ export default {
             CONTENT_TYPES,
             projectStatuses: PROJECT_STATUSES,
             loadRoutes: [{route: 'user-job-rec/', dataKey: 'jobSuggestions'}],
-            applicationInfoContent: `
-                <div>
-                    When you <span class="-text-bold">submit an application:</span>
-                    <ul class="mt-1">
-                        <li>The Uprove team will review and rate your project within 24 hours</li>
-                        <li>The employer will be notified of your submission</li>
-                        <li>The employer will contact you if you are selected to continue with the interview process</li>
-                    </ul>
-                </div>
-                <div>
-                    When you <span class="-text-bold">withdraw an application:</span>
-                    <ul class="mt-1">
-                        <li>The employer will be notified of your withdrawal</li>
-                        <li>The employer will no longer review you for the job</li>
-                    </ul>
-                </div>
-            `,
         }
     },
     methods: {
         capitalize: dataUtil.capitalize,
-        getApplicationStatus: dataUtil.getApplicationStatus,
         getLocationStr: jobUtil.getLocationStr,
         getProjectCompleteLockedNote: userProjectUtil.getProjectCompleteLockedNote,
-        isSubmittedApplicationFn(app) {
-            return (
-                app.submissionDateTime
-                && !app.withdrawDateTime
-            )
+        canApply(app) {
+            return [
+                APPLICATION_STATUS_KEYS.INVITED,
+                APPLICATION_STATUS_KEYS.WITHDRAWN
+            ].includes(app.status);
         },
         getCustomProjectQueryParams(customProject) {
             let queryString = `skillLevel=${customProject.skillLevelBit}`;
@@ -356,10 +339,10 @@ export default {
             this.formData.userId = this.initData.user.id;
             this.formData.id = app.id;
             if (isSubmit) {
-                this.formData.submissionDateTime = dateUtil.serializeDateTime(dayjs());
+                this.formData.applicationDateTime = dateUtil.serializeDateTime(dayjs());
                 this.formData.withdrawDateTime = null;
             } else {
-                this.formData.submissionDateTime = null;
+                this.formData.applicationDateTime = null;
                 this.formData.withdrawDateTime = dateUtil.serializeDateTime(dayjs());
             }
             this.readAndSubmitForm();

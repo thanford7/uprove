@@ -1,16 +1,9 @@
+import {APPLICATION_STATUS, APPLICATION_STATUS_KEYS} from '../globalData'
 import clone from 'just-clone';
 import dayjs from "dayjs/esm";
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
-
-const APPLICATION_STATUS = {
-    NOT_SUBMITTED: 'Not submitted',
-    SUBMITTED: 'Submitted',
-    APPROVED: 'Approved',
-    DECLINED: 'Declined',
-    WITHDRAWN: 'Withdrawn'
-}
 
 class DataUtil {
     dateFormat = 'MM/DD/YYYY';
@@ -37,6 +30,12 @@ class DataUtil {
             return (isConvertNull) ? dayjs() : null;
         }
         return (this.isNil(dateVal) && !isConvertNull) ? null : dayjs(dateVal);
+    }
+
+    getTimeDifferenceString({from = null, to = null}) {
+        from = (from) ? dayjs(from) : dayjs();
+        to = (to) ? dayjs(to) : dayjs();
+        return to.to(from);
     }
 
     formatCurrency(val) {
@@ -117,7 +116,7 @@ class DataUtil {
 
     /**
      * Update query params and optionally redirect to a new page
-     * @param params {Array}: Array of dicts with key: val pairs. The key represents the name of the query param and
+     * @param params {Array}: Array of dicts with key: val: pairs. The key represents the name of the query param and
      * val represents the value. Val can be a single value or a list of values. Example: [{key: 'tab', val: 'settings'}]
      * @param path {null|string}: Optional path if directing to a new page
      */
@@ -174,35 +173,6 @@ class DataUtil {
         }
         const [fileType] = fileName.split('.').slice(-1);
         return fileType;
-    }
-
-    getApplicationStatus(jobApplication) {
-        if (jobApplication.withdrawDateTime) {
-            return APPLICATION_STATUS.WITHDRAWN;
-        } else if (jobApplication.approveDateTime) {
-            return APPLICATION_STATUS.APPROVED;
-        } else if (jobApplication.declineDateTime) {
-            return APPLICATION_STATUS.DECLINED;
-        } else if (jobApplication.submissionDateTime) {
-            return APPLICATION_STATUS.SUBMITTED;
-        } else {
-            return APPLICATION_STATUS.NOT_SUBMITTED;
-        }
-    }
-
-    getApplicationStatusText(jobApplication) {
-        const status = this.getApplicationStatus(jobApplication);
-        if (status === APPLICATION_STATUS.WITHDRAWN) {
-            return `${status} ${dayjs().to(dayjs(jobApplication.withdrawDateTime))}`;
-        } else if (status === APPLICATION_STATUS.APPROVED) {
-            return `${status} ${dayjs().to(dayjs(jobApplication.approveDateTime))}`;
-        } else if (status === APPLICATION_STATUS.DECLINED) {
-            return `${status} ${dayjs().to(dayjs(jobApplication.declineDateTime))}`;
-        } else if (status === APPLICATION_STATUS.SUBMITTED) {
-            return `${status} ${dayjs().to(dayjs(jobApplication.submissionDateTime))}`;
-        } else {
-            return status;
-        }
     }
 
     /**
@@ -506,4 +476,4 @@ class DataUtil {
 
 const dataUtil = new DataUtil();
 
-export {dataUtil as default, APPLICATION_STATUS};
+export {dataUtil as default};

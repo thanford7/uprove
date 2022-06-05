@@ -99,7 +99,6 @@
                     :employer="getEmployer(selectedJob.employerId)"
                     :job="selectedJob"
                     :isJobDescriptionOpen="true"
-                    :isHideProjects="true"
                 >
                     <template v-slot:top>
                         <CollapseDiv :elId="getNewElUid()">
@@ -112,9 +111,10 @@
                                 </div>
                                 <div class="col-3">
                                     <JobApplyBtn
-                                        v-if="getApplicationUrl(selectedJob)"
-                                        :applicationUrl="getApplicationUrl(selectedJob)"
+                                        v-if="!selectedJob.isClient && selectedJob.applicationUrl"
+                                        :applicationUrl="selectedJob.applicationUrl"
                                     />
+                                    <FastApplyBtn v-else-if="selectedJob.isClient" :job="selectedJob"/>
                                 </div>
                             </div>
                             <JobHelpLinks :job="selectedJob" :employer="getEmployer(selectedJob.employerId)"/>
@@ -141,6 +141,8 @@ import BaseFilter from "../base/BaseFilter";
 import BasePage from "../base/BasePage";
 import dataUtil from "../../../utils/data";
 import EditJobPreferencesModal from "../../modals/EditJobPreferencesModal";
+import FastApplyBtn from "./FastApplyBtn";
+import InfoToolTip from "../../components/InfoToolTip";
 import InputCheckBox from "../../inputs/InputCheckBox";
 import InputSelectize from "../../inputs/InputSelectize";
 import JobApplyBtn from "./JobApplyBtn";
@@ -155,8 +157,9 @@ import CollapseDiv from "../../components/CollapseDiv";
 export default {
     name: "JobsPage",
     components: {
+        InfoToolTip,
         CollapseDiv,
-        AccordionItem, BaseFilter, BasePage, EditJobPreferencesModal, InputCheckBox,
+        AccordionItem, BaseFilter, BasePage, EditJobPreferencesModal, FastApplyBtn, InputCheckBox,
         InputSelectize, JobApplyBtn, JobHelpLinks, JobPosting, ListFontAwesome, Pagination, UprovePartner
     },
     data() {
@@ -240,12 +243,6 @@ export default {
     methods: {
         getQueryParams: dataUtil.getQueryParams,
         getLocationStr: jobUtil.getLocationStr,
-        getApplicationUrl(job) {
-            if (job.isClient && job.allowedProjects.length) {
-                return `/job-posting/${job.id}`;
-            }
-            return job.applicationUrl;
-        },
         getEmployer(employerId) {
             return this.initData['employers'][employerId];
         },

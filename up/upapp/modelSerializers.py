@@ -1,4 +1,3 @@
-import re
 from datetime import date
 from enum import Enum
 from operator import itemgetter
@@ -21,6 +20,11 @@ class ContentTypes(Enum):
     VIDEO = 'video'
     FILE = 'file'
     IMAGE = 'image'
+
+csRoleFilter = Q()
+for csRole in ('customer success', 'customer experience', 'account management'):
+    csRoleFilter |= Q(name__icontains=csRole)
+CUSTOMER_SUCCESS_ROLE_IDS = [r.id for r in Role.objects.filter(csRoleFilter)]
 
 
 def getDateTimeFormatOrNone(val):
@@ -58,7 +62,7 @@ def getAllowedProjects(customProjects, job):
     return [
         cp for cp
         in customProjects
-        if cp.skillLevelBit == job.roleLevel.roleLevelBit and cp.project.role_id == job.roleLevel.role_id
+        if cp.project.role_id == job.roleLevel.role_id or (cp.project.role_id in CUSTOMER_SUCCESS_ROLE_IDS and job.roleLevel.role_id in CUSTOMER_SUCCESS_ROLE_IDS)
     ] if job.roleLevel else []
 
 
@@ -492,7 +496,6 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customPr
 
 
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):
-    from upapp.apis.user import UserProjectView
 
     val = {
         'id': jobApplication.id,
@@ -504,11 +507,12 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
             'email': jobApplication.user.email,
             'profileId': jobApplication.user.primaryProfile.id if jobApplication.user.primaryProfile else None
         },
-        'inviteDateTime': getDateTimeFormatOrNone(jobApplication.inviteDateTime),
-        'submissionDateTime': getDateTimeFormatOrNone(jobApplication.submissionDateTime),
-        'approveDateTime': getDateTimeFormatOrNone(jobApplication.approveDateTime),
-        'declineDateTime': getDateTimeFormatOrNone(jobApplication.declineDateTime),
-        'withdrawDateTime': getDateTimeFormatOrNone(jobApplication.withdrawDateTime),
+        'jobId': jobApplication.employerJob_id,
+        'jobTitle': jobApplication.employerJob.jobTitle,
+        'employer': jobApplication.employerJob.employer.companyName,
+        'employerLogo': jobApplication.employerJob.employer.logo.url if jobApplication.employerJob.employer.logo else None,
+        'status': jobApplication.status,
+        'statusUpdateDateTime': getDateTimeFormatOrNone(jobApplication.statusUpdateDateTime),
     }
 
     if includeJob:
@@ -517,8 +521,6 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
         val['job'] = {
             'id': jobApplication.employerJob.id,
             'jobTitle': jobApplication.employerJob.jobTitle,
-            'employer': jobApplication.employerJob.employer.companyName,
-            'employerLogo': jobApplication.employerJob.employer.logo.url if jobApplication.employerJob.employer.logo else None,
             'allowedProjects': [getSerializedCustomProject(ep) for ep in allowedProjects]
         }
 

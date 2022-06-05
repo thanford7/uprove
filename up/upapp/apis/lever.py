@@ -293,10 +293,7 @@ class LeverSendAssessment(UproveAPIView):
 
         leverOpportunityKey = self.data['opportunityId']
         job = UserJobApplicationView.createUserApplication(
-            request, user, self.data['jobId'], True,
-            customProjectId=self.data['customProject']['id'],
-            opportunityKey=leverOpportunityKey,
-            opportunityKeyAttr='leverOpportunityKey'
+            user, self.data['jobId'], opportunityKey=leverOpportunityKey, opportunityKeyAttr='leverOpportunityKey'
         )
 
         getLeverRequestWithRefresh(
@@ -328,68 +325,67 @@ class LeverLogOut(BaseLeverAPIView):
 
 
 class LeverOpportunities(BaseLeverAPIView):
+    CONNECTION_ERROR_MSG = 'Error saving candidate opportunity to Lever: Connection refused. Try clicking the "On" button in the integrations tab on your employer dashboard.'
 
     def get(self, request, opportunityId=None, employerId=None):
         opportunities = getLeverItems('opportunities', self.employer, itemId=opportunityId)
         return Response(status=status.HTTP_200_OK, data=opportunities)
 
+    @staticmethod
     @atomic
-    def post(self, request, employerId=None):
-        if not self.user.leverUserKey:
-            return Response(
-                'Your account is not linked with Lever. Go to the "Users" tab in your Dashboard to update this.',
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    def addLeverOpportunity(request, user, jobApplication, note=None):
+        if jobApplication.leverOpportunityKey:
+            return None
 
-        # Check if opportunity already exists. If so, shortcircuit
+        if not jobApplication.employerJob.leverPostingKey:
+            return 'Unable to save opportunity to Lever. This job is not linked with an existing posting in Lever.'
+
+        applicant = jobApplication.user
+        employer = jobApplication.employerJob.employer
         try:
-            currentApplication = UserJobApplication.objects.get(user_id=self.data['id'],
-                                                                employerJob_id=self.data['jobId'])
-            if currentApplication.leverOpportunityKey:
-                return Response('Candidate has already been added to this opportunity on Lever',
-                                status=status.HTTP_400_BAD_REQUEST)
-        except UserJobApplication.DoesNotExist:
-            currentApplication = UserJobApplication(
-                user_id=self.data['id'],
-                employerJob_id=self.data['jobId'],
-                inviteDateTime=timezone.now(),
+            resp = getLeverRequestWithRefresh(
+                employer,
+                f'opportunities?perform_as={user.leverUserKey}',
+                bodyCfg={
+                    'name': f'{applicant.firstName} {applicant.lastName}',
+                    'emails': [applicant.email],
+                    'links': [request.build_absolute_uri(f'/profile/{applicant.primaryProfile.id}')] if applicant.primaryProfile else [],
+                    'tags': ['uprove'],
+                    'sources': ['Uprove'],
+                    'origin': 'agency',
+                    'postings': [jobApplication.employerJob.leverPostingKey]
+                },
+                isJSON=True,
+                method='POST'
             )
+            opportunity = resp.get('data')
+            if not opportunity:
+                errorMsg = resp.get('message')
+                return f'Error saving candidate opportunity to Lever: {errorMsg}'
+        except ConnectionError:
+            return LeverOpportunities.CONNECTION_ERROR_MSG
 
-        resp = getLeverRequestWithRefresh(
-            self.employer,
-            f'opportunities?perform_as={self.user.leverUserKey}',
-            bodyCfg={
-                'name': f'{self.data["firstName"]} {self.data["lastName"]}',
-                'emails': [self.data['email']],
-                'links': [request.build_absolute_uri(f'/profile/{self.data["profileId"]}')],
-                'tags': ['uprove'],
-                'sources': ['Uprove'],
-                'origin': 'agency',
-                'postings': [self.data['leverPostingKey']]
-            },
-            isJSON=True,
-            method='POST'
-        )
-        opportunity = resp.get('data')
-        if not opportunity:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=resp)
+        jobApplication.leverOpportunityKey = opportunity['id']
+        jobApplication.save()
 
-        currentApplication.leverOpportunityKey = opportunity['id']
-        currentApplication.save()
+        if note:
+            try:
+                resp = getLeverRequestWithRefresh(
+                    employer,
+                    f'opportunities/{opportunity["id"]}/notes',
+                    bodyCfg={
+                        'value': note},
+                    isJSON=True,
+                    method='POST'
+                )
+                note = resp.get('data')
+                if not note:
+                    errorMsg = resp.get('message')
+                    return f'Error saving candidate opportunity to Lever: {errorMsg}'
+            except ConnectionError:
+                return LeverOpportunities.CONNECTION_ERROR_MSG
 
-        resp = getLeverRequestWithRefresh(
-            self.employer,
-            f'opportunities/{opportunity["id"]}/notes',
-            bodyCfg={
-                'value': self.data['note']},
-            isJSON=True,
-            method='POST'
-        )
-        note = resp.get('data')
-        if not note:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=resp)
-
-        return Response(status=status.HTTP_200_OK)
+        return None
 
 
 class LeverPostings(BaseLeverAPIView):

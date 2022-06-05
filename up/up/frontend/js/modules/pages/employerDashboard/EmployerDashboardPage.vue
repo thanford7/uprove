@@ -129,16 +129,26 @@
                                 </td>
                                 <td>{{ getJobStatus(job) }}</td>
                                 <td class="text-center border-start">
-                                    {{ job.applications.filter((a) => !Boolean(a.submissionDateTime)).length }}
+                                    {{ job.applications.filter((a) => a.status === APPLICATION_STATUS_KEYS.INVITED).length }}
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => Boolean(a.submissionDateTime)).length }}
+                                    {{ job.applications.filter((a) => a.status === APPLICATION_STATUS_KEYS.APPLIED).length }}
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => Boolean(a.approveDateTime)).length }}
+                                    {{ job.applications.filter((a) => {
+                                        return [
+                                            APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW,
+                                            APPLICATION_STATUS_KEYS.APPROVED_INTERVIEW
+                                        ].includes(a.status)
+                                    }).length }}
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => Boolean(a.declineDateTime)).length }}
+                                    {{ job.applications.filter((a) => {
+                                        return [
+                                            APPLICATION_STATUS_KEYS.DECLINED,
+                                            APPLICATION_STATUS_KEYS.WITHDRAWN
+                                        ].includes(a.status)
+                                    }).length }}
                                 </td>
                             </tr>
                         </template>
@@ -149,16 +159,7 @@
                 <div class="mb-2">
                     <FilterDropdownMenu class="-pull-left" :filters="applicantsFilter" dropdownHeader="Filters">
                         <div class="ps-2 pe-2">
-                            <InputSelectize
-                                :elId="getNewElUid()"
-                                placeholder="Status"
-                                :cfg="{
-                                    plugins: ['remove_button'],
-                                    maxItems: null,
-                                    options: Object.values(APPLICATION_STATUS).map((v) => ({value: v, text: v}))
-                                }"
-                                @selected="applicantsFilter.statuses = $event"
-                            />
+                            <ApplicationStatusSelectize @selected="applicantsFilter.statuses = $event" :isMultiSelect="true"/>
                             <InputSelectize
                                 ref="jobTitleFilter"
                                 :elId="getNewElUid()"
@@ -181,7 +182,7 @@
                                 [
                                     {},
                                     {value: 'Name', sortFn: 'user.firstName'},
-                                    {value: 'Status', sortFn: getApplicationStatus},
+                                    {value: 'Status', sortFn: 'status'},
                                     {value: 'Job title', sortFn: 'job.jobTitle'},
                                 ]
                             ]"
@@ -190,7 +191,7 @@
                         <template v-slot:body>
                             <tr v-for="application in filteredApplications" class="hover-menu">
                                 <td>
-                                    <ApplicationDropdownOpts :application="application" :applications="applications"/>
+<!--                                    hamburger menu-->
                                 </td>
                                 <td>
                                     <a
@@ -201,8 +202,8 @@
                                         {{ application.user.firstName }} {{ application.user.lastName }}
                                     </a>
                                 </td>
-                                <td>{{ getApplicationStatusText(application) }}</td>
-                                <td>{{ application.job.jobTitle }}</td>
+                                <td><ApplicationStatus :application="application" :isAllowUpdate="true"/></td>
+                                <td>{{ application.jobTitle }}</td>
                             </tr>
                         </template>
                     </Table>
@@ -359,8 +360,10 @@
 </template>
 
 <script>
-import dataUtil, {APPLICATION_STATUS} from "../../../utils/data";
-import ApplicationDropdownOpts from "./ApplicationDropdownOpts";
+import {APPLICATION_STATUS, APPLICATION_STATUS_KEYS} from '../../../globalData'
+import dataUtil from "../../../utils/data";
+import ApplicationStatus from "./ApplicationStatus";
+import ApplicationStatusSelectize from "../../inputs/ApplicationStatusSelectize";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
@@ -383,13 +386,15 @@ import RolesSelectize from "../../inputs/RolesSelectize";
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        ApplicationDropdownOpts, BannerAlert, BadgesSkills, BasePage, CelebrationModal, EditEmployerModal,
-        EditJobPostingModal, EditUserModal, FilterDropdownMenu, HamburgerDropdown, InfoToolTip, InputSelectize,
-        InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table
+        ApplicationStatus, ApplicationStatusSelectize, BannerAlert, BadgesSkills,
+        BasePage, CelebrationModal, EditEmployerModal, EditJobPostingModal, EditUserModal, FilterDropdownMenu,
+        HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal, LeverWebhook, RangeSlider,
+        RolesSelectize, Table
     },
     data() {
         return {
             APPLICATION_STATUS,
+            APPLICATION_STATUS_KEYS,
             applications: [],
             sortKeysJobPostingTable: [],
             leverData: {},
@@ -401,11 +406,11 @@ export default {
     computed: {
         filteredApplications() {
             return this.applications.filter((application) => {
-                if (this.applicantsFilter?.statuses?.length && !this.applicantsFilter.statuses.includes(this.getApplicationStatus(application))) {
+                if (this.applicantsFilter?.statuses?.length && !this.applicantsFilter.statuses.includes(application.status)) {
                     return false;
                 }
 
-                if (this.applicantsFilter?.jobTitle?.length && !this.applicantsFilter.jobTitle.includes(application.job.jobTitle)) {
+                if (this.applicantsFilter?.jobTitle?.length && !this.applicantsFilter.jobTitle.includes(application.jobTitle)) {
                     return false;
                 }
 
@@ -442,8 +447,6 @@ export default {
     methods: {
         declineApplication: userProject.declineApplication.bind(userProject),
         approveApplication: userProject.approveApplication.bind(userProject),
-        getApplicationStatus: dataUtil.getApplicationStatus.bind(dataUtil),
-        getApplicationStatusText: dataUtil.getApplicationStatusText.bind(dataUtil),
         leverLogin: function (isOn) {
             if (isOn) {
                 leverIntegration.login();
@@ -477,16 +480,10 @@ export default {
     },
     async mounted() {
         this.applications = this.initData.employer.jobs.reduce((applications, job) => {
-            return [...applications, ...job.applications.map((app) => {
-                app.job = {
-                    id: job.id,
-                    jobTitle: job.jobTitle
-                };
-                return app;
-            })];
+            return [...applications, ...job.applications];
         }, []);
 
-        const jobTitles = dataUtil.uniqArray(this.applications.map((a) => a.job.jobTitle));
+        const jobTitles = dataUtil.uniqArray(this.applications.map((a) => a.jobTitle));
         this.$refs.jobTitleFilter.resetOptions(jobTitles.map((v) => ({value: v, text: v})));
 
         this.currentTab = 'job-openings';
