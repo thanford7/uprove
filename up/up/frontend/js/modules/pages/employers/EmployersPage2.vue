@@ -1,6 +1,6 @@
 <template>
     <div id="employer-page">
-        <EmployerSalesMagnet v-if="showMagnet" @close="showMagnet = false"/>
+<!--        <EmployerSalesMagnet v-if="showMagnet" @close="showMagnet = false"/>-->
         <div class="container-lg content">
             <div class="row mt-5 align-items-center" :class="(isMobile) ? 'mobile-top' : ''">
                 <div class="col-md-7 col-12 justify-content-center">
@@ -20,12 +20,13 @@
                     <div class="d-flex justify-content-center">
                         <img
                             :src="globalData.STATIC_URL + 'img/icons/key-person-512.png'"
-                            alt="Best customer success hire"
+                            alt="Best Customer Success hire"
                             :style="(isMobile) ? 'max-height: 25vh' : ''"
                         >
                     </div>
                 </div>
             </div>
+            <CompanyLogos/>
         </div>
         <div class="content -color-lightgrey__light mt-4 pt-5 pb-5">
             <div class="container-lg">
@@ -33,12 +34,13 @@
                     <h3 class="mb-4 mb-md-2">
                         We focus on finding the best Customer Success talent so you can focus on your customers' success
                     </h3>
-                    <div class="row mt-3" :class="(isMobile) ? 'mobile-top' : ''">
+                    <div class="row mt-3 justify-content-center" :class="(isMobile) ? 'mobile-top' : ''">
                         <div class="col-md-6">
                             <h5>Vetted by Customer Success experts</h5>
                             <div class="-text-large">
-                                Every job seeker completes a customer success business case and is evaluated by
-                                a customer success expert
+                                Uprove's team of experts will identify the best Customer Success Professionals for your
+                                company. You also have access to the profiles of all job seekers to identify promising
+                                candidates on your own time
                             </div>
                         </div>
                         <div class="col-md-4 mb-4 mb-md-0">
@@ -51,7 +53,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-6">
+                    <div class="row mt-6 justify-content-center">
                         <div class="col-md-4 mb-4 mb-md-0">
                             <div class="d-flex justify-content-center">
                                 <img
@@ -64,17 +66,19 @@
                         <div class="col-md-6">
                             <h5>Trained and upskilled for the most important Customer Success skills</h5>
                             <div class="-text-large">
-                                All Uprove job seekers have access to educational resources and are required to complete
-                                training based on recommendations from a Uprove customer success expert
+                                All Uprove job seekers have access to Customer Success training developed by industry
+                                experts. Training focuses on core skills (e.g. project management) and industry specific
+                                skills (e.g. healthcare)
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-6" :class="(isMobile) ? 'mobile-top' : ''">
+                    <div class="row mt-6 justify-content-center" :class="(isMobile) ? 'mobile-top' : ''">
                         <div class="col-md-6">
                             <h5>Continuous access to Customer Success best practices</h5>
                             <div class="-text-large">
-                                Uprove provides live and online customer success events and develops customer success
-                                resources based on best practices
+                                Uprove provides Customer Success events and develops
+                                resources based on best practices to keep your Customer Success team up-to-date on the
+                                most relevant skills
                             </div>
                         </div>
                         <div class="col-md-4 mb-4 mb-md-0">
@@ -101,7 +105,7 @@
                     <CardPricing colorScheme="orange" :buttonClickFn="() => redirectUrl('/sign-up/employer/prove/')">
                         <template v-slot:front-header>Prove it package</template>
                         <template v-slot:front-header-explainer>
-                            No risk, just proving it. Get access to top customer success talent.
+                            No risk, just proving it. Get access to top Customer Success talent.
                         </template>
                         <template v-slot:front-price>
                             <h2 class="-color-orange-text">$0/mo</h2>
@@ -161,10 +165,11 @@ import BasePage from "../base/BasePage";
 import CardPricing from "../../components/CardPricing";
 import EmployerSalesMagnet from "./EmployerSalesMagnet";
 import ListFontAwesome from "../../components/ListFontAwesome";
+import CompanyLogos from "../home/CompanyLogos";
 
 export default {
     name: "EmployersPage",
-    components: {BannerAlert, BasePage, CardPricing, EmployerSalesMagnet, ListFontAwesome},
+    components: {CompanyLogos, BannerAlert, BasePage, CardPricing, EmployerSalesMagnet, ListFontAwesome},
     data() {
         return {
             showMagnet: false

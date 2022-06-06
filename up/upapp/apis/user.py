@@ -803,39 +803,16 @@ class UserProfileSectionContentItemView(UproveAPIView):
             return Response('Section ID is required', status=status.HTTP_400_BAD_REQUEST)
         if not (contentId := self.data.get('id')):
             return Response('Content ID is required', status=status.HTTP_400_BAD_REQUEST)
-        if not (newContentOrder := self.data.get('contentOrder')):
-            return Response('Content order is required', status=status.HTTP_400_BAD_REQUEST)
 
         section = UserProfileSectionView.getUserProfileSection(sectionId)
         if not security.isSelf(section.userProfile.user_id, request=request):
             return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
         sectionItems = [s for s in section.sectionItem.all()]
-        sectionContentCount = len(sectionItems)
-
-        if newContentOrder < 1 or newContentOrder > sectionContentCount:
-            return Response(f'Content order must be between 1 and {sectionContentCount}',
-                            status=status.HTTP_400_BAD_REQUEST)
 
         contentItem = next((s for s in sectionItems if s.id == contentId), None)
         if not contentItem:
             return Response(f'Content item with ID={contentId} is not in the specified section',
                             status=status.HTTP_400_BAD_REQUEST)
-
-        if contentItem.contentOrder == newContentOrder:
-            return UserProfileView.getProfileOwnerResponse(section.userProfile.id)
-
-        isMovingUp = contentItem.contentOrder > newContentOrder
-        # TODO: Bulk update instead of saving individually
-        for item in sectionItems:
-            if item.id == contentId:
-                item.contentOrder = newContentOrder
-                item.save()
-            elif isMovingUp and item.contentOrder >= newContentOrder:
-                item.contentOrder += 1
-                item.save()
-            elif not isMovingUp and item.contentOrder <= newContentOrder:
-                item.contentOrder -= 1
-                item.save()
 
         return UserProfileView.getProfileOwnerResponse(section.userProfile.id)
 
@@ -847,16 +824,7 @@ class UserProfileSectionContentItemView(UproveAPIView):
         if not security.isSelf(sectionContentItem.userProfileSection.userProfile.user_id, request=request):
             return Response('You are not permitted to edit this profile', status=status.HTTP_401_UNAUTHORIZED)
 
-        sectionId = sectionContentItem.userProfileSection_id
         sectionContentItem.delete()
-
-        # Update the section ordering to make sure there aren't any gaps
-        section = UserProfileSectionView.getUserProfileSection(sectionId)
-        for idx, contentItem in enumerate(sorted(section.sectionItem.all(), key=lambda val: val.contentOrder)):
-            contentOrder = idx + 1
-            if contentItem.contentOrder != contentOrder:
-                contentItem.contentOrder = contentOrder
-                contentItem.save()
 
         return UserProfileView.getProfileOwnerResponse(sectionContentItem.userProfileSection.userProfile.id)
 
@@ -884,10 +852,8 @@ class UserProfileContentItemView(UproveAPIView):
         if sectiondId := self.data.get('sectionId'):
             with atomic():
                 profileSection = UserProfileSectionView.getUserProfileSection(sectiondId)
-                sectionItemCount = profileSection.sectionItem.all().count()
                 sectionItem = UserProfileSectionItem(
                     userProfileSection=profileSection,
-                    contentOrder=sectionItemCount + 1,
                     contentObject=contentItem
                 )
                 sectionItem.save()
@@ -1094,6 +1060,15 @@ class UserProjectView(UproveAPIView):
     @atomic
     def post(self, request):
         project = self.createUserProject(request, self.data, self.files)
+
+        # Add project to user's profile
+        projectSection = UserProfileSection.objects.get(userProfile_id=self.user.primaryProfile.id, sectionOrder=UserProfileSection.SECTION_ORDER_PROJECTS)
+        sectionItem = UserProfileSectionItem(
+            userProfileSection=projectSection,
+            contentObject=project
+        )
+        sectionItem.save()
+
         # Return error response if something went wrong
         if isinstance(project, Response):
             return project
@@ -1214,6 +1189,7 @@ class UserProjectView(UproveAPIView):
         return isChanged
 
     @staticmethod
+    @atomic
     def createUserProject(request, data, fileData):
         if not security.isSelf(data['userId'], request=request):
             return Response('You are not authorized to post this project', status=status.HTTP_401_UNAUTHORIZED)

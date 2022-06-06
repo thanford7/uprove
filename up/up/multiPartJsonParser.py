@@ -12,8 +12,7 @@ class MultiPartJsonParser(parsers.MultiPartParser):
             parser_context=parser_context
         )
         # find the data field and parse it
-        if jsonData := result.data.get('data'):
-            data = json.loads(jsonData)
-        else:
-            data = result.data
-        return parsers.DataAndFiles(data, result.files)
+        data = json.loads(result.data['data'])
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+        return parsers.DataAndFiles(qdict, result.files)

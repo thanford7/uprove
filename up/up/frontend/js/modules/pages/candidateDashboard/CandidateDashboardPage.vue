@@ -367,6 +367,9 @@ export default {
             };
 
             this.afterUpdateInitData = () => {
+                if (!isChecked) {
+                    return;
+                }
                 this.eventBus.emit('open:celebrationModal', {
                     msg: 'Congratulations on completing a project!'
                 });

@@ -1,7 +1,7 @@
 <template>
     <BaseModal
         :modalId="modalName"
-        :modalTitle="(formData.id) ? 'Edit customer success posting': 'Create new customer success posting'"
+        :modalTitle="(formData.id) ? 'Edit Customer Success posting': 'Create new Customer Success posting'"
         :primaryButtonText="(formData.id) ? 'Save changes' : 'Create posting'"
         :isLargeDisplay="true"
         :isScrollable="true"

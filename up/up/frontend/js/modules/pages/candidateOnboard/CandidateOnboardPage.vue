@@ -6,7 +6,7 @@
                         Hi {{globalData.uproveUser.firstName}}! Welcome to Uprove!
                     </p>
                     <p>
-                        At Uprove we help individuals like you showcase your customer success skills and upskill to find
+                        At Uprove we help individuals like you showcase your Customer Success skills and upskill to find
                         new opportunities or perform better in your current role.
                     </p>
                     <p>

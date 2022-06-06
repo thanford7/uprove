@@ -51,17 +51,6 @@
             </div>
             <div class="mb-1">
                 <AddNewLink :clickFn="addNewVideo" text="Add new video file"/>
-                <span v-if="isVideoCaptureSupported">
-                    &nbsp;
-                    <a href="#"
-                       @click="eventBus.emit('open:addVideoRecordingModal', formData)"
-                       data-bs-dismiss="modal"
-                       class="-color-green-text"
-                    >
-                        <i class="fas fa-video"></i>
-                        &nbsp;Record a new video
-                    </a>
-                </span>
             </div>
         </div>
         <div class="mb-3 -border-bottom--light">
@@ -135,11 +124,6 @@ export default {
             newImageCount: 0,
             mediaFields: new Set(['file', 'video', 'image']),
             contentTypes: CONTENT_TYPES
-        }
-    },
-    computed: {
-        isVideoCaptureSupported() {
-            return Boolean(navigator?.mediaDevices?.getUserMedia);
         }
     },
     methods: {

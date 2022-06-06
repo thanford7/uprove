@@ -21,6 +21,7 @@ class ContentTypes(Enum):
     FILE = 'file'
     IMAGE = 'image'
 
+
 csRoleFilter = Q()
 for csRole in ('customer success', 'customer experience', 'account management'):
     csRoleFilter |= Q(name__icontains=csRole)
@@ -62,7 +63,8 @@ def getAllowedProjects(customProjects, job):
     return [
         cp for cp
         in customProjects
-        if cp.project.role_id == job.roleLevel.role_id or (cp.project.role_id in CUSTOMER_SUCCESS_ROLE_IDS and job.roleLevel.role_id in CUSTOMER_SUCCESS_ROLE_IDS)
+        if cp.project.role_id == job.roleLevel.role_id or (
+                    cp.project.role_id in CUSTOMER_SUCCESS_ROLE_IDS and job.roleLevel.role_id in CUSTOMER_SUCCESS_ROLE_IDS)
     ] if job.roleLevel else []
 
 
@@ -92,11 +94,11 @@ def getItemPrimarySort(item):
     if not item.contentObject:
         return None
     if (
-        isinstance(item.contentObject, UserVideo)
-        or isinstance(item.contentObject, UserFile)
-        or isinstance(item.contentObject, UserImage)
-        or isinstance(item.contentObject, UserContentItem)
-        or isinstance(item.contentObject, UserProject)
+            isinstance(item.contentObject, UserVideo)
+            or isinstance(item.contentObject, UserFile)
+            or isinstance(item.contentObject, UserImage)
+            or isinstance(item.contentObject, UserContentItem)
+            or isinstance(item.contentObject, UserProject)
     ):
         return item.contentObject.modifiedDateTime
     if isinstance(item.contentObject, UserEducation) or isinstance(item.contentObject, UserExperience):
@@ -118,7 +120,7 @@ def getGenericItemSort(item):
     return (getItemPrimarySort(item), getItemSecondarySort(item))
 
 
-def getSerializedUser(user: User, isIncludeAssets: bool=False):
+def getSerializedUser(user: User, isIncludeAssets: bool = False):
     profileImage = next((i.image.url for i in user.image.all() if i.isDefault), None)
     serializedUser = {
         'id': user.id,
@@ -149,11 +151,11 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'preferences': {
             'companySizes': [{'id': p.id, 'companySize': p.companySize} for p in user.preferenceCompanySizes.all()],
             'roles': [{
-                    'id': p.id,
-                    'roleTitle': p.roleTitle,
-                    'roleId': p.role_id,
-                    'roleLevelBit': p.roleLevelBit
-                } for p in user.preferenceRoles.all()
+                'id': p.id,
+                'roleTitle': p.roleTitle,
+                'roleId': p.role_id,
+                'roleLevelBit': p.roleLevelBit
+            } for p in user.preferenceRoles.all()
             ],
             'countries': [{'id': p.id, 'countryName': p.countryName} for p in user.preferenceCountry.all()],
             'remoteBits': user.preferenceRemoteBits,
@@ -191,13 +193,22 @@ def getSerializedUserProfile(userProfile: UserProfile, isOwner=None):
 
 
 def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
+    # Filter out hidden or incomplete projects
+    filteredItems = [
+        psi for psi in
+        userProfileSection.sectionItem.all()
+        if
+            (not isinstance(psi.contentObject, UserProject))
+            or (psi.contentObject.status == UserProject.Status.COMPLETE.value and not psi.contentObject.isHidden)
+    ]
+
     return {
         'id': userProfileSection.id,
         'sectionType': userProfileSection.sectionType,
         'sectionOrder': userProfileSection.sectionOrder,
         'sectionItems': [
             getSerializedUserProfileSectionItem(psi)
-            for psi in sorted(userProfileSection.sectionItem.all(), key=getGenericItemSort, reverse=True)
+            for psi in sorted(filteredItems, key=getGenericItemSort, reverse=True)
         ],
     }
 
@@ -205,7 +216,6 @@ def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
 def getSerializedUserProfileSectionItem(userProfileSectionItem: UserProfileSectionItem):
     return {
         'id': userProfileSectionItem.id,
-        'contentOrder': userProfileSectionItem.contentOrder,
         'item': serializeGenericItem(userProfileSectionItem)
     }
 
@@ -256,7 +266,8 @@ def getSerializedUserContentItem(userContentItem: UserContentItem):
         'id': userContentItem.id,
         'type': ContentTypes.CUSTOM.value,
         'title': userContentItem.title,
-        'sections': sorted([getSerializedUserContentItemSection(cis) for cis in userContentItem.section.all()], key=itemgetter('contentOrder')),
+        'sections': sorted([getSerializedUserContentItemSection(cis) for cis in userContentItem.section.all()],
+                           key=itemgetter('contentOrder')),
         **serializeAuditFields(userContentItem)
     }
 
@@ -332,7 +343,7 @@ def getSerializedOrganization(organization: Organization):
     }
 
 
-def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=False, evaluationEmployerId=None):
+def getSerializedProject(project: Project, isIncludeDetails: bool = False, isAdmin=False, evaluationEmployerId=None):
     return {
         'id': project.id,
         'title': project.title,
@@ -360,7 +371,7 @@ def getSerializedProjectEvaluationCriterion(evaluationCriterion: ProjectEvaluati
     }
 
 
-def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails:bool=False):
+def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails: bool = False):
     return {
         'id': projectFile.id,
         'title': projectFile.title,
@@ -412,7 +423,8 @@ def getSerializedEmployer(employer: Employer, employerId=None):
         'isClient': employer.isClient,
         'jobs': [
             getSerializedEmployerJob(ej, employerId=employerId, customProjects=customProjects)
-            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=bool(employerId)))
+            for ej in employer.employerJob.filter(
+                JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=bool(employerId)))
         ],
     }
     employerFields = {
@@ -496,7 +508,6 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customPr
 
 
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):
-
     val = {
         'id': jobApplication.id,
         'user': {
