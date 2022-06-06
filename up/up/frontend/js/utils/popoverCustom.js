@@ -15,6 +15,9 @@ class CustomPopover {
 
     constructor(el$, {content, severity, isOnce = false, clickTarget=null, isShow=true, onDisposeFn=null, showEvent=null}) {
         this.el$ = el$;
+        if (severity === 'warning') {
+            severity = 'warn';
+        }
         this.severity = severity;
         this.isOnce = isOnce;
         this.clickTarget = clickTarget;

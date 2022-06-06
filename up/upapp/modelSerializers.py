@@ -465,7 +465,6 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customPr
         'allowedProjects': [getSerializedCustomProject(ap) for ap in allowedProjects],
         'salaryFloor': employerJob.salaryFloor,
         'salaryCeiling': employerJob.salaryCeiling,
-        'salaryUnit': employerJob.salaryUnit,
         'openDate': getDateTimeFormatOrNone(employerJob.openDate),
         'pauseDate': getDateTimeFormatOrNone(employerJob.pauseDate),
         'closeDate': getDateTimeFormatOrNone(employerJob.closeDate),

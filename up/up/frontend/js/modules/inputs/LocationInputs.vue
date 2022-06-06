@@ -1,6 +1,16 @@
 <template>
     <div>
         <div class="mb-3">
+            <label class="form-label">Location</label>
+            <InputCheckBox
+                :elId="getNewElUid()"
+                label="Remote"
+                :isActiveLabel="true"
+                :isChecked="formData.isRemote"
+                @click="formData.isRemote = $event"
+            />
+        </div>
+        <div class="mb-3">
             <label :for="`${elId}-userCity`" class="form-label">City</label>
             <input type="text" class="form-control" placeholder="Optional" :id="`${elId}-userCity`" v-model="formData.city">
         </div>
@@ -46,12 +56,14 @@
 </template>
 
 <script>
+import InputCheckBox from "./InputCheckBox";
 import InputSelectize from "./InputSelectize";
 
 export default {
     name: "LocationInputs",
     props: ['formData'],
     components: {
+        InputCheckBox,
         InputSelectize
     },
     data() {

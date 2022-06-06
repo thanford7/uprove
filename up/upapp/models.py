@@ -435,7 +435,6 @@ class EmployerJob(AuditFields):
     closeDate = models.DateField(null=True)
     salaryFloor = models.FloatField(null=True)
     salaryCeiling = models.FloatField(null=True)
-    salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
     applicationUrl = models.CharField(max_length=500, null=True)
     location = models.CharField(max_length=100, null=True)
     isInternal = models.BooleanField(default=False)  # If true, the job won't be displayed on the job board

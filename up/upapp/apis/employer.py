@@ -226,8 +226,8 @@ class JobPostingView(UproveAPIView):
             'closeDate': {'propFunc': dateGetter},
             'salaryFloor': None,
             'salaryCeiling': None,
-            'salaryUnit': None,
             'city': None,
+            'isRemote': None,
             'state_id': {'formName': 'stateId'},
             'country_id': {'formName': 'countryId'},
         })
