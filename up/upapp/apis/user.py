@@ -30,7 +30,7 @@ from rest_framework.response import Response
 from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
-from upapp.apis.lever import updateLeverAssessmentComplete, LeverOpportunities
+from upapp.apis.lever import LeverOpportunities
 from upapp.apis.sendEmail import EmailView
 from upapp.apis.tag import TagView
 from upapp.models import *
@@ -1385,12 +1385,12 @@ class UserJobApplicationView(UproveAPIView):
             candidateDashboardUrl = request.build_absolute_uri(f'/candidateDashboard/')
             if len(jobApps) == 1:
                 job = jobApps[0].employerJob
-                jobHtmlContent = f'<a href="{jobPostingBaseUrl + job.id}">{job.jobTitle}</a> position.'
+                jobHtmlContent = f'<a href="{jobPostingBaseUrl + str(job.id)}">{job.jobTitle}</a> position.'
             else:
                 jobHtmlContent = 'following positions: <ul>'
                 for jobApp in jobApps:
                     job = jobApp.employerJob
-                    jobHtmlContent += f'<li><a href="{jobPostingBaseUrl + job.id}">{job.jobTitle}</a>'
+                    jobHtmlContent += f'<li><a href="{jobPostingBaseUrl + str(job.id)}">{job.jobTitle}</a>'
                 jobHtmlContent += '</ul>'
 
             EmailView.sendEmail(

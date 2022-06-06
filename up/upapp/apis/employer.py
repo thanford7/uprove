@@ -215,9 +215,7 @@ class JobPostingView(UproveAPIView):
     def updateEmployerJob(self, employerJob):
 
         # Hard coding customer success as the role
-        customerSuccessRole = Role.objects.get(name='Customer Success')
-        customerSuccessRoleLevel = RoleLevel.objects.get(role=customerSuccessRole, roleLevelBit=RoleLevel.Level.ENTRY.value)
-        employerJob.roleLevel = customerSuccessRoleLevel
+        employerJob.roleLevel = self.getCustomerSuccessRoleLevel()
 
         dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
         dataUtil.setObjectAttributes(employerJob, self.data, {
@@ -234,6 +232,12 @@ class JobPostingView(UproveAPIView):
             'country_id': {'formName': 'countryId'},
         })
         employerJob.save()
+
+    @staticmethod
+    def getCustomerSuccessRoleLevel():
+        # Hard coding customer success as the role
+        customerSuccessRole = Role.objects.get(name='Customer Success')
+        return RoleLevel.objects.get(role=customerSuccessRole, roleLevelBit=RoleLevel.Level.ENTRY.value)
 
     @staticmethod
     def getEmployerJobs(jobId=None, employerId=None, jobFilter=None, isIncludeDemo=False):

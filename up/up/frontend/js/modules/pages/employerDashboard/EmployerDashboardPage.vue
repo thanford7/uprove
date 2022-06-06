@@ -278,15 +278,13 @@
                         Lever
                     </div>
                     <div class="-text-medium mt-3">
-                        Integrate with Lever to automatically send candidates a Uprove assessment based on a
-                        specified stage change. The integration also allows you to add candidates from Uprove
-                        into your Lever opportunities with a single button click.
+                        Integrate with Lever to add candidates from Uprove into your Lever opportunities with a single click. Also push job postings
+                        from Lever into Uprove so candidates can find the jobs directly on the Uprove platform.
                     </div>
                     <div v-if="leverData.isLeverOn" class="row mt-3">
                         <h5>Webhooks</h5>
                         <div class="-text-medium mb-3">
-                            Webhooks allow us to automatically update candidate information and send Uprove assessments
-                            to candidates based on changes in Lever. This means less clicks for you! To enable webhooks,
+                            Webhooks allow us to automatically send Uprove candidates to Lever and update candidate information. To enable webhooks,
                             a Lever user with "Super Admin" privileges must go to <code>Settings
                             ->
                             Integrations and API -> Webhooks</code> and toggle on the webhooks for:
@@ -298,54 +296,8 @@
                             </ul>
                             <div class="mt-2">
                                 A <span class="badge -color-moderategrey">uprove</span> tag must be added to all job
-                                postings
-                                and candidates that should receive a Uprove assessment. If the tag is added to a job
-                                posting,
-                                all candidates assigned to that job posting will automatically inherit that tag.
+                                postings where you want to source candidates from the Uprove platform.
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <span id="leverStageLabel" class="-text-medium">
-                                Stage to send Uprove assessment
-                                <InfoToolTip :elId="getNewElUid()" content="
-                                When a candidate is moved to this stage and has the 'uprove' tag, a link will be
-                                generated in the candidate's links which will allow you to select and send an
-                                assessment to the candidate.
-                                "/>
-                            </span>
-                            <InputSelectize
-                                ref="leverStage"
-                                :elId="getNewElUid()"
-                                placeholder="Required"
-                                :cfg="{
-                                    valueField: 'id',
-                                    labelField: 'text',
-                                    searchField: 'text',
-                                    maxItems: 1
-                                }"
-                                @selected="saveToken($event, 'leverTriggerStageKey', '#leverStageLabel')"
-                            />
-                        </div>
-                        <div class="col-md-6">
-                            <span id="leverStageCompleteLabel" class="-text-medium">
-                                Stage after assessment complete
-                                <InfoToolTip :elId="getNewElUid()" content="
-                                When a candidate has completed an assessment they will automatically be moved to this
-                                stage in Lever.
-                                "/>
-                            </span>
-                            <InputSelectize
-                                ref="leverStageComplete"
-                                :elId="getNewElUid()"
-                                placeholder="Optional"
-                                :cfg="{
-                                    valueField: 'id',
-                                    labelField: 'text',
-                                    searchField: 'text',
-                                    maxItems: 1
-                                }"
-                                @selected="saveToken($event, 'leverCompleteStageKey', '#leverStageCompleteLabel')"
-                            />
                         </div>
                     </div>
                 </div>
@@ -456,9 +408,6 @@ export default {
                 });
             }
         },
-        saveToken(val, modelName, targetEl) {
-            leverIntegration.saveToken($(targetEl), this.initData.employer.id, modelName, val)
-        },
         loadLeverJobPostings() {
             leverIntegration.loadJobPostings(this.initData.employer.id);
         },
@@ -478,7 +427,7 @@ export default {
             return this.globalData.JOB_STATUS.DRAFT;
         },
     },
-    async mounted() {
+    mounted() {
         this.applications = this.initData.employer.jobs.reduce((applications, job) => {
             return [...applications, ...job.applications];
         }, []);
@@ -492,13 +441,6 @@ export default {
         this.leverData = dataUtil.pick(this.initData.employer, [
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);
-        if (this.leverData.isLeverOn) {
-            await this.loadData([{route: `lever/stages/${this.initData.employer.id}/`, dataKey: 'leverStages'}]);
-            this.$refs.leverStage.resetOptions(this.cData.leverStages);
-            this.$refs.leverStage.elSel.setValue(this.initData.employer.leverTriggerStageKey, true);
-            this.$refs.leverStageComplete.resetOptions(this.cData.leverStages);
-            this.$refs.leverStageComplete.elSel.setValue(this.initData.employer.leverCompleteStageKey, true);
-        }
     }
 }
 </script>

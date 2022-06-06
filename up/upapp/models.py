@@ -396,8 +396,6 @@ class Employer(AuditFields):
     isLeverOn = models.BooleanField(default=False)
     leverAccessToken = models.CharField(max_length=1400, null=True)
     leverRefreshToken = models.CharField(max_length=1400, null=True)
-    leverTriggerStageKey = models.CharField(max_length=100, null=True)
-    leverCompleteStageKey = models.CharField(max_length=100, null=True)
     leverHookStageChangeToken = models.CharField(max_length=75, null=True)
     leverHookArchive = models.CharField(max_length=75, null=True)
     leverHookHired = models.CharField(max_length=75, null=True)

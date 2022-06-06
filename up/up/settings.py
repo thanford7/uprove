@@ -154,21 +154,16 @@ elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
 
 
 LEVER_SCOPE = ' '.join([
-    'offline_access',
-    'feedback:write:admin',
     'archive_reasons:read:admin',
     'contact:read:admin',
-    'feedback:write:admin',
-    'feedback_templates:write:admin',
-    'files:write:admin',
     'notes:write:admin',
     'opportunities:write:admin',
     'postings:read:admin',
     'stages:read:admin',
     'tags:read:admin',
-    'uploads:write:admin',
     'users:read:admin',
-    'webhooks:write:admin'
+    'webhooks:write:admin',
+    'offline_access'
 ])
 LEVER_CALLBACK_URL = '/integrate'
 LEVER_CLIENT_ID = env('LEVER_CLIENT_ID')

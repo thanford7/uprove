@@ -430,8 +430,6 @@ def getSerializedEmployer(employer: Employer, employerId=None):
     employerFields = {
         **serializeAuditFields(employer),
         'isLeverOn': employer.isLeverOn,
-        'leverTriggerStageKey': employer.leverTriggerStageKey,
-        'leverCompleteStageKey': employer.leverCompleteStageKey,
         'leverHookStageChangeToken': employer.leverHookStageChangeToken,
         'leverHookArchive': employer.leverHookArchive,
         'leverHookHired': employer.leverHookHired,
