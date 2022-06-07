@@ -14,7 +14,7 @@
             <input type="text" class="form-control" placeholder="Required" id="modalJobTitle"
                    v-model="formData.jobTitle">
         </div>
-        <LocationInputs ref="locationInputs" :formData="formData"/>
+        <LocationInputs ref="locationInputs" :formData="formData" :isIncludeRemote="true"/>
         <div class="mb-3">
             <label for="modalSalaryRange" class="form-label">
                 Salary range

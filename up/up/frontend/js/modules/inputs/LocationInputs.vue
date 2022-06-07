@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="mb-3">
+        <div v-if="isIncludeRemote" class="mb-3">
             <label class="form-label">Location</label>
             <InputCheckBox
                 :elId="getNewElUid()"
@@ -61,7 +61,7 @@ import InputSelectize from "./InputSelectize";
 
 export default {
     name: "LocationInputs",
-    props: ['formData'],
+    props: ['formData', 'isIncludeRemote'],
     components: {
         InputCheckBox,
         InputSelectize

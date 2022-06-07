@@ -132,11 +132,15 @@ class DataUtil {
         }
     }
 
-    signUpWithContext(initData) {
-        this.setQueryParams([
+    signUpWithContext(initData, waitlistType=null) {
+        const queryParams = [
             {key: 'next', val: window.location.pathname},
             {key: 'inviteEmployerId', val: (initData) ? this.get(initData, 'employer.id') : null}
-        ], '/sign-up/');
+        ];
+        if (waitlistType) {
+            queryParams.push({key: 'waitlistType', val: waitlistType});
+        }
+        this.setQueryParams(queryParams, '/sign-up/');
     }
 
     /**

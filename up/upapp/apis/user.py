@@ -366,6 +366,12 @@ class UserView(UproveAPIView):
             })
 
         EmailView.sendFormattedEmail(request, contactType=EmailView.TYPE_CANDIDATE_SIGNUP)
+        if waitlistType := self.data.get('waitlistType'):
+            Waitlist(
+                email=user.email,
+                signUpDateTime=timezone.now(),
+                waitlistType=waitlistType
+            ).save()
 
         return Response(status=status.HTTP_200_OK, data=getSerializedUser(user))
 

@@ -131,7 +131,7 @@
                             <h6>Join a professional community of Customer Success experts</h6>
                         </div>
                         <div class="col-md-4">
-                            <CardPricing colorScheme="orange" :buttonClickFn="() => signUpWithContext">
+                            <CardPricing colorScheme="orange" :buttonClickFn="() => signUpWithContext()">
                                 <template v-slot:front-header>Community</template>
                                 <template v-slot:front-header-explainer>
                                     Free to join and get access to great resources
@@ -157,7 +157,7 @@
                             </CardPricing>
                         </div>
                         <div class="col-md-4">
-                            <CardPricing colorScheme="darkblue" :buttonClickFn="() => signUpWithContext">
+                            <CardPricing colorScheme="darkblue" :buttonClickFn="() => signUpWithContext(candidateWaitlistAccountType)">
                                 <template v-slot:front-header>Professional</template>
                                 <template v-slot:front-header-explainer>
                                     Get premium resources to advance your Customer Success career
@@ -179,7 +179,10 @@
                                             ]"
                                     />
                                 </template>
-                                <template v-slot:front-btn-text>Sign up</template>
+                                <template v-slot:front-btn-text>
+                                    Join waitlist
+                                    <InfoToolTip :elId="getNewElUid()" content="This will create a free account for you and we'll notify you once the premium membership is available"/>
+                                </template>
                             </CardPricing>
                         </div>
                     </div>
@@ -198,9 +201,11 @@ import LearnMore from "./LearnMore";
 import OrderedList from '../../components/OrderedList.vue';
 import CompanyLogos from "./CompanyLogos";
 import Testimonial from "./Testimonial";
+import InfoToolTip from "../../components/InfoToolTip";
 
 export default {
     components: {
+        InfoToolTip,
         Testimonial,
         CompanyLogos,
         BannerAlert,
@@ -210,12 +215,17 @@ export default {
         ListFontAwesome,
         OrderedList
     },
+    data() {
+        return {
+            candidateWaitlistAccountType: 'premium_candidate'
+        }
+    },
     methods: {
         openProjectsPage() {
             window.open('/projects/', '_blank').focus();
         },
-        signUpWithContext() {
-            dataUtil.signUpWithContext(this.initData);
+        signUpWithContext(waitlistType) {
+            dataUtil.signUpWithContext(this.initData, waitlistType);
         }
     },
 }
