@@ -1,4 +1,5 @@
 import globalData from "../../globalData";
+import jobs from "../../utils/jobs";
 
 class EmployerJobsSelectize {
     getEmployerJobsCfg(employerId, {isMulti = false, filterFn=null} = {}) {
@@ -29,13 +30,7 @@ class EmployerJobsSelectize {
         }
         cfg.render = {
             option: (data, escape) => {
-                let location = data.location;
-                if (!location) {
-                    location = [data.city, data.state, data.country].filter((i) => Boolean(i)).join(', ')
-                }
-                if (data.isRemote) {
-                    location = (location) ? location + ' (remote)' : 'Remote'
-                }
+                const location = jobs.getLocationStr(data);
                 const locationStr = (location) ? `<div class="-sub-text">${escape(location)}</div>` : '';
 
                 return `

@@ -68,13 +68,6 @@ export default {
         getFailureMessagePrepend() {
             return 'Failed to add project: ';
         },
-        getUniqueJobTitle(job) {
-            let title = job.jobTitle;
-            if (job.city || job.state) {
-                title += ` (${' ,'.join([job.city, job.state])})`
-            }
-            return title;
-        },
         processFormData() {
             const formData = this.readForm();
             formData.userId = this.globalData.uproveUser.id;

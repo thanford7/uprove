@@ -13,7 +13,6 @@ apiPath = 'api/v1/'
 urlpatterns = [
     # Views
     path('', views.homepage, name='index'),
-    path('about/', views.about, name='about'),
     path('admin/', views.admin, name='admin'),
     path('account-settings/<int:userId>/', views.accountSettings, name='accountSettings'),
     re_path('^blog/(?P<blogId>[0-9]+)?/?$', views.blog, name='blog'),

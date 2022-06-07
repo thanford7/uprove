@@ -117,15 +117,8 @@
                                     </HamburgerDropdown>
                                 </td>
                                 <td title="View job posting">
-                                    <InfoToolTip
-                                        v-if="!job.roleId"
-                                        :elId="getNewElUid()"
-                                        content="This job does not have a standardized role and will not show up in job searches"
-                                        :isExcludeInfoCircle="true"
-                                    >
-                                        <i class="fas fa-exclamation-triangle -color-orange-text"></i>&nbsp;
-                                    </InfoToolTip>
                                     <a :href="`/job-posting/${job.id}/`">{{ job.jobTitle }}</a>
+                                    <div class="-text-small">{{ getLocationStr(job) }}</div>
                                 </td>
                                 <td>{{ getJobStatus(job) }}</td>
                                 <td class="text-center border-start">
@@ -334,6 +327,7 @@ import Table from "../../components/Table";
 import LeverWebhook from "./LeverWebhook";
 import userProject from "../../../utils/userProject";
 import RolesSelectize from "../../inputs/RolesSelectize";
+import jobs from "../../../utils/jobs";
 
 export default {
     name: "EmployerDashboardPage.vue",
@@ -399,6 +393,7 @@ export default {
     methods: {
         declineApplication: userProject.declineApplication.bind(userProject),
         approveApplication: userProject.approveApplication.bind(userProject),
+        getLocationStr: jobs.getLocationStr.bind(jobs),
         leverLogin: function (isOn) {
             if (isOn) {
                 leverIntegration.login();

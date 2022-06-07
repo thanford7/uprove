@@ -3,21 +3,14 @@ import dataUtil from "./data";
 
 class JobUtil {
     getLocationStr(job) {
-        if (job.isRemote) {
-            return `Remote: ${job.region || 'Anywhere'}`;
+        let location = job.location;
+        if (!location) {
+            location = [job.city, job.state, job.country].filter((i) => Boolean(i)).join(', ')
         }
-        return ['city', 'state', 'country'].reduce((locationStr, locationPart) => {
-            const locationPartStr = dataUtil.get(job, locationPart);
-            if (!locationPartStr) {
-                return locationStr;
-            }
-            if (locationStr === '') {
-                locationStr = locationPartStr;
-            } else {
-                locationStr += `, ${locationPartStr}`;
-            }
-            return locationStr
-        }, '');
+        if (job.isRemote) {
+            return `Remote: ${job.region || location || 'Anywhere'}`;
+        }
+        return location;
     }
 }
 
