@@ -122,26 +122,36 @@
                                 </td>
                                 <td>{{ getJobStatus(job) }}</td>
                                 <td class="text-center border-start">
-                                    {{ job.applications.filter((a) => a.status === APPLICATION_STATUS_KEYS.INVITED).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.INVITED)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.INVITED)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.INVITED) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => a.status === APPLICATION_STATUS_KEYS.APPLIED).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPLIED)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.APPLIED)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPLIED) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => {
-                                        return [
-                                            APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW,
-                                            APPLICATION_STATUS_KEYS.APPROVED_INTERVIEW
-                                        ].includes(a.status)
-                                    }).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => {
-                                        return [
-                                            APPLICATION_STATUS_KEYS.DECLINED,
-                                            APPLICATION_STATUS_KEYS.WITHDRAWN
-                                        ].includes(a.status)
-                                    }).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.WITHDRAWN)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.WITHDRAWN)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.WITHDRAWN) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                             </tr>
                         </template>
@@ -152,17 +162,18 @@
                 <div class="mb-2">
                     <FilterDropdownMenu class="-pull-left" :filters="applicantsFilter" dropdownHeader="Filters">
                         <div class="ps-2 pe-2">
-                            <ApplicationStatusSelectize @selected="applicantsFilter.statuses = $event" :isMultiSelect="true"/>
+                            <ApplicationStatusSelectize
+                                ref="applicationStatusFilter"
+                                @selected="applicantsFilter.statuses = $event" :isMultiSelect="true"
+                            />
                             <InputSelectize
-                                ref="jobTitleFilter"
+                                v-if="employerJobsCfg"
+                                ref="jobFilter"
                                 :elId="getNewElUid()"
+                                :isParseAsInt="true"
                                 placeholder="Job title"
-                                :cfg="{
-                                    plugins: ['remove_button'],
-                                    maxItems: null,
-                                    sortField: 'text'
-                                }"
-                                @selected="applicantsFilter.jobTitle = $event"
+                                :cfg="employerJobsCfg"
+                                @selected="applicantsFilter.jobIds = $event"
                             />
                         </div>
                     </FilterDropdownMenu>
@@ -196,7 +207,10 @@
                                     </a>
                                 </td>
                                 <td><ApplicationStatus :application="application" :isAllowUpdate="true"/></td>
-                                <td>{{ application.jobTitle }}</td>
+                                <td>
+                                    {{ application.jobTitle }}
+                                    <div class="-text-small">{{ getLocationStr(getApplicationJob(application)) }}</div>
+                                </td>
                             </tr>
                         </template>
                     </Table>
@@ -328,6 +342,7 @@ import LeverWebhook from "./LeverWebhook";
 import userProject from "../../../utils/userProject";
 import RolesSelectize from "../../inputs/RolesSelectize";
 import jobs from "../../../utils/jobs";
+import employerJobs from "../../selectizeCfgs/employerJobs";
 
 export default {
     name: "EmployerDashboardPage.vue",
@@ -346,7 +361,8 @@ export default {
             leverData: {},
             leverWebhookTypes: leverIntegration.TYPES,
             jobsFilter: {},
-            applicantsFilter: {}
+            applicantsFilter: {},
+            employerJobsCfg: null
         }
     },
     computed: {
@@ -356,7 +372,7 @@ export default {
                     return false;
                 }
 
-                if (this.applicantsFilter?.jobTitle?.length && !this.applicantsFilter.jobTitle.includes(application.jobTitle)) {
+                if (this.applicantsFilter?.jobIds?.length && !this.applicantsFilter.jobIds.includes(application.jobId)) {
                     return false;
                 }
 
@@ -409,6 +425,9 @@ export default {
         connectLeverUsers() {
             leverIntegration.connectUsers(this.initData.employer.id)
         },
+        getApplicationJob(app) {
+            return this.initData.employer.jobs.find((j) => j.id === app.jobId);
+        },
         getJobStatus(job) {
             if (job.closeDate) {
                 return this.globalData.JOB_STATUS.CLOSED;
@@ -421,14 +440,37 @@ export default {
             }
             return this.globalData.JOB_STATUS.DRAFT;
         },
+        getMappedStatusVals(status) {
+            // Groups some statuses together for simplicity
+            const statusVals = [];
+            if (status === APPLICATION_STATUS_KEYS.INVITED) {
+                statusVals.push(APPLICATION_STATUS_KEYS.INVITED);
+            } else if (status === APPLICATION_STATUS_KEYS.APPLIED) {
+                statusVals.push(APPLICATION_STATUS_KEYS.APPLIED);
+            } else if (status === APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW) {
+                statusVals.push(APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW);
+                statusVals.push(APPLICATION_STATUS_KEYS.APPROVED_INTERVIEW);
+            } else if (status === APPLICATION_STATUS_KEYS.WITHDRAWN) {
+                statusVals.push(APPLICATION_STATUS_KEYS.WITHDRAWN);
+                statusVals.push(APPLICATION_STATUS_KEYS.DECLINED);
+            }
+            return statusVals;
+        },
+        getApplicationCountByStatus(applications, status) {
+            const statusVals = this.getMappedStatusVals(status);
+            return applications.filter((app) => statusVals.includes(app.status)).length;
+        },
+        showApplications(job, status) {
+            this.setTabParam('applications');
+            const statusVals = this.getMappedStatusVals(status);
+            this.$refs.applicationStatusFilter.setValue(statusVals);
+            this.$refs.jobFilter.elSel.setValue([job.id]);
+        }
     },
     mounted() {
         this.applications = this.initData.employer.jobs.reduce((applications, job) => {
             return [...applications, ...job.applications];
         }, []);
-
-        const jobTitles = dataUtil.uniqArray(this.applications.map((a) => a.jobTitle));
-        this.$refs.jobTitleFilter.resetOptions(jobTitles.map((v) => ({value: v, text: v})));
 
         this.currentTab = 'job-openings';
         this.setTabFromParams();
@@ -436,6 +478,10 @@ export default {
         this.leverData = dataUtil.pick(this.initData.employer, [
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);
+
+        this.employerJobsCfg = employerJobs.getEmployerJobsCfg(
+            this.initData.employer.id, {isMulti: true}
+        );
     }
 }
 </script>

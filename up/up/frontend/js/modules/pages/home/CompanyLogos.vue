@@ -1,5 +1,5 @@
 <template>
-    <div class="row mt-3 mb-4">
+    <div class="row mt-3 mb-5">
         <h5 class="mb-4">Placing job seekers at amazing companies</h5>
         <div class="col-12">
             <div class="d-flex justify-content-around">

@@ -1,6 +1,7 @@
 <template>
     <InputSelectize
         :elId="getNewElUid()"
+        ref="sel"
         placeholder="Status"
         :cfg="{
             plugins: ['remove_button'],
@@ -27,6 +28,11 @@ export default {
                 opts.push({value: key, text: val});
                 return opts;
             }, []);
+        },
+    },
+    methods: {
+        setValue(val) {
+            this.$refs.sel.elSel.setValue(val);
         }
     }
 }
