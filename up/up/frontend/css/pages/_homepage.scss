@@ -10,6 +10,10 @@
     content: "";
 }
 
+#home-page, #employer-page {
+    color: $color-darkblue;
+}
+
 #candidate-hero-banner {
     position: relative;
 
@@ -89,6 +93,40 @@
 
 #project-example {
     box-shadow: 8px 6px 4px $color-darkblue;
+}
+
+.testimonial {
+    background-color: $color-white;
+    box-shadow: 0 0 3px 1px $color-lightgrey;
+    padding: 10px;
+    text-align: center;
+
+    &__headshot {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 16px;
+        & img {
+            height: 70px;
+            border-radius: 50px;
+            border: 1px solid $color-lightgrey;
+        }
+    }
+
+    &__quote {
+        font-style: oblique;
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    &__name {
+        font-weight: bold;
+    }
+
+    &__title {
+        font-weight: bold;
+        font-size: 12px;
+        color: $color-moderategrey;
+    }
 }
 
 @keyframes moveInLeft {

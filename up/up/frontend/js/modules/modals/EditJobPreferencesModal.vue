@@ -22,22 +22,6 @@
             />
         </div>
         <div class="mb-3">
-            <label class="form-label">Roles</label>
-            <InputSelectize
-                ref="role"
-                :elId="getNewElUid()"
-                :cfg="{
-                    valueField: 'id',
-                    labelField: 'roleTitle',
-                    maxItems: null,
-                    plugins: ['remove_button'],
-                }"
-                :isParseAsInt="true"
-                placeholder="Optional"
-                @selected="formData.roleTitles = $event"
-            />
-        </div>
-        <div class="mb-3">
             <label class="form-label">Countries</label>
             <InputSelectize
                 ref="country"
@@ -73,20 +57,35 @@
                 @selected="formData.remote = $event"
             />
         </div>
+        <div class="mb-3">
+            <label class="form-label">
+                Minimum acceptable salary
+                <InfoToolTip :elId="getNewElUid()" content="We will never show this to employers. We use it to filter out jobs that won't be of interest to you."/>
+            </label>
+            <RangeSlider
+                ref="salary"
+                :elId="getNewElUid()"
+                :min="30000" :max="250000" title="Salary"
+                :isPct="false" :step="5000" :valueFormatFn="formatCurrency"
+                @changed="formData.salary = $event"
+            />
+        </div>
     </BaseModal>
 </template>
 
 <script>
 import {REMOTE_BITS} from '../../globalData';
 import BaseModal from "./BaseModal";
+import InfoToolTip from "../components/InfoToolTip";
 import InputSelectize from "../inputs/InputSelectize";
+import RangeSlider from "../components/RangeSlider";
 import dataUtil from "../../utils/data";
 
 export default {
     name: "EditJobPreferencesModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    components: {BaseModal, InputSelectize},
+    components: {BaseModal, InfoToolTip, InputSelectize, RangeSlider},
     props: ['isResetUrl'],
     data() {
         return {
@@ -97,6 +96,7 @@ export default {
         }
     },
     methods: {
+        formatCurrency: dataUtil.formatCurrency,
         getAjaxCfgOverride() {
             return {method: 'PUT'};
         },
@@ -105,9 +105,9 @@ export default {
         },
         setFormFields() {
             this.$refs.companySize.elSel.setValue(this.formData?.companySizes?.map((c) => c.id));
-            this.$refs.role.elSel.setValue(this.formData?.roles?.map((r) => r.id));
             this.$refs.country.elSel.setValue(this.formData?.countries?.map((c) => c.id));
             this.$refs.remote.elSel.setValue(this.getSplitRemoteBits(this.formData.remoteBits));
+            this.$refs.salary.setValue(this.formData?.salary)
         },
         savePreferences(val) {
             this.saveChange(val)
@@ -120,7 +120,6 @@ export default {
     async created() {
         await this.loadData();
         this.$refs.companySize.resetOptions(this.cData.preferences.companySizes);
-        this.$refs.role.resetOptions(this.cData.preferences.roleTitles);
         this.$refs.country.resetOptions(this.cData.preferences.countries);
     }
 }

@@ -64,7 +64,6 @@
             </div>
         </template>
         <template v-if="contentItem.type === contentTypes.PROJECT">
-                <BadgesSkillLevels :skillLevels="contentItem.customProject.skillLevels"/>
                 <BadgesSkills :skills="contentItem.customProject.skills"/>
                 <ProjectDetailAccordion :userProject="contentItem"/>
                 <template v-for="video in contentItem.videos">
@@ -82,7 +81,6 @@
 <script>
 import {CONTENT_TYPES} from '../../globalData';
 import AccordionItem from "../components/AccordionItem";
-import BadgesSkillLevels from "../components/BadgesSkillLevels";
 import BadgesSkills from "../components/BadgesSkills";
 import BaseModal from './BaseModal.vue';
 import dataUtil from '../../utils/data';
@@ -92,7 +90,7 @@ import ProjectDetailAccordion from "../components/ProjectDetailAccordion";
 
 export default {
     extends: BaseModal,
-    components: {BaseModal, AccordionItem, BadgesSkillLevels, BadgesSkills, FileDisplay, ProjectDetailAccordion},
+    components: {BaseModal, AccordionItem, BadgesSkills, FileDisplay, ProjectDetailAccordion},
     inheritAttrs: false,
     data() {
         return {

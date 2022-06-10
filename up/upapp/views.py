@@ -1,7 +1,8 @@
+from enum import Enum, auto
 from http import HTTPStatus
 from json import dumps
 
-from django.db.models import F, Q
+from django.db.models import F
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 
@@ -9,11 +10,21 @@ from upapp import security
 from upapp.modelSerializers import *
 from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
-from upapp.apis.job import JobTemplateView
 from upapp.apis.project import ProjectView
 from upapp.apis.user import PreferencesView, UserJobApplicationView, UserView, UserProfileView, UserProjectView
 from upapp.models import Role, Skill
 from upapp.viewsAuth import getLoginRedirectUrl
+
+
+# Keep in sync with globalData.js
+class PageRefreshKeys(Enum):
+    ADMIN = auto(),
+    CANDIDATE_BOARD = auto(),
+    CANDIDATE_DASHBOARD = auto(),
+    EMPLOYER_DASHBOARD = auto(),
+    JOB_POSTING = auto(),
+    PROFILE = auto(),
+    USER_PROJECT = auto()
 
 
 def homepage(request):
@@ -39,16 +50,19 @@ def accountSettings(request, userId):
     return render(request, 'accountSettings.html', {'data': dumps(serializedUser)})
 
 
+def getAdminData(request):
+    return {
+        'projects': [getSerializedProject(p, isIncludeDetails=True, isAdmin=True) for p in ProjectView.getProjects()],
+        'roles': [getSerializedRole(r) for r in Role.objects.all()],
+        'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
+        'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
+    }
+
+
 def admin(request):
     if not security.isPermittedAdmin(request):
         return _getUnauthorizedPage(request)
-    return render(request, 'admin.html', {'data': dumps({
-        'projects': [getSerializedProject(p, isIncludeDetails=True, isAdmin=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)],
-        'roles': [getSerializedRole(r) for r in Role.objects.all()],
-        'skills': [getSerializedSkill(s) for s in Skill.objects.all()],
-        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
-        'companySizes': [{'id': s.id, 'companySize': s.companySize} for s in CompanySize.objects.all()],
-    })})
+    return render(request, 'admin.html', {'data': dumps(getAdminData(request))})
 
 
 def blog(request, blogId=None):
@@ -76,19 +90,15 @@ def blog(request, blogId=None):
     return render(request, 'blog.html', {'data': dumps(data)})
 
 
-def candidateBoard(request):
-    user = security.getSessionUser(request)
-    if not user or not (user.isAdmin or user.isEmployer):
-        return _getUnauthorizedPage(request)
-
+def getCandidateBoardData(request, user):
     candidates = [{
         'id': candidate.id,
         'profileId': candidate.primaryProfile.id,
         'firstName': candidate.firstName,
         'lastName': candidate.lastName,
         'email': candidate.email,
-        'appliedJobs': [
-            j.employerJob.jobTitle
+        'applications': [
+            getSerializedJobApplication(j)
             for j in candidate.jobApplication.all()
             if j.employerJob.employer_id == user.employer_id
         ],
@@ -111,24 +121,43 @@ def candidateBoard(request):
         for candidate
         in User.objects
             .select_related('djangoUser')
-            .prefetch_related('profile', 'userProject', 'userProject__customProject', 'jobApplication', 'jobApplication__employerJob')
+            .prefetch_related('profile', 'userProject', 'userProject__customProject', 'jobApplication',
+                              'jobApplication__employerJob')
             .annotate(isCandidateF=F('userTypeBits').bitand(User.USER_TYPE_CANDIDATE))
             .annotate(isAdminF=F('userTypeBits').bitand(User.USER_TYPE_ADMIN))
             .filter(
-                djangoUser__is_active=True,
-                isDemo=False,
-                isCandidateF__gt=0,
-                isAdminF=0
-            )
+            djangoUser__is_active=True,
+            isDemo=False,
+            isCandidateF__gt=0,
+            isAdminF=0
+        )
     ]
     candidates.sort(
         key=lambda c: max(up['evaluationScorePct'] or 0 for up in c['userProjects']) if c['userProjects'] else 0,
         reverse=True
     )
-    return render(request, 'candidateBoard.html', context={'data': dumps({
+
+    return {
         'candidates': candidates,
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
-    })})
+    }
+
+
+def candidateBoard(request):
+    user = security.getSessionUser(request)
+    if not user or not (user.isAdmin or user.isEmployer):
+        return _getUnauthorizedPage(request)
+
+    return render(request, 'candidateBoard.html', context={'data': dumps(getCandidateBoardData(request, user))})
+
+
+def getCandidateDashboardData(request, userId):
+    return {
+        'user': getSerializedUser(UserView.getUser(userId), isIncludeAssets=True),
+        'userProjects': [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId=userId)],
+        'jobApplications': [getSerializedJobApplication(ja, includeJob=True) for ja in
+                            UserJobApplicationView.getUserJobApplications(userId=userId)]
+    }
 
 
 def candidateDashboard(request, userId=None):
@@ -143,11 +172,7 @@ def candidateDashboard(request, userId=None):
     if not security.isSelf(userId, request=request):
         return _getUnauthorizedPage(request)
 
-    return render(request, 'candidateDashboard.html', context={'data': dumps({
-        'user': getSerializedUser(UserView.getUser(userId), isIncludeAssets=True),
-        'userProjects': [getSerializedUserProject(up) for up in UserProjectView.getUserProjects(userId=userId)],
-        'jobApplications': [getSerializedJobApplication(ja, includeJob=True) for ja in UserJobApplicationView.getUserJobApplications(userId=userId)]
-    })})
+    return render(request, 'candidateDashboard.html', context={'data': dumps(getCandidateDashboardData(request, userId=userId))})
 
 
 def candidateOnboard(request):
@@ -165,33 +190,29 @@ def candidateOnboard(request):
     })})
 
 
-def candidateProject(request, userProjectId=None):
-    user = security.getSessionUser(request)
-    if not user or not (user.isAdmin or user.isEmployer):
-        return _getUnauthorizedPage(request)
-
-    if not userProjectId:
-        return _getErrorPage(request, HTTPStatus.BAD_REQUEST, 'A user project ID is required')
-
-    userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
-    return render(request, 'candidateProject.html', context={'data': dumps({
-        'user': getSerializedUser(UserView.getUser(userProject.user_id), isIncludeAssets=True),
-        'userProject': getSerializedUserProject(userProject, employerId=None if user.isAdmin else user.employer_id),
-        'projects': [getSerializedProject(
-            userProject.customProject.project,
-            isIncludeDetails=True,
-            isAdmin=user.isAdmin,
-            evaluationEmployerId=None if user.isAdmin else user.employer_id
-        )],
-    })})
-
-
 def contact(request):
     return render(request, 'contact.html', context={})
 
 
 def credits(request):
     return render(request, 'credits.html')
+
+
+def getEmployerDashboardData(request, employerId):
+    return {
+        'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), employerId=employerId),
+        'projects': [getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in
+                     ProjectView.getProjects()],
+        'roleLevels': [getSerializedRoleLevel(rl) for rl in RoleLevel.objects.select_related('role').all()],
+        'users': [{
+            'id': u.id,
+            'firstName': u.firstName,
+            'lastName': u.lastName,
+            'email': u.email,
+            'userTypeBits': u.userTypeBits,
+            'leverUserKey': u.leverUserKey
+        } for u in UserView.getUsers(filter=Q(employer_id=employerId))]
+    }
 
 
 def employerDashboard(request, employerId=None):
@@ -206,20 +227,7 @@ def employerDashboard(request, employerId=None):
     if not (security.isPermittedEmployer(request, employerId) or security.isPermittedAdmin(request, user)):
         return _getUnauthorizedPage(request)
 
-    return render(request, 'employerDashboard.html', context={'data': dumps({
-        'employer': getSerializedEmployer(EmployerView.getEmployer(employerId), employerId=employerId),
-        'projects': [getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in ProjectView.getProjects(employerId=employerId)],
-        'jobTemplates': [getSerializedJobTemplate(t) for t in JobTemplateView.getJobTemplates()],
-        'roleLevels': [getSerializedRoleLevel(rl) for rl in RoleLevel.objects.select_related('role').all()],
-        'users': [{
-            'id': u.id,
-            'firstName': u.firstName,
-            'lastName': u.lastName,
-            'email': u.email,
-            'userTypeBits': u.userTypeBits,
-            'leverUserKey': u.leverUserKey
-        } for u in UserView.getUsers(filter=Q(employer_id=employerId))]
-    })})
+    return render(request, 'employerDashboard.html', context={'data': dumps(getEmployerDashboardData(request, employerId=employerId))})
 
 
 def employers(request):
@@ -236,9 +244,15 @@ def jobs(request):
         return _getUnauthorizedPage(request)
 
     user = UserView.getUser(user.id)  # Refetch to get all related objects
-    jobs = JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter())
+    jobFilter = JobPostingView.getEmployerJobFilter()
+
+    # Filter out jobs the candidate has already applied to
+    currentJobIds = [j.employerJob_id for j in UserJobApplication.objects.filter(user_id=user.id)]
+    jobFilter &= ~Q(id__in=currentJobIds)
+
+    jobs = JobPostingView.getEmployerJobs(jobFilter=jobFilter)
     employers = Employer.objects.filter(isDemo=False)
-    projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects(isIgnoreEmployerId=True)]
+    projects = [getSerializedProject(p, isIncludeDetails=True) for p in ProjectView.getProjects()]
     customProjects = CustomProject.objects.select_related('project').all()
     projectsByRoleId = JobPostingView.getProjectsByRoleIdMap()
 
@@ -260,6 +274,7 @@ def jobs(request):
             'remoteBits': user.preferenceRemoteBits,
             'states': [{'id': v.id, 'stateName': v.stateName} for v in user.preferenceState.all()],
             'countries': [{'id': v.id, 'countryName': v.countryName} for v in user.preferenceCountry.all()],
+            'salary': user.preferenceSalary
         },
         'states': [{'id': s.id, 'stateName': s.stateName} for s in State.objects.all()],
         'countries': [{'id': c.id, 'countryName': c.countryName} for c in Country.objects.filter(countryName__in=JobPostingView.permittedCountries)],
@@ -269,26 +284,28 @@ def jobs(request):
     })})
 
 
-def jobPosting(request, jobId, employerId=None):
+def getJobPostingData(request, jobId, employerId=None):
     user = security.getSessionUser(request)
     job = JobPostingView.getEmployerJobs(jobId=jobId, isIncludeDemo=True)
     isAuthorizedUser = (
-        (user and security.isPermittedSessionUser(user=user))
-        or (employerId and int(employerId) == job.employer_id)
+            (user and security.isPermittedSessionUser(user=user))
+            or (employerId and int(employerId) == job.employer_id)
     )
     customProjects = CustomProject.objects.select_related('project').all()
     allowedCustomProjects = getAllowedProjects(customProjects, job)
     allowedProjectIds = [p.project_id for p in allowedCustomProjects]
-    projects = ProjectView.getProjects(employerId=job.employer_id, projectIds=allowedProjectIds)
+    projects = ProjectView.getProjects(projectIds=allowedProjectIds)
     isEmployer = security.isPermittedEmployer(request, job.employer_id)
     employerId = user.employer_id if isEmployer else None
     customProjects = CustomProject.objects.select_related('project').all()
 
     data = {
         'job': {
-            **getSerializedEmployerJob(job, employerId=employerId, customProjects=customProjects, isAnonymous=not isAuthorizedUser),
+            **getSerializedEmployerJob(job, employerId=employerId, customProjects=customProjects,
+                                       isAnonymous=not isAuthorizedUser),
         },
-        'projects': {p.id: getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in projects},
+        'projects': {p.id: getSerializedProject(p, isIncludeDetails=True, evaluationEmployerId=employerId) for p in
+                     projects},
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     }
@@ -315,7 +332,12 @@ def jobPosting(request, jobId, employerId=None):
         currentApplication = UserJobApplicationView.getUserJobApplications(employerJobId=jobId, userId=user.id)
         currentApplication = currentApplication[0] if currentApplication else None
         data['userApplication'] = getSerializedJobApplication(currentApplication) if currentApplication else None
-    return render(request, 'jobPosting.html', context={'data': dumps(data)})
+
+    return data
+
+
+def jobPosting(request, jobId, employerId=None):
+    return render(request, 'jobPosting.html', context={'data': dumps(getJobPostingData(request, jobId, employerId=employerId))})
 
 
 def login(request):
@@ -330,26 +352,31 @@ def privacy(request):
     return render(request, 'privacy.html', context={})
 
 
-def profile(request, profileId):
+def getProfileData(request, profileId):
     profile = UserProfileView.getUserProfile(profileId)
-    data = getSerializedUserProfile(profile, isOwner=security.isSelf(profile.user_id, request=request))
-    return render(request, 'userProfile.html', context={'data': dumps(data)})
+    user = security.getSessionUser(request)
+    isOwner = security.isSelf(profile.user_id, user=user)
+    data = getSerializedUserProfile(profile, isOwner=isOwner)
+    if user.isEmployer and not isOwner:
+        applications = UserJobApplicationView.getUserJobApplications(userId=profile.user_id, employerId=user.employer_id)
+        data['applications'] = [getSerializedJobApplication(app) for app in applications]
+    return data
+
+
+def profile(request, profileId):
+    return render(request, 'userProfile.html', context={'data': dumps(getProfileData(request, profileId))})
 
 
 def project(request, projectId):
     user = security.getSessionUser(request)
     employerId = user.employer_id if user else None
-    jobMapByRole = JobPostingView.getJobMapByRole()
     project = ProjectView.getProject(projectId)
     baseData = {
-        'project': {
-            **getSerializedProject(
-                project,
-                isIncludeDetails=security.isPermittedSessionUser(request),
-                evaluationEmployerId=employerId
-            ),
-            'jobs': jobMapByRole[project.role.name.lower()]
-        },
+        'project': getSerializedProject(
+            project,
+            isIncludeDetails=security.isPermittedSessionUser(request),
+            evaluationEmployerId=employerId
+        ),
         'roles': [getSerializedRole(r) for r in Role.objects.all()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     }
@@ -359,7 +386,7 @@ def project(request, projectId):
     if employerId:
         customProjects = CustomProject.objects.select_related('project').all()
         jobFilter = JobPostingView.getEmployerJobFilter(isEmployer=True)
-        jobFilter &= Q(roleLevel__roleLevelBit=project.skillLevelBit) & Q(roleLevel__role_id=project.role_id)
+        jobFilter &= Q(roleLevel__role_id=project.role_id)
         extraData['jobs'] = [
             getSerializedEmployerJob(j, employerId=employerId, customProjects=customProjects)
             for j in JobPostingView.getEmployerJobs(employerId=employerId, jobFilter=jobFilter)
@@ -373,21 +400,8 @@ def project(request, projectId):
 
 
 def projects(request):
-    jobMapByRole = JobPostingView.getJobMapByRole()
-    user = security.getSessionUser(request)
-
     return render(request, 'projects.html', context={'data': dumps({
-        'projects': [{
-            **getSerializedProject(p),
-            'jobs': jobMapByRole[p.role_id]
-        } for p in ProjectView.getProjects()],
-        'preferredRoles': [{
-                'id': p.id,
-                'roleTitle': p.roleTitle,
-                'roleId': p.role_id,
-                'roleLevelBit': p.roleLevelBit
-            } for p in user.preferenceRoles.all()
-        ] if user else None,
+        'projects': [getSerializedProject(p) for p in ProjectView.getProjects()],
         'skills': [getSerializedSkill(s) for s in Skill.objects.all()]
     })})
 
@@ -407,6 +421,19 @@ def termsOfService(request):
     return render(request, 'termsOfService.html', context={})
 
 
+def getUserProjectData(request, user, userProject, employerId):
+    return {
+        'userProject': getSerializedUserProject(userProject, employerId=employerId,
+                                                isIncludeEvaluation=user.isEmployer or user.isAdmin),
+        'project': getSerializedProject(
+            ProjectView.getProject(userProject.customProject.project_id),
+            isIncludeDetails=True,
+            isAdmin=user.isAdmin,
+            evaluationEmployerId=employerId
+        )
+    }
+
+
 def userProject(request, userProjectId=None):
     user = security.getSessionUser(request)
     if not user or not security.isPermittedSessionUser(user=user):
@@ -418,18 +445,8 @@ def userProject(request, userProjectId=None):
 
     employerId = None if user.isAdmin else user.employer_id
 
-    data = {
-        'userProject': getSerializedUserProject(userProject, employerId=employerId, isIncludeEvaluation=user.isEmployer or user.isAdmin),
-        'project': getSerializedProject(
-            ProjectView.getProject(userProject.customProject.project_id),
-            isIncludeDetails=True,
-            isAdmin=user.isAdmin,
-            evaluationEmployerId=employerId
-        )
-    }
-
     return render(request, 'userProject.html', context={
-        'data': dumps(data),
+        'data': dumps(getUserProjectData(request, user, userProject, employerId)),
     })
 
 

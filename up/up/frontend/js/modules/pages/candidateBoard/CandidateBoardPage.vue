@@ -21,13 +21,6 @@
                         />
                     </div>
                     <div class="col-12 col-md filter-item">
-                        <SkillLevelsSelectize
-                            ref="projectSkillLevels"
-                            placeholder="Experience Levels: All"
-                            @selected="setFilter($event, 'skillLevelBits', 'level')"
-                        />
-                    </div>
-                    <div class="col-12 col-md filter-item">
                         <RangeSlider
                             ref="projectScoreFilter"
                             :elId="getNewElUid()"
@@ -95,9 +88,6 @@
                                                 {{candidate.primaryProject.role}}: {{candidate.primaryProject.projectTitle}}
                                             </div>
                                             <div>
-                                                <BadgesSkillLevels :skillLevels="candidate.primaryProject.skillLevels"/>
-                                            </div>
-                                            <div>
                                                 <BadgesSkills :skills="candidate.primaryProject.skills"/>
                                             </div>
                                             <i
@@ -113,22 +103,20 @@
                             </td>
                             <td>
                                 <div
-                                    v-if="globalData?.uproveUser?.leverUserKey"
-                                    class="btn btn-outline-secondary -color-black-text"
-                                    @click="eventBus.emit('open:addLeverOpportunityModal', candidate)"
+                                    class="btn btn-outline-info"
+                                    @click="eventBus.emit('open:saveCandidateModal', candidate)"
                                 >
-                                    <img style="max-height: 20px;" :src="globalData.STATIC_URL + 'img/leverLogo.png'">
-                                    Add to Lever
+                                    Invite to interview
                                 </div>
-                                <div v-if="candidate.appliedJobs.length" class="-text-medium">
+                                <div v-if="candidate.applications.length" class="-text-medium mt-2">
                                     <InfoToolTip
                                         :elId="getNewElUid()"
-                                        :content="getAppliedJobsHtml(candidate.appliedJobs)"
+                                        :content="getAppliedJobsHtml(candidate.applications)"
                                         :isHtmlContent="true"
                                         :isExcludeInfoCircle="true"
                                     >
                                         <i class="fas fa-check-circle -color-green-text"></i>
-                                        Has {{pluralize('application', candidate.appliedJobs.length)}}
+                                        Has {{pluralize('application', candidate.applications.length)}}
                                     </InfoToolTip>
                                 </div>
                             </td>
@@ -138,12 +126,14 @@
             </div>
         </div>
     </BasePage>
-    <AddLeverOpportunityModal v-if="globalData.uproveUser.employerId" :employerId="globalData.uproveUser.employerId"/>
+    <SaveCandidateModal
+        v-if="globalData.uproveUser.employerId"
+        :employerId="globalData.uproveUser.employerId"
+        :applications="null"
+    />
 </template>
 
 <script>
-import AddLeverOpportunityModal from "../../modals/AddLeverOpportunityModal";
-import BadgesSkillLevels from "../../components/BadgesSkillLevels";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseFilter from "../base/BaseFilter";
@@ -153,6 +143,7 @@ import InfoToolTip from "../../components/InfoToolTip";
 import PageHeader from "../../components/PageHeader";
 import RangeSlider from "../../components/RangeSlider";
 import RolesSelectize from "../../inputs/RolesSelectize";
+import SaveCandidateModal from "../../modals/SaveCandidateModal";
 import SkillLevelsSelectize from "../../inputs/SkillLevelsSelectize";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import skillLevelSelectize from "../../selectizeCfgs/skillLevels";
@@ -162,8 +153,8 @@ import userProjectUtil from "../../../utils/userProject";
 export default {
     name: "CandidateBoardPage",
     components: {
-        AddLeverOpportunityModal, BaseFilter, BasePage, BadgesSkillLevels, BadgesSkills,
-        BannerAlert, InfoToolTip, PageHeader, RangeSlider, RolesSelectize, SkillLevelsSelectize, SkillsSelectize, Table
+        BaseFilter, BasePage, BadgesSkills, BannerAlert, InfoToolTip, PageHeader, RangeSlider,
+        RolesSelectize, SaveCandidateModal, SkillLevelsSelectize, SkillsSelectize, Table
     },
     data() {
         return {
@@ -184,7 +175,6 @@ export default {
                 const hasFilter = (
                     (this.filter.roles && this.filter.roles.length)
                     || (this.filter.skills && this.filter.skills.length)
-                    || this.filter.skillLevelBits
                     || this.filter.projectScore
                 );
                 if (hasFilter && !candidate.userProjects.length) {
@@ -204,15 +194,11 @@ export default {
                         !this.filter?.skills?.length
                         || up.skills.filter((skill) => this.filter.skills.includes(skill.name)).length
                     );
-                    const hasSkillLevel = (
-                        !this.filter.skillLevelBits
-                        || (this.filter.skillLevelBits & up.skillLevelBit)
-                    );
                     const isAboveProjectScore = (
                         !this.filter.projectScore
                         || up.evaluationScorePct >= this.filter.projectScore
                     )
-                    return hasRole && hasSkill && hasSkillLevel && isAboveProjectScore;
+                    return hasRole && hasSkill && isAboveProjectScore;
                 });
                 if (!candidate.userProjects.length) {
                     return filteredCandidates;
@@ -227,12 +213,12 @@ export default {
         formatDate: dataUtil.formatDate.bind(dataUtil),
         getBadgeColor: userProjectUtil.getBadgeColor,
         getEvalPopoverHtml: userProjectUtil.getEvalPopoverHtml,
-        getAppliedJobsHtml(appliedJobs) {
+        getAppliedJobsHtml(applications) {
             let html = '<div>Current jobs</div><ul>';
-            appliedJobs.forEach((j) => {
+            applications.forEach((app) => {
                 html += `
                     <li>
-                        ${j}
+                        ${app.jobTitle}
                     </li>
                 `
             });
@@ -264,13 +250,12 @@ export default {
         this.initData.candidates.forEach((c) => {
             skillLevelSelectize.setSkillLevels(c.userProjects, true);
         });
-        const {projectScore, role, skill, level} = dataUtil.getQueryParams();
+        const {projectScore, role, skill} = dataUtil.getQueryParams();
         this.defaultProjectScore = projectScore || this.defaultProjectScore;
         this.filter.projectScore = this.defaultProjectScore;
         this.$refs.projectScoreFilter.setValue(this.defaultProjectScore);
         this.$refs.role.setInitialRoleIds(role);
         this.$refs.skills.setValue(skill);
-        this.$refs.projectSkillLevels.elSel.setValue(level);
     }
 }
 </script>

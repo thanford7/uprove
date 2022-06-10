@@ -51,17 +51,6 @@
             </div>
             <div class="mb-1">
                 <AddNewLink :clickFn="addNewVideo" text="Add new video file"/>
-                <span v-if="isVideoCaptureSupported">
-                    &nbsp;
-                    <a href="#"
-                       @click="eventBus.emit('open:addVideoRecordingModal', formData)"
-                       data-bs-dismiss="modal"
-                       class="-color-green-text"
-                    >
-                        <i class="fas fa-video"></i>
-                        &nbsp;Record a new video
-                    </a>
-                </span>
             </div>
         </div>
         <div class="mb-3 -border-bottom--light">
@@ -98,10 +87,7 @@
             <button
                 @click="saveChange"
                 type="button" class="btn btn-primary loading-hidden"
-                :disabled="formData.isLocked"
-                :title="getProjectLockedNote(formData)"
             >
-                <span v-if="formData.isLocked"><i class="fas fa-lock"></i>&nbsp;</span>
                 {{(formData.id) ? 'Save changes' : 'Create project'}}
             </button>
             <LoadingSpinnerButton/>
@@ -140,13 +126,7 @@ export default {
             contentTypes: CONTENT_TYPES
         }
     },
-    computed: {
-        isVideoCaptureSupported() {
-            return Boolean(navigator?.mediaDevices?.getUserMedia);
-        }
-    },
     methods: {
-        getProjectLockedNote: userProjectUtil.getProjectLockedNote,
         addNewFile() {
             this.newFileCount++;
             this.formData.files.push({

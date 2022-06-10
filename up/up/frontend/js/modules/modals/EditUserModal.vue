@@ -170,9 +170,12 @@ export default {
         },
         processFormData() {
             const formData = this.readForm();
-            let {next, inviteEmployerId} = dataUtil.getQueryParams();
+            let {next, inviteEmployerId, waitlistType} = dataUtil.getQueryParams();
             if (next) {
                 formData.next = next;
+            }
+            if (waitlistType) {
+                formData.waitlistType = waitlistType;
             }
 
             inviteEmployerId = parseInt(inviteEmployerId);

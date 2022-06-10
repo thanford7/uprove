@@ -32,10 +32,6 @@ export default {
                     header: 'Company',
                     items: [
                         {
-                            title: 'About us',
-                            link: '/about'
-                        },
-                        {
                             title: 'Contact',
                             link: '/contact'
                         },

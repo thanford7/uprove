@@ -17,6 +17,7 @@
             {{pageNumber}}
         </button>
         <button
+            v-if="currentPageNumber < pageCount"
             type="button"
             class="btn btn-secondary"
             @click="changePage({pageInc: 1})"
@@ -51,7 +52,7 @@ export default {
         },
         pages() {
             const pages = [];
-            for (let i=0; i<this.showPageCount; i++) {
+            for (let i=0; i<this.showPageCount && i+this.startPage <= this.pageCount + 1; i++) {
                 pages.push(i+this.startPage);
             }
             return pages;

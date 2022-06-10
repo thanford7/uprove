@@ -3,6 +3,7 @@
 @use 'modules/colors';
 @use 'modules/animations';
 @use 'modules/bootstrap-custom';
+@use 'modules/borders';
 @use 'modules/cards';
 @use 'modules/elements';
 @use 'modules/fa';
@@ -45,7 +46,7 @@ body {
     flex-direction: column;
     height: 100vh;
     margin: 0;
-    background-color: rgba($color-lightgrey, .2);
+    //background-color: rgba($color-lightgrey, .2);
     word-wrap: break-word;
 }
 
@@ -85,7 +86,7 @@ body {
 
 .blog-post {
     .blog-img {
-        max-height: 300px;
+        max-height: 200px;
         max-width: 100%;
         border: 1px solid $color-lightgrey;
         border-radius: 10px;

@@ -57,11 +57,6 @@
                 <div class="mb-2 d-flex justify-content-end">
                     <FilterDropdownMenu class="-pull-left" :filters="jobsFilter" dropdownHeader="Filters">
                         <div class="ps-2 pe-2">
-                            <RolesSelectize
-                                placeholder="Role"
-                                :roleIds="jobRoleIds"
-                                @selected="jobsFilter.roles = $event"
-                            />
                             <InputSelectize
                                 :elId="getNewElUid()"
                                 placeholder="Status"
@@ -122,28 +117,41 @@
                                     </HamburgerDropdown>
                                 </td>
                                 <td title="View job posting">
-                                    <InfoToolTip
-                                        v-if="!job.roleId"
-                                        :elId="getNewElUid()"
-                                        content="This job does not have a standardized role and will not show up in job searches"
-                                        :isExcludeInfoCircle="true"
-                                    >
-                                        <i class="fas fa-exclamation-triangle -color-orange-text"></i>&nbsp;
-                                    </InfoToolTip>
                                     <a :href="`/job-posting/${job.id}/`">{{ job.jobTitle }}</a>
+                                    <div class="-text-small">{{ getLocationStr(job) }}</div>
                                 </td>
                                 <td>{{ getJobStatus(job) }}</td>
                                 <td class="text-center border-start">
-                                    {{ job.applications.filter((a) => !Boolean(a.submissionDateTime)).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.INVITED)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.INVITED)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.INVITED) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => Boolean(a.submissionDateTime)).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPLIED)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.APPLIED)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPLIED) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => Boolean(a.approveDateTime)).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                                 <td class="text-center">
-                                    {{ job.applications.filter((a) => Boolean(a.declineDateTime)).length }}
+                                    <a
+                                        v-if="getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.WITHDRAWN)"
+                                        href="#" @click="showApplications(job, APPLICATION_STATUS_KEYS.WITHDRAWN)">
+                                        {{ getApplicationCountByStatus(job.applications, APPLICATION_STATUS_KEYS.WITHDRAWN) }}
+                                    </a>
+                                    <span v-else>0</span>
                                 </td>
                             </tr>
                         </template>
@@ -154,42 +162,18 @@
                 <div class="mb-2">
                     <FilterDropdownMenu class="-pull-left" :filters="applicantsFilter" dropdownHeader="Filters">
                         <div class="ps-2 pe-2">
-                            <InputSelectize
-                                :elId="getNewElUid()"
-                                placeholder="Status"
-                                :cfg="{
-                                    plugins: ['remove_button'],
-                                    maxItems: null,
-                                    options: Object.values(APPLICATION_STATUS).map((v) => ({value: v, text: v}))
-                                }"
-                                @selected="applicantsFilter.statuses = $event"
+                            <ApplicationStatusSelectize
+                                ref="applicationStatusFilter"
+                                @selected="applicantsFilter.statuses = $event" :isMultiSelect="true"
                             />
                             <InputSelectize
-                                ref="jobTitleFilter"
+                                v-if="employerJobsCfg"
+                                ref="jobFilter"
                                 :elId="getNewElUid()"
+                                :isParseAsInt="true"
                                 placeholder="Job title"
-                                :cfg="{
-                                    plugins: ['remove_button'],
-                                    maxItems: null,
-                                    sortField: 'text'
-                                }"
-                                @selected="applicantsFilter.jobTitle = $event"
-                            />
-                            <InputSelectize
-                                ref="projectFilter"
-                                :elId="getNewElUid()"
-                                placeholder="Project"
-                                :cfg="{
-                                    plugins: ['remove_button'],
-                                    maxItems: null,
-                                    sortField: 'text'
-                                }"
-                                @selected="applicantsFilter.project = $event"
-                            />
-                            <RangeSlider
-                                :elId="getNewElUid()"
-                                title="Project score"
-                                @changed="applicantsFilter.projectScore = $event"
+                                :cfg="employerJobsCfg"
+                                @selected="applicantsFilter.jobIds = $event"
                             />
                         </div>
                     </FilterDropdownMenu>
@@ -202,10 +186,8 @@
                                 [
                                     {},
                                     {value: 'Name', sortFn: 'user.firstName'},
-                                    {value: 'Status', sortFn: getApplicationStatus},
+                                    {value: 'Status', sortFn: 'status'},
                                     {value: 'Job title', sortFn: 'job.jobTitle'},
-                                    {value: 'Project', sortFn: 'userProjectTitle'},
-                                    {value: 'Project score', sortFn: 'userProjectScorePct'}
                                 ]
                             ]"
                         emptyDataMessage="No job applications"
@@ -213,7 +195,7 @@
                         <template v-slot:body>
                             <tr v-for="application in filteredApplications" class="hover-menu">
                                 <td>
-                                    <ApplicationDropdownOpts :application="application" :applications="applications"/>
+<!--                                    hamburger menu-->
                                 </td>
                                 <td>
                                     <a
@@ -224,14 +206,10 @@
                                         {{ application.user.firstName }} {{ application.user.lastName }}
                                     </a>
                                 </td>
-                                <td>{{ getApplicationStatusText(application) }}</td>
-                                <td>{{ application.job.jobTitle }}</td>
-                                <td v-if="application.userProjectTitle" @click="redirectUrl(`/user-project/${application.userProjectId}/`, true)">
-                                    {{application.userProjectTitle}} <i class="fas fa-external-link-alt"></i>
-                                </td>
-                                <td v-else>-None-</td>
+                                <td><ApplicationStatus :application="application" :isAllowUpdate="true"/></td>
                                 <td>
-                                    {{ (application.userProjectScorePct) ? `${application.userProjectScorePct}%` : 'None' }}
+                                    {{ application.jobTitle }}
+                                    <div class="-text-small">{{ getLocationStr(getApplicationJob(application)) }}</div>
                                 </td>
                             </tr>
                         </template>
@@ -307,15 +285,13 @@
                         Lever
                     </div>
                     <div class="-text-medium mt-3">
-                        Integrate with Lever to automatically send candidates a Uprove assessment based on a
-                        specified stage change. The integration also allows you to add candidates from Uprove
-                        into your Lever opportunities with a single button click.
+                        Integrate with Lever to add candidates from Uprove into your Lever opportunities with a single click. Also push job postings
+                        from Lever into Uprove so candidates can find the jobs directly on the Uprove platform.
                     </div>
                     <div v-if="leverData.isLeverOn" class="row mt-3">
                         <h5>Webhooks</h5>
                         <div class="-text-medium mb-3">
-                            Webhooks allow us to automatically update candidate information and send Uprove assessments
-                            to candidates based on changes in Lever. This means less clicks for you! To enable webhooks,
+                            Webhooks allow us to automatically send Uprove candidates to Lever and update candidate information. To enable webhooks,
                             a Lever user with "Super Admin" privileges must go to <code>Settings
                             ->
                             Integrations and API -> Webhooks</code> and toggle on the webhooks for:
@@ -327,54 +303,8 @@
                             </ul>
                             <div class="mt-2">
                                 A <span class="badge -color-moderategrey">uprove</span> tag must be added to all job
-                                postings
-                                and candidates that should receive a Uprove assessment. If the tag is added to a job
-                                posting,
-                                all candidates assigned to that job posting will automatically inherit that tag.
+                                postings where you want to source candidates from the Uprove platform.
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <span id="leverStageLabel" class="-text-medium">
-                                Stage to send Uprove assessment
-                                <InfoToolTip :elId="getNewElUid()" content="
-                                When a candidate is moved to this stage and has the 'uprove' tag, a link will be
-                                generated in the candidate's links which will allow you to select and send an
-                                assessment to the candidate.
-                                "/>
-                            </span>
-                            <InputSelectize
-                                ref="leverStage"
-                                :elId="getNewElUid()"
-                                placeholder="Required"
-                                :cfg="{
-                                    valueField: 'id',
-                                    labelField: 'text',
-                                    searchField: 'text',
-                                    maxItems: 1
-                                }"
-                                @selected="saveToken($event, 'leverTriggerStageKey', '#leverStageLabel')"
-                            />
-                        </div>
-                        <div class="col-md-6">
-                            <span id="leverStageCompleteLabel" class="-text-medium">
-                                Stage after assessment complete
-                                <InfoToolTip :elId="getNewElUid()" content="
-                                When a candidate has completed an assessment they will automatically be moved to this
-                                stage in Lever.
-                                "/>
-                            </span>
-                            <InputSelectize
-                                ref="leverStageComplete"
-                                :elId="getNewElUid()"
-                                placeholder="Optional"
-                                :cfg="{
-                                    valueField: 'id',
-                                    labelField: 'text',
-                                    searchField: 'text',
-                                    maxItems: 1
-                                }"
-                                @selected="saveToken($event, 'leverCompleteStageKey', '#leverStageCompleteLabel')"
-                            />
                         </div>
                     </div>
                 </div>
@@ -389,9 +319,10 @@
 </template>
 
 <script>
-import dataUtil, {APPLICATION_STATUS} from "../../../utils/data";
-import ApplicationDropdownOpts from "./ApplicationDropdownOpts";
-import BadgesSkillLevels from "../../components/BadgesSkillLevels";
+import {APPLICATION_STATUS, APPLICATION_STATUS_KEYS} from '../../../globalData'
+import dataUtil from "../../../utils/data";
+import ApplicationStatus from "./ApplicationStatus";
+import ApplicationStatusSelectize from "../../inputs/ApplicationStatusSelectize";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
@@ -410,44 +341,38 @@ import Table from "../../components/Table";
 import LeverWebhook from "./LeverWebhook";
 import userProject from "../../../utils/userProject";
 import RolesSelectize from "../../inputs/RolesSelectize";
+import jobs from "../../../utils/jobs";
+import employerJobs from "../../selectizeCfgs/employerJobs";
 
 export default {
     name: "EmployerDashboardPage.vue",
     components: {
-        ApplicationDropdownOpts, BannerAlert, BadgesSkillLevels, BadgesSkills, BasePage, CelebrationModal, EditEmployerModal,
-        EditJobPostingModal, EditUserModal, FilterDropdownMenu, HamburgerDropdown, InfoToolTip, InputSelectize,
-        InviteJobApplicantModal, LeverWebhook, RangeSlider, RolesSelectize, Table
+        ApplicationStatus, ApplicationStatusSelectize, BannerAlert, BadgesSkills,
+        BasePage, CelebrationModal, EditEmployerModal, EditJobPostingModal, EditUserModal, FilterDropdownMenu,
+        HamburgerDropdown, InfoToolTip, InputSelectize, InviteJobApplicantModal, LeverWebhook, RangeSlider,
+        RolesSelectize, Table
     },
     data() {
         return {
             APPLICATION_STATUS,
+            APPLICATION_STATUS_KEYS,
             applications: [],
             sortKeysJobPostingTable: [],
             leverData: {},
             leverWebhookTypes: leverIntegration.TYPES,
             jobsFilter: {},
-            applicantsFilter: {}
+            applicantsFilter: {},
+            employerJobsCfg: null
         }
     },
     computed: {
-        jobRoleIds() {
-            return dataUtil.uniqArray(initData.employer.jobs.map((j) => j.roleId));
-        },
         filteredApplications() {
             return this.applications.filter((application) => {
-                if (this.applicantsFilter?.statuses?.length && !this.applicantsFilter.statuses.includes(this.getApplicationStatus(application))) {
+                if (this.applicantsFilter?.statuses?.length && !this.applicantsFilter.statuses.includes(application.status)) {
                     return false;
                 }
 
-                if (this.applicantsFilter?.jobTitle?.length && !this.applicantsFilter.jobTitle.includes(application.job.jobTitle)) {
-                    return false;
-                }
-
-                if (this.applicantsFilter?.project?.length && !this.applicantsFilter.project.includes(application.userProjectTitle)) {
-                    return false;
-                }
-
-                if (this.applicantsFilter.projectScore && application.userProjectScorePct < this.applicantsFilter.projectScore) {
+                if (this.applicantsFilter?.jobIds?.length && !this.applicantsFilter.jobIds.includes(application.jobId)) {
                     return false;
                 }
 
@@ -456,10 +381,6 @@ export default {
         },
         filteredJobs() {
             return this.initData.employer.jobs.filter((job) => {
-                if (this.jobsFilter?.roles?.length && !this.jobsFilter.roles.includes(job.roleId)) {
-                    return false;
-                }
-
                 if (this.jobsFilter?.statuses?.length && !this.jobsFilter.statuses.includes(this.getJobStatus(job))) {
                     return false;
                 }
@@ -488,8 +409,7 @@ export default {
     methods: {
         declineApplication: userProject.declineApplication.bind(userProject),
         approveApplication: userProject.approveApplication.bind(userProject),
-        getApplicationStatus: dataUtil.getApplicationStatus.bind(dataUtil),
-        getApplicationStatusText: dataUtil.getApplicationStatusText.bind(dataUtil),
+        getLocationStr: jobs.getLocationStr.bind(jobs),
         leverLogin: function (isOn) {
             if (isOn) {
                 leverIntegration.login();
@@ -499,14 +419,14 @@ export default {
                 });
             }
         },
-        saveToken(val, modelName, targetEl) {
-            leverIntegration.saveToken($(targetEl), this.initData.employer.id, modelName, val)
-        },
         loadLeverJobPostings() {
             leverIntegration.loadJobPostings(this.initData.employer.id);
         },
         connectLeverUsers() {
             leverIntegration.connectUsers(this.initData.employer.id)
+        },
+        getApplicationJob(app) {
+            return this.initData.employer.jobs.find((j) => j.id === app.jobId);
         },
         getJobStatus(job) {
             if (job.closeDate) {
@@ -520,23 +440,37 @@ export default {
             }
             return this.globalData.JOB_STATUS.DRAFT;
         },
+        getMappedStatusVals(status) {
+            // Groups some statuses together for simplicity
+            const statusVals = [];
+            if (status === APPLICATION_STATUS_KEYS.INVITED) {
+                statusVals.push(APPLICATION_STATUS_KEYS.INVITED);
+            } else if (status === APPLICATION_STATUS_KEYS.APPLIED) {
+                statusVals.push(APPLICATION_STATUS_KEYS.APPLIED);
+            } else if (status === APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW) {
+                statusVals.push(APPLICATION_STATUS_KEYS.APPROVED_NO_INTERVIEW);
+                statusVals.push(APPLICATION_STATUS_KEYS.APPROVED_INTERVIEW);
+            } else if (status === APPLICATION_STATUS_KEYS.WITHDRAWN) {
+                statusVals.push(APPLICATION_STATUS_KEYS.WITHDRAWN);
+                statusVals.push(APPLICATION_STATUS_KEYS.DECLINED);
+            }
+            return statusVals;
+        },
+        getApplicationCountByStatus(applications, status) {
+            const statusVals = this.getMappedStatusVals(status);
+            return applications.filter((app) => statusVals.includes(app.status)).length;
+        },
+        showApplications(job, status) {
+            this.setTabParam('applications');
+            const statusVals = this.getMappedStatusVals(status);
+            this.$refs.applicationStatusFilter.setValue(statusVals);
+            this.$refs.jobFilter.elSel.setValue([job.id]);
+        }
     },
-    async mounted() {
+    mounted() {
         this.applications = this.initData.employer.jobs.reduce((applications, job) => {
-            return [...applications, ...job.applications.map((app) => {
-                app.job = {
-                    id: job.id,
-                    jobTitle: job.jobTitle
-                };
-                return app;
-            })];
+            return [...applications, ...job.applications];
         }, []);
-
-        const jobTitles = dataUtil.uniqArray(this.applications.map((a) => a.job.jobTitle));
-        this.$refs.jobTitleFilter.resetOptions(jobTitles.map((v) => ({value: v, text: v})));
-
-        const projects = dataUtil.uniqArray(this.applications.map((a) => a.userProjectTitle));
-        this.$refs.projectFilter.resetOptions(projects.map((v) => ({value: v, text: v})));
 
         this.currentTab = 'job-openings';
         this.setTabFromParams();
@@ -544,13 +478,10 @@ export default {
         this.leverData = dataUtil.pick(this.initData.employer, [
             'isLeverOn', 'leverHookStageChangeToken', 'leverHookArchive', 'leverHookHired', 'leverHookDeleted'
         ]);
-        if (this.leverData.isLeverOn) {
-            await this.loadData([{route: `lever/stages/${this.initData.employer.id}/`, dataKey: 'leverStages'}]);
-            this.$refs.leverStage.resetOptions(this.cData.leverStages);
-            this.$refs.leverStage.elSel.setValue(this.initData.employer.leverTriggerStageKey, true);
-            this.$refs.leverStageComplete.resetOptions(this.cData.leverStages);
-            this.$refs.leverStageComplete.elSel.setValue(this.initData.employer.leverCompleteStageKey, true);
-        }
+
+        this.employerJobsCfg = employerJobs.getEmployerJobsCfg(
+            this.initData.employer.id, {isMulti: true}
+        );
     }
 }
 </script>

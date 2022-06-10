@@ -6,6 +6,7 @@
                 :isOwner="initData.isOwner"
                 :profilePicture="initData.profilePicture"
                 :profileId="initData.id"
+                :applications="initData.applications"
             />
             <div class="col-md-6 ms-md-2">
                 <div

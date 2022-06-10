@@ -21,34 +21,6 @@
     text-align: center;
 }
 
-.-border-left {
-    &--light {
-        border-left: 1px solid $color-lightgrey;
-    }
-
-    &--blue {
-        border-left: 2px solid $color-darkblue;
-    }
-}
-
-.-border-bottom {
-    &--light {
-        border-bottom: 1px solid $color-lightgrey;
-    }
-}
-
-.-border-top {
-    &--light {
-        border-top: 1px solid $color-lightgrey;
-    }
-}
-
-.-border-left {
-    &--light {
-        border-left: 1px solid $color-lightgrey;
-    }
-}
-
 .-hover-display {
     display: none;
 
@@ -144,6 +116,10 @@
 
 .-pull-left {
     margin-right: auto;
+}
+
+.-pull-right {
+    margin-left: auto;
 }
 
 .-anchor {

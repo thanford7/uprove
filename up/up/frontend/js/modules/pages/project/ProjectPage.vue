@@ -32,16 +32,6 @@
                     </button>
                 </div>
             </div>
-            <div
-                v-if="isEmployer && initData?.jobs?.length"
-                class="col-md-3 sidebar mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''"
-            >
-                <h5>
-                    Current jobs
-                    <InfoToolTip :elId="getNewElUid()" content="Job openings that are linked to this project. This means that any candidate who has completed this project can apply to any of these job openings."/>
-                </h5>
-                <ListFontAwesome faClassesStr="fas fa-briefcase" :items="initData.jobs.map((j) => getUniqueJobTitle(j))"/>
-            </div>
         </div>
     </BasePage>
     <EditUserModal/>
@@ -78,29 +68,14 @@ export default {
         getFailureMessagePrepend() {
             return 'Failed to add project: ';
         },
-        getUniqueJobTitle(job) {
-            let title = job.jobTitle;
-            if (job.city || job.state) {
-                title += ` (${' ,'.join([job.city, job.state])})`
-            }
-            return title;
-        },
         processFormData() {
             const formData = this.readForm();
             formData.userId = this.globalData.uproveUser.id;
             formData.projectId = this.initData.project.id;
             return formData;
         },
-        setJobSkillLevels(jobs) {
-            jobs.forEach((j) => { skillLevelSelectize.setSkillLevels(j.allowedProjects,  true); });
-        },
     },
     mounted() {
-        // Set skill levels from bits
-        if (this.initData.jobs) {
-            this.setJobSkillLevels(this.initData.jobs);
-        }
-
         if (this.isCandidate) {
             this.pageRedirect = `/candidateDashboard/${this.globalData.uproveUser.id}/`;
         }

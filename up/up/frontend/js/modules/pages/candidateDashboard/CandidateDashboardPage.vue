@@ -21,8 +21,6 @@
                             type="button" role="tab" aria-selected="false"
                             @click="setTabParam('applications')"
                         >Applications
-                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
-                                         :content="applicationInfoContent"/>
                         </button>
                     </li>
                     <li class="nav-item">
@@ -65,10 +63,6 @@
                                 </template>
                                 <template v-slot:body>
                                     <div class="mb-1 pb-1 -border-bottom--light">
-                                        <div class="text-label text-label-sm">CAREER LEVELS</div>
-                                        <BadgesSkillLevels :skillLevels="userProject.customProject.skillLevels"/>
-                                    </div>
-                                    <div class="mb-1 pb-1 -border-bottom--light">
                                         <div class="text-label text-label-sm">SKILLS</div>
                                         <BadgesSkills :skills="userProject.customProject.skills"/>
                                     </div>
@@ -87,11 +81,9 @@
                                             <input class="form-check-input" type="checkbox" id="projectStatus"
                                                    :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
                                                    @change="toggleProjectComplete(userProject, $event)"
-                                                   :disabled="userProject.isLocked || !getFileCount(userProject)"
+                                                   :disabled="!getFileCount(userProject)"
                                             >
                                             <label class="form-check-label" for="projectStatus">
-                                                <span v-if="userProject.isLocked"><i
-                                                    class="fas fa-lock"></i>&nbsp;</span>
                                                 <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
                                                              :content="CONTENT.draftStatusInfo + CONTENT.completeStatusInfo"/>
                                                 Project complete
@@ -110,21 +102,11 @@
                                         </div>
                                         <div class="mt-2">
                                             <button
-                                                class="btn btn-primary btn-sm"
-                                                :class="(userProject.isLocked) ? 'w-75' : 'w-100'"
+                                                class="btn btn-primary btn-sm w-100"
                                                 @click="eventBus.emit('open:editUserProjectModal', userProject)"
-                                                :disabled="userProject.isLocked"
-                                                :title="getProjectLockedNote(userProject)"
                                             >
                                                 Edit project files
                                             </button>
-                                            <span v-if="userProject.isLocked">
-                                        &nbsp;
-                                        <ButtonDelete
-                                            class="btn-sm"
-                                            @click="deleteProject(userProject)"
-                                        />
-                                    </span>
                                         </div>
                                     </div>
                                 </template>
@@ -149,7 +131,6 @@
                             {value: 'Action'},
                             {value: 'Employer', sortFn: 'job.employer'},
                             {value: 'Job title', sortFn: 'job.jobTitle'},
-                            {value: 'Project', sortFn: 'userProject.customProject.projectTitle'},
                             {value: 'Status', sortFn: getApplicationStatus},
                         ]
                     ]"
@@ -159,21 +140,18 @@
                                     <tr v-for="jobApplication in initData.jobApplications" class="hover-menu">
                                         <td>
                                             <button
-                                                v-if="!isSubmittedApplicationFn(jobApplication)"
+                                                v-if="canApply(jobApplication)"
                                                 class="btn btn-sm btn-outline-success -color-black-text"
                                                 @click="updateAppSubmission(jobApplication, true)"
-                                                :disabled="!isApplicationProjectCompleteFn(jobApplication)"
-                                                :title="(!isApplicationProjectCompleteFn(jobApplication)) ?
-                                        `You must mark the ${jobApplication.userProjectTitle} project complete before you can submit this application` : ''"
                                             >
-                                                <i class="fas fa-file-import"></i> Submit application
+                                                <i class="fas fa-file-import"></i> Apply
                                             </button>
                                             <button
                                                 v-else
                                                 class="btn btn-sm btn-outline-danger -color-black-text"
                                                 @click="updateAppSubmission(jobApplication, false)"
                                             >
-                                                <i class="fas fa-backspace"></i> Withdraw application
+                                                <i class="fas fa-backspace"></i> Withdraw
                                             </button>
                                         </td>
                                         <td>{{ jobApplication.job.employer }}</td>
@@ -182,12 +160,7 @@
                                                 jobApplication.job.jobTitle
                                             }}</a>
                                         </td>
-                                        <td>
-                                            <a :href="`/project/${jobApplication.customProject.projectId}/?${getCustomProjectQueryParams(jobApplication.customProject)}`">
-                                                {{ jobApplication.customProject.projectTitle }}
-                                            </a>
-                                        </td>
-                                        <td>{{ getApplicationStatus(jobApplication) }}</td>
+                                        <td><ApplicationStatus :application="jobApplication"/></td>
                                     </tr>
                                 </template>
                             </Table>
@@ -232,17 +205,16 @@
             <div class="col-md-4">
                 <div class="card-custom card-custom--no-side-margin">
                     <h5 class="mb-3">Job suggestions</h5>
-                    <div v-for="job in cData.jobSuggestions" class="row">
-                        <div class="job-role -color-darkblue -color-white-text mb-2">
-                            <UprovePartner v-if="job.isClient"/>
-                            {{ job.roleName }}
+                    <div v-for="job in cData.jobSuggestions" class="row mb-2">
+                        <div class="mb-2 d-flex align-items-center -border-top--blue -border-bottom--light">
+                            <h6 class="mb-0 pt-2 pb-2"><a :href="`/job-posting/${job.id}`">{{ job.jobTitle }}</a></h6>
+                            <FastApplyBtn v-if="job.isClient" :job="job" class="-pull-right" btnClasses="mt-1 mb-1"/>
                         </div>
                         <div class="col-3">
                             <img v-if="job.employerLogo" :src="job.employerLogo" class="logo">
                             <i v-else class="far fa-building fa-4x"></i>
                         </div>
-                        <div class="col-9">
-                            <h6><a :href="`/job-posting/${job.id}`">{{ job.jobTitle }}</a></h6>
+                        <div class="col-6">
                             <h6>{{ job.companyName }}</h6>
                             <h6>{{ getLocationStr(job) }}</h6>
                         </div>
@@ -260,15 +232,14 @@
     </BasePage>
     <AddVideoRecordingModal/>
     <CelebrationModal/>
-    <EditJobApplicationModal/>
     <EditJobPreferencesModal/>
     <EditUserProjectModal/>
 </template>
 
 <script>
-import {CONTENT_TYPES, PROJECT_STATUSES} from '../../../globalData';
+import {APPLICATION_STATUS_KEYS, CONTENT_TYPES, PROJECT_STATUSES} from '../../../globalData';
 import AddVideoRecordingModal from "../../modals/AddVideoRecordingModal";
-import BadgesSkillLevels from "../../components/BadgesSkillLevels";
+import ApplicationStatus from "../employerDashboard/ApplicationStatus";
 import BadgesSkills from "../../components/BadgesSkills";
 import BannerAlert from "../../components/BannerAlert";
 import BaseCard from "../../components/BaseCard";
@@ -276,9 +247,9 @@ import ButtonDelete from "../../buttons/ButtonDelete";
 import CelebrationModal from "../../modals/CelebrationModal";
 import CONTENT from "./CandidateDashboardContent";
 import dataUtil from "../../../utils/data";
-import EditJobApplicationModal from "../../modals/EditJobApplicationModal";
 import EditJobPreferencesModal from "../../modals/EditJobPreferencesModal";
 import EditUserProjectModal from "../../modals/EditUserProjectModal";
+import FastApplyBtn from "../jobs/FastApplyBtn";
 import FileDisplay from "../../components/FileDisplay";
 import HamburgerDropdown from "../../components/HamburgerDropdown";
 import InfoToolTip from "../../components/InfoToolTip";
@@ -298,15 +269,15 @@ export default {
         UprovePartner,
         BasePage,
         AddVideoRecordingModal,
-        BadgesSkillLevels,
+        ApplicationStatus,
         BadgesSkills,
         BannerAlert,
         BaseCard,
         ButtonDelete,
         CelebrationModal,
-        EditJobApplicationModal,
         EditJobPreferencesModal,
         EditUserProjectModal,
+        FastApplyBtn,
         FileDisplay,
         HamburgerDropdown,
         InfoToolTip,
@@ -321,40 +292,17 @@ export default {
             CONTENT_TYPES,
             projectStatuses: PROJECT_STATUSES,
             loadRoutes: [{route: 'user-job-rec/', dataKey: 'jobSuggestions'}],
-            applicationInfoContent: `
-                <div>
-                    When you <span class="-text-bold">submit an application:</span>
-                    <ul class="mt-1">
-                        <li>The Uprove team will review and rate your project within 24 hours</li>
-                        <li>The employer will be notified of your submission</li>
-                        <li>The employer will contact you if you are selected to continue with the interview process</li>
-                    </ul>
-                </div>
-                <div>
-                    When you <span class="-text-bold">withdraw an application:</span>
-                    <ul class="mt-1">
-                        <li>The employer will be notified of your withdrawal</li>
-                        <li>The employer will no longer review you for the job</li>
-                    </ul>
-                </div>
-            `,
         }
     },
     methods: {
         capitalize: dataUtil.capitalize,
-        getApplicationStatus: dataUtil.getApplicationStatus,
         getLocationStr: jobUtil.getLocationStr,
-        getProjectLockedNote: userProjectUtil.getProjectLockedNote,
         getProjectCompleteLockedNote: userProjectUtil.getProjectCompleteLockedNote,
-        isSubmittedApplicationFn(app) {
-            return (
-                app.submissionDateTime
-                && !app.withdrawDateTime
-            )
-        },
-        isApplicationProjectCompleteFn(app) {
-            const userProject = this.initData.userProjects.find((up) => up.id === app.userProjectId);
-            return (userProject) ? userProject.status === this.globalData.PROJECT_STATUSES.COMPLETE : false;
+        canApply(app) {
+            return [
+                APPLICATION_STATUS_KEYS.INVITED,
+                APPLICATION_STATUS_KEYS.WITHDRAWN
+            ].includes(app.status);
         },
         getCustomProjectQueryParams(customProject) {
             let queryString = `skillLevel=${customProject.skillLevelBit}`;
@@ -381,7 +329,7 @@ export default {
             this.resetAjaxSettings();
             this.crudUrl = 'user-project/';
             this.formData = {id: userProject.id};
-            if (window.confirm('Are you sure you want to delete this project? This will withdraw any job applications where you use this project.')) {
+            if (window.confirm('Are you sure you want to delete this project?')) {
                 this.deleteObject();
             }
         },
@@ -390,12 +338,11 @@ export default {
             this.crudUrl = 'user-job-application/';
             this.formData.userId = this.initData.user.id;
             this.formData.id = app.id;
-            this.formData.userProjectId = app.userProjectId;
             if (isSubmit) {
-                this.formData.submissionDateTime = dateUtil.serializeDateTime(dayjs());
+                this.formData.applicationDateTime = dateUtil.serializeDateTime(dayjs());
                 this.formData.withdrawDateTime = null;
             } else {
-                this.formData.submissionDateTime = null;
+                this.formData.applicationDateTime = null;
                 this.formData.withdrawDateTime = dateUtil.serializeDateTime(dayjs());
             }
             this.readAndSubmitForm();
@@ -418,17 +365,11 @@ export default {
                 id: userProject.id,
                 status: (isChecked) ? this.globalData.PROJECT_STATUSES.COMPLETE : this.globalData.PROJECT_STATUSES.DRAFT
             };
-            if (isChecked && !window.confirm(
-                `Are you sure you sure you want to finalize this project? You will not be able to edit it for the next ${this.pluralize('day', this.globalData.PROJECT_COMPLETE_LOCK_DAYS)}.`
-            )) {
-                this.resetAjaxSettings();
-                $(e.currentTarget).prop('checked', false);
-                return;
-            }
-            if (userProject.applications.length && window.confirm(`Do you want to submit the ${this.pluralize('application', userProject.applications.length)} associated with this project? You can always submit each application later using the applications section in your dashboard.`)) {
-                this.formData.isSubmitApplications = true;
-            }
+
             this.afterUpdateInitData = () => {
+                if (!isChecked) {
+                    return;
+                }
                 this.eventBus.emit('open:celebrationModal', {
                     msg: 'Congratulations on completing a project!'
                 });

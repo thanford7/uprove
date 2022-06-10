@@ -1,4 +1,4 @@
-from enum import IntEnum, Enum
+from enum import IntEnum, Enum, auto
 
 from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
@@ -12,9 +12,9 @@ __all__ = (
     'User', 'UserProfile', 'UserProfileSection', 'UserProfileSectionItem', 'UserEducation', 'UserCertification', 'UserExperience',
     'UserContentItem', 'UserContentItemSection', 'UserVideo', 'UserFile', 'UserImage', 'UserTag', 'Tag', 'Organization',
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectEvaluationCriterion',
-    'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerJob', 'JobTemplate',
+    'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerJob',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
-    'CompanySize', 'Country', 'State', 'RoleLevel'
+    'CompanySize', 'Country', 'State', 'RoleLevel', 'Activity'
 )
 
 
@@ -99,6 +99,7 @@ class User(AuditFields):
     preferenceRemoteBits = models.SmallIntegerField(default=REMOTE_PREF_DEFAULT)  # 1 = Non-remote, 2 = Remote
     preferenceCountry = models.ManyToManyField('Country', related_name='preferenceCountry')
     preferenceState = models.ManyToManyField('State', related_name='preferenceState')
+    preferenceSalary = models.IntegerField(null=True)
 
     leverUserKey = models.CharField(max_length=75, null=True)
 
@@ -150,12 +151,19 @@ class UserProfileSection(models.Model):
     SECTION_TYPE_EXPERIENCE = 'EXPERIENCE'
     SECTION_TYPE_EDUCATION = 'EDUCATION'
 
+    SECTION_ORDER_PROJECTS = 0
+    SECTION_ORDER_EXPERIENCE = 1
+    SECTION_ORDER_EDUCATION = 2
+
     # These are in the order they should appear
     ALL_SECTIONS = (SECTION_TYPE_PROJECTS, SECTION_TYPE_EXPERIENCE, SECTION_TYPE_EDUCATION)
 
     userProfile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, editable=False, related_name='section')
     sectionType = models.CharField(max_length=15)
     sectionOrder = models.SmallIntegerField()
+
+    class Meta:
+        unique_together = ('userProfile', 'sectionOrder')
 
 
 class UserProfileSectionItem(models.Model):
@@ -164,7 +172,6 @@ class UserProfileSectionItem(models.Model):
     See https://docs.djangoproject.com/en/3.2/ref/contrib/contenttypes/#generic-relations
     """
     userProfileSection = models.ForeignKey(UserProfileSection, on_delete=models.CASCADE, related_name='sectionItem')
-    contentOrder = models.SmallIntegerField()
 
     # Generic relationship fields
     contentType = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
@@ -353,12 +360,19 @@ class Skill(models.Model):
         unique_together = ('name', 'skillProject')
 
 
+class TrainingCourse(models.Model):
+    title = models.CharField(max_length=200)
+    shortDescription = models.TextField()
+    urlSalesPage = models.CharField(max_length=50)
+    urlCoursePage = models.CharField(max_length=50)
+    priceBasic = models.FloatField()
+    pricePremium = models.FloatField()
+
+
 class Project(AuditFields):
     title = models.CharField(max_length=250)
     role = models.ForeignKey(Role, on_delete=models.PROTECT)
     skills = models.ManyToManyField(Skill)
-    skillLevelBit = models.SmallIntegerField(default=1)  # See RoleLevel
-    employer = models.ForeignKey('Employer', null=True, on_delete=models.PROTECT)  # Add employer if project should be private to this employer only
     description = models.TextField()
     background = models.TextField(null=True)
     instructions = models.TextField(null=True)
@@ -391,8 +405,6 @@ class Employer(AuditFields):
     isLeverOn = models.BooleanField(default=False)
     leverAccessToken = models.CharField(max_length=1400, null=True)
     leverRefreshToken = models.CharField(max_length=1400, null=True)
-    leverTriggerStageKey = models.CharField(max_length=100, null=True)
-    leverCompleteStageKey = models.CharField(max_length=100, null=True)
     leverHookStageChangeToken = models.CharField(max_length=75, null=True)
     leverHookArchive = models.CharField(max_length=75, null=True)
     leverHookHired = models.CharField(max_length=75, null=True)
@@ -432,7 +444,6 @@ class EmployerJob(AuditFields):
     closeDate = models.DateField(null=True)
     salaryFloor = models.FloatField(null=True)
     salaryCeiling = models.FloatField(null=True)
-    salaryUnit = models.CharField(max_length=25, null=True)  # per hour, month, year, project
     applicationUrl = models.CharField(max_length=500, null=True)
     location = models.CharField(max_length=100, null=True)
     isInternal = models.BooleanField(default=False)  # If true, the job won't be displayed on the job board
@@ -458,19 +469,26 @@ class EmployerJob(AuditFields):
         ordering = ('-employer__isClient', '-openDate')
 
 
-class JobTemplate(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-
-
 class UserJobApplication(models.Model):
+    # Keep in sync with globalData.js
+    class Status(Enum):
+        INVITED = auto()
+        APPLIED = auto()
+        APPROVED_NO_INTERVIEW = auto()
+        APPROVED_INTERVIEW = auto()
+        DECLINED = auto()
+        WITHDRAWN = auto()
+        OFFER = auto()
+        HIRED = auto()
+
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='jobApplication')
-    userProject = models.ForeignKey('UserProject', on_delete=models.SET_NULL, null=True, related_name='jobApplication')
     employerJob = models.ForeignKey(EmployerJob, on_delete=models.PROTECT, related_name='jobApplication')
     inviteDateTime = models.DateTimeField(null=True)
-    submissionDateTime = models.DateTimeField(null=True)
+    applicationDateTime = models.DateTimeField(null=True)
     approveDateTime = models.DateTimeField(null=True)
+    interviewDateTime = models.DateTimeField(null=True)
     hireDateTime = models.DateTimeField(null=True)
+    offerDateTime = models.DateTimeField(null=True)
     declineDateTime = models.DateTimeField(null=True)
     withdrawDateTime = models.DateTimeField(null=True)
 
@@ -478,6 +496,68 @@ class UserJobApplication(models.Model):
 
     class Meta:
         unique_together = ('user', 'employerJob')
+
+    def updateApplicationStatus(self, statusKey, statusUpdateDateTime):
+        if statusKey == self.Status.INVITED.name:
+            self.inviteDateTime = statusUpdateDateTime
+        if statusKey == self.Status.APPLIED.name:
+            self.applicationDateTime = statusUpdateDateTime
+        if statusKey == self.Status.APPROVED_NO_INTERVIEW.name:
+            self.approveDateTime = statusUpdateDateTime
+            self.offerDateTime = None
+            self.hireDateTime = None
+            self.declineDateTime = None
+            self.interviewDateTime = None
+        if statusKey == self.Status.APPROVED_INTERVIEW.name:
+            self.interviewDateTime = statusUpdateDateTime
+            self.offerDateTime = None
+            self.hireDateTime = None
+            self.declineDateTime = None
+        if statusKey == self.Status.DECLINED.name:
+            self.declineDateTime = statusUpdateDateTime
+            self.hireDateTime = None
+            self.offerDateTime = None
+        if statusKey == self.Status.WITHDRAWN.name:
+            self.withdrawDateTime = statusUpdateDateTime
+            self.hireDateTime = None
+            self.offerDateTime = None
+        if statusKey == self.Status.OFFER.name:
+            self.offerDateTime = statusUpdateDateTime
+            self.hireDateTime = None
+        if statusKey == self.Status.HIRED.name:
+            self.hireDateTime = statusUpdateDateTime
+            self.declineDateTime = None
+
+    @property
+    def status(self):
+        if self.hireDateTime:
+            return self.Status.HIRED.name
+        if self.withdrawDateTime:
+            return self.Status.WITHDRAWN.name
+        if self.declineDateTime:
+            return self.Status.DECLINED.name
+        if self.offerDateTime:
+            return self.Status.OFFER.name
+        if self.interviewDateTime:
+            return self.Status.APPROVED_INTERVIEW.name
+        if self.approveDateTime:
+            return self.Status.APPROVED_NO_INTERVIEW.name
+        if self.applicationDateTime:
+            return self.Status.APPLIED.name
+        return self.Status.INVITED.name
+
+    @property
+    def statusUpdateDateTime(self):
+        return (
+            self.hireDateTime
+            or self.withdrawDateTime
+            or self.declineDateTime
+            or self.offerDateTime
+            or self.interviewDateTime
+            or self.approveDateTime
+            or self.applicationDateTime
+            or self.inviteDateTime
+        )
 
 
 class UserProjectEvaluationCriterion(AuditFields):
@@ -511,6 +591,15 @@ class UserProject(AuditFields):
         unique_together = ('user', 'customProject')
 
 
+class UserTraining(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userTraining')
+    course = models.ForeignKey(TrainingCourse, on_delete=models.CASCADE)
+    completionPct = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'course')
+
+
 class BlogPost(AuditFields):
     author = models.ForeignKey(User, on_delete=models.PROTECT)
     title = models.CharField(max_length=250)
@@ -539,6 +628,7 @@ class UserActivity(models.Model):
 class Waitlist(models.Model):
     class WaitlistType(Enum):
         MENTOR = 'mentor'
+        PREMIUM_CANDIDATE = 'premium_candidate'
 
     email = models.EmailField()
     waitlistType = models.CharField(max_length=100)

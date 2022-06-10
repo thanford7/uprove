@@ -12,7 +12,7 @@ from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
-    getSerializedOrganization, getSerializedUserProject
+    getSerializedOrganization, getSerializedUserProject, CUSTOMER_SUCCESS_ROLE_IDS
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 
@@ -89,17 +89,7 @@ class EmployerView(UproveAPIView):
         try:
             return Employer.objects.prefetch_related(
                 'employerJob',
-                'employerJob__jobApplication',
-                'employerJob__jobApplication__userProject',
-                'employerJob__jobApplication__userProject__user',
-                'employerJob__jobApplication__userProject__user__profile',
-                'employerJob__jobApplication__userProject__customProject',
-                'employerJob__jobApplication__userProject__customProject__project',
-                'employerJob__jobApplication__userProject__customProject__project__role',
-                'employerJob__jobApplication__userProject__customProject__skills',
-                'employerJob__jobApplication__userProject__files',
-                'employerJob__jobApplication__userProject__videos',
-                'employerJob__jobApplication__userProject__images',
+                'employerJob__jobApplication'
             ).get(id=employerId)
         except Employer.DoesNotExist as e:
             raise e
@@ -141,6 +131,7 @@ class EmployerCandidateFavoriteView(UproveAPIView):
 class JobPostingView(UproveAPIView):
     authentication_classes = (authentication.SessionAuthentication,)
     permittedCountries = ['USA', 'UK', 'Canada']
+    permittedRoles = ['customer success', 'account manage', 'customer experience']
 
     def get(self, request):
         customProjects = CustomProject.objects.select_related('project').all()
@@ -222,6 +213,10 @@ class JobPostingView(UproveAPIView):
 
     @atomic
     def updateEmployerJob(self, employerJob):
+
+        # Hard coding customer success as the role
+        employerJob.roleLevel = self.getCustomerSuccessRoleLevel()
+
         dateGetter = lambda val: dateUtil.deserializeDateTime(val, dateUtil.FormatType.DATE, allowNone=True)
         dataUtil.setObjectAttributes(employerJob, self.data, {
             'jobTitle': None,
@@ -231,13 +226,18 @@ class JobPostingView(UproveAPIView):
             'closeDate': {'propFunc': dateGetter},
             'salaryFloor': None,
             'salaryCeiling': None,
-            'salaryUnit': None,
             'city': None,
+            'isRemote': None,
             'state_id': {'formName': 'stateId'},
             'country_id': {'formName': 'countryId'},
-            'roleLevel_id': {'formName': 'roleLevelId'}
         })
         employerJob.save()
+
+    @staticmethod
+    def getCustomerSuccessRoleLevel():
+        # Hard coding customer success as the role
+        customerSuccessRole = Role.objects.get(name='Customer Success')
+        return RoleLevel.objects.get(role=customerSuccessRole, roleLevelBit=RoleLevel.Level.ENTRY.value)
 
     @staticmethod
     def getEmployerJobs(jobId=None, employerId=None, jobFilter=None, isIncludeDemo=False):
@@ -261,15 +261,6 @@ class JobPostingView(UproveAPIView):
             )\
             .prefetch_related(
                 'jobApplication',
-                'jobApplication__userProject',
-                'jobApplication__userProject__user',
-                'jobApplication__userProject__customProject',
-                'jobApplication__userProject__customProject__project',
-                'jobApplication__userProject__customProject__project__role',
-                'jobApplication__userProject__customProject__skills',
-                'jobApplication__userProject__files',
-                'jobApplication__userProject__videos',
-                'jobApplication__userProject__images',
             )\
             .filter(jobFilter)\
 
@@ -295,23 +286,23 @@ class JobPostingView(UproveAPIView):
             filter &= Q(country__isnull=True) | Q(country__countryName__in=JobPostingView.permittedCountries)
             filter &= Q(roleLevel__isnull=False)
 
+            roleFilter = Q()
+            for roleName in JobPostingView.permittedRoles:
+                roleFilter |= Q(roleLevel__role__name__iregex=roleName)
+
+            filter &= roleFilter
+
         return filter
-
-    @staticmethod
-    def getJobMapByRole():
-        jobMapByRole = defaultdict(lambda: {'roleId': None, 'jobCount': 0})
-        for job in JobPostingView.getEmployerJobs(jobFilter=JobPostingView.getEmployerJobFilter()):
-            jobData = jobMapByRole[job.roleLevel.role_id]
-            jobData['roleId'] = job.roleLevel.role_id
-            jobData['jobCount'] += 1
-
-        return jobMapByRole
 
     @staticmethod
     def getProjectsByRoleIdMap():
         projectsByRole = defaultdict(list)
-        for project in ProjectView.getProjects(isIgnoreEmployerId=True):
-            projectsByRole[project.role.id].append(project)
+        for project in ProjectView.getProjects():
+            if project.role_id in CUSTOMER_SUCCESS_ROLE_IDS:
+                for id in CUSTOMER_SUCCESS_ROLE_IDS:
+                    projectsByRole[id].append(project)
+            else:
+                projectsByRole[project.role_id].append(project)
 
         return projectsByRole
 

@@ -19,6 +19,7 @@
         <label v-else class="form-check-label" :for="(isActiveLabel) ? elId : null">
             {{label}}
         </label>
+        <slot/>
     </div>
 </template>
 

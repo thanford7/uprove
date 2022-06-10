@@ -38,7 +38,6 @@
 </template>
 
 <script>
-import BadgesSkillLevels from "./BadgesSkillLevels";
 import dataUtil from "../../utils/data";
 import InputSelectize from "../inputs/InputSelectize";
 import SkillLevelsSelectize from "../inputs/SkillLevelsSelectize";
@@ -47,7 +46,7 @@ import Table from "./Table";
 
 export default {
     name: "EditSkillsTable",
-    components: {BadgesSkillLevels, InputSelectize, SkillLevelsSelectize, SkillsSelectize, Table},
+    components: {InputSelectize, SkillLevelsSelectize, SkillsSelectize, Table},
     props: ['skills'],
     data() {
         return {

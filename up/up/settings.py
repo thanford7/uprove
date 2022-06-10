@@ -21,6 +21,8 @@ from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+from upapp.utils.logger import setLogger
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 env = environ.Env(DEBUG=(bool, False))
@@ -38,14 +40,7 @@ IS_DOCKER = env('IS_DOCKER', cast=bool, default=False)
 IS_DEV = env('IS_DEV', cast=bool, default=True)
 
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
-logger = logging.getLogger()
-logger.setLevel(LOG_LEVEL)
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(LOG_LEVEL)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger = setLogger(LOG_LEVEL)
 
 PREPEND_WWW = False  # not DEBUG
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0').split(',')
@@ -148,6 +143,9 @@ if DEBUG is True:
         }
 elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
     logger.info('CURRENTLY IN PRODUCTION MODE')
+    logger.info('System arguments:')
+    for arg in sys.argv:
+        logger.info(arg)
     if os.getenv("DATABASE_URL", None) is None:
         raise Exception("DATABASE_URL environment variable not defined")
     DATABASES = {
@@ -156,21 +154,16 @@ elif len(sys.argv) > 0 and sys.argv[1] != 'collectstatic':
 
 
 LEVER_SCOPE = ' '.join([
-    'offline_access',
-    'feedback:write:admin',
     'archive_reasons:read:admin',
     'contact:read:admin',
-    'feedback:write:admin',
-    'feedback_templates:write:admin',
-    'files:write:admin',
     'notes:write:admin',
     'opportunities:write:admin',
     'postings:read:admin',
     'stages:read:admin',
     'tags:read:admin',
-    'uploads:write:admin',
     'users:read:admin',
-    'webhooks:write:admin'
+    'webhooks:write:admin',
+    'offline_access'
 ])
 LEVER_CALLBACK_URL = '/integrate'
 LEVER_CLIENT_ID = env('LEVER_CLIENT_ID')

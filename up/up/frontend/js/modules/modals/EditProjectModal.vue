@@ -40,15 +40,6 @@
             <EditSkillsTable ref="skillsTable" :skills="formData.skills"/>
         </div>
         <div class="mb-3">
-            <label for="projectSkillLevels" class="form-label">Skill level</label>
-            <SkillLevelsSelectize
-                ref="projectSkillLevels"
-                placeholder="Required"
-                :cfg="{isMulti: false}"
-                @selected="formData.skillLevelBit = $event"
-            />
-        </div>
-        <div class="mb-3">
             <label for="projectEmployer" class="form-label">Employer</label>
             <InputSelectize
                 ref="projectEmployer"
@@ -167,7 +158,6 @@ export default {
                 background: '#projectBackground',
                 // Add on mounted
                 roleId: null,
-                skillLevelBit: null
             },
             mediaFields: new Set(['image', 'files']),
             newFileUniqueIdx: 0,
@@ -250,7 +240,6 @@ export default {
             this.$refs.projectEmployer.elSel.refreshOptions(false);
 
             this.requiredFields.roleId = this.$refs.role.targetEl;
-            this.requiredFields.skillLevelBit = this.$refs.projectSkillLevels.targetEl;
 
             const formData = rawData.formData;
             if (!formData || dataUtil.isEmpty(formData)) {
@@ -272,8 +261,7 @@ export default {
             return {};
         },
         setFormFields() {
-            const {skillLevelBit, roleId, employer} = this.formData;
-            this.$refs.projectSkillLevels.elSel.setValue(this.getSkillLevelNumbersFromBits(skillLevelBit));
+            const {roleId, employer} = this.formData;
 
             // Set other selectize elements
             this.$refs.role.elSel.setValue(roleId);

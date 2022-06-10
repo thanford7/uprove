@@ -14,17 +14,6 @@
                 <div class="row">
                     <div class="col-12 col-md-3 filter-item">
                         <InputSelectize
-                            ref="roles"
-                            :elId="getNewElUid()"
-                            :cfg="roleCfg"
-                            :isParseAsInt="true"
-                            :isPreserveValue="true"
-                            placeholder="All roles"
-                            @selected="updateFilters($event, 'roles')"
-                        />
-                    </div>
-                    <div class="col-12 col-md-3 filter-item">
-                        <InputSelectize
                             ref="countries"
                             :elId="getNewElUid()"
                             :cfg="countryCfg"
@@ -110,7 +99,6 @@
                     :employer="getEmployer(selectedJob.employerId)"
                     :job="selectedJob"
                     :isJobDescriptionOpen="true"
-                    :isHideProjects="true"
                 >
                     <template v-slot:top>
                         <CollapseDiv :elId="getNewElUid()">
@@ -123,9 +111,10 @@
                                 </div>
                                 <div class="col-3">
                                     <JobApplyBtn
-                                        v-if="getApplicationUrl(selectedJob)"
-                                        :applicationUrl="getApplicationUrl(selectedJob)"
+                                        v-if="!selectedJob.isClient && selectedJob.applicationUrl"
+                                        :applicationUrl="selectedJob.applicationUrl"
                                     />
+                                    <FastApplyBtn v-else-if="selectedJob.isClient" :job="selectedJob"/>
                                 </div>
                             </div>
                             <JobHelpLinks :job="selectedJob" :employer="getEmployer(selectedJob.employerId)"/>
@@ -152,6 +141,8 @@ import BaseFilter from "../base/BaseFilter";
 import BasePage from "../base/BasePage";
 import dataUtil from "../../../utils/data";
 import EditJobPreferencesModal from "../../modals/EditJobPreferencesModal";
+import FastApplyBtn from "./FastApplyBtn";
+import InfoToolTip from "../../components/InfoToolTip";
 import InputCheckBox from "../../inputs/InputCheckBox";
 import InputSelectize from "../../inputs/InputSelectize";
 import JobApplyBtn from "./JobApplyBtn";
@@ -166,14 +157,14 @@ import CollapseDiv from "../../components/CollapseDiv";
 export default {
     name: "JobsPage",
     components: {
+        InfoToolTip,
         CollapseDiv,
-        AccordionItem, BaseFilter, BasePage, EditJobPreferencesModal, InputCheckBox,
+        AccordionItem, BaseFilter, BasePage, EditJobPreferencesModal, FastApplyBtn, InputCheckBox,
         InputSelectize, JobApplyBtn, JobHelpLinks, JobPosting, ListFontAwesome, Pagination, UprovePartner
     },
     data() {
         return {
             filter: {
-                roles: [],
                 countries: [],
                 states: [],
                 employers: [],
@@ -185,16 +176,6 @@ export default {
         }
     },
     computed: {
-        roleCfg() {
-            return {
-                valueField: 'id',
-                labelField: 'roleTitle',
-                sortField: 'roleTitle',
-                maxItems: null,
-                plugins: ['remove_button'],
-                options: this.initData.roleLevels
-            };
-        },
         companySizeCfg() {
             return {
                 valueField: 'id',
@@ -237,9 +218,6 @@ export default {
         },
         jobs() {
             return this.initData.jobs.filter((j) => {
-                if (this.filter.roles?.length && !this.filter.roles.includes(j.roleLevelId)) {
-                    return false;
-                }
                 if (this.filter.countries?.length && !this.filter.countries.includes(j.countryId)) {
                     return false;
                 }
@@ -265,12 +243,6 @@ export default {
     methods: {
         getQueryParams: dataUtil.getQueryParams,
         getLocationStr: jobUtil.getLocationStr,
-        getApplicationUrl(job) {
-            if (job.isClient && job.allowedProjects.length) {
-                return `/job-posting/${job.id}`;
-            }
-            return job.applicationUrl;
-        },
         getEmployer(employerId) {
             return this.initData['employers'][employerId];
         },
@@ -283,11 +255,8 @@ export default {
             this.setFilter(val, filterKey);
 
             // Update the available options based on other filters
-            const options = {roles: new Set(), countries: new Set(), employers: new Set(), states: new Set()};
+            const options = {countries: new Set(), employers: new Set(), states: new Set()};
             this.jobs.forEach((job) => {
-                if (job.roleId) {
-                    options.roles.add(this.initData.roleLevels.find((r) => r.id === job.roleLevelId));
-                }
                 if (job.stateId) {
                     options.states.add(this.initData.states.find((s) => s.id === job.stateId));
                 }
@@ -296,7 +265,7 @@ export default {
                 }
                 options.employers.add(this.initData.employers[job.employerId])
             });
-            ['roles', 'countries', 'employers', 'states'].forEach((ref) => {
+            ['countries', 'employers', 'states'].forEach((ref) => {
                 // Don't update options for the current selectize. Otherwise all other options will be removed.
                 if (ref === filterKey && val && val.length) {
                     return;
@@ -331,7 +300,6 @@ export default {
                 {severity: SEVERITY.INFO, content: 'Filters set based on the your default job preferences', isOnce: true}
             );
         }
-        this.$refs.roles.elSel.setValue(queryParams.roles);
         this.$refs.states.elSel.setValue(queryParams.states);
         this.$refs.countries.elSel.setValue(queryParams.countries);
         this.$refs.employers.elSel.setValue(queryParams.employers);

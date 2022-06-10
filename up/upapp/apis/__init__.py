@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-from django.core.files.uploadedfile import UploadedFile
+from django.core.files import File
 from django.http import QueryDict
 from django.utils import timezone
 from rest_framework.views import APIView
@@ -15,7 +15,7 @@ def getFiles(request):
 
     files = {}
     for key, val in request.data.items():
-        if isinstance(val, UploadedFile):
+        if isinstance(val, File):
             files[key] = request.data.getlist(key)
 
     return files

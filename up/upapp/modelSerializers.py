@@ -1,4 +1,3 @@
-import re
 from datetime import date
 from enum import Enum
 from operator import itemgetter
@@ -21,6 +20,12 @@ class ContentTypes(Enum):
     VIDEO = 'video'
     FILE = 'file'
     IMAGE = 'image'
+
+
+csRoleFilter = Q()
+for csRole in ('customer success', 'customer experience', 'account management'):
+    csRoleFilter |= Q(name__icontains=csRole)
+CUSTOMER_SUCCESS_ROLE_IDS = [r.id for r in Role.objects.filter(csRoleFilter)]
 
 
 def getDateTimeFormatOrNone(val):
@@ -58,7 +63,8 @@ def getAllowedProjects(customProjects, job):
     return [
         cp for cp
         in customProjects
-        if cp.skillLevelBit == job.roleLevel.roleLevelBit and cp.project.role_id == job.roleLevel.role_id
+        if cp.project.role_id == job.roleLevel.role_id or (
+                    cp.project.role_id in CUSTOMER_SUCCESS_ROLE_IDS and job.roleLevel.role_id in CUSTOMER_SUCCESS_ROLE_IDS)
     ] if job.roleLevel else []
 
 
@@ -88,11 +94,11 @@ def getItemPrimarySort(item):
     if not item.contentObject:
         return None
     if (
-        isinstance(item.contentObject, UserVideo)
-        or isinstance(item.contentObject, UserFile)
-        or isinstance(item.contentObject, UserImage)
-        or isinstance(item.contentObject, UserContentItem)
-        or isinstance(item.contentObject, UserProject)
+            isinstance(item.contentObject, UserVideo)
+            or isinstance(item.contentObject, UserFile)
+            or isinstance(item.contentObject, UserImage)
+            or isinstance(item.contentObject, UserContentItem)
+            or isinstance(item.contentObject, UserProject)
     ):
         return item.contentObject.modifiedDateTime
     if isinstance(item.contentObject, UserEducation) or isinstance(item.contentObject, UserExperience):
@@ -114,7 +120,7 @@ def getGenericItemSort(item):
     return (getItemPrimarySort(item), getItemSecondarySort(item))
 
 
-def getSerializedUser(user: User, isIncludeAssets: bool=False):
+def getSerializedUser(user: User, isIncludeAssets: bool = False):
     profileImage = next((i.image.url for i in user.image.all() if i.isDefault), None)
     serializedUser = {
         'id': user.id,
@@ -145,14 +151,15 @@ def getSerializedUser(user: User, isIncludeAssets: bool=False):
         'preferences': {
             'companySizes': [{'id': p.id, 'companySize': p.companySize} for p in user.preferenceCompanySizes.all()],
             'roles': [{
-                    'id': p.id,
-                    'roleTitle': p.roleTitle,
-                    'roleId': p.role_id,
-                    'roleLevelBit': p.roleLevelBit
-                } for p in user.preferenceRoles.all()
+                'id': p.id,
+                'roleTitle': p.roleTitle,
+                'roleId': p.role_id,
+                'roleLevelBit': p.roleLevelBit
+            } for p in user.preferenceRoles.all()
             ],
             'countries': [{'id': p.id, 'countryName': p.countryName} for p in user.preferenceCountry.all()],
-            'remoteBits': user.preferenceRemoteBits
+            'remoteBits': user.preferenceRemoteBits,
+            'salary': user.preferenceSalary
         },
         **serializeAuditFields(user)
     }
@@ -186,13 +193,22 @@ def getSerializedUserProfile(userProfile: UserProfile, isOwner=None):
 
 
 def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
+    # Filter out hidden or incomplete projects
+    filteredItems = [
+        psi for psi in
+        userProfileSection.sectionItem.all()
+        if
+            (not isinstance(psi.contentObject, UserProject))
+            or (psi.contentObject.status == UserProject.Status.COMPLETE.value and not psi.contentObject.isHidden)
+    ]
+
     return {
         'id': userProfileSection.id,
         'sectionType': userProfileSection.sectionType,
         'sectionOrder': userProfileSection.sectionOrder,
         'sectionItems': [
             getSerializedUserProfileSectionItem(psi)
-            for psi in sorted(userProfileSection.sectionItem.all(), key=getGenericItemSort, reverse=True)
+            for psi in sorted(filteredItems, key=getGenericItemSort, reverse=True)
         ],
     }
 
@@ -200,7 +216,6 @@ def getSerializedUserProfileSection(userProfileSection: UserProfileSection):
 def getSerializedUserProfileSectionItem(userProfileSectionItem: UserProfileSectionItem):
     return {
         'id': userProfileSectionItem.id,
-        'contentOrder': userProfileSectionItem.contentOrder,
         'item': serializeGenericItem(userProfileSectionItem)
     }
 
@@ -251,7 +266,8 @@ def getSerializedUserContentItem(userContentItem: UserContentItem):
         'id': userContentItem.id,
         'type': ContentTypes.CUSTOM.value,
         'title': userContentItem.title,
-        'sections': sorted([getSerializedUserContentItemSection(cis) for cis in userContentItem.section.all()], key=itemgetter('contentOrder')),
+        'sections': sorted([getSerializedUserContentItemSection(cis) for cis in userContentItem.section.all()],
+                           key=itemgetter('contentOrder')),
         **serializeAuditFields(userContentItem)
     }
 
@@ -327,7 +343,7 @@ def getSerializedOrganization(organization: Organization):
     }
 
 
-def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=False, evaluationEmployerId=None):
+def getSerializedProject(project: Project, isIncludeDetails: bool = False, isAdmin=False, evaluationEmployerId=None):
     return {
         'id': project.id,
         'title': project.title,
@@ -335,7 +351,6 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=
         'role': project.role.name,
         'roleId': project.role.id,
         'skills': [getSerializedSkill(s) for s in project.skills.all()],
-        'skillLevelBit': project.skillLevelBit,
         'description': project.description,
         'background': project.background if isIncludeDetails else truncate(project.background, 250, ellipsis='...'),
         'instructions': project.instructions,
@@ -343,10 +358,6 @@ def getSerializedProject(project: Project, isIncludeDetails:bool=False, isAdmin=
             getSerializedProjectEvaluationCriterion(ec)
             for ec in project.evaluationCriteria.all()
         ] if (evaluationEmployerId or isAdmin) else None,
-        'employer': {
-            'id': project.employer.id,
-            'companyName': project.employer.companyName
-        } if project.employer else None,
         'files': [getSerializedProjectFile(pf, isIncludeDetails) for pf in project.projectFile.all()],
         'isLimited': not isIncludeDetails
     }
@@ -360,7 +371,7 @@ def getSerializedProjectEvaluationCriterion(evaluationCriterion: ProjectEvaluati
     }
 
 
-def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails:bool=False):
+def getSerializedProjectFile(projectFile: ProjectFile, isIncludeDetails: bool = False):
     return {
         'id': projectFile.id,
         'title': projectFile.title,
@@ -412,14 +423,13 @@ def getSerializedEmployer(employer: Employer, employerId=None):
         'isClient': employer.isClient,
         'jobs': [
             getSerializedEmployerJob(ej, employerId=employerId, customProjects=customProjects)
-            for ej in employer.employerJob.filter(JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=bool(employerId)))
+            for ej in employer.employerJob.filter(
+                JobPostingView.getEmployerJobFilter(isIncludeClosed=True, isEmployer=bool(employerId)))
         ],
     }
     employerFields = {
         **serializeAuditFields(employer),
         'isLeverOn': employer.isLeverOn,
-        'leverTriggerStageKey': employer.leverTriggerStageKey,
-        'leverCompleteStageKey': employer.leverCompleteStageKey,
         'leverHookStageChangeToken': employer.leverHookStageChangeToken,
         'leverHookArchive': employer.leverHookArchive,
         'leverHookHired': employer.leverHookHired,
@@ -455,7 +465,6 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customPr
         'allowedProjects': [getSerializedCustomProject(ap) for ap in allowedProjects],
         'salaryFloor': employerJob.salaryFloor,
         'salaryCeiling': employerJob.salaryCeiling,
-        'salaryUnit': employerJob.salaryUnit,
         'openDate': getDateTimeFormatOrNone(employerJob.openDate),
         'pauseDate': getDateTimeFormatOrNone(employerJob.pauseDate),
         'closeDate': getDateTimeFormatOrNone(employerJob.closeDate),
@@ -495,18 +504,7 @@ def getSerializedEmployerJob(employerJob: EmployerJob, employerId=None, customPr
     return baseFields
 
 
-def getSerializedJobTemplate(template: JobTemplate):
-    return {
-        'id': template.id,
-        'title': template.title,
-        'description': template.description
-    }
-
-
 def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=False):
-    from upapp.apis.user import UserProjectView
-
-    employerId = jobApplication.employerJob.employer_id
     val = {
         'id': jobApplication.id,
         'user': {
@@ -517,21 +515,12 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
             'email': jobApplication.user.email,
             'profileId': jobApplication.user.primaryProfile.id if jobApplication.user.primaryProfile else None
         },
-        'userProjectId': jobApplication.userProject_id,
-        'userProjectTitle': jobApplication.userProject.customProject.project.title if jobApplication.userProject else None,
-        'userProjectScorePct': UserProjectView.getUserProjectScorePct(jobApplication.userProject, employerId=employerId) if jobApplication.userProject else None,
-        'customProject': {
-            'id': jobApplication.userProject.customProject.id,
-            'projectId': jobApplication.userProject.customProject.project_id,
-            'projectTitle': jobApplication.userProject.customProject.project.title,
-            'skillLevelBit': jobApplication.userProject.customProject.skillLevelBit,
-            'skills': [getSerializedSkill(s) for s in jobApplication.userProject.customProject.skills.all()]
-        } if jobApplication.userProject else {},
-        'inviteDateTime': getDateTimeFormatOrNone(jobApplication.inviteDateTime),
-        'submissionDateTime': getDateTimeFormatOrNone(jobApplication.submissionDateTime),
-        'approveDateTime': getDateTimeFormatOrNone(jobApplication.approveDateTime),
-        'declineDateTime': getDateTimeFormatOrNone(jobApplication.declineDateTime),
-        'withdrawDateTime': getDateTimeFormatOrNone(jobApplication.withdrawDateTime),
+        'jobId': jobApplication.employerJob_id,
+        'jobTitle': jobApplication.employerJob.jobTitle,
+        'employer': jobApplication.employerJob.employer.companyName,
+        'employerLogo': jobApplication.employerJob.employer.logo.url if jobApplication.employerJob.employer.logo else None,
+        'status': jobApplication.status,
+        'statusUpdateDateTime': getDateTimeFormatOrNone(jobApplication.statusUpdateDateTime),
     }
 
     if includeJob:
@@ -540,8 +529,6 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
         val['job'] = {
             'id': jobApplication.employerJob.id,
             'jobTitle': jobApplication.employerJob.jobTitle,
-            'employer': jobApplication.employerJob.employer.companyName,
-            'employerLogo': jobApplication.employerJob.employer.logo.url if jobApplication.employerJob.employer.logo else None,
             'allowedProjects': [getSerializedCustomProject(ep) for ep in allowedProjects]
         }
 
@@ -569,18 +556,14 @@ def getSerializedUserProjectEvaluationCriterion(criterion: UserProjectEvaluation
 
 
 def getSerializedUserProject(userProject: UserProject, isIncludeEvaluation=False, employerId=None):
-    from upapp.apis.user import isUserProjectLocked, getDaysUntilProjectUnlock, UserProjectView
+    from upapp.apis.user import UserProjectView
 
-    isLocked = isUserProjectLocked(userProject)
     baseData = {
         'id': userProject.id,
         'type': ContentTypes.PROJECT.value,
         'status': userProject.status,
         'statusChangeDateTime': getDateTimeFormatOrNone(userProject.statusChangeDateTime),
-        'isLocked': isLocked,
         'isHidden': userProject.isHidden,
-        'daysUntilUnlock': getDaysUntilProjectUnlock(userProject) if isLocked else None,
-        'applications': [getSerializedJobApplication(app, includeJob=True) for app in userProject.jobApplication.all()],
         'user': {
             'id': userProject.user.id,
             'firstName': userProject.user.firstName,

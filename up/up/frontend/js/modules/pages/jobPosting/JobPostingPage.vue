@@ -18,71 +18,29 @@
                     :employer="initData.employer"
                     :job="initData.job"
                     :isJobDescriptionOpen="true"
-                    :customProjectId="formData.customProjectId"
+                    :isCompanyDescriptionOpen="true"
                 />
             </div>
             <div class="col-md-4 mb-3" :class="(isMobile) ? 'mobile-side-margin' : ''">
-                <div v-if="initData.job?.allowedProjects?.length && initData.employer.isClient" class="sidebar">
-                    <h5 class="-text-bold">Applicant instructions</h5>
+                <div class="sidebar">
+                    <div v-if="!isLoggedIn">
+                        To get started,
+                        <a href="#" @click="signUpWithContext">create an account</a>
+                        or
+                        <a href="#" @click="eventBus.emit('open:signInModal')">sign in</a>
+                    </div>
                     <div v-if="initData.userApplication" class="mb-2 ps-2 -color-yellow">
                         <i class="fas fa-info"></i> You have an application for this job
                     </div>
-                    <ol class="-border-bottom--light mb-3 pb-3">
-                        <li v-if="!isLoggedIn" id="loginInstruction">
-                            <a href="#" @click="signUpWithContext">Create an account</a>
-                            or
-                            <a href="#" @click="eventBus.emit('open:signInModal')">sign in</a>
-                        </li>
-                        <li v-if="initData.job.allowedProjects.length > 1 && !initData.userApplication">
-                            Select a project
-                            <InputSelectize
-                                ref="allowedProjects"
-                                elId="allowedProjects"
-                                placeholder="Required"
-                                :isParseAsInt="true"
-                                :cfg="allowedProjectsCfg"
-                                @selected="selectAndSetProject"
-                            />
-                        </li>
-                        <li>
-                            Read project description, background, and instructions
-                        </li>
-                        <li v-if="$refs?.jobPosting?.hasFiles">
-                            Download project files
-                        </li>
-                        <li v-if="!initData.userApplication">
-                            <button
-                                @click="saveChange" type="button" class="btn btn-primary w-75"
-                                :disabled="(isLoggedIn) ? null : true"
-                                :title="(isLoggedIn) ? null : 'Must be logged in to save project'"
-                            >
-                                Start project and job application
-                            </button>
-                        </li>
-                        <li>
-                            Upload your final project files and submit your final project to
-                            {{initData.employer.companyName || 'the employer'}}
-                            from your <a href="/candidateDashboard/">dashboard page</a>
-                        </li>
-                    </ol>
-                    <div class="-sub-text">Need help or have questions about the project?</div>
-                    <div class="-sub-text"><a href="#" @click="eventBus.emit('open:submitHelpModal')">Submit question</a></div>
-                </div>
-                <div v-else class="sidebar">
-                    <template v-if="initData.job.allowedProjects.length">
-                        <InfoToolTip
-                            :elId="getNewElUid()"
-                            :isExcludeInfoCircle="true"
-                            content="This employer is not part of the Uprove network. You can still complete a project
-                            to showcase your skills for the relevant role, however there is no guarantee the employer will
-                            review it.
-                            "
-                        >
-                            <h6>
-                                <i class="fas fa-exclamation-triangle -color-orange-text"></i>
-                                Projects related to this job
-                            </h6>
-                        </InfoToolTip>
+                    <div v-if="!initData.userApplication" class="-border-bottom--light pb-2 mb-2">
+                        <FastApplyBtn
+                            btnClasses="w-100"
+                            :disabled="(isLoggedIn) ? null : true"
+                            :title="(isLoggedIn) ? null : 'Must be logged in to submit application'"
+                            :job="initData.job"
+                        />
+                    </div>
+                    <div v-if="initData.job.allowedProjects.length">
                         <h6>Increase your chances of landing a job by completing a relevant project to showcase your skills</h6>
                         <ul class="fa-ul">
                             <li v-for="project in initData.job.allowedProjects">
@@ -93,15 +51,11 @@
                                 <div class="-text-medium" v-html="initData.projects[project.projectId].description"></div>
                             </li>
                         </ul>
-                    </template>
-                    <div v-if="getApplicationUrl(initData.job)" class="mt-3">
-                        <JobApplyBtn :applicationUrl="getApplicationUrl(initData.job)" class="w-100"/>
                     </div>
                 </div>
             </div>
         </div>
     </BasePage>
-    <SubmitHelpModal/>
 </template>
 
 <script>
@@ -114,15 +68,16 @@ import JobApplyBtn from "../jobs/JobApplyBtn";
 import JobPosting from "./JobPosting";
 import ListFontAwesome from "../../components/ListFontAwesome";
 import PageHeader from "../../components/PageHeader";
-import SubmitHelpModal from "../../modals/SubmitHelpModal";
 import dataUtil from "../../../utils/data";
 import BasePage from "../base/BasePage";
+import FastApplyBtn from "../jobs/FastApplyBtn";
 
 export default {
     name: "JobPostingPage.vue",
     components: {
+        FastApplyBtn,
         BasePage, AccordionItem, BannerAlert, FileDisplay, InfoToolTip, InputSelectize,
-        JobApplyBtn, JobPosting, ListFontAwesome, PageHeader, SubmitHelpModal
+        JobApplyBtn, JobPosting, ListFontAwesome, PageHeader
     },
     data() {
         return {

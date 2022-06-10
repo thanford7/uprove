@@ -4,7 +4,6 @@
             <h5 class="-skew-top-left me-2">
                 <span class="badge -color-darkblue">{{project.role}}</span>
             </h5>
-            <ProjectJobs v-if="project.jobs" :jobs="project.jobs" class="mt-3 mb-2"/>
             <h5>
                 {{project.title}}
                 <slot name="headerAppend"></slot>
@@ -60,13 +59,12 @@
 import CollapseDiv from "../../components/CollapseDiv";
 import FileDisplay from "../../components/FileDisplay";
 import InfoToolTip from "../../components/InfoToolTip";
-import ProjectJobs from "../projects/ProjectJobs";
 
 export default {
     name: "ProjectAccordion",
     props: ['project', 'skillIds', 'skills'],
     components: {
-        CollapseDiv, FileDisplay, InfoToolTip, ProjectJobs
+        CollapseDiv, FileDisplay, InfoToolTip
     },
     computed: {
         skillInstructions() {

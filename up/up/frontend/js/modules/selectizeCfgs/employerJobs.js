@@ -1,4 +1,5 @@
 import globalData from "../../globalData";
+import jobs from "../../utils/jobs";
 
 class EmployerJobsSelectize {
     getEmployerJobsCfg(employerId, {isMulti = false, filterFn=null} = {}) {
@@ -8,10 +9,10 @@ class EmployerJobsSelectize {
             sortField: 'jobTitle',
             searchField: 'jobTitle',
             loadThrottle: 200,
+            preload: true,
             placeholder: 'Start typing to search jobs'
         };
         cfg.load = (query, callback) => {
-            if (!query.length) return callback();
             let url = `${globalData.API_URL}job-posting/?employerId=${employerId}&search=${encodeURIComponent(query)}`;
             $.ajax({
                 url,
@@ -29,7 +30,9 @@ class EmployerJobsSelectize {
         }
         cfg.render = {
             option: (data, escape) => {
-                const locationStr = (data.location) ? `<div class="-sub-text">${escape(data.location)}</div>` : '';
+                const location = jobs.getLocationStr(data);
+                const locationStr = (location) ? `<div class="-sub-text">${escape(location)}</div>` : '';
+
                 return `
                     <div class="option" data-selectable data-value="${data.id}" style="cursor: pointer;">
                         ${escape(data.jobTitle)}${locationStr}

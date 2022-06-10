@@ -20,6 +20,7 @@ logger = logging.getLogger()
 
 
 class ProjectView(UproveAPIView):
+    SHOWN_PROJECT_ROLES = ('customer success', 'customer experience', 'account management')
 
     def get(self, request, projectId=None):
         projectId = projectId or self.data.get('id')
@@ -38,7 +39,7 @@ class ProjectView(UproveAPIView):
 
         return Response([
             getSerializedProject(p, isIncludeDetails=isPermittedSessionUser, evaluationEmployerId=employerId)
-            for p in self.getProjects(employerId=employerId, projectIds=allowedProjectIds)
+            for p in self.getProjects(projectIds=allowedProjectIds)
         ])
 
     @atomic
@@ -51,7 +52,6 @@ class ProjectView(UproveAPIView):
             'title': None,
             'image': None,
             'role_id': {'formName': 'roleId'},
-            'skillLevelBit': None,
             'description': None,
             'background': None,
             'instructions': None,
@@ -82,7 +82,6 @@ class ProjectView(UproveAPIView):
         dataUtil.setObjectAttributes(project, self.data, {
             'title': None,
             'role_id': {'formName': 'roleId'},
-            'skillLevelBit': None,
             'description': None,
             'background': None,
             'instructions': None,
@@ -130,7 +129,7 @@ class ProjectView(UproveAPIView):
         if not customProject:
             customProject = CustomProject(
                 project=project,
-                skillLevelBit=project.skillLevelBit
+                skillLevelBit=1
             )
             customProject.save()
 
@@ -147,24 +146,24 @@ class ProjectView(UproveAPIView):
     def getProject(projectId):
         try:
             return Project.objects \
-                .select_related('employer', 'role') \
+                .select_related('role') \
                 .prefetch_related('evaluationCriteria', 'projectFile', 'skills') \
                 .get(id=projectId)
         except Project.DoesNotExist as e:
             raise e
 
     @staticmethod
-    def getProjects(employerId=None, isIgnoreEmployerId=False, projectIds=None):
-        if isIgnoreEmployerId:
-            q = Q()
-        else:
-            q = Q(employer_id__isnull=True)
-            if employerId:
-                q |= Q(employer_id=employerId)
+    def getProjects(projectIds=None):
+        roleFilter = Q()
+        for shownRole in ProjectView.SHOWN_PROJECT_ROLES:
+            roleFilter |= Q(role__name__iregex=shownRole)
+
+        q = roleFilter
+
         if projectIds:
             q &= Q(id__in=projectIds)
         return Project.objects\
-            .select_related('employer', 'role')\
+            .select_related('role')\
             .prefetch_related('evaluationCriteria', 'projectFile', 'skills')\
             .filter(q)
 

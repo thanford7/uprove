@@ -1,5 +1,5 @@
 <template>
-    <table class="table table-hover">
+    <table class="table table-hover align-middle">
         <thead>
         <tr v-for="headerRow in headers">
             <th v-for="header in headerRow" :colspan="header.colspan" :class="header.classes">

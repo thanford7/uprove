@@ -1,4 +1,3 @@
-import EmployersHeroBanner from "./EmployersHeroBanner";
-import EmployersPage from './EmployersPage.vue';
+import EmployersPage from './EmployersPage2.vue';
 
-export {EmployersPage as page, EmployersHeroBanner as banner};
+export {EmployersPage as page};
