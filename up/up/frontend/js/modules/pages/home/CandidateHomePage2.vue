@@ -163,7 +163,7 @@
                                     Get premium resources to advance your Customer Success career
                                 </template>
                                 <template v-slot:front-price>
-                                    <h2 class="-color-darkblue-text">$100/mo</h2>
+                                    <h2 class="-color-darkblue-text m-0">$30/mo</h2><h6>(annual contract)</h6>
                                 </template>
                                 <template v-slot:front-details>
                                     <p><b>Premium resources</b></p>

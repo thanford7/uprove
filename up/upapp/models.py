@@ -360,6 +360,15 @@ class Skill(models.Model):
         unique_together = ('name', 'skillProject')
 
 
+class TrainingCourse(models.Model):
+    title = models.CharField(max_length=200)
+    shortDescription = models.TextField()
+    urlSalesPage = models.CharField(max_length=50)
+    urlCoursePage = models.CharField(max_length=50)
+    priceBasic = models.FloatField()
+    pricePremium = models.FloatField()
+
+
 class Project(AuditFields):
     title = models.CharField(max_length=250)
     role = models.ForeignKey(Role, on_delete=models.PROTECT)
@@ -580,6 +589,15 @@ class UserProject(AuditFields):
 
     class Meta:
         unique_together = ('user', 'customProject')
+
+
+class UserTraining(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userTraining')
+    course = models.ForeignKey(TrainingCourse, on_delete=models.CASCADE)
+    completionPct = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'course')
 
 
 class BlogPost(AuditFields):
