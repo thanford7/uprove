@@ -12,7 +12,7 @@ from upapp.apis import UproveAPIView
 from upapp.apis.project import ProjectView
 from upapp.models import *
 from upapp.modelSerializers import getSerializedEmployer, getSerializedEmployerJob, \
-    getSerializedOrganization, getSerializedUserProject, CUSTOMER_SUCCESS_ROLE_IDS
+    getSerializedOrganization, CUSTOMER_SUCCESS_ROLE_IDS
 import upapp.security as security
 from upapp.utils import dataUtil, dateUtil
 

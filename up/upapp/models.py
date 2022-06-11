@@ -14,7 +14,7 @@ __all__ = (
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerJob',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
-    'CompanySize', 'Country', 'State', 'RoleLevel', 'Activity'
+    'CompanySize', 'Country', 'State', 'RoleLevel', 'Activity', 'TrainingCourse', 'UserTraining'
 )
 
 
@@ -363,10 +363,11 @@ class Skill(models.Model):
 class TrainingCourse(models.Model):
     title = models.CharField(max_length=200)
     shortDescription = models.TextField()
+    coverImage = models.ImageField(upload_to=getUploadLocation('uploads-course'))
     urlSalesPage = models.CharField(max_length=50)
     urlCoursePage = models.CharField(max_length=50)
+    teachableCourseId = models.CharField(max_length=20)
     priceBasic = models.FloatField()
-    pricePremium = models.FloatField()
 
 
 class Project(AuditFields):
@@ -595,6 +596,8 @@ class UserTraining(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userTraining')
     course = models.ForeignKey(TrainingCourse, on_delete=models.CASCADE)
     completionPct = models.IntegerField(default=0)
+    enrolledDateTime = models.DateTimeField()
+    completedDateTime = models.DateTimeField(null=True)
 
     class Meta:
         unique_together = ('user', 'course')

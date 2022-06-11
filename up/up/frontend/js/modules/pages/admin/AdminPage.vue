@@ -18,6 +18,9 @@
                 <div class="col-md-3 me-2 mb-2">
                     <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editSkillModal')">Skill</button>
                 </div>
+                <div class="col-md-3 me-2 mb-2">
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" @click="eventBus.emit('open:editCourseModal')">Course</button>
+                </div>
             </div>
             <div class="row ms-md-2">
                 <h5>Edit</h5>
@@ -69,9 +72,19 @@
                         @selected="openEditSkillModal.bind(this)($event)"
                     />
                 </div>
+                <div class="col-md-3 me-2">
+                    <InputSelectize
+                        ref="editCourse"
+                        elId="editCourse"
+                        :cfg="courseCfg"
+                        :isParseAsInt="true"
+                        @selected="openEditCourseModal.bind(this)($event)"
+                    />
+                </div>
             </div>
         </div>
     </BasePage>
+    <EditCourseModal/>
     <EditEmployerModal :isUpdateDataOverride="false"/>
     <EditRoleModal/>
     <EditProjectModal/>
@@ -82,6 +95,7 @@
 <script>
 import BannerAlert from "../../components/BannerAlert";
 import BasePage from "../base/BasePage";
+import EditCourseModal from "../../modals/EditCourseModal";
 import EditEmployerModal from "../../modals/EditEmployerModal";
 import EditRoleModal from "../../modals/EditRoleModal";
 import EditProjectModal from "../../modals/EditProjectModal";
@@ -91,14 +105,18 @@ import employersSelectize from "../../selectizeCfgs/employers";
 import InputSelectize from "../../inputs/InputSelectize";
 import SkillsSelectize from "../../inputs/SkillsSelectize";
 import usersSelectize from "../../selectizeCfgs/users";
+import coursesSelectize from "../../selectizeCfgs/courses";
 
 export default {
     name: "AdminPage.vue",
     components: {
-        BasePage, SkillsSelectize, BannerAlert, EditEmployerModal, EditRoleModal, EditProjectModal,
+        BasePage, SkillsSelectize, BannerAlert, EditCourseModal, EditEmployerModal, EditRoleModal, EditProjectModal,
         EditSkillModal, EditUserModal, InputSelectize
     },
     computed: {
+        courseCfg() {
+            return coursesSelectize.getCoursesCfg();
+        },
         employerCfg() {
             return employersSelectize.getEmployersCfg();
         },
@@ -121,6 +139,10 @@ export default {
         }
     },
     methods: {
+        getCourse(courseId) {
+            // Copy so the form doesn't mutate the original data
+            return Object.assign({}, this.$refs.editCourse.elSel.options[courseId]);
+        },
         getEmployer(employerId) {
             // Copy so the form doesn't mutate the original data
             return Object.assign({}, this.$refs.editEmployer.elSel.options[employerId]);
@@ -142,6 +164,13 @@ export default {
         },
         getUser(userId) {
             return Object.assign({}, this.$refs.editUser.elSel.options[userId]);
+        },
+        openEditCourseModal(courseId) {
+            if (!courseId) {
+                return;
+            }
+            this.eventBus.emit('open:editCourseModal', this.getCourse(courseId));
+            this.$refs.editCourse.elSel.clear(true);
         },
         openEditEmployerModal(employerId) {
             if (!employerId) {

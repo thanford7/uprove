@@ -130,61 +130,66 @@
                             <h3>Ready to take your Customer Success career to the next level?</h3>
                             <h6>Join a professional community of Customer Success experts</h6>
                         </div>
-                        <div class="col-md-4">
-                            <CardPricing colorScheme="orange" :buttonClickFn="() => signUpWithContext()">
-                                <template v-slot:front-header>Community</template>
-                                <template v-slot:front-header-explainer>
-                                    Free to join and get access to great resources
-                                </template>
-                                <template v-slot:front-price>
-                                    <h2 class="-color-orange-text">Free</h2>
-                                </template>
-                                <template v-slot:front-details>
-                                    <p><b>Everything you need</b></p>
-                                    <ListFontAwesome
-                                        faClassesStr="fas fa-bullseye"
-                                        faColor="orange"
-                                        :items="[
-                                                'Jobs board to find your next job',
-                                                'Profile to allow employers to find and hire you',
-                                                'Introductory Customer Success training courses',
-                                                'Webinars and Customer Success resources',
-                                                'A la carte pricing for premium training and events'
-                                            ]"
-                                    />
-                                </template>
-                                <template v-slot:front-btn-text>Create account</template>
-                            </CardPricing>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-lg btn-primary button-interactive" @click="signUpWithContext">
+                                Create account
+                            </button>
                         </div>
-                        <div class="col-md-4">
-                            <CardPricing colorScheme="darkblue" :buttonClickFn="() => signUpWithContext(candidateWaitlistAccountType)">
-                                <template v-slot:front-header>Professional</template>
-                                <template v-slot:front-header-explainer>
-                                    Get premium resources to advance your Customer Success career
-                                </template>
-                                <template v-slot:front-price>
-                                    <h2 class="-color-darkblue-text m-0">$30/mo</h2><h6>(annual contract)</h6>
-                                </template>
-                                <template v-slot:front-details>
-                                    <p><b>Premium resources</b></p>
-                                    <ListFontAwesome
-                                        faClassesStr="fas fa-bullseye"
-                                        faColor="darkblue"
-                                        :items="[
-                                                'Premium Customer Success training courses',
-                                                'Certificates of completion for all training courses',
-                                                'Exclusive webinars and events',
-                                                'One-on-one resume review with a Customer Success expert',
-                                                'Cancel at any time'
-                                            ]"
-                                    />
-                                </template>
-                                <template v-slot:front-btn-text>
-                                    Join waitlist
-                                    <InfoToolTip :elId="getNewElUid()" content="This will create a free account for you and we'll notify you once the premium membership is available"/>
-                                </template>
-                            </CardPricing>
-                        </div>
+<!--                        <div class="col-md-4">-->
+<!--                            <CardPricing colorScheme="orange" :buttonClickFn="() => signUpWithContext()">-->
+<!--                                <template v-slot:front-header>Community</template>-->
+<!--                                <template v-slot:front-header-explainer>-->
+<!--                                    Free to join and get access to great resources-->
+<!--                                </template>-->
+<!--                                <template v-slot:front-price>-->
+<!--                                    <h2 class="-color-orange-text">Free</h2>-->
+<!--                                </template>-->
+<!--                                <template v-slot:front-details>-->
+<!--                                    <p><b>Everything you need</b></p>-->
+<!--                                    <ListFontAwesome-->
+<!--                                        faClassesStr="fas fa-bullseye"-->
+<!--                                        faColor="orange"-->
+<!--                                        :items="[-->
+<!--                                                'Jobs board to find your next job',-->
+<!--                                                'Profile to allow employers to find and hire you',-->
+<!--                                                'Introductory Customer Success training courses',-->
+<!--                                                'Webinars and Customer Success resources',-->
+<!--                                                'A la carte pricing for premium training and events'-->
+<!--                                            ]"-->
+<!--                                    />-->
+<!--                                </template>-->
+<!--                                <template v-slot:front-btn-text>Create account</template>-->
+<!--                            </CardPricing>-->
+<!--                        </div>-->
+<!--                        <div class="col-md-4">-->
+<!--                            <CardPricing colorScheme="darkblue" :buttonClickFn="() => signUpWithContext(candidateWaitlistAccountType)">-->
+<!--                                <template v-slot:front-header>Professional</template>-->
+<!--                                <template v-slot:front-header-explainer>-->
+<!--                                    Get premium resources to advance your Customer Success career-->
+<!--                                </template>-->
+<!--                                <template v-slot:front-price>-->
+<!--                                    <h2 class="-color-darkblue-text m-0">$30/mo</h2><h6>(annual contract)</h6>-->
+<!--                                </template>-->
+<!--                                <template v-slot:front-details>-->
+<!--                                    <p><b>Premium resources</b></p>-->
+<!--                                    <ListFontAwesome-->
+<!--                                        faClassesStr="fas fa-bullseye"-->
+<!--                                        faColor="darkblue"-->
+<!--                                        :items="[-->
+<!--                                                'Premium Customer Success training courses',-->
+<!--                                                'Certificates of completion for all training courses',-->
+<!--                                                'Exclusive webinars and events',-->
+<!--                                                'One-on-one resume review with a Customer Success expert',-->
+<!--                                                'Cancel at any time'-->
+<!--                                            ]"-->
+<!--                                    />-->
+<!--                                </template>-->
+<!--                                <template v-slot:front-btn-text>-->
+<!--                                    Join waitlist-->
+<!--                                    <InfoToolTip :elId="getNewElUid()" content="This will create a free account for you and we'll notify you once the premium membership is available"/>-->
+<!--                                </template>-->
+<!--                            </CardPricing>-->
+<!--                        </div>-->
                     </div>
                 </div>
             </div>
