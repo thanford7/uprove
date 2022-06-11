@@ -492,6 +492,7 @@ class UserJobApplication(models.Model):
     offerDateTime = models.DateTimeField(null=True)
     declineDateTime = models.DateTimeField(null=True)
     withdrawDateTime = models.DateTimeField(null=True)
+    isExternal = models.BooleanField(default=True)
 
     leverOpportunityKey = models.CharField(max_length=75, null=True)
 

@@ -532,6 +532,7 @@ def getSerializedJobApplication(jobApplication: UserJobApplication, includeJob=F
         'employer': jobApplication.employerJob.employer.companyName,
         'employerLogo': jobApplication.employerJob.employer.logo.url if jobApplication.employerJob.employer.logo else None,
         'status': jobApplication.status,
+        'isExternal': jobApplication.isExternal,
         'statusUpdateDateTime': getDateTimeFormatOrNone(jobApplication.statusUpdateDateTime),
     }
 

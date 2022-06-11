@@ -2,6 +2,15 @@
     <div>
         <div v-if="!isUpdate">
             {{APPLICATION_STATUS[application.status]}}
+            <template v-if="application.isExternal">
+                &nbsp;<InfoToolTip
+                    :elId="getNewElUid()"
+                    content="This employer is not a Uprove partner. We can't track the status after you apply"
+                    :isExcludeInfoCircle="true"
+                >
+                    <i class="fas fa-exclamation-triangle -color-orange-text"></i>
+                </InfoToolTip>
+            </template>
             <div class="-text-small -color-moderategrey-text">
                 {{getTimeDifferenceString({from: application.statusUpdateDateTime})}}&nbsp;
                 <a v-if="isAllowUpdate" href="#" @click="isUpdate=true">Update</a>
@@ -23,11 +32,12 @@ import ApplicationStatusSelectize from "../../inputs/ApplicationStatusSelectize"
 import dataUtil from "../../../utils/data";
 import dateUtil from "../../../utils/dateUtil";
 import {eventBus} from "../../../vueMixins";
+import InfoToolTip from "../../components/InfoToolTip";
 
 export default {
     name: "ApplicationStatus",
     props: ['application', 'isAllowUpdate'],
-    components: {ApplicationStatusSelectize},
+    components: {InfoToolTip, ApplicationStatusSelectize},
     data() {
         return {
             APPLICATION_STATUS,

@@ -1354,8 +1354,6 @@ class UserJobApplicationView(UproveAPIView):
 
     @atomic
     def post(self, request):
-        from upapp.views import PageRefreshKeys, getProfileData
-
         user = UserView.getUser(self.data['userId'])
         jobIds = self.data.get('jobs') or [self.data.get('employerJobId')]
         if not jobIds:
@@ -1372,7 +1370,7 @@ class UserJobApplicationView(UproveAPIView):
             jobApplication = self.getUserJobApplications(userJobApplicationId=jobApplication.id)
             jobApps.append(jobApplication)
 
-            if self.user.leverUserKey:
+            if self.user.leverUserKey and self.data.get('isInvite'):
                 errorMsg = LeverOpportunities.addLeverOpportunity(request, self.user, jobApplication,
                                                                    note=self.data.get('note'))
 
@@ -1412,8 +1410,6 @@ class UserJobApplicationView(UproveAPIView):
                     <p>Uprove team</p>
                 '''
             )
-
-        data = {}
 
         return Response(
             status=status.HTTP_200_OK,
@@ -1471,6 +1467,7 @@ class UserJobApplicationView(UproveAPIView):
             userJobApp = UserJobApplication(
                 user=user,
                 employerJob=job,
+                isExternal=not job.employer.isClient
             )
             if isInvite:
                 userJobApp.inviteDateTime = timezone.now()

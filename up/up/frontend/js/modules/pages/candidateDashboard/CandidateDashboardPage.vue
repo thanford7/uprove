@@ -154,7 +154,7 @@
                                                 <i class="fas fa-backspace"></i> Withdraw
                                             </button>
                                         </td>
-                                        <td>{{ jobApplication.job.employer }}</td>
+                                        <td>{{ jobApplication.employer }}</td>
                                         <td><a
                                             :href="`/job-posting/${jobApplication.job.id}/`">{{
                                                 jobApplication.job.jobTitle

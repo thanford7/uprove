@@ -34,11 +34,15 @@
                     </div>
                     <div v-if="!initData.userApplication" class="-border-bottom--light pb-2 mb-2">
                         <FastApplyBtn
+                            v-if="initData.job.isClient"
                             btnClasses="w-100"
                             :disabled="(isLoggedIn) ? null : true"
                             :title="(isLoggedIn) ? null : 'Must be logged in to submit application'"
                             :job="initData.job"
                         />
+                        <div class="btn btn-primary w-100" @click="submitAndTrackExternalApplication">
+                            Apply&nbsp;<i class="fas fa-external-link-alt"></i>
+                        </div>
                     </div>
                     <div v-if="initData.job.allowedProjects.length">
                         <h6>Increase your chances of landing a job by completing a relevant project to showcase your skills</h6>
@@ -48,6 +52,7 @@
                                     <i class="fas fa-external-link-alt"></i>
                                 </span>
                                 <a :href="`/project/${project.projectId}`" target="_blank">{{project.projectTitle}}</a>
+                                &nbsp;<div class="badge bg-secondary rounded-pill -color-black-text">{{getUserProjectStatus(project)}}</div>
                                 <div class="-text-medium" v-html="initData.projects[project.projectId].description"></div>
                             </li>
                         </ul>
@@ -59,6 +64,7 @@
 </template>
 
 <script>
+import {getAjaxFormData, makeAjaxRequest} from "../../../vueMixins";
 import AccordionItem from "../../components/AccordionItem";
 import BannerAlert from "../../components/BannerAlert";
 import FileDisplay from "../../components/FileDisplay";
@@ -104,23 +110,6 @@ export default {
                         hasProject: existingCustomProjectIds.includes(ap.id)
                     }
                 }),
-                render: {
-                    option: (data, escape) => {
-                        const extraText = (data.hasProject) ? `
-                            <div class="-text-small mt-2">
-                                <i class="fas fa-check-circle -color-green-text"></i>
-                                You have already started this project and can reuse it for this application
-                            </div>
-                        ` : '';
-
-                        return `
-                            <div class="option" data-selectable data-value="${data.value}" style="cursor: pointer;">
-                                ${escape(data.text)}
-                                ${extraText}
-                            </div>
-                        `;
-                    }
-                }
             }
         },
         hasProjectSaved() {
@@ -129,11 +118,32 @@ export default {
     },
     methods: {
         isEmpty: dataUtil.isEmpty.bind(dataUtil),
-        getApplicationUrl(job) {
-            if (job.isClient && job.allowedProjects.length) {
-                return `/job-posting/${job.id}`;
+        getUserProjectStatus(project) {
+            if (!this.initData?.userProjects?.length) {
+                return 'Not Started'
             }
-            return job.applicationUrl;
+
+            const userProject = this.initData.userProjects.find((up) => up.customProject.id === project.id);
+            if (!userProject) {
+                return 'Not Started';
+            } else if (userProject.status === this.globalData.PROJECT_STATUSES.COMPLETE) {
+                return 'Completed'
+            }
+
+            return 'In Progress';
+        },
+        submitAndTrackExternalApplication() {
+            makeAjaxRequest(`${this.apiUrl}user-job-application/`, {
+                method: 'POST',
+                data: getAjaxFormData({
+                    userId: this.globalData.uproveUser.id,
+                    employerJobId: this.initData.job.id
+                }),
+                success: () => {
+                    this.redirectUrl(this.initData.job.applicationUrl, true);
+                },
+                error: this.onSaveFailure
+            });
         },
         processFormData() {
             return Object.assign(this.readForm(), {
@@ -143,30 +153,6 @@ export default {
         },
         getAjaxCfgOverride() {
             return {method: 'POST'}
-        },
-        selectAndSetProject(customProjectId) {
-            this.formData.customProjectId = customProjectId;
-            if (!customProjectId) {
-                this.formData.userProjectId = null;
-                return;
-            }
-
-            // Set existing user project if it exists
-            if (this.initData.userProjects) {
-                const existingUserProject = this.initData.userProjects.find((up) => up.customProject.id === customProjectId);
-                if (existingUserProject) {
-                    this.formData.userProjectId = existingUserProject.id;
-                }
-            }
-
-            const accordionItem = this.$refs.jobPosting.$refs[`accordionItem-${customProjectId}`];
-            $(`#${accordionItem.accordionElId}`).find('.accordion-header').each((idx, el) => {
-                const isShown = $(el).prop('id') === accordionItem.headerElId;
-                const accordionButton = $(el).find('button.accordion-button');
-                if (isShown === accordionButton.hasClass('collapsed')) {
-                    accordionButton.click();
-                }
-            });
         },
         signUpWithContext() {
             dataUtil.signUpWithContext(this.initData);
