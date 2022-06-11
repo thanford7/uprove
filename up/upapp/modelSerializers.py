@@ -343,6 +343,18 @@ def getSerializedOrganization(organization: Organization):
     }
 
 
+def getSerializedTrainingCourse(course: TrainingCourse):
+    return {
+        'id': course.id,
+        'title': course.title,
+        'shortDescription': course.shortDescription,
+        'coverImage': course.coverImage.url,
+        'urlSalesPage': course.urlSalesPage,
+        'urlCoursePage': course.urlCoursePage,
+        'priceBasic': course.priceBasic,
+    }
+
+
 def getSerializedProject(project: Project, isIncludeDetails: bool = False, isAdmin=False, evaluationEmployerId=None):
     return {
         'id': project.id,

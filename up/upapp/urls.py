@@ -5,7 +5,7 @@ from django.urls import path, re_path
 
 from upapp import views
 from upapp import viewsAuth
-from upapp.apis import blog, employer, lever, locations, project, sendEmail, storage, tag, user
+from upapp.apis import blog, employer, lever, locations, project, sendEmail, storage, tag, teachable, training, user
 from upapp.sitemaps import sitemaps
 
 apiPath = 'api/v1/'
@@ -43,6 +43,7 @@ urlpatterns = [
     re_path(apiPath + 'account-employer/(?P<employerId>[0-9]+)?/?$', employer.EmployerView.as_view()),
     re_path(apiPath + 'account-user/(?P<userId>[0-9]+)?/?$', user.UserView.as_view()),
     re_path(apiPath + 'blog/(?P<blogId>[0-9]+)?/?$', blog.BlogPostView.as_view()),
+    re_path(apiPath + 'course/(?P<courseId>[0-9]+)?/?$', training.TrainingCourseView.as_view()),
     re_path(apiPath + 'job-posting/(?P<jobId>[0-9]+)?/?$', employer.JobPostingView.as_view()),
     re_path(apiPath + 'locations/$', locations.LocationView.as_view()),
     re_path(apiPath + 'organization/$', employer.OrganizationView.as_view()),
@@ -92,6 +93,9 @@ urlpatterns = [
     re_path(f'^{apiPath}lever/change/hire/(?P<employerId>[0-9]+)?/?$', lever.LeverHired.as_view()),
     re_path(f'^{apiPath}lever/change/delete/(?P<employerId>[0-9]+)?/?$', lever.LeverDeleted.as_view()),
     re_path(f'^{apiPath}lever/config/(?P<employerId>[0-9]+)?/?$', lever.LeverConfig.as_view()),
+
+    # Teachable
+    re_path(f'^{apiPath}teachable/enroll/?$', teachable.TeachableEnrolled.as_view()),
 
     # Storage
     path(apiPath + 'user-storage/', storage.UserStorageView.as_view()),

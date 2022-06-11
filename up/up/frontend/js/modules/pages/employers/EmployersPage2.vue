@@ -109,7 +109,7 @@
                         </template>
                         <template v-slot:front-price>
                             <h2 class="-color-orange-text">$0/mo</h2>
-                            <h6>20% first year salary fee per hire</h6>
+                            <h6>25% first year salary fee per hire</h6>
                             <h6>No contract term</h6>
                         </template>
                         <template v-slot:front-details>

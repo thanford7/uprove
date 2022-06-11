@@ -20,9 +20,9 @@
                 <li v-if="!isLoggedIn" class="nav-item" :class="getHighlightClass('employers')">
                     <a class="nav-link nav-link-tight" href="/employers">For Employers</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link nav-link-tight" href="https://uprove.teachable.com" target="_blank">Courses</a>
-                </li>
+<!--                <li class="nav-item">-->
+<!--                    <a class="nav-link nav-link-tight" href="https://uprove.teachable.com" target="_blank">Courses</a>-->
+<!--                </li>-->
                 <li v-if="isSuperUser || isCandidate" class="nav-item" :class="getHighlightClass('jobs')">
                     <a class="nav-link nav-link-tight" href="/jobs">Jobs</a>
                 </li>
