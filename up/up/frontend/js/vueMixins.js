@@ -120,11 +120,16 @@ const makeAjaxRequest = (url, cfg) => {
     }, cfg));
 };
 
+const addAlert = (alert) => {
+    store.commit('addAlert', alert);
+}
+
 const addErrorAlert = (xhr, textStatus, errorThrown) => {
-    store.commit('addAlert', {
+    const alert = {
         message: getFailureMessage(errorThrown, xhr),
         alertType: SEVERITY.DANGER
-    });
+    }
+    addAlert(alert);
 };
 
 
@@ -377,6 +382,7 @@ const globalVarsMixin = {
         }
     },
     methods: {
+        addAlert,
         getNewElUid,
         isSelf(userId) {
             return this.globalData.uproveUser.id === userId;

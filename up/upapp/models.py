@@ -632,8 +632,9 @@ class UserActivity(models.Model):
 class Waitlist(models.Model):
     class WaitlistType(Enum):
         MENTOR = 'mentor'
-        PREMIUM_CANDIDATE = 'premium_candidate'
+        BOOTCAMP = 'bootcamp'
 
+    name = models.CharField(max_length=100, null=True)
     email = models.EmailField()
     waitlistType = models.CharField(max_length=100)
     signUpDateTime = models.DateTimeField()

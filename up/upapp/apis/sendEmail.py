@@ -35,6 +35,27 @@ def sendSgEmail(message: Mail):
         return False
 
 
+def getEncodedFile(fileUrl):
+    fileOpenner = lambda url: urllib.request.urlopen(url)
+    if settings.DEBUG:
+        fileOpenner = lambda url: open(url, 'rb')
+    with fileOpenner(fileUrl) as file:
+        encodedFile = base64.b64encode(file.read()).decode()
+    return encodedFile
+
+
+def getAttachment(fileName, fileUrl, fileType, contentId, isDisplayInline=False):
+    encodedLogo = getEncodedFile(fileUrl)
+
+    return Attachment(
+        file_content=FileContent(encodedLogo),
+        file_name=FileName(fileName),
+        file_type=FileType(fileType),
+        disposition=Disposition('inline') if isDisplayInline else None,
+        content_id=ContentId(contentId)
+    )
+
+
 class EmailView(UproveAPIView):
     permission_classes = [AllowAny]
 
@@ -44,12 +65,16 @@ class EmailView(UproveAPIView):
     TYPE_CANDIDATE_INTEREST = 'CANDIDATE_INTEREST'
 
     SEND_EMAIL_ADDRESS = 'no_reply@uprove.co'  # Email address where all emails originate from
+    EMAIL_ADDRESS_COMMUNITY = 'community@uprove.co'
+    EMAIL_ADDRESS_INFO = 'info@uprove.co'
+    EMAIL_ADDRESS_SALES = 'sales@uprove.co'
+
 
     EMAIL_ROUTES = {
-        TYPE_CONTACT: 'info@uprove.co',
-        TYPE_EMPLOYER_INTEREST: 'sales@uprove.co',
-        TYPE_CANDIDATE_SIGNUP: 'community@uprove.co',
-        TYPE_CANDIDATE_INTEREST: 'info@uprove.co'
+        TYPE_CONTACT: EMAIL_ADDRESS_INFO,
+        TYPE_EMPLOYER_INTEREST: EMAIL_ADDRESS_SALES,
+        TYPE_CANDIDATE_SIGNUP: EMAIL_ADDRESS_COMMUNITY,
+        TYPE_CANDIDATE_INTEREST: EMAIL_ADDRESS_INFO
     }
 
     def post(self, request, contactType=None):
@@ -63,7 +88,7 @@ class EmailView(UproveAPIView):
             raise Exception('An error occurred while sending the email')
 
     @staticmethod
-    def sendEmail(subjectText, toEmails, djangoContext=None, djangoEmailBodyTemplate=None, htmlContent=None, fromEmail=None, ccEmail=None):
+    def sendEmail(subjectText, toEmails, djangoContext=None, djangoEmailBodyTemplate=None, htmlContent=None, fromEmail=None, ccEmail=None, attachments=None):
         """Blend SendGrid's email service with Django's email templates
         :param subjectText {str}: The email subject line
         :param toEmails {list}:
@@ -72,6 +97,7 @@ class EmailView(UproveAPIView):
         provided directly
         :param htmlContent {str}: Html string that has already been formatted
         :param fromEmail {str}: If not provided, the default no reply email will be used
+        :param attachments {list}: Each attachment must be an Attachment object
         :return: SendGrid email response
         """
         subject = ''.join(subjectText.splitlines())  # Email subject *must not* contain newlines
@@ -92,19 +118,20 @@ class EmailView(UproveAPIView):
                 message.add_cc(email)
 
         # Add Uprove logo
-        imageName = 'logo.png'
-        imageUrl = static(f'img/{imageName}')
-        fileOpenner = lambda url: urllib.request.urlopen(url)
+        imageUrl = static('img/logo.png')
         if settings.DEBUG:
             imageUrl = f'up{imageUrl}'
-            fileOpenner = lambda url: open(url, 'rb')
-        with fileOpenner(imageUrl) as logoFile:
-            encodedLogo = base64.b64encode(logoFile.read()).decode()
-            message.attachment = Attachment(FileContent(encodedLogo),
-                                            FileName(imageName),
-                                            FileType('image/png'),
-                                            Disposition('inline'),
-                                            ContentId('logo'))
+        message.attachment = getAttachment(
+            'logo.png',
+            imageUrl,
+            'image/png',
+            'logo',
+            isDisplayInline=True
+        )
+
+        if attachments:
+            for attachment in attachments:
+                message.attachment = attachment
 
         return sendSgEmail(message)
 

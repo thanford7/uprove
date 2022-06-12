@@ -3,6 +3,7 @@
         <div>
             <div class="container-lg content">
                 <div class="row mt-5 align-items-center" :class="(isMobile) ? 'mobile-top' : ''">
+                    <BannerAlert/>
                     <div class="col-md-7 col-12 justify-content-center">
                         <h1 class="fw-bolder">Find the best Customer Success jobs and grow professionally</h1>
                         <div class="mt-4 -text-large">
@@ -126,70 +127,80 @@
             <div class="content -color-lightgrey__light mt-4 pt-5 pb-5">
                 <div class="container-lg">
                     <div class="row justify-content-center">
-                        <div class="mb-md-3">
+                        <div class="mb-md-3 col-12">
                             <h3>Ready to take your Customer Success career to the next level?</h3>
-                            <h6>Join a professional community of Customer Success experts</h6>
+                            <h5>Join the waitlist for the Customer Success Bootcamp (August 8-10)</h5>
                         </div>
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-lg btn-primary button-interactive" @click="signUpWithContext">
-                                Create account
-                            </button>
+                        <div class="col-md-6 mt-2">
+                            <img
+                                :src="globalData.STATIC_URL + 'img/customerSuccessBootcamp.png'"
+                                alt="Customer success bootcamp"
+                                :style="(isMobile) ? 'max-height: 25vh' : ''"
+                            >
+                            <div class="mt-3">
+                                <h5>
+                                    <i class="fas fa-plus -color-green-text"></i> 3-Day Live, Virtual Bootcamp
+                                </h5>
+                                <h5>
+                                    <i class="fas fa-plus -color-green-text"></i> Certificate of Completion
+                                </h5>
+                                <h5>
+                                    <i class="fas fa-plus -color-green-text"></i> 1-on-1 Resume Review
+                                </h5>
+                                <h5>
+                                    <i class="fas fa-plus -color-green-text"></i> 1-on-1 Skills Gap Assessment
+                                </h5>
+                            </div>
                         </div>
-<!--                        <div class="col-md-4">-->
-<!--                            <CardPricing colorScheme="orange" :buttonClickFn="() => signUpWithContext()">-->
-<!--                                <template v-slot:front-header>Community</template>-->
-<!--                                <template v-slot:front-header-explainer>-->
-<!--                                    Free to join and get access to great resources-->
-<!--                                </template>-->
-<!--                                <template v-slot:front-price>-->
-<!--                                    <h2 class="-color-orange-text">Free</h2>-->
-<!--                                </template>-->
-<!--                                <template v-slot:front-details>-->
-<!--                                    <p><b>Everything you need</b></p>-->
-<!--                                    <ListFontAwesome-->
-<!--                                        faClassesStr="fas fa-bullseye"-->
-<!--                                        faColor="orange"-->
-<!--                                        :items="[-->
-<!--                                                'Jobs board to find your next job',-->
-<!--                                                'Profile to allow employers to find and hire you',-->
-<!--                                                'Introductory Customer Success training courses',-->
-<!--                                                'Webinars and Customer Success resources',-->
-<!--                                                'A la carte pricing for premium training and events'-->
-<!--                                            ]"-->
-<!--                                    />-->
-<!--                                </template>-->
-<!--                                <template v-slot:front-btn-text>Create account</template>-->
-<!--                            </CardPricing>-->
-<!--                        </div>-->
-<!--                        <div class="col-md-4">-->
-<!--                            <CardPricing colorScheme="darkblue" :buttonClickFn="() => signUpWithContext(candidateWaitlistAccountType)">-->
-<!--                                <template v-slot:front-header>Professional</template>-->
-<!--                                <template v-slot:front-header-explainer>-->
-<!--                                    Get premium resources to advance your Customer Success career-->
-<!--                                </template>-->
-<!--                                <template v-slot:front-price>-->
-<!--                                    <h2 class="-color-darkblue-text m-0">$30/mo</h2><h6>(annual contract)</h6>-->
-<!--                                </template>-->
-<!--                                <template v-slot:front-details>-->
-<!--                                    <p><b>Premium resources</b></p>-->
-<!--                                    <ListFontAwesome-->
-<!--                                        faClassesStr="fas fa-bullseye"-->
-<!--                                        faColor="darkblue"-->
-<!--                                        :items="[-->
-<!--                                                'Premium Customer Success training courses',-->
-<!--                                                'Certificates of completion for all training courses',-->
-<!--                                                'Exclusive webinars and events',-->
-<!--                                                'One-on-one resume review with a Customer Success expert',-->
-<!--                                                'Cancel at any time'-->
-<!--                                            ]"-->
-<!--                                    />-->
-<!--                                </template>-->
-<!--                                <template v-slot:front-btn-text>-->
-<!--                                    Join waitlist-->
-<!--                                    <InfoToolTip :elId="getNewElUid()" content="This will create a free account for you and we'll notify you once the premium membership is available"/>-->
-<!--                                </template>-->
-<!--                            </CardPricing>-->
-<!--                        </div>-->
+                        <div class="col-md-6 mt-2">
+                            <div class="mb-3">
+                                <h6>This class is for:</h6>
+                                <ListFontAwesome
+                                    faClassesStr="fas fa-check-circle"
+                                    faColor="green"
+                                    :items="[
+                                        'Professionals with 2+ years of experience that want to switch into Customer Success',
+                                        'Customer Success Professionals that want to improve their skill set',
+                                        'Customer Success Leaders that want to improve their team'
+                                    ]"
+                                />
+                            </div>
+                            <div class="mb-3">
+                                <h6>Course curriculum:</h6>
+                                <ListFontAwesome
+                                    faClassesStr="fas fa-award"
+                                    faColor="green"
+                                    :items="[
+                                        'Navigating the phases of the customer journey',
+                                        'Project management during implementation',
+                                        'Data analysis using Excel',
+                                        'Key performance indicators',
+                                        'Effective sales - upselling and cross selling',
+                                        'Making presentations',
+                                        'Public speaking',
+                                        'SaaS 101',
+                                        'Indirect management',
+                                        'Much more...'
+                                    ]"
+                                />
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="row">
+                                <div class="mb-3 col-md-6 col-12">
+                                    <input type="text" class="form-control" placeholder="Full name" id="userName" v-model="formData.fullName">
+                                </div>
+                                <div class="mb-3 col-md-6 col-12">
+                                    <InputEmail elId="userEmail" placeholder="Email" v-model="formData.email"/>
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-lg btn-primary button-interactive w-100" @click="joinWaitlist">
+                                        Join waitlist and get curriculum
+                                        <div class="-text-small">(limit 10 students)</div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -197,10 +208,13 @@
     </div>
 </template>
 <script>
+import {SEVERITY} from '../../../globalData';
+import {getAjaxFormData, makeAjaxRequest} from "../../../vueMixins";
 import BannerAlert from "../../components/BannerAlert";
 import dataUtil from "../../../utils/data";
 import CardPricing from "../../components/CardPricing";
 import EditUserModal from "../../modals/EditUserModal";
+import InputEmail from "../../inputs/InputEmail";
 import ListFontAwesome from "../../components/ListFontAwesome";
 import LearnMore from "./LearnMore";
 import OrderedList from '../../components/OrderedList.vue';
@@ -216,18 +230,44 @@ export default {
         BannerAlert,
         CardPricing,
         EditUserModal,
+        InputEmail,
         LearnMore,
         ListFontAwesome,
         OrderedList
     },
-    data() {
-        return {
-            candidateWaitlistAccountType: 'premium_candidate'
-        }
-    },
     methods: {
         openProjectsPage() {
             window.open('/projects/', '_blank').focus();
+        },
+        joinWaitlist(e) {
+            if (!this.formData.fullName) {
+                this.addPopover($('#userName'),
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
+                );
+                return;
+            }
+            if (!this.formData.email) {
+                this.addPopover($('#userEmail'),
+                    {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
+                );
+                return;
+            }
+            makeAjaxRequest(`${this.apiUrl}waitlist/`, {
+                method: 'POST',
+                data: getAjaxFormData({
+                    waitlistType: 'bootcamp',
+                    name: this.formData.fullName,
+                    email: this.formData.email
+                }),
+                success: () => {
+                    this.addAlert({
+                        message: 'You\'re on the waitlist! Check your email for the course curriculum.',
+                        alertType: SEVERITY.SUCCESS
+                    });
+                },
+                error: this.onSaveFailure
+            });
+            this.formData = {};
         },
         signUpWithContext(waitlistType) {
             dataUtil.signUpWithContext(this.initData, waitlistType);

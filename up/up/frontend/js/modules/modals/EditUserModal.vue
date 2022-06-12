@@ -27,7 +27,7 @@
             </label>
             <input type="password" class="form-control" id="userPassword" placeholder="Optional (auto-generated)" v-model="formData.password">
         </div>
-        <LocationInputs ref="locationInputs" :formData="formData"/>
+        <LocationInputs v-if="isShowLocationFields" ref="locationInputs" :formData="formData"/>
         <template v-if="isAdmin && isShowAdminFields">
             <div class="mb-3">
                 <label for="userTypes" class="form-label">User Types</label>
@@ -98,7 +98,28 @@ export default {
     name: "EditUserModal.vue",
     extends: BaseModal,
     inheritAttrs: false,
-    props: ['isContentOnly', 'isShowAdminFields', 'isUpdateDataOverride', 'isHardRefreshOverride'],
+    props: {
+        isContentOnly: {
+            type: Boolean,
+            default: false
+        },
+        isShowAdminFields: {
+            type: Boolean,
+            default: false
+        },
+        isShowLocationFields: {
+            type: Boolean,
+            default: true
+        },
+        isUpdateDataOverride: {
+            type: Boolean,
+            default: false
+        },
+        isHardRefreshOverride: {
+            type: Boolean,
+            default: false
+        }
+    },
     components: {BaseModal, InfoToolTip, InputCheckBox, InputEmail, InputSelectize, LocationInputs},
     data() {
         return {
@@ -164,8 +185,10 @@ export default {
                     employersSelectize.loadEmployerByIdFn(rawData.employerId, this.$refs.userEmployer)
                 );
             }
-            this.$refs.locationInputs.setStateVal(rawData.stateId);
-            this.$refs.locationInputs.setCountryVal(rawData.countryId);
+            if (this.isShowLocationFields) {
+                this.$refs.locationInputs.setStateVal(rawData.stateId);
+                this.$refs.locationInputs.setCountryVal(rawData.countryId);
+            }
             return Object.assign(rawData, {userTypes});
         },
         processFormData() {

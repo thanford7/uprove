@@ -31,7 +31,7 @@ from upapp import security
 from upapp.apis import UproveAPIView, saveActivity, ActivityKey
 from upapp.apis.employer import JobPostingView, OrganizationView
 from upapp.apis.lever import LeverOpportunities
-from upapp.apis.sendEmail import EmailView
+from upapp.apis.sendEmail import EmailView, getAttachment
 from upapp.apis.tag import TagView
 from upapp.models import *
 from upapp.modelSerializers import ContentTypes, getSerializedUser, getSerializedJobApplication, \
@@ -1577,27 +1577,52 @@ class WaitlistView(UproveAPIView):
     def post(self, request):
         if not (email := self.data.get('email')):
             return Response('An email is required', status=status.HTTP_400_BAD_REQUEST)
+        if not (waitlistType := self.data.get('waitlistType')):
+            return Response('A waitlist type is required', status=status.HTTP_400_BAD_REQUEST)
 
+        name = self.data.get('name')
         Waitlist(
+            name=name,
             email=email,
             signUpDateTime=timezone.now(),
-            waitlistType=Waitlist.WaitlistType.MENTOR.value
+            waitlistType=waitlistType
         ).save()
 
-        EmailView.sendEmail(
-            'Uprove | Thanks for your interest in a hiring coach',
-            [email],
-            djangoContext={
-                'supportEmail': EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
-            },
-            djangoEmailBodyTemplate='email/waitlistEmail.html'
-        )
+        djangoContext = {
+            'name': name,
+            'supportEmail': EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP]
+        }
+
+        if waitlistType == Waitlist.WaitlistType.MENTOR.value:
+            EmailView.sendEmail(
+                'Uprove | Thanks for your interest in a hiring coach',
+                [email],
+                fromEmail=EmailView.EMAIL_ADDRESS_SALES,
+                djangoContext=djangoContext,
+                djangoEmailBodyTemplate='email/waitlistMentorEmail.html'
+            )
+        elif waitlistType == Waitlist.WaitlistType.BOOTCAMP.value:
+            curriculumAttachment = getAttachment(
+                'uproveCustomerSuccessCurriculum.pdf',
+                f'{settings.MEDIA_ROOT}/CustomerSuccessBootcampCurriculum.pdf',
+                'application/pdf',
+                'curriculum'
+            )
+
+            EmailView.sendEmail(
+                'Uprove | Confirmed waitlist for Customer Success Bootcamp',
+                [email],
+                fromEmail=EmailView.EMAIL_ADDRESS_SALES,
+                djangoContext=djangoContext,
+                djangoEmailBodyTemplate='email/waitlistBootcampEmail.html',
+                attachments=[curriculumAttachment]
+            )
 
         EmailView.sendEmail(
             'New waitlist signup!',
             EmailView.EMAIL_ROUTES[EmailView.TYPE_CANDIDATE_SIGNUP],
             djangoContext={
-                'bodyContent': email,
+                'bodyContent': f'Email: {email} | Name: {name}',
                 'isInternal': True
             },
             djangoEmailBodyTemplate='email/generalEmail.html'
