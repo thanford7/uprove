@@ -38,79 +38,67 @@
                     <div class="tab-pane fade" :class="(currentTab === 'projects') ? 'show active': ''" id="projects"
                          role="tabpanel">
                         <div class="row justify-content-center mt-2">
-                            <BaseCard
-                                v-for="userProject in initData.userProjects"
-                                :cardItem="userProject"
-                                :elId="getNewElUid()"
-                                :isShowViewMoreLink="false"
-                            >
-                                <template v-slot:outer>
-                                    <div class="badge badge-top -color-darkblue">{{
-                                            userProject.customProject.role
-                                        }}
-                                    </div>
-                                </template>
-                                <template v-slot:header>
+                            <div v-for="userProject in initData.userProjects" class="mb-3">
+                                <h6 class="after-border-middle d-flex align-items-center fw-bolder">
                                     {{ userProject.customProject.projectTitle }}
-                                    <span
-                                        v-if="getFileCount(userProject)"
-                                        class="fa-stack fa-stack-sm float-end"
-                                        :title="`${pluralize('file', getFileCount(userProject))} uploaded`"
-                                    >
-                              <i class="fas fa-file fa-stack-2x"></i>
-                              <strong class="fa-stack-1x -color-white-text">{{ getFileCount(userProject) }}</strong>
-                            </span>
-                                </template>
-                                <template v-slot:body>
-                                    <div class="mb-1 pb-1 -border-bottom--light">
-                                        <div class="text-label text-label-sm">SKILLS</div>
-                                        <BadgesSkills :skills="userProject.customProject.skills"/>
-                                    </div>
-                                    <div>
-                                        <a :href="`/project/${userProject.customProject.projectId}/?${getCustomProjectQueryParams(userProject.customProject)}`"
-                                           target="_blank">
-                                            <i class="fas fa-external-link-alt"></i>
-                                            View project instructions
-                                        </a>
-                                    </div>
-                                    <div>
-                                        <div
-                                            class="form-check form-switch mt-2"
-                                            :title="getProjectCompleteLockedNote(userProject)"
+                                </h6>
+                                <div class="mb-2">
+                                    <div class="mt-2 me-2" style="display: inline-block">
+                                        <button
+                                            class="btn btn-primary btn-sm"
+                                            @click="eventBus.emit('open:editUserProjectModal', userProject)"
                                         >
-                                            <input class="form-check-input" type="checkbox" id="projectStatus"
-                                                   :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
-                                                   @change="toggleProjectComplete(userProject, $event)"
-                                                   :disabled="!getFileCount(userProject)"
-                                            >
-                                            <label class="form-check-label" for="projectStatus">
-                                                <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
-                                                             :content="CONTENT.draftStatusInfo + CONTENT.completeStatusInfo"/>
-                                                Project complete
-                                            </label>
-                                        </div>
-                                        <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox"
-                                                   :checked="userProject.isHidden"
-                                                   @change="toggleProjectHidden(userProject, $event)"
-                                            >
-                                            <label class="form-check-label">
-                                                <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
-                                                             :content="CONTENT.hiddenStatusInfo"/>
-                                                Project hidden
-                                            </label>
-                                        </div>
-                                        <div class="mt-2">
-                                            <button
-                                                class="btn btn-primary btn-sm w-100"
-                                                @click="eventBus.emit('open:editUserProjectModal', userProject)"
-                                            >
-                                                Edit project files
-                                            </button>
-                                        </div>
+                                            Edit project
+                                        </button>
                                     </div>
-                                </template>
-                            </BaseCard>
+                                    <div
+                                        class="form-check form-switch mt-2 me-2"
+                                        :title="getProjectCompleteLockedNote(userProject)"
+                                        style="display: inline-block"
+                                    >
+                                        <input class="form-check-input" type="checkbox" id="projectStatus"
+                                               :checked="(userProject.status === globalData.PROJECT_STATUSES.COMPLETE)"
+                                               @change="toggleProjectComplete(userProject, $event)"
+                                               :disabled="!getFileCount(userProject)"
+                                        >
+                                        <label class="form-check-label" for="projectStatus">
+                                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
+                                                         :content="CONTENT.draftStatusInfo + CONTENT.completeStatusInfo"/>
+                                            Project complete
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mt-2" style="display: inline-block">
+                                        <input class="form-check-input" type="checkbox"
+                                               :checked="userProject.isHidden"
+                                               @change="toggleProjectHidden(userProject, $event)"
+                                        >
+                                        <label class="form-check-label">
+                                            <InfoToolTip :elId="getNewElUid()" :isHtmlContent="true"
+                                                         :content="CONTENT.hiddenStatusInfo"/>
+                                            Project hidden
+                                        </label>
+                                    </div>
+                                </div>
+                                <BadgesSkills :skills="userProject.customProject.skills"/>
+                                <div class="mt-2">
+                                    <div class="-color-moderategrey-text" v-html="userProject.customProject.projectDescription"></div>
+                                </div>
+                                <div>
+                                    <a :href="`/project/${userProject.customProject.projectId}/?${getCustomProjectQueryParams(userProject.customProject)}`"
+                                       target="_blank">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        View project instructions
+                                    </a>
+                                </div>
+                                <div v-if="getFileCount(userProject)" class="mt-2">
+                                    <h6>Files</h6>
+                                    <div v-for="file in getAllFiles(userProject)">
+                                        <FileDisplay
+                                            :file="file"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                             <div v-if="!initData.userProjects.length">
                                 <a href="/projects/">
                                     Find a project to get started
@@ -325,14 +313,6 @@ export default {
                 this.deleteObject();
             }
         },
-        deleteProject(userProject) {
-            this.resetAjaxSettings();
-            this.crudUrl = 'user-project/';
-            this.formData = {id: userProject.id};
-            if (window.confirm('Are you sure you want to delete this project?')) {
-                this.deleteObject();
-            }
-        },
         updateAppSubmission(app, isSubmit) {
             this.resetAjaxSettings();
             this.crudUrl = 'user-job-application/';
@@ -346,6 +326,9 @@ export default {
                 this.formData.withdrawDateTime = dateUtil.serializeDateTime(dayjs());
             }
             this.readAndSubmitForm();
+        },
+        getAllFiles(userProject) {
+            return [...userProject.videos, ...userProject.images, ...userProject.files];
         },
         getFileCount(userProject) {
             return userProject.videos.length + userProject.images.length + userProject.files.length;

@@ -23,7 +23,9 @@
             </label>
         </div>
         <div v-if="addContentType === contentTypes.PROJECT">
-            <label class="form-label">Projects</label>
+            <label class="form-label">
+                Projects&nbsp;<InfoToolTip :elId="getNewElUid()" content="Only projects that are completed and not hidden can be added to your profile. You can change these project settings on your dashboard page."/>
+            </label>
             <InputSelectize
                 :elId="getNewElUid()"
                 ref="contentProject"
@@ -51,7 +53,7 @@
     </BaseModal>
 </template>
 <script>
-import {CONTENT_TYPES, PROFILE_SECTIONS, SEVERITY} from '../../globalData';
+import PROJECT_STATUSES, {CONTENT_TYPES, PROFILE_SECTIONS, SEVERITY} from '../../globalData';
 import BaseModal from './BaseModal.vue';
 import ContentSelectize from '../inputs/ContentSelectize.vue';
 import EditCertificationModal from "./EditCertificationModal";
@@ -89,7 +91,7 @@ export default {
                 .find((s) => s.sectionType === PROFILE_SECTIONS.PROJECTS)
                 .sectionItems.map((si) => si.item.id)
             return (this.initData.assets[this.contentTypes.PROJECT] || [])
-                .filter((p) => !alreadySelectedIds.includes(p.id))
+                .filter((p) => !alreadySelectedIds.includes(p.id) && !p.isHidden && p.status === this.globalData.PROJECT_STATUSES.COMPLETE)
                 .map((p) => ({id: p.id, title: p.customProject.projectTitle, role: p.customProject.role})
             );
         },

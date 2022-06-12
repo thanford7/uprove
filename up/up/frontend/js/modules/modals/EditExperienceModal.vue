@@ -42,7 +42,7 @@
             />
         </div>
         <div class="row mb-3">
-            <div class="col-lg-3 col-md-4">
+            <div id="startDate" class="col-lg-3 col-md-4">
                 <label class="form-label">Start month</label>
                 <InputMonthYear ref="startDate"  :value="formData.startDate" @change="formData.startDate = $event"/>
             </div>
@@ -83,7 +83,7 @@ export default {
             formData: this.getDefaultForm(),
             requiredFields: {
                 positionTitle: '#positionTitle',
-                startDate: null,
+                startDate: '#startDate',
                 employmentType: null
             },
             mediaFields: new Set(['organization.newLogo']),
@@ -168,5 +168,8 @@ export default {
             }
         }
     },
+    mounted() {
+        this.requiredFields.employmentType = this.$refs.employmentType.targetEl;
+    }
 }
 </script>
