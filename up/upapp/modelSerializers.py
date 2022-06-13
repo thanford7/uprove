@@ -349,8 +349,8 @@ def getSerializedTrainingCourse(course: TrainingCourse):
         'title': course.title,
         'shortDescription': course.shortDescription,
         'coverImage': course.coverImage.url,
-        'urlSalesPage': course.urlSalesPage,
-        'urlCoursePage': course.urlCoursePage,
+        'salesPageSlug': course.salesPageSlug,
+        'teachableCourseId': course.teachableCourseId,
         'priceBasic': course.priceBasic,
     }
 

@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 
 from upapp import security
+from upapp.apis.training import TrainingCourseView
 from upapp.modelSerializers import *
 from upapp.apis.blog import BlogPostView
 from upapp.apis.employer import EmployerView, JobPostingView
@@ -192,6 +193,12 @@ def candidateOnboard(request):
 
 def contact(request):
     return render(request, 'contact.html', context={})
+
+
+def courses(request):
+    return render(request, 'courses.html', context={'data': dumps({
+        'courses': [getSerializedTrainingCourse(c) for c in TrainingCourseView.getCourses()]
+    })})
 
 
 def credits(request):

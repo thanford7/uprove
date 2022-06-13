@@ -364,8 +364,7 @@ class TrainingCourse(models.Model):
     title = models.CharField(max_length=200)
     shortDescription = models.TextField()
     coverImage = models.ImageField(upload_to=getUploadLocation('uploads-course'))
-    urlSalesPage = models.CharField(max_length=50)
-    urlCoursePage = models.CharField(max_length=50)
+    salesPageSlug = models.CharField(max_length=70)
     teachableCourseId = models.CharField(max_length=20)
     priceBasic = models.FloatField()
 

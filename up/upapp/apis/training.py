@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.db.transaction import atomic
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -27,6 +28,7 @@ class TrainingCourseView(UproveAPIView):
             data=data
         )
 
+    @atomic
     def post(self, request):
         if not security.isPermittedAdmin(user=self.user):
             return Response('You are not authorized to post course content', status=status.HTTP_401_UNAUTHORIZED)
@@ -36,6 +38,7 @@ class TrainingCourseView(UproveAPIView):
         course.save()
         return Response(status=status.HTTP_200_OK, data=getSerializedTrainingCourse(course))
 
+    @atomic
     def put(self, request, courseId=None):
         if not security.isPermittedAdmin(user=self.user):
             return Response('You are not authorized to post course content', status=status.HTTP_401_UNAUTHORIZED)
@@ -85,9 +88,10 @@ class TrainingCourseView(UproveAPIView):
         dataUtil.setObjectAttributes(course, data, {
             'title': None,
             'shortDescription': None,
-            'coverImage': None,
-            'urlSalesPage': None,
-            'urlCoursePage': None,
+            'salesPageSlug': None,
             'teachableCourseId': None,
             'priceBasic': None,
         })
+
+        if newCoverImage := data.get('newCoverImage'):
+            course.coverImage = newCoverImage

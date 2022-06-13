@@ -263,7 +263,7 @@ class DataUtil {
         let currentTarget = obj;
         for (let i = 0; i < keyPath.length; i++) {
             currentTarget = currentTarget[keyPath[i]];
-            if (!currentTarget) {
+            if (this.isNil(currentTarget)) {
                 return defaultValue;
             }
         }

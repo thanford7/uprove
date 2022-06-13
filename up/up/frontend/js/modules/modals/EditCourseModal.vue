@@ -27,16 +27,12 @@
                 itemLabel="Cover Image"
                 :currentItem="formData.coverImage"
                 :isUploadDefault="true"
-                @selectedMediaNew="formData.coverImage = $event"
+                @selectedMediaNew="formData.newCoverImage = $event"
             />
         </div>
         <div class="mb-3">
-            <label for="courseSalesUrl" class="form-label">Teachable Sales Page</label>
-            <input type="text" class="form-control" placeholder="Required" id="courseSalesUrl" v-model="formData.urlSalesPage">
-        </div>
-        <div class="mb-3">
-            <label for="courseUrl" class="form-label">Teachable Course Page</label>
-            <input type="text" class="form-control" placeholder="Required" id="courseUrl" v-model="formData.urlCoursePage">
+            <label for="courseSalesSlug" class="form-label">Teachable Sales Page Slug</label>
+            <input type="text" class="form-control" placeholder="Required" id="courseSalesSlug" v-model="formData.salesPageSlug">
         </div>
         <div class="mb-3">
             <label for="courseTeachableId" class="form-label">Teachable Course ID</label>
@@ -56,6 +52,7 @@
 
 <script>
 import BaseModal from "./BaseModal";
+import dataUtil from "../../utils/data";
 import InputSelectize from "../inputs/InputSelectize";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
 
@@ -72,13 +69,24 @@ export default {
             requiredFields: {
                 title: '#courseTitle',
                 shortDescription: '#courseDescription',
-                coverImage: '#courseImage',
-                urlSalesPage: '#courseSalesUrl',
-                urlCoursePage: '#courseUrl',
+                salesPageSlug: '#courseSalesSlug',
                 teachableCourseId: '#courseTeachableId',
                 priceBasic: '#courseBasicPrice'
             },
+            mediaFields: ['newCoverImage']
         }
     },
+    methods: {
+        isGoodFormFields(formData) {
+            // Check if image has already been saved or was uploaded
+            if (!formData.coverImage && !formData.newCoverImage) {
+                this.addPopover($('#courseImage'),
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
+                    );
+                return false;
+            }
+            return true;
+        },
+    }
 }
 </script>

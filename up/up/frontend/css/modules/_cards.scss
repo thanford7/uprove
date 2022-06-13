@@ -128,6 +128,35 @@ $card-radius: 10px;
     }
 }
 
+.card-course {
+    @include card;
+    position: relative;
+
+    &__cover {
+        margin-top: -10px;
+        margin-left: -10px;
+        margin-right: -10px;
+
+        img {
+            border-top-left-radius: $card-radius;
+            border-top-right-radius: $card-radius;
+            border-bottom: 1px solid $color-lightgrey;
+        }
+    }
+
+    &__price {
+        font-weight: 600;
+        position: absolute;
+        color: $color-white;
+        left: 8px;
+        top: 8px;
+    }
+
+    &__description {
+        padding: 1em;
+    }
+}
+
 .collapse-card {
     padding: 0;
     .collapse-div {

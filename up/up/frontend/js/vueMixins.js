@@ -294,8 +294,9 @@ const ajaxRequestMixin = {
             return true;
         },
         hasRequiredFormFields(formData) {
+            console.log(formData);
             return Object.entries(this.requiredFields).reduce((hasRequired, [field, domSel]) => {
-                if (!dataUtil.get(formData, field)) {
+                if (dataUtil.isNil(dataUtil.get(formData, field))) {
                     this.addPopover($(domSel),
                         {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
