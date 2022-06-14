@@ -71,7 +71,7 @@ export default {
         },
         setProjectItemHeight() {
             let containerMaxHeight = 0;
-            const projectItems = $('.project-item');
+            const projectItems = $('.project-item video, .project-item img');
             projectItems.each((idx, el) => {
                 const height = $(el).height();
                 containerMaxHeight = Math.max(containerMaxHeight, height);
@@ -89,10 +89,6 @@ export default {
     },
     mounted() {
         this.updateSkillLevels();
-        this.setProjectItemHeight();
-        $(window).on('resize', () => {
-            this.setProjectItemHeight();
-        });
     },
     updated() {
         this.updateSkillLevels();
