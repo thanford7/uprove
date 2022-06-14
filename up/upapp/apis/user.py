@@ -1618,9 +1618,10 @@ class WaitlistView(UproveAPIView):
                 djangoEmailBodyTemplate='email/waitlistMentorEmail.html'
             )
         elif waitlistType == Waitlist.WaitlistType.BOOTCAMP.value:
+            baseMediaLocation = settings.MEDIA_ROOT if settings.USE_LOCAL else settings.MEDIA_URL
             curriculumAttachment = getAttachment(
                 'uproveCustomerSuccessCurriculum.pdf',
-                f'{settings.MEDIA_ROOT}/CustomerSuccessBootcampCurriculum.pdf',
+                f'{baseMediaLocation}/CustomerSuccessBootcampCurriculum.pdf',
                 'application/pdf',
                 'curriculum'
             )
