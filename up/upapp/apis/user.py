@@ -1619,6 +1619,8 @@ class WaitlistView(UproveAPIView):
             )
         elif waitlistType == Waitlist.WaitlistType.BOOTCAMP.value:
             baseMediaLocation = settings.MEDIA_ROOT if settings.USE_LOCAL else settings.MEDIA_BASE
+            logger.info(f'Media URL: {baseMediaLocation}')
+            print(f'Media URL: {baseMediaLocation}')
             curriculumAttachment = getAttachment(
                 'uproveCustomerSuccessCurriculum.pdf',
                 f'{baseMediaLocation}/CustomerSuccessBootcampCurriculum.pdf',
@@ -1626,14 +1628,18 @@ class WaitlistView(UproveAPIView):
                 'curriculum'
             )
 
-            EmailView.sendEmail(
-                'Uprove | Confirmed waitlist for Customer Success Bootcamp',
-                [email],
-                fromEmail=EmailView.EMAIL_ADDRESS_SALES,
-                djangoContext=djangoContext,
-                djangoEmailBodyTemplate='email/waitlistBootcampEmail.html',
-                attachments=[curriculumAttachment]
-            )
+            try:
+                EmailView.sendEmail(
+                    'Uprove | Confirmed waitlist for Customer Success Bootcamp',
+                    [email],
+                    fromEmail=EmailView.EMAIL_ADDRESS_SALES,
+                    djangoContext=djangoContext,
+                    djangoEmailBodyTemplate='email/waitlistBootcampEmail.html',
+                    attachments=[curriculumAttachment]
+                )
+            except Exception as e:
+                logger.info(e)
+                print(e)
 
         EmailView.sendEmail(
             'New waitlist signup!',
