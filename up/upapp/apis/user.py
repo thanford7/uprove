@@ -1618,8 +1618,7 @@ class WaitlistView(UproveAPIView):
                 djangoEmailBodyTemplate='email/waitlistMentorEmail.html'
             )
         elif waitlistType == Waitlist.WaitlistType.BOOTCAMP.value:
-            S3_URL = f'{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}/{settings.AWS_LOCATION}/'
-            baseMediaLocation = settings.MEDIA_ROOT if settings.USE_LOCAL else S3_URL
+            baseMediaLocation = settings.MEDIA_ROOT if settings.USE_LOCAL else settings.MEDIA_BASE
             curriculumAttachment = getAttachment(
                 'uproveCustomerSuccessCurriculum.pdf',
                 f'{baseMediaLocation}/CustomerSuccessBootcampCurriculum.pdf',
