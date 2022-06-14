@@ -86,11 +86,13 @@ class LoginPageView(viewsDjangoAuth.LoginView):
 class LoginView(APIView):
 
     def post(self, request):
+        logger.info('Hit login')
         email = request.data['email']
         password = request.data['password']
         if not email or not password:
             return Response(status=HTTPStatus.BAD_REQUEST)
 
+        logger.info('About to authenticate')
         user = authenticate(username=email, password=password)
         return self.loginUser(request, user)
 

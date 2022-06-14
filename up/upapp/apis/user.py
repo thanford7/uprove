@@ -40,6 +40,9 @@ from upapp.modelSerializers import ContentTypes, getSerializedUser, getSerialize
     getSerializedUserEducation, getSerializedUserCertification, getSerializedUserContentItem, getSerializedEmployerJob, \
     getSerializedRoleLevel
 from upapp.utils import dataUtil, dateUtil
+from upapp.utils.logger import getLogger
+
+logger = getLogger()
 
 CONTENT_TYPE_MODELS = {
     ContentTypes.EXPERIENCE.value: {'model': UserExperience, 'serializer': getSerializedUserExperience},
