@@ -166,7 +166,7 @@ def getSerializedUser(user: User, isIncludeAssets: bool = False):
             'completionPct': c.completionPct,
             'enrolledDateTime': getDateTimeFormatOrNone(c.enrolledDateTime),
             'completedDateTime': getDateTimeFormatOrNone(c.completedDateTime)
-        } for c in user.teachableUser.userTraining.all()] if user.teachableUser else [],
+        } for c in user.teachableUser.userTraining.all()] if hasattr(user, 'teachableUser') else [],
         **serializeAuditFields(user)
     }
 
