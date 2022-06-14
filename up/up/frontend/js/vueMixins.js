@@ -265,6 +265,9 @@ const ajaxRequestMixin = {
             // subclass
         },
         onSaveFailure(xhr, textStatus, errorThrown) {
+            console.log(xhr);
+            console.log(textStatus);
+            console.log(errorThrown);
             store.commit('addAlert', {
                 message: this.getFailureMessage(errorThrown, xhr),
                 alertType: SEVERITY.DANGER
