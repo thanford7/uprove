@@ -76,7 +76,9 @@ export default {
                 const height = $(el).height();
                 containerMaxHeight = Math.max(containerMaxHeight, height);
             });
-
+            if (containerMaxHeight === 0) {
+                return;
+            }
             projectItems.each((idx, el) => {
                 $(el).height(containerMaxHeight);
             });
