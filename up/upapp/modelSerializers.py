@@ -161,6 +161,12 @@ def getSerializedUser(user: User, isIncludeAssets: bool = False):
             'remoteBits': user.preferenceRemoteBits,
             'salary': user.preferenceSalary
         },
+        'courses': [{
+            'courseId': c.course_id,
+            'completionPct': c.completionPct,
+            'enrolledDateTime': getDateTimeFormatOrNone(c.enrolledDateTime),
+            'completedDateTime': getDateTimeFormatOrNone(c.completedDateTime)
+        } for c in user.teachableUser.userTraining.all()] if user.teachableUser else [],
         **serializeAuditFields(user)
     }
 
@@ -349,6 +355,7 @@ def getSerializedTrainingCourse(course: TrainingCourse):
         'title': course.title,
         'shortDescription': course.shortDescription,
         'coverImage': course.coverImage.url,
+        'certificateImage': course.certificateImage.url,
         'salesPageSlug': course.salesPageSlug,
         'teachableCourseId': course.teachableCourseId,
         'priceBasic': course.priceBasic,

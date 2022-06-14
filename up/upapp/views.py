@@ -196,8 +196,12 @@ def contact(request):
 
 
 def courses(request):
+    user = security.getSessionUser(request)
+    if user:
+        user = UserView.getUser(user.id)
     return render(request, 'courses.html', context={'data': dumps({
-        'courses': [getSerializedTrainingCourse(c) for c in TrainingCourseView.getCourses()]
+        'courses': [getSerializedTrainingCourse(c) for c in TrainingCourseView.getCourses()],
+        'user': None if not user else getSerializedUser(user)
     })})
 
 
@@ -364,7 +368,8 @@ def getProfileData(request, profileId):
     user = security.getSessionUser(request)
     isOwner = security.isSelf(profile.user_id, user=user)
     data = getSerializedUserProfile(profile, isOwner=isOwner)
-    if user.isEmployer and not isOwner:
+    data['courses'] = [getSerializedTrainingCourse(c) for c in TrainingCourseView.getCourses()]
+    if user and user.isEmployer and not isOwner:
         applications = UserJobApplicationView.getUserJobApplications(userId=profile.user_id, employerId=user.employer_id)
         data['applications'] = [getSerializedJobApplication(app) for app in applications]
     return data

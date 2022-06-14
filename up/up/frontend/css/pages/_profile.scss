@@ -141,3 +141,15 @@
     border-radius: 10px;
     padding: 8px;
 }
+
+.certification {
+    border: 1px solid $color-lightgrey;
+    border-radius: 10px;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    font-weight: bold;
+
+    img {
+        padding-left: 8px;
+    }
+}

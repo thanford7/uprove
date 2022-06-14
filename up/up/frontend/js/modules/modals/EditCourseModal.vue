@@ -31,6 +31,16 @@
             />
         </div>
         <div class="mb-3">
+            <InputOrViewMedia
+                inputId="certificateImage"
+                :mediaTypes="[globalData.CONTENT_TYPES.IMAGE]"
+                itemLabel="Certificate Image"
+                :currentItem="formData.certificateImage"
+                :isUploadDefault="true"
+                @selectedMediaNew="formData.newCertificateImage = $event"
+            />
+        </div>
+        <div class="mb-3">
             <label for="courseSalesSlug" class="form-label">Teachable Sales Page Slug</label>
             <input type="text" class="form-control" placeholder="Required" id="courseSalesSlug" v-model="formData.salesPageSlug">
         </div>
@@ -52,7 +62,6 @@
 
 <script>
 import BaseModal from "./BaseModal";
-import dataUtil from "../../utils/data";
 import InputSelectize from "../inputs/InputSelectize";
 import InputOrViewMedia from "../inputs/InputOrViewMedia";
 
@@ -73,7 +82,7 @@ export default {
                 teachableCourseId: '#courseTeachableId',
                 priceBasic: '#courseBasicPrice'
             },
-            mediaFields: ['newCoverImage']
+            mediaFields: ['newCoverImage', 'newCertificateImage']
         }
     },
     methods: {
@@ -81,6 +90,12 @@ export default {
             // Check if image has already been saved or was uploaded
             if (!formData.coverImage && !formData.newCoverImage) {
                 this.addPopover($('#courseImage'),
+                {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
+                    );
+                return false;
+            }
+            if (!formData.certificateImage && !formData.newCertificateImage) {
+                this.addPopover($('#certificateImage'),
                 {severity: SEVERITY.WARN, content: 'Required field', isOnce: true}
                     );
                 return false;

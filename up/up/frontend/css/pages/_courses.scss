@@ -1,0 +1,13 @@
+@use '../abstracts' as *;
+
+.courses-background {
+    height: 40vh;
+    color: $color-white;
+    background-color: $color-darkblue;
+    margin-top: 2px;
+
+    .row {
+        height: 40vh;
+        border-bottom: 1px solid $color-lightgrey;
+    }
+}

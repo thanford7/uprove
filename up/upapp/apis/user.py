@@ -405,7 +405,7 @@ class UserView(UproveAPIView):
     def getUser(userId):
         try:
             return User.objects \
-                .select_related('djangoUser', 'country', 'state') \
+                .select_related('djangoUser', 'teachableUser', 'country', 'state') \
                 .prefetch_related(
                     'profile',
                     'profile__section',
@@ -422,6 +422,7 @@ class UserView(UproveAPIView):
                     'video',
                     'file',
                     'image',
+                    'teachableUser__userTraining',
                     'userTag',
                     'userTag__tag',
                     'userProject',
@@ -470,7 +471,7 @@ class UserView(UproveAPIView):
         if not filter:
             filter = Q()
         return User.objects\
-            .select_related('djangoUser')\
+            .select_related('djangoUser', 'teachableUser')\
             .prefetch_related(
                 'image',
                 'profile',
@@ -478,7 +479,8 @@ class UserView(UproveAPIView):
                 'preferenceCompanySizes',
                 'preferenceRoles',
                 'preferenceState',
-                'preferenceCountry'
+                'preferenceCountry',
+                'teachableUser__userTraining'
             )\
             .filter(filter)
 
@@ -551,6 +553,15 @@ class UserView(UproveAPIView):
             createdDateTime=timezone.now()
         )
         user.save()
+
+        # Link user with teachable user account if it exists
+        try:
+            teachableUser = TeachableUser.objects.get(email=user.email)
+            teachableUser.user = user
+            teachableUser.save()
+        except TeachableUser.DoesNotExist:
+            pass
+
         UserProfileView.createUserProfile(user.id, isPrimary=True)
         saveActivity(ActivityKey.CREATE_ACCOUNT, user.id)
 
@@ -678,10 +689,12 @@ class UserProfileView(UproveAPIView):
                     'user__video',
                     'user__file',
                     'user__image',
-                    'user__userTag'
+                    'user__userTag',
+                    'user__teachableUser__userTraining'
                 ) \
                 .select_related(
-                    'user'
+                    'user',
+                    'user__teachableUser'
                 ) \
                 .get(id=profileId)
         except UserProfile.DoesNotExist as e:

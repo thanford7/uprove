@@ -97,6 +97,7 @@ urlpatterns = [
 
     # Teachable
     re_path(f'^{apiPath}teachable/enroll/?$', teachable.TeachableEnrolled.as_view()),
+    re_path(f'^{apiPath}teachable/progress/?$', teachable.TeachableCourseProgress.as_view()),
 
     # Storage
     path(apiPath + 'user-storage/', storage.UserStorageView.as_view()),

@@ -386,6 +386,9 @@ const globalVarsMixin = {
         addAlert,
         getNewElUid,
         isSelf(userId) {
+            if (!userId || !this.globalData.uproveUser) {
+                return false;
+            }
             return this.globalData.uproveUser.id === userId;
         },
         log(val) {

@@ -95,3 +95,6 @@ class TrainingCourseView(UproveAPIView):
 
         if newCoverImage := data.get('newCoverImage'):
             course.coverImage = newCoverImage
+
+        if newCertificateImage := data.get('newCertificateImage'):
+            course.certificateImage = newCertificateImage

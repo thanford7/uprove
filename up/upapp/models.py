@@ -14,7 +14,7 @@ __all__ = (
     'EmployerInterest', 'Role', 'Skill', 'Project', 'ProjectEvaluationCriterion',
     'ProjectFile', 'Employer', 'EmployerCandidateFavorite', 'CustomProject', 'EmployerJob',
     'UserJobApplication', 'UserProjectEvaluationCriterion', 'UserProject', 'BlogPost', 'BlogTag', 'Waitlist',
-    'CompanySize', 'Country', 'State', 'RoleLevel', 'Activity', 'TrainingCourse', 'UserTraining'
+    'CompanySize', 'Country', 'State', 'RoleLevel', 'Activity', 'TrainingCourse', 'UserTraining', 'TeachableUser'
 )
 
 
@@ -135,6 +135,14 @@ class User(AuditFields):
     @property
     def primaryProfile(self):
         return next((p for p in self.profile.all() if p.isPrimary), None)
+
+
+class TeachableUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, related_name='teachableUser')
+    name = models.CharField(max_length=20)
+    email = models.EmailField(unique=True)
+    teachableUserId = models.CharField(max_length=20)
+    createdDateTime = models.DateTimeField()
 
 
 class UserProfile(AuditFields):
@@ -364,6 +372,7 @@ class TrainingCourse(models.Model):
     title = models.CharField(max_length=200)
     shortDescription = models.TextField()
     coverImage = models.ImageField(upload_to=getUploadLocation('uploads-course'))
+    certificateImage = models.ImageField(upload_to=getUploadLocation('uploads-course'))
     salesPageSlug = models.CharField(max_length=70)
     teachableCourseId = models.CharField(max_length=20)
     priceBasic = models.FloatField()
@@ -593,14 +602,14 @@ class UserProject(AuditFields):
 
 
 class UserTraining(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userTraining')
+    teachableUser = models.ForeignKey(TeachableUser, on_delete=models.PROTECT, related_name='userTraining')
     course = models.ForeignKey(TrainingCourse, on_delete=models.CASCADE)
     completionPct = models.IntegerField(default=0)
     enrolledDateTime = models.DateTimeField()
     completedDateTime = models.DateTimeField(null=True)
 
     class Meta:
-        unique_together = ('user', 'course')
+        unique_together = ('teachableUser', 'course')
 
 
 class BlogPost(AuditFields):
