@@ -96,6 +96,7 @@ export default {
     },
     updated() {
         this.updateSkillLevels();
+        this.setProjectItemHeight();
     }
 }
 </script>
