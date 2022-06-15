@@ -321,7 +321,7 @@ class JobPostingView(UproveAPIView):
         return (
             cp.project_id if hasattr(cp, 'project_id') else cp.id,
             ','.join(skillIds),
-            cp.skillLevelBit
+            cp.skillLevelBit if hasattr(cp, 'skillLevelBit') else 1
         )
 
 

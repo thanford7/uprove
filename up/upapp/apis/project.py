@@ -85,7 +85,6 @@ class ProjectView(UproveAPIView):
             'description': None,
             'background': None,
             'instructions': None,
-            'employer_id': {'formName': 'employerId'}
         })
         if image := self.data.get('image'):
             project.image = image
