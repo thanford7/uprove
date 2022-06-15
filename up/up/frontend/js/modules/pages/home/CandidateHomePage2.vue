@@ -269,8 +269,8 @@ export default {
             });
             this.formData = {};
         },
-        signUpWithContext(waitlistType) {
-            dataUtil.signUpWithContext(this.initData, waitlistType);
+        signUpWithContext() {
+            dataUtil.signUpWithContext(this.initData);
         }
     },
 }
