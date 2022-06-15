@@ -357,17 +357,6 @@ class UserProjectEvaluationView(UproveAPIView):
                 ).save()
 
         userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
-        for app in userProject.jobApplication.all():
-            if app.leverOpportunityKey:
-                employer = EmployerView.getEmployer(app.employerJob.employer_id)
-                getLeverRequestWithRefresh(
-                    employer,
-                    f'opportunities/{app.leverOpportunityKey}/addTags',
-                    bodyCfg={
-                        'tags': ['uprove-assessment-scored']},
-                    isJSON=True,
-                    method='POST'
-                )
 
         return Response(status=status.HTTP_200_OK)
 

@@ -13,7 +13,7 @@ class UserProjectUtil {
         score = score || this.getEvaluationScore(evalCriteria);
         for (let i = 0; i < PROJECT_EVAL_CUTOFFS.length; i++) {
             const {color, cutoff} = PROJECT_EVAL_CUTOFFS[i];
-            if (score < cutoff) {
+            if (score <= cutoff) {
                 return color;
             }
         }
