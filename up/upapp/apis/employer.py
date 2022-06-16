@@ -330,7 +330,6 @@ class UserProjectEvaluationView(UproveAPIView):
 
     @atomic
     def put(self, request):
-        from upapp.apis.user import UserProjectView  # Avoid circular import
         if not any([self.isAdmin, self.isEmployer]):
             return Response('You are not permitted to evaluate this project', status=status.HTTP_401_UNAUTHORIZED)
 
@@ -355,8 +354,6 @@ class UserProjectEvaluationView(UproveAPIView):
                     createdDateTime=timezone.now(),
                     modifiedDateTime=timezone.now()
                 ).save()
-
-        userProject = UserProjectView.getUserProjects(userProjectId=userProjectId)
 
         return Response(status=status.HTTP_200_OK)
 

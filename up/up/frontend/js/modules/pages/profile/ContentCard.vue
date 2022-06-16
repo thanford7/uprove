@@ -2,6 +2,14 @@
     <div :id="elId" class="col-12 content-item">
         <div class="item-header">
             <h6 class="after-border-middle d-flex align-items-center fw-bolder">
+                <div
+                    id="uproveApproved"
+                    v-if="item.type === contentTypes.PROJECT && item.projectEvalScorePct > highQualityEvalScorePctCutoff"
+                    class="uprove-approved me-2"
+                >
+                    <i class="fas fa-certificate fa-2x -color-orange-text"></i>
+                    <img :src="globalData.STATIC_URL + 'img/logoOnly.png'" alt="Uprove logo">
+                </div>
                 {{cardTitle}}
             </h6>
             <div>
@@ -38,6 +46,8 @@ import contentUtil from "../../../utils/content";
 import dataUtil from "../../../utils/data";
 import EvaluationScoreBadge from "./EvaluationScoreBadge";
 import ViewMoreLink from '../../components/ViewMoreLink.vue';
+import InfoToolTip from "../../components/InfoToolTip";
+import {Popover} from "bootstrap";
 
 export default {
     data() {
@@ -47,10 +57,13 @@ export default {
             isUpdateData: true,
             updateDeleteMethod: 'POST',
             el$: null,
-            contentTypes: CONTENT_TYPES
+            contentTypes: CONTENT_TYPES,
+            highQualityEvalScorePctCutoff: 70,
+            approvedPopover: null
         }
     },
     components: {
+        InfoToolTip,
         ContentCertification,
         ContentEducation,
         ContentExperience,
@@ -88,6 +101,29 @@ export default {
             }
             this.deleteObject();
         },
+        initApprovedTooltip() {
+            const el$ = $('#uproveApproved');
+            if (!this.approvedPopover && el$.length) {
+                let container = 'body';
+                const modalParent = el$.parents('.modal');
+                if (modalParent.length) {
+                    container = `#${$(modalParent[0]).attr('id')}`;
+                }
+                this.approvedPopover = new Popover(el$, {
+                    content: 'This project was review by a Uprove expert and evaluated as high quality',
+                    html: false,
+                    container,
+                    placement: 'auto',
+                    trigger: 'hover'
+                });
+            }
+        }
     },
+    mounted() {
+        this.initApprovedTooltip();
+    },
+    updated() {
+        this.initApprovedTooltip();
+    }
 }
 </script>

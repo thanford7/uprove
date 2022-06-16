@@ -126,6 +126,7 @@ const globalDataGetter = () => {
         },
         LOOM_API_KEY: 'db47f7c0-e863-4ed8-ac6e-2c9872ad5c00',
         PROJECT_STATUSES,
+        SEVERITY,
         SKILL_LEVEL: {
             1: {
                 title: 'Entry-Intermediate Level',
